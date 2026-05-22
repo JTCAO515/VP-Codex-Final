@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>VisePanda AI — Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600&family=Noto+Serif+SC:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0a0e16; --card: #0f1624; --card-hover: #131d30;
+  --border: #1a2740; --gold: #c9a96e; --gold-light: #e0c78c;
+  --text: #e0d8cc; --text-dim: #8a8578; --text-muted: #555148;
+  --danger: #c94a4a; --success: #4aa47a; --info: #4a7ac9;
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-cn: 'Noto Serif SC', serif;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;}
+
+/* Login */
+.login-wrap {
+  display:flex;align-items:center;justify-content:center;min-height:100vh;
+  background:radial-gradient(ellipse at 50% 30%, rgba(201,169,110,0.04) 0%, transparent 60%);
+}
+.login-card {
+  background:var(--card);border:1px solid var(--border);border-radius:20px;
+  padding:40px 32px;width:90%;max-width:380px;text-align:center;
+}
+.login-card h1{font-family:var(--font-display);font-size:28px;color:var(--gold-light);margin-bottom:4px;}
+.login-card h1 span{font-family:var(--font-cn);font-size:16px;color:var(--text-dim);font-weight:300;}
+.login-card p{color:var(--text-dim);font-size:13px;margin-bottom:24px;}
+.login-card input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:15px;margin-bottom:12px;outline:none;transition:border-color .3s;}
+.login-card input:focus{border-color:var(--gold);}
+.login-card button{width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#8b7355,var(--gold));color:var(--bg);font-size:15px;font-weight:600;cursor:pointer;transition:.3s;}
+.login-card button:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(201,169,110,.2);}
+.login-error{color:var(--danger);font-size:13px;margin-top:8px;display:none;}
+
+/* Dashboard */
+.dash{display:none;max-width:1200px;margin:0 auto;padding:20px 24px;}
+.dash.visible{display:block;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--border);margin-bottom:24px;}
+.topbar .logo{font-family:var(--font-display);font-size:22px;color:var(--gold-light);}
+.topbar .logo span{font-family:var(--font-cn);font-size:12px;color:var(--text-dim);margin-left:4px;}
+.topbar .logout{background:transparent;border:1px solid var(--text-dim);color:var(--text-dim);padding:7px 16px;border-radius:20px;cursor:pointer;font-size:13px;transition:.3s;}
+.topbar .logout:hover{border-color:var(--gold);color:var(--gold);}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:28px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 16px;}
+.stat-card .label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.stat-card .value{font-family:var(--font-display);font-size:32px;font-weight:600;color:var(--text);}
+.stat-card .sub{font-size:12px;color:var(--text-muted);margin-top:4px;}
+
+/* Users table */
+.section{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+.section-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:12px;}
+.section-header h2{font-family:var(--font-display);font-size:20px;color:var(--text);}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;}
+.toolbar input,.toolbar select{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;}
+.toolbar input:focus{border-color:var(--gold);}
+.toolbar input::placeholder{color:var(--text-muted);}
+
+table{width:100%;border-collapse:collapse;}
+th{padding:12px 16px;text-align:left;font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);background:rgba(15,22,36,.5);}
+td{padding:12px 16px;font-size:14px;border-bottom:1px solid rgba(26,39,64,.5);}
+tr:hover td{background:rgba(201,169,110,.03);}
+.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+.badge.active{background:rgba(74,164,122,.15);color:var(--success);}
+.badge.disabled{background:rgba(201,74,74,.15);color:var(--danger);}
+.btn-sm{padding:6px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px;cursor:pointer;transition:.3s;}
+.btn-sm:hover{border-color:var(--gold);}
+.btn-sm.danger{color:var(--danger);border-color:rgba(201,74,74,.3);}
+.btn-sm.danger:hover{background:rgba(201,74,74,.1);}
+.btn-sm.info{color:var(--info);border-color:rgba(74,122,201,.3);}
+
+.pagination{display:flex;align-items:center;justify-content:center;gap:8px;padding:16px;}
+.pagination button{width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer;font-size:13px;transition:.3s;}
+.pagination button:hover{border-color:var(--gold);}
+.pagination button:disabled{opacity:.4;cursor:not-allowed;}
+.pagination span{font-size:13px;color:var(--text-dim);}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(10,14,22,.9);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:100;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0}}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;width:90%;max-width:500px;animation:slideUp .3s ease;}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}}
+.modal h3{font-family:var(--font-display);font-size:20px;margin-bottom:16px;}
+.modal .row{display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;}
+.modal .row label{flex:1;min-width:120px;font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;}
+.modal .row div{flex:2;font-size:14px;}
+.modal .close{position:absolute;top:16px;right:20px;background:none;border:none;color:var(--text-dim);font-size:22px;cursor:pointer;}
+.modal{position:relative;}
+.empty{text-align:center;padding:40px;color:var(--text-muted);font-size:14px;}
+
+/* Loading */
+.loading{text-align:center;padding:40px;color:var(--text-dim);}
+.spinner{width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Responsive */
+@media(max-width:700px){.stats{grid-template-columns:1fr 1fr;}th:nth-child(4),td:nth-child(4),th:nth-child(5),td:nth-child(5){display:none;}}
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="loginWrap" class="login-wrap">
+  <div class="login-card">
+    <h1>VisePanda<span> · Admin</span></h1>
+    <p>Management Console</p>
+    <input id="loginEmail" type="email" placeholder="Admin Email" autofocus/>
+    <input id="loginPassword" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')login()"/>
+    <button onclick="login()">Sign In</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashWrap" class="dash">
+  <div class="topbar">
+    <div class="logo">VisePanda<span>· Admin</span></div>
+    <button class="logout" onclick="logout()">Logout</button>
+  </div>
+
+  <div class="stats" id="statsContainer">
+    <div class="stat-card"><div class="label">Total Users</div><div class="value" id="statUsers">-</div><div class="sub">+<span id="statNewToday">0</span> today</div></div>
+    <div class="stat-card"><div class="label">Active Users</div><div class="value" id="statActive">-</div><div class="sub"><span id="statNewWeek">0</span> this week</div></div>
+    <div class="stat-card"><div class="label">Total Trips</div><div class="value" id="statTrips">-</div></div>
+    <div class="stat-card"><div class="label">RFPs</div><div class="value" id="statRfps">-</div></div>
+    <div class="stat-card"><div class="label">Hotel Bookings</div><div class="value" id="statHotels">-</div></div>
+    <div class="stat-card"><div class="label">Service Orders</div><div class="value" id="statOrders">-</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <h2>Users</h2>
+      <div class="toolbar">
+        <input id="searchInput" type="text" placeholder="Search by email or name..." onkeydown="if(event.key==='Enter')fetchUsers(1)"/>
+        <select id="statusFilter" onchange="fetchUsers(1)">
+          <option value="all">All Status</option>
+          <option value="active">Active</option>
+          <option value="disabled">Disabled</option>
+        </select>
+        <button class="btn-sm" onclick="fetchUsers(1)">Search</button>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>User</th><th>Email</th><th>Status</th><th>Auth</th><th>Created</th><th>Actions</th></tr></thead>
+      <tbody id="userTableBody"><tr><td colspan="6" class="loading"><div class="spinner"></div></td></tr></tbody>
+    </table>
+    <div class="pagination" id="pagination"></div>
+  </div>
+</div>
+
+<!-- User Detail Modal -->
+<div class="modal-overlay" id="userModal" style="display:none">
+  <div class="modal" id="userModalContent"></div>
+</div>
+
+<script>
+const STORE = { token: localStorage.getItem('vp_admin_token'), page:1, pageSize:20 };
+
+function getBase(){return window.location.origin;}
+
+async function login(){
+  const e=document.getElementById('loginEmail').value.trim();
+  const p=document.getElementById('loginPassword').value;
+  const err=document.getElementById('loginError');
+  err.style.display='none';
+  if(!e||!p){err.textContent='Please enter email and password';err.style.display='block';return;}
+
+  try{
+    const r=await fetch(`${getBase()}/api/admin/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:e,password:p})});
+    const d=await r.json();
+    if(!r.ok){err.textContent=d.detail||'Login failed';err.style.display='block';return;}
+    STORE.token=d.access_token;
+    localStorage.setItem('vp_admin_token',d.access_token);
+    document.getElementById('loginWrap').style.display='none';
+    document.getElementById('dashWrap').classList.add('visible');
+    initDashboard();
+  }catch(x){err.textContent='Network error';err.style.display='block';}
+}
+
+function logout(){
+  localStorage.removeItem('vp_admin_token');
+  STORE.token=null;
+  document.getElementById('loginWrap').style.display='flex';
+  document.getElementById('dashWrap').classList.remove('visible');
+}
+
+async function api(path,opt={}){
+  const h={'Content-Type':'application/json'};
+  if(STORE.token)h['Authorization']=`Bearer ${STORE.token}`;
+  const r=await fetch(`${getBase()}/api${path}`,{...opt,headers:{...h,...(opt.headers||{})}});
+  if(r.status===401){logout();throw new Error('Unauthorized');}
+  return r;
+}
+
+async function initDashboard(){
+  await Promise.all([fetchStats(),fetchUsers(1)]);
+}
+
+async function fetchStats(){
+  try{
+    const r=await api('/admin/stats'); const d=await r.json();
+    document.getElementById('statUsers').textContent=d.total_users;
+    document.getElementById('statActive').textContent=d.active_users;
+    document.getElementById('statTrips').textContent=d.total_trips;
+    document.getElementById('statRfps').textContent=d.total_rfps;
+    document.getElementById('statHotels').textContent=d.total_hotel_bookings;
+    document.getElementById('statOrders').textContent=d.total_service_orders;
+    document.getElementById('statNewToday').textContent=d.new_users_today;
+    document.getElementById('statNewWeek').textContent=d.new_users_this_week;
+  }catch(e){}
+}
+
+async function fetchUsers(page){
+  STORE.page=page||1;
+  const q=document.getElementById('searchInput').value.trim();
+  const status=document.getElementById('statusFilter').value;
+  const params=new URLSearchParams({page:STORE.page,page_size:STORE.pageSize,sort_by:'created_at',order:'desc'});
+  if(q)params.set('q',q);
+  if(status!=='all')params.set('status',status);
+
+  try{
+    const r=await api(`/admin/users?${params}`); const d=await r.json();
+    renderTable(d);
+    renderPagination(d);
+  }catch(e){}
+}
+
+function renderTable(data){
+  const tbody=document.getElementById('userTableBody');
+  if(!data.users.length){tbody.innerHTML='<tr><td colspan="6" class="empty">No users found</td></tr>';return;}
+  tbody.innerHTML=data.users.map(u=>`
+    <tr>
+      <td><strong>${esc(u.display_name||'—')}</strong></td>
+      <td style="color:var(--text-dim)">${esc(u.email||'—')}</td>
+      <td><span class="badge ${u.is_active?'active':'disabled'}">${u.is_active?'Active':'Disabled'}</span></td>
+      <td style="color:var(--text-muted);font-size:12px">${u.google_id?'Google':'Email'}</td>
+      <td style="color:var(--text-muted);font-size:12px">${fmtDate(u.created_at)}</td>
+      <td>
+        <button class="btn-sm info" onclick="viewUser('${u.id}')">Detail</button>
+        <button class="btn-sm ${u.is_active?'danger':''}" onclick="toggleUser('${u.id}')">${u.is_active?'Disable':'Enable'}</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderPagination(data){
+  const pg=document.getElementById('pagination');
+  const totalPages=Math.ceil(data.total/data.page_size)||1;
+  pg.innerHTML=`
+    <button ${STORE.page<=1?'disabled':''} onclick="fetchUsers(${STORE.page-1})">‹</button>
+    <span>${STORE.page} / ${totalPages} (${data.total} users)</span>
+    <button ${STORE.page>=totalPages?'disabled':''} onclick="fetchUsers(${STORE.page+1})">›</button>`;
+}
+
+async function toggleUser(id){
+  if(!confirm('Toggle this user\'s active status?'))return;
+  try{
+    const r=await api(`/admin/users/${id}/toggle`,{method:'POST'});
+    const d=await r.json();
+    fetchUsers(STORE.page);
+  }catch(e){}
+}
+
+async function viewUser(id){
+  try{
+    const r=await api(`/admin/users/${id}`); const d=await r.json();
+    const u=d.user;
+    document.getElementById('userModal').style.display='flex';
+    document.getElementById('userModalContent').innerHTML=`
+      <button class="close" onclick="closeModal()">&times;</button>
+      <h3>${esc(u.display_name||'User')}</h3>
+      <div class="row"><label>ID</label><div style="font-family:monospace;font-size:12px;word-break:break-all">${esc(u.id)}</div></div>
+      <div class="row"><label>Email</label><div>${esc(u.email||'—')}</div></div>
+      <div class="row"><label>Google ID</label><div style="font-family:monospace;font-size:12px">${esc(u.google_id||'None')}</div></div>
+      <div class="row"><label>Status</label><div><span class="badge ${u.is_active?'active':'disabled'}">${u.is_active?'Active':'Disabled'}</span></div></div>
+      <div class="row"><label>Created</label><div>${fmtDate(u.created_at)}</div></div>
+      <div class="row"><label>Last Login</label><div>${fmtDate(u.last_login_at)||'Never'}</div></div>
+      <div class="row"><label>Trips</label><div>${d.stats.trips}</div></div>
+      <div class="row"><label>RFPs</label><div>${d.stats.rfps}</div></div>
+      <div style="margin-top:16px;display:flex;gap:8px">
+        <button class="btn-sm ${u.is_active?'danger':''}" onclick="toggleUser('${u.id}');closeModal();">${u.is_active?'Disable User':'Enable User'}</button>
+      </div>`;
+  }catch(e){}
+}
+
+function closeModal(){document.getElementById('userModal').style.display='none';}
+document.getElementById('userModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function fmtDate(s){if(!s)return '—';try{return new Date(s).toLocaleDateString('zh-CN',{year:'numeric',month:'2-digit',day:'2-digit'})}catch(e){return s;}}
+
+// Auto-login if token exists
+if(STORE.token){
+  document.getElementById('loginWrap').style.display='none';
+  document.getElementById('dashWrap').classList.add('visible');
+  initDashboard();
+}
+</script>
+</body>
+</html>
