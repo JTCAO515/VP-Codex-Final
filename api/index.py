@@ -16,6 +16,12 @@ from starlette.applications import Starlette
 from starlette.routing import Mount
 
 from app.main import create_app
+from app.db import init_db
+from app.models import Base
 
 backend_app = create_app()
+# IMPORTANT:
+# When running behind a Starlette Mount, FastAPI's lifespan may not be invoked
+# by some runtimes. Initialize DB tables here to prevent \"no such table\" errors.
+init_db(Base.metadata)
 app = Starlette(routes=[Mount("/api", app=backend_app)])
