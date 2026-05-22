@@ -10,7 +10,7 @@
   "functions": {
     "api/index.py": {
       "maxDuration": 30,
-      "excludeFiles": "{backend/tests/**,backend/__pycache__/**,**/*.pyc,.pytest_cache/**}"
+      "excludeFiles": "{backend/tests/**,backend/__pycache__/**,**/*.pyc,.pytest_cache/**,handoff/**}"
     }
   }
 }
