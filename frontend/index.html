@@ -3,159 +3,123 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>China Travel Agent MVP</title>
+    <title>China Travel Agent</title>
     <style>
-      :root { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; }
-      body { margin: 0; background:#0b0f14; color:#e7eef7; }
-      header { padding: 14px 16px; border-bottom: 1px solid #1e2a3a; background:#0d131c; position: sticky; top:0; }
-      header h1 { margin:0; font-size: 14px; font-weight: 600; letter-spacing: .2px; }
-      main { max-width: 860px; margin: 0 auto; padding: 12px 12px 90px; }
-      .row { display:flex; gap:10px; align-items: flex-end; }
-      .card { border:1px solid #1e2a3a; background:#0d131c; border-radius: 12px; padding: 10px 12px; }
-      .muted { color:#9bb0c8; font-size: 12px; }
-      .msg { margin: 10px 0; display:flex; gap:10px; }
-      .msg .bubble { padding:10px 12px; border-radius: 12px; max-width: 85%; white-space: pre-wrap; }
-      .msg.user { justify-content: flex-end; }
-      .msg.user .bubble { background:#1a2a3f; border:1px solid #27415f; }
-      .msg.bot .bubble { background:#0d131c; border:1px solid #223247; }
-      textarea { width:100%; min-height: 44px; max-height: 120px; resize: vertical; border-radius: 12px; border:1px solid #223247; background:#0b0f14; color:#e7eef7; padding:10px 12px; }
-      button { border-radius: 12px; border:1px solid #2a4261; background:#173051; color:#e7eef7; padding:10px 12px; font-weight: 600; cursor:pointer; }
-      button.secondary { background:#0d131c; }
-      .actions { display:flex; flex-wrap: wrap; gap:8px; margin-top:8px; }
-      .pill { border:1px solid #2a4261; padding:8px 10px; border-radius: 999px; background:#0b0f14; cursor:pointer; font-size: 13px; }
-      .grid { display:grid; grid-template-columns: 1fr; gap:10px; }
-      @media (min-width: 840px){ .grid { grid-template-columns: 1.2fr .8fr; } }
-      footer { position: fixed; left:0; right:0; bottom:0; background:rgba(13,19,28,.92); border-top:1px solid #1e2a3a; padding: 10px 12px; backdrop-filter: blur(8px); }
-      .kv { display:grid; grid-template-columns: 120px 1fr; gap:6px; font-size: 13px; }
-      .kv div:nth-child(odd){ color:#9bb0c8; }
-      .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12px; }
+      :root{
+        --bg0:#05070b;
+        --bg1:#0a0f17;
+        --line:rgba(255,255,255,.08);
+        --muted:rgba(255,255,255,.62);
+        --text:rgba(255,255,255,.92);
+        --accent:#7dd3fc;
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC","Hiragino Sans GB","Microsoft YaHei", Arial, sans-serif;
+      }
+      body{
+        margin:0;
+        min-height:100vh;
+        background: radial-gradient(1200px 800px at 30% 15%, #121826 0%, var(--bg1) 55%, var(--bg0) 100%);
+        color:var(--text);
+      }
+      .bg-shanshui{position:fixed; inset:0; background:url("/assets/bg/shanshui.svg") center/cover no-repeat; opacity:.12; filter: blur(6px); pointer-events:none;}
+      .bg-cloud{position:fixed; inset:0; background:url("/assets/patterns/cloud.svg") center/420px repeat; opacity:.06; mix-blend-mode: screen; pointer-events:none;}
+      header{
+        position:relative;
+        height:56px;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        padding:0 16px;
+      }
+      .brand{display:flex; gap:10px; align-items:center;}
+      .dot{width:10px;height:10px;border-radius:99px;background:var(--accent); box-shadow:0 0 18px rgba(125,211,252,.45);}
+      .name{font-weight:650; font-size:14px; letter-spacing:.2px;}
+      .badge{font-size:12px; padding:6px 10px; border:1px solid var(--line); border-radius:999px; background:rgba(255,255,255,.04)}
+      button.ghost{font-size:12px; padding:7px 10px; border:1px solid var(--line); border-radius:999px; background:rgba(255,255,255,.03); color:var(--text); cursor:pointer;}
+      button.ghost:hover{background:rgba(255,255,255,.06)}
+      main{
+        position:relative;
+        min-height:calc(100vh - 56px);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        padding:24px 16px 90px;
+      }
+      .hero{width:min(720px, 96%); text-align:center;}
+      h1{margin:0 0 10px; font-size:34px; letter-spacing:-.02em;}
+      .sub{margin:0 0 22px; color:var(--muted); line-height:1.5;}
+      form{display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap;}
+      input#prompt{
+        width:min(560px, 92vw);
+        height:48px;
+        border-radius:999px;
+        border:1px solid var(--line);
+        background:rgba(255,255,255,.03);
+        color:var(--text);
+        padding:0 16px;
+        outline:none;
+      }
+      input#prompt:focus{border-color:rgba(125,211,252,.35); box-shadow:0 0 0 4px rgba(125,211,252,.12)}
+      button#startBtn{
+        height:48px;
+        padding:0 16px;
+        border-radius:999px;
+        border:1px solid rgba(125,211,252,.35);
+        background:rgba(125,211,252,.14);
+        color:var(--text);
+        cursor:pointer;
+      }
+      button#startBtn:hover{background:rgba(125,211,252,.20)}
+      .links{margin-top:14px; font-size:12px; color:var(--muted);}
+      .links a{color:rgba(255,255,255,.78); text-decoration:none}
+      .links a:hover{text-decoration:underline}
+      .links .sep{opacity:.5; padding:0 8px}
+      footer{position:fixed; left:0; right:0; bottom:0; padding:10px 16px; border-top:1px solid var(--line); background:rgba(8,10,14,.45); backdrop-filter: blur(10px); font-size:12px; color:var(--muted);}
     </style>
   </head>
   <body>
+    <div class="bg-shanshui"></div>
+    <div class="bg-cloud"></div>
     <header>
-      <h1>China Travel Agent MVP（静态Demo）</h1>
-      <div class="muted">线上部署到 Vercel 时可留空（自动同域名 /api）；本地后端默认：http://localhost:8000</div>
+      <div class="brand">
+        <div class="dot"></div>
+        <div class="name">China Travel Agent</div>
+      </div>
+      <div id="authArea"></div>
     </header>
 
-    <main class="grid">
-      <section class="card">
-        <div class="muted">对话（演示：需求深挖 → 行程v1；以及返回的可点击选项）</div>
-        <div id="chat"></div>
-      </section>
-
-      <aside class="card">
-        <div class="muted">当前上下文</div>
-        <div class="kv" style="margin-top:10px">
-          <div>Backend</div><div><input id="baseUrl" class="mono" style="width:100%;padding:8px;border-radius:10px;border:1px solid #223247;background:#0b0f14;color:#e7eef7" value="" placeholder="留空=同域名；本地如 http://localhost:8000" /></div>
-          <div>User ID</div><div><input id="userId" class="mono" style="width:100%;padding:8px;border-radius:10px;border:1px solid #223247;background:#0b0f14;color:#e7eef7" value="u_demo" /></div>
-          <div>Trip ID</div><div><input id="tripId" class="mono" style="width:100%;padding:8px;border-radius:10px;border:1px solid #223247;background:#0b0f14;color:#e7eef7" value="t_demo" /></div>
+    <main>
+      <div class="hero">
+        <h1>Plan your China trip</h1>
+        <p class="sub">少问问题，多交流。先开聊，行程与订单会自动归档到你的历史里（登录后）。</p>
+        <form id="startForm">
+          <input id="prompt" placeholder="开始对话…（例如：北京 5 天游玩，美食+历史，节奏轻松）" />
+          <button id="startBtn" type="submit">Start</button>
+        </form>
+        <div class="links">
+          <a href="/chat">Open chat</a>
+          <span class="sep">·</span>
+          <a href="#" id="googleLink">Sign in with Google</a>
+          <span class="sep">·</span>
+          <span>Continue as guest</span>
         </div>
-        <div class="actions" style="margin-top:12px">
-          <button class="secondary" id="btnItinerary">生成行程示例</button>
-          <button class="secondary" id="btnRfp">创建RFP示例</button>
-        </div>
-        <div class="muted" style="margin-top:12px;line-height:1.5">
-          提示：这是“手机网页”最小交互验证。后续可替换为 Next.js/React 并把 actions 渲染做得更精致。
-        </div>
-      </aside>
+      </div>
     </main>
 
-    <footer>
-      <div class="row">
-        <textarea id="input" placeholder="例如：I want 5 days in Beijing, food + history, slow pace."></textarea>
-        <button id="send">发送</button>
-      </div>
-    </footer>
+    <footer>提示：未登录也能试用（本地保留最近 3 个会话）。登录后将同步保存对话/行程/订单历史。</footer>
 
-    <script>
-      const $ = (id) => document.getElementById(id);
-      const chatEl = $("chat");
-
-      function addMsg(role, text, actions=[]) {
-        const wrap = document.createElement("div");
-        wrap.className = `msg ${role}`;
-        const bubble = document.createElement("div");
-        bubble.className = "bubble";
-        bubble.textContent = text;
-        wrap.appendChild(bubble);
-        chatEl.appendChild(wrap);
-
-        if (actions && actions.length) {
-          const actionWrap = document.createElement("div");
-          actionWrap.className = "actions";
-          actions.forEach(a => {
-            if (a.type === "ask" && Array.isArray(a.options)) {
-              a.options.forEach(opt => {
-                const pill = document.createElement("div");
-                pill.className = "pill";
-                pill.textContent = opt;
-                pill.onclick = () => sendMessage(opt);
-                actionWrap.appendChild(pill);
-              });
-            }
-            if (a.type === "itinerary_updated" && a.itinerary) {
-              const pill = document.createElement("div");
-              pill.className = "pill";
-              pill.textContent = "查看行程JSON";
-              pill.onclick = () => {
-                addMsg("bot", JSON.stringify(a.itinerary, null, 2));
-              };
-              actionWrap.appendChild(pill);
-            }
-          });
-          chatEl.appendChild(actionWrap);
-        }
-        window.scrollTo(0, document.body.scrollHeight);
-      }
-
-      async function sendMessage(text) {
-        let baseUrl = $("baseUrl").value.trim().replace(/\/$/,"");
-        if (!baseUrl) baseUrl = window.location.origin;
-        const userId = $("userId").value.trim();
-        const tripId = $("tripId").value.trim();
-        addMsg("user", text);
-        const r = await fetch(`${baseUrl}/api/chat/messages`, {
-          method:"POST",
-          headers:{ "Content-Type":"application/json" },
-          body: JSON.stringify({ user_id:userId, trip_id:tripId, text })
-        });
-        const body = await r.json();
-        addMsg("bot", body.reply || "(no reply)", body.actions || []);
-      }
-
-      $("send").onclick = () => {
-        const t = $("input").value.trim();
-        if (!t) return;
-        $("input").value = "";
-        sendMessage(t);
+    <script type="module">
+      import { newTripId, signInWithGoogle, setTopRightAuthUI } from "/app.js";
+      setTopRightAuthUI({ containerId: "authArea" });
+      document.getElementById("googleLink").onclick = (e) => { e.preventDefault(); signInWithGoogle(); };
+      document.getElementById("startForm").onsubmit = (e) => {
+        e.preventDefault();
+        const t = document.getElementById("prompt").value.trim();
+        const trip = newTripId();
+        const u = new URL(window.location.origin + "/chat");
+        u.searchParams.set("trip", trip);
+        if (t) u.searchParams.set("q", t);
+        window.location.href = u.toString();
       };
-
-      $("btnItinerary").onclick = () => sendMessage("5 days in Beijing");
-      $("btnRfp").onclick = async () => {
-        let baseUrl = $("baseUrl").value.trim().replace(/\/$/,"");
-        if (!baseUrl) baseUrl = window.location.origin;
-        const userId = $("userId").value.trim();
-        const tripId = $("tripId").value.trim();
-        // 先确保 trip 存在
-        await fetch(`${baseUrl}/api/chat/messages`, {
-          method:"POST",
-          headers:{ "Content-Type":"application/json" },
-          body: JSON.stringify({ user_id:userId, trip_id:tripId, text:"5 days in Beijing" })
-        });
-        const r = await fetch(`${baseUrl}/api/rfps`, {
-          method:"POST",
-          headers:{ "Content-Type":"application/json" },
-          body: JSON.stringify({
-            user_id:userId, trip_id:tripId,
-            service_types:["guide","tickets"],
-            requirements:{ city:"beijing", language:"en", budget_range:"mid" }
-          })
-        });
-        const body = await r.json();
-        addMsg("bot", "RFP 创建结果：\n" + JSON.stringify(body, null, 2));
-      };
-
-      addMsg("bot", "你好！你可以直接说：想去哪个城市、几天、偏好（美食/历史/自然）、节奏与预算。");
     </script>
   </body>
 </html>

@@ -3,6 +3,30 @@
   "framework": null,
   "rewrites": [
     {
+      "source": "/assets/(.*)",
+      "destination": "/frontend/assets/$1"
+    },
+    {
+      "source": "/app.js",
+      "destination": "/frontend/app.js"
+    },
+    {
+      "source": "/chat.js",
+      "destination": "/frontend/chat.js"
+    },
+    {
+      "source": "/auth/callback",
+      "destination": "/frontend/auth/callback.html"
+    },
+    {
+      "source": "/chat",
+      "destination": "/frontend/chat.html"
+    },
+    {
+      "source": "/",
+      "destination": "/frontend/index.html"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/index.py"
     }
