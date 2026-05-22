@@ -14,7 +14,7 @@
 1) 安装依赖（在 `backend/` 下）：
 
 ```bash
-pip install -r requirements.txt --break-system-packages
+pip install -r requirements-dev.txt --break-system-packages
 ```
 
 2) 启动：

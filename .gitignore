@@ -6,9 +6,11 @@ __pycache__/
 venv/
 
 # local db
+data.sqlite3
 backend/data.sqlite3
 backend/*.sqlite3
 
 # OS
 .DS_Store
 
+/.uploads/
