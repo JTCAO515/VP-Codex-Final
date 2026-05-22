@@ -1,18 +1,19 @@
 """
 Vercel Python Runtime entrypoint.
 
-This file must expose a top-level ASGI app named `app`.
-We mount the existing FastAPI backend under `/api` so that:
-- GET /api/health
-- POST /api/chat/messages
-... work on the same Vercel domain as the static frontend.
+Maps /api/* -> FastAPI backend
+Static files (index.html, admin.html) served from project root.
 """
-
 from starlette.applications import Starlette
 from starlette.routing import Mount
+from starlette.staticfiles import StaticFiles
 
 from backend.app.main import create_app
 
 backend_app = create_app()
-app = Starlette(routes=[Mount("/api", app=backend_app)])
-
+app = Starlette(
+    routes=[
+        Mount("/api", app=backend_app),
+        Mount("/", app=StaticFiles(directory=".", html=True), name="static"),
+    ]
+)

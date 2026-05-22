@@ -1,12 +1,18 @@
 from __future__ import annotations
 
+import os
 from contextlib import contextmanager
 from pathlib import Path
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-DB_PATH = Path(__file__).resolve().parents[2] / "data.sqlite3"
+# Vercel: use /tmp/ (the only writable directory in serverless)
+if os.getenv("VERCEL"):
+    DB_PATH = Path("/tmp/data.sqlite3")
+else:
+    DB_PATH = Path(__file__).resolve().parents[1] / "data.sqlite3"
+
 SQLALCHEMY_DATABASE_URL = f"sqlite:///{DB_PATH}"
 
 engine = create_engine(
