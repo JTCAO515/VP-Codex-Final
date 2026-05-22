@@ -1,18 +1,17 @@
 """
 JWT token creation/verification & password hashing utilities.
-Uses pure-Python hashlib (PBKDF2) — no native dependencies, works on Vercel.
+Zero native dependencies — pure Python stdlib, works on Vercel Serverless.
 """
 from __future__ import annotations
 
-import datetime as dt
+import base64
 import hashlib
 import hmac
+import json
 import os
 import secrets
+import time
 from typing import Any
-
-import jose
-from jose import JWTError, jwt
 
 # ---- Config ----
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "visepanda-ai-dev-secret-change-in-production")
@@ -26,7 +25,7 @@ _SALT_BYTES = 16
 _KEY_LENGTH = 32
 
 
-# ---- Password utilities (pure Python, no native deps) ----
+# ---- Password utilities (pure Python stdlib, no native deps) ----
 
 def hash_password(password: str) -> str:
     """Hash a password with PBKDF2-SHA256 + random salt."""
@@ -46,7 +45,6 @@ def verify_password(plain: str, hashed: str) -> bool:
     if not hashed or not hashed.startswith("pbkdf2:sha256:"):
         return False
     try:
-        # Format: pbkdf2:sha256:iterations$salt$hash
         prefix, rest = hashed.split("$", 1)
         _, _, iterations_str = prefix.split(":", 2)
         salt, stored_key_str = rest.split("$", 1)
@@ -62,37 +60,81 @@ def verify_password(plain: str, hashed: str) -> bool:
         return False
 
 
-# ---- JWT utilities ----
+# ---- JWT utilities (pure Python stdlib, zero deps) ----
+
+def _b64url_encode(data: bytes) -> str:
+    return base64.urlsafe_b64encode(data).rstrip(b"=").decode("ascii")
+
+
+def _b64url_decode(data: str) -> bytes:
+    padding = 4 - len(data) % 4
+    if padding != 4:
+        data += "=" * padding
+    return base64.urlsafe_b64decode(data.encode("ascii"))
+
 
 def create_access_token(user_id: str, email: str | None = None) -> str:
-    """Create JWT access token for a user."""
-    expire = dt.datetime.now(dt.timezone.utc) + dt.timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    """Create a JWT access token using pure stdlib HMAC-SHA256."""
+    expire = int(time.time()) + (ACCESS_TOKEN_EXPIRE_MINUTES * 60)
     payload: dict[str, Any] = {
         "sub": user_id,
         "exp": expire,
-        "iat": dt.datetime.now(dt.timezone.utc),
+        "iat": int(time.time()),
     }
     if email:
         payload["email"] = email
-    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    return _jwt_encode(payload, SECRET_KEY)
 
 
 def decode_access_token(token: str) -> dict[str, Any] | None:
     """Decode and verify JWT. Returns payload or None."""
     try:
-        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    except JWTError:
+        return _jwt_decode(token, SECRET_KEY)
+    except Exception:
         return None
 
 
 def create_admin_token(email: str) -> str:
-    """Create JWT token with admin role."""
-    expire = dt.datetime.now(dt.timezone.utc) + dt.timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    """Create a JWT token with admin role."""
+    expire = int(time.time()) + (ACCESS_TOKEN_EXPIRE_MINUTES * 60)
     payload: dict[str, Any] = {
         "sub": "admin",
         "email": email,
         "role": "admin",
         "exp": expire,
-        "iat": dt.datetime.now(dt.timezone.utc),
+        "iat": int(time.time()),
     }
-    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    return _jwt_encode(payload, SECRET_KEY)
+
+
+def _jwt_encode(payload: dict, secret: str) -> str:
+    """Pure Python JWT HS256 encode — no external dependencies."""
+    header = {"alg": "HS256", "typ": "JWT"}
+    seg1 = _b64url_encode(json.dumps(header, separators=(",", ":")).encode("utf-8"))
+    seg2 = _b64url_encode(json.dumps(payload, separators=(",", ":")).encode("utf-8"))
+    signing_input = f"{seg1}.{seg2}"
+    sig = hmac.new(secret.encode("utf-8"), signing_input.encode("utf-8"), hashlib.sha256).digest()
+    seg3 = _b64url_encode(sig)
+    return f"{signing_input}.{seg3}"
+
+
+def _jwt_decode(token: str, secret: str) -> dict:
+    """Pure Python JWT HS256 decode — no external dependencies."""
+    parts = token.split(".")
+    if len(parts) != 3:
+        raise ValueError("Invalid token format")
+    signing_input = f"{parts[0]}.{parts[1]}"
+    expected = hmac.new(secret.encode("utf-8"), signing_input.encode("utf-8"), hashlib.sha256).digest()
+    actual = _b64url_decode(parts[2])
+    if not hmac.compare_digest(expected, actual):
+        raise ValueError("Invalid signature")
+
+    payload_bytes = _b64url_decode(parts[1])
+    payload = json.loads(payload_bytes)
+
+    # Check expiration
+    exp = payload.get("exp")
+    if exp is not None and isinstance(exp, (int, float)) and time.time() > exp:
+        raise ValueError("Token expired")
+
+    return payload
