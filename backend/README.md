@@ -1,4 +1,4 @@
-# China Travel Agent MVP (Backend)
+# VisePanda AI MVP (Backend)
 
 这是一个可运行的 MVP 后端（FastAPI + SQLite），用于验证：
 - 对话式需求深挖（最小规则版 slots + policy）

@@ -11,7 +11,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 # ---- 配置 ----
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "china-travel-agent-dev-secret-change-in-production")
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", "visepanda-ai-dev-secret-change-in-production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "1440"))  # 默认 24h
 

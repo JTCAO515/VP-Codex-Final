@@ -1,4 +1,4 @@
-# China Travel Agent MVP（可运行骨架）
+# VisePanda AI（可运行骨架）
 
 你要求“我直接把整个 task 做完，按阶段给 review 点，再整体修改”，我已在此 workspace 交付一个 **可运行的 MVP 骨架**（后端 + 手机网页 demo），用于验证核心链路：
 - 混合式需求深挖（少问问题、多交流：目前为规则版 slots/policy，可替换为 LLM）

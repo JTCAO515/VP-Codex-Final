@@ -1,4 +1,4 @@
-# China Travel Agent MVP（前端静态Demo）
+# VisePanda AI MVP（前端静态Demo）
 
 这是一个零依赖的手机网页 Demo（`index.html`），用于快速验证：
 - 聊天调用 `/chat/messages`
