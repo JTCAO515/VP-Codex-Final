@@ -12,7 +12,7 @@ def test_rfp_quote_and_service_order_flow():
         client.post(f"/suppliers/{s['id']}:enable")
 
         # create trip
-        client.post("/chat/messages", json={"user_id": "u2", "trip_id": "t_rfp", "text": "5 days in Beijing"})
+        client.post("/chat/messages", json={"guest_id": "g2", "trip_id": "t_rfp", "text": "5 days in Beijing"})
 
         # create rfp
         rfp = client.post(

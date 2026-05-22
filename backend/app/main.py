@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.db import init_db
 from app.models import Base
 from app.routers.chat import router as chat_router
+from app.routers.config import router as config_router
 from app.routers.health import router as health_router
 from app.routers.hotel import router as hotel_router
 from app.routers.kb import router as kb_router
@@ -24,7 +25,7 @@ def create_app() -> FastAPI:
         init_db(Base.metadata)
         yield
 
-    app = FastAPI(title="China Travel Agent MVP", version="2.1.0", lifespan=lifespan)
+    app = FastAPI(title="China Travel Agent MVP", version="2.2.0", lifespan=lifespan)
 
     # 便于本地静态页面/跨域联调（生产环境请收紧 allow_origins）
     app.add_middleware(
@@ -36,6 +37,7 @@ def create_app() -> FastAPI:
     )
 
     app.include_router(health_router, tags=["health"])
+    app.include_router(config_router, tags=["config"])
     app.include_router(chat_router, tags=["chat"])
     app.include_router(trips_router, tags=["trips"])
     app.include_router(translate_router, tags=["translate"])

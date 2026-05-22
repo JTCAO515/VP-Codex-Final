@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
+from sqlalchemy import Text, cast
 from sqlalchemy.orm import Session
 
 from app.db import get_db
@@ -15,7 +16,7 @@ router = APIRouter()
 def supplier_rfps(db: Session = Depends(get_db), supplier=Depends(require_supplier)):
     rfps = (
         db.query(RFP)
-        .filter(RFP.supplier_targets.like(f'%"{supplier.id}"%'))  # JSON-as-text fallback (sqlite)
+        .filter(cast(RFP.supplier_targets, Text).like(f'%"{supplier.id}"%'))  # JSON-as-text fallback
         .all()
     )
     return {

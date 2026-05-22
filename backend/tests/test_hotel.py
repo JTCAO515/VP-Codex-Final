@@ -6,7 +6,7 @@ from app.main import create_app
 def test_hotel_search_and_booking_flow():
     with TestClient(create_app()) as client:
         # create a trip via chat
-        client.post("/chat/messages", json={"user_id": "u1", "trip_id": "t_hotel", "text": "3 days in Beijing"})
+        client.post("/chat/messages", json={"guest_id": "g1", "trip_id": "t_hotel", "text": "3 days in Beijing"})
 
         offers = client.post(
             "/hotel/search",

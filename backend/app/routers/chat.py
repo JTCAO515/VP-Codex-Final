@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-from fastapi import APIRouter
+import datetime as dt
+
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.db import session_scope
-from app.models import EventLog, Trip, User
+from app.auth import get_principal
+from app.models import ChatMessage, EventLog, Trip, User
 from app.orchestrator import (
     decide_next_action,
     detect_intent,
@@ -18,15 +21,40 @@ router = APIRouter()
 
 
 class ChatIn(BaseModel):
-    user_id: str
     trip_id: str
     text: str
+    guest_id: str | None = None
+    user_id: str | None = None  # 兼容：仅无 token 且无 guest_id 时使用（不推荐）
 
 
 @router.post("/chat/messages")
-def chat_messages(payload: ChatIn):
+def chat_messages(payload: ChatIn, request: Request):
     with session_scope() as db:
-        user = _get_or_create_user(db, payload.user_id)
+        # identity priority:
+        # 1) Bearer token -> logged-in user (supabase sub)
+        # 2) guest_id -> guest user (guest:<guest_id>)
+        # 3) legacy user_id -> compatibility (discouraged)
+        try:
+            principal = get_principal(request, guest_id=payload.guest_id)
+        except HTTPException:
+            if payload.user_id:
+                principal = type("P", (), {"mode": "legacy", "user_id": payload.user_id, "guest_id": None})()
+            else:
+                return {
+                    "reply": "Missing identity (login or guest_id).",
+                    "actions": [
+                        {
+                            "type": "ask",
+                            "question": "Sign in or continue as guest?",
+                            "options": ["Continue as guest", "Sign in with Google"],
+                        }
+                    ],
+                    "slots": {},
+                    "intent": "plan",
+                    "trip": {"id": payload.trip_id},
+                }
+
+        user = _get_or_create_user(db, principal.user_id)
         trip = _get_or_create_trip(db, payload.trip_id, user.id)
 
         intent = detect_intent(payload.text)
@@ -53,6 +81,9 @@ def chat_messages(payload: ChatIn):
 
         reply = _render_reply(payload.text, slot_state, action, intent)
 
+        # Persist chat history (only for real users in DB mode; guest can still be stored if DB supports it)
+        db.add(ChatMessage(user_id=user.id, trip_id=trip.id, role="user", content=payload.text))
+
         # 若可以生成 v1 行程，则写入 trip 版本
         if action["type"] == "generate_itinerary_v1":
             it = generate_itinerary_v1(slot_state["cities"], slot_state["days"])
@@ -66,6 +97,21 @@ def chat_messages(payload: ChatIn):
                 if pa.get("type") == "suggest_refine":
                     actions.append(pa["suggestion"])
 
+        # Trip title & updated_at
+        trip.updated_at = dt.datetime.now(dt.timezone.utc)
+        if not trip.title:
+            # simple title heuristic
+            city = slot_state.get("cities", [None])[0]
+            days = slot_state.get("days")
+            if city and days:
+                trip.title = f"{city} · {days} days"
+            elif city:
+                trip.title = f"{city} trip"
+            else:
+                trip.title = (payload.text[:24] + "…") if len(payload.text) > 24 else payload.text
+
+        db.add(ChatMessage(user_id=user.id, trip_id=trip.id, role="assistant", content=reply))
+
         _event(
             db,
             "Trip",
@@ -74,7 +120,17 @@ def chat_messages(payload: ChatIn):
             {"text": payload.text, "intent": intent, "extracted": extracted, "slot_state": slot_state, "action": action},
         )
 
-        return {"reply": reply, "actions": actions, "slots": slot_state, "intent": intent, "trip": {"id": trip.id}}
+        return {
+            "reply": reply,
+            "actions": actions,
+            "slots": slot_state,
+            "intent": intent,
+            "trip": {
+                "id": trip.id,
+                "title": trip.title,
+                "updated_at": trip.updated_at.isoformat() if trip.updated_at else None,
+            },
+        }
 
 
 def _get_or_create_user(db: Session, user_id: str) -> User:
