@@ -7,7 +7,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Serif+SC:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+// Load Google Identity Services on-demand (avoids blocking page load)
+window._loadGoogleAuth = function(cb) {
+  if (window.google) { cb(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://accounts.google.com/gsi/client';
+  s.async = true;
+  s.onload = cb;
+  s.onerror = function(){ console.warn('Google Auth script failed to load'); };
+  document.head.appendChild(s);
+};
+</script>
 <style>
 :root {
   --ink-deep: #080c14;
@@ -635,8 +646,10 @@ function triggerGoogleLogin() {
     showAuthError('Google Sign-In is not configured yet. Please set GOOGLE_CLIENT_ID.');
     return;
   }
-  // Use Google Identity Services token endpoint
-  const client = google.accounts.oauth2.initTokenClient({
+  // Dynamically load Google script before using it
+  window._loadGoogleAuth(function() {
+    try {
+      const client = google.accounts.oauth2.initTokenClient({
     client_id: GOOGLE_CLIENT_ID,
     scope: 'email profile openid',
     callback: async (response) => {
@@ -678,6 +691,10 @@ function triggerGoogleLogin() {
     },
   });
   client.requestAccessToken();
+    } catch(e) {
+      showAuthError('Google Sign-In failed to load. Please try again later.');
+    }
+  });
 }
 
 // ============ CHAT ============

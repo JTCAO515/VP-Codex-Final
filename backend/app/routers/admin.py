@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
-from app.auth_utils import create_access_token, decode_access_token
+from app.auth_utils import create_access_token, create_admin_token, decode_access_token
 from app.db import get_db, session_scope
 from app.models import EventLog, HotelBooking, RFP, ServiceOrder, Trip, User
 
@@ -90,21 +90,7 @@ def admin_login(payload: AdminLoginIn):
     if payload.password != ADMIN_PASSWORD:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
-    token = create_access_token("admin", ADMIN_EMAIL)
-    # 在 payload 中注入 role=admin
-    import datetime as _dt
-    from jose import jwt
-    from app.auth_utils import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
-
-    expire = _dt.datetime.now(_dt.timezone.utc) + _dt.timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    admin_payload = {
-        "sub": "admin",
-        "email": ADMIN_EMAIL,
-        "role": "admin",
-        "exp": expire,
-        "iat": _dt.datetime.now(_dt.timezone.utc),
-    }
-    token = jwt.encode(admin_payload, SECRET_KEY, algorithm=ALGORITHM)
+    token = create_admin_token(ADMIN_EMAIL)
 
     return AdminTokenOut(
         access_token=token,

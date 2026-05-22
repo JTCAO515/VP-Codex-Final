@@ -4,8 +4,4 @@ SQLAlchemy==2.0.38
 python-multipart==0.0.20
 httpx==0.28.1
 python-jose==3.5.0
-cryptography
-passlib==1.7.4
-bcrypt==4.2.1
-starlette
 pytest==8.3.4
