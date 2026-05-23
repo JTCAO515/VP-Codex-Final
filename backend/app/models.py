@@ -123,3 +123,21 @@ class ChatMessage(Base):
     role: Mapped[str] = mapped_column(String)  # user|assistant|system
     content: Mapped[str] = mapped_column(Text)
     created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_now, index=True)
+
+
+class Payment(Base):
+    """v2.6: Payment records for hotel bookings and service orders."""
+    __tablename__ = "payments"
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
+    entity_type: Mapped[str] = mapped_column(String, index=True)  # hotel_booking | service_order
+    entity_id: Mapped[str] = mapped_column(String, index=True)
+    user_id: Mapped[str] = mapped_column(String, ForeignKey("users.id"), index=True)
+    amount: Mapped[int] = mapped_column()  # in cents (分)
+    currency: Mapped[str] = mapped_column(String, default="CNY")
+    status: Mapped[str] = mapped_column(String, default="pending_payment", index=True)  # pending_payment|paid|refunding|refunded|expired
+    provider: Mapped[str] = mapped_column(String, default="mock")  # mock|wechat|alipay
+    provider_ref: Mapped[str | None] = mapped_column(String, nullable=True)
+    paid_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+    user: Mapped["User"] = relationship()
