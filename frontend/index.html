@@ -144,6 +144,25 @@
     <footer data-i18n="app.footer">Tip: Try without login (last 3 sessions saved locally). Login to sync across devices.</footer>
 
     <script>if (location.hostname === "localhost" || location.hostname === "127.0.0.1") window.__API_BASE__ = "http://localhost:8000";</script>
+    <script>
+      // Pre-fetch Supabase config before module loads
+      let _resolveConfig;
+      window.__SUPABASE_CONFIG__ = { supabase_url: "", supabase_anon_key: "" };
+      window.__CONFIG_READY__ = new Promise(r => { _resolveConfig = r; });
+      (async () => {
+        try {
+          const base = window.__API_BASE__ || "";
+          const urls = base ? [base + "/public-config", "/api/public-config"] : ["/api/public-config"];
+          for (const url of urls) {
+            try {
+              const r = await fetch(url);
+              if (r.ok) { window.__SUPABASE_CONFIG__ = await r.json(); break; }
+            } catch (_) {}
+          }
+        } catch (_) {}
+        _resolveConfig();
+      })();
+    </script>
     <script type="module">
       import { newTripId, signInWithGoogle, setTopRightAuthUI } from "/app.js";
       import { initI18n, renderLangSwitcher } from "/i18n.js";
