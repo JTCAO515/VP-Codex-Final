@@ -475,6 +475,9 @@ async function main() {
   await loadTripsAndMaybeMessages(tripId);
   await renderDetailsItinerary(tripId);
 
+  // Init mobile features (voice input, camera)
+  if (window._mobileInit) window._mobileInit();
+
   const form = $("msgForm");
   form.onsubmit = async (e) => {
     e.preventDefault();

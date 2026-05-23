@@ -35,6 +35,10 @@
       "destination": "/frontend/itinerary-planner.js"
     },
     {
+      "source": "/mobile-features.js",
+      "destination": "/frontend/mobile-features.js"
+    },
+    {
       "source": "/auth/callback",
       "destination": "/frontend/auth/callback.html"
     },

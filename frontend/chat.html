@@ -174,5 +174,16 @@
     <script type="module" src="/i18n.js"></script>
     <script type="module" src="/app.js"></script>
     <script type="module" src="/chat.js"></script>
+    <script type="module">
+      import { initPWA, initVoiceInput, initCameraButton } from "/mobile-features.js";
+      initPWA();
+      // Voice/camera init after DOM ready — chat.js main() will call setup
+      window._mobileInit = () => {
+        initVoiceInput("msgInput", () => {
+          document.getElementById("msgForm").dispatchEvent(new Event("submit", {cancelable:true}));
+        });
+        initCameraButton();
+      };
+    </script>
   </body>
 </html>
