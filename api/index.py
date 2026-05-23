@@ -8,6 +8,12 @@ We mount the existing FastAPI backend under `/api` so that:
 ... work on the same Vercel domain as the static frontend.
 """
 
+import sys
+import os
+
+# Vercel doesn't automatically add backend/ to Python path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "backend"))
+
 from starlette.applications import Starlette
 from starlette.routing import Mount
 
