@@ -49,9 +49,18 @@ export function appendGuestMessage(tripId, msg) {
 }
 
 async function fetchPublicConfig() {
-  const r = await fetch("/api/public-config");
-  if (!r.ok) return { supabase_url: "", supabase_anon_key: "" };
-  return await r.json();
+  // Dev: try backend directly first, then fall back to relative (production Vercel rewrite)
+  const urls = [
+    window.__API_BASE__ ? `${window.__API_BASE__}/public-config` : null,
+    "/api/public-config"
+  ].filter(Boolean);
+  for (const url of urls) {
+    try {
+      const r = await fetch(url);
+      if (r.ok) return await r.json();
+    } catch (_) {}
+  }
+  return { supabase_url: "", supabase_anon_key: "" };
 }
 
 let _supabase = null;
@@ -92,6 +101,13 @@ export async function signOut() {
   await sb.auth.signOut();
 }
 
+export function apiUrl(path) {
+  // Dev mode: direct backend URL (no /api rewrite)
+  if (window.__API_BASE__) return `${window.__API_BASE__}${path}`;
+  // Production: Vercel rewrites /api/* to backend
+  return `/api${path}`;
+}
+
 export async function apiFetch(path, { method = "GET", headers = {}, body } = {}) {
   const session = await getSession();
   if (session?.access_token) {
@@ -100,7 +116,7 @@ export async function apiFetch(path, { method = "GET", headers = {}, body } = {}
   if (body && !(body instanceof FormData)) {
     headers["Content-Type"] = "application/json";
   }
-  const res = await fetch(`/api${path}`, {
+  const res = await fetch(apiUrl(path), {
     method,
     headers,
     body: body ? (body instanceof FormData ? body : JSON.stringify(body)) : undefined,

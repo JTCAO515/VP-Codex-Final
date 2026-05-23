@@ -15,6 +15,7 @@
       <div style="font-size:16px;font-weight:650;">正在完成登录…</div>
       <div class="muted">如果 3 秒后没有跳转，请刷新页面。</div>
     </div>
+    <script>window.__API_BASE__ = "http://localhost:8000";</script>
     <script type="module">
       import { getSupabase } from "/app.js";
       const sb = await getSupabase();

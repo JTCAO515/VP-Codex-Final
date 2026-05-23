@@ -107,6 +107,7 @@
 
     <footer>提示：未登录也能试用（本地保留最近 3 个会话）。登录后将同步保存对话/行程/订单历史。</footer>
 
+    <script>window.__API_BASE__ = "http://localhost:8000";</script>
     <script type="module">
       import { newTripId, signInWithGoogle, setTopRightAuthUI } from "/app.js";
       setTopRightAuthUI({ containerId: "authArea" });
