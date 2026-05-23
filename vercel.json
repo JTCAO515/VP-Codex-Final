@@ -35,6 +35,10 @@
       "destination": "/frontend/chat.html"
     },
     {
+      "source": "/dashboard",
+      "destination": "/frontend/dashboard.html"
+    },
+    {
       "source": "/",
       "destination": "/frontend/index.html"
     },

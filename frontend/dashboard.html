@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Dashboard · China Travel Agent</title>
+  <style>
+    :root{
+      --bg0:#05070b;--bg1:#0a0f17;--line:rgba(255,255,255,.08);
+      --muted:rgba(255,255,255,.62);--text:rgba(255,255,255,.92);
+      --accent:#7dd3fc;
+      font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;
+    }
+    body{
+      margin:0;min-height:100vh;
+      background:radial-gradient(1200px 800px at 30% 15%, #121826 0%, var(--bg1) 55%, var(--bg0) 100%);
+      color:var(--text);
+    }
+    header{
+      height:56px;display:flex;align-items:center;justify-content:space-between;
+      padding:0 16px;border-bottom:1px solid var(--line);
+      background:rgba(8,10,14,.55);backdrop-filter:blur(10px);
+    }
+    .brand{display:flex;gap:10px;align-items:center;}
+    .dot{width:10px;height:10px;border-radius:99px;background:var(--accent);box-shadow:0 0 18px rgba(125,211,252,.45);}
+    .name{font-weight:650;font-size:14px;}
+    main{max-width:960px;margin:0 auto;padding:24px 16px 80px;}
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:32px;}
+    .stat{border:1px solid rgba(255,255,255,.06);border-radius:12px;background:rgba(255,255,255,.02);padding:16px;text-align:center;}
+    .stat-num{font-size:28px;font-weight:700;color:var(--accent);}
+    .stat-label{font-size:12px;color:var(--muted);margin-top:2px;}
+    h2{font-size:18px;margin:24px 0 12px;}
+    .trip-card{border:1px solid rgba(255,255,255,.06);border-radius:12px;background:rgba(255,255,255,.015);padding:16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:border-color .15s;}
+    .trip-card:hover{border-color:rgba(125,211,252,.2);}
+    .trip-info{flex:1}
+    .trip-title{font-size:14px;font-weight:600;}
+    .trip-meta{font-size:12px;color:var(--muted);margin-top:4px;}
+    .trip-days{font-size:11px;color:rgba(125,211,252,.7);padding:4px 10px;border-radius:999px;border:1px solid rgba(125,211,252,.15);}
+    .doc-card{border:1px solid rgba(255,255,255,.06);border-radius:12px;background:rgba(255,255,255,.015);padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+    .doc-icon{font-size:24px;}
+    .doc-info{flex:1;}
+    .doc-type{font-size:13px;font-weight:600;}
+    .doc-detail{font-size:11px;color:var(--muted);}
+    .btn{font-size:12px;padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;}
+    .btn:hover{background:rgba(255,255,255,.08)}
+    .btn-primary{background:rgba(125,211,252,.14);border-color:rgba(125,211,252,.25)}
+    .btn-primary:hover{background:rgba(125,211,252,.22)}
+    .btn-danger{color:#fca5a5;border-color:rgba(252,165,165,.25)}
+    .btn-danger:hover{background:rgba(252,165,165,.1)}
+    form.dark-form{display:flex;flex-direction:column;gap:10px;max-width:480px;}
+    form.dark-form input,form.dark-form select{
+      padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.1);
+      background:rgba(255,255,255,.03);color:var(--text);
+    }
+    .empty-state{text-align:center;padding:40px;color:var(--muted);}
+    .empty-state h3{color:var(--text);margin-bottom:8px;}
+    .tabs{display:flex;gap:8px;margin-bottom:20px;border-bottom:1px solid var(--line);padding-bottom:8px;}
+    .tab-btn{font-size:13px;padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:none;color:var(--text);cursor:pointer;}
+    .tab-btn.active{background:rgba(125,211,252,.12);border-color:rgba(125,211,252,.22)}
+    .badge-expiring{color:#fbbf24;font-size:11px;}
+    .badge-expired{color:#fca5a5;font-size:11px;}
+    .badge-valid{color:#34d399;font-size:11px;}
+  </style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="dot"></div>
+    <div class="name">China Travel Agent</div>
+  </div>
+  <div>
+    <a href="/chat" class="btn">Chat</a>
+    <a href="/" class="btn">Home</a>
+  </div>
+</header>
+<main>
+  <h2>Your Dashboard</h2>
+  <div class="stats" id="stats"></div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('trips')">Trips</button>
+    <button class="tab-btn" onclick="showTab('docs')">Documents</button>
+  </div>
+
+  <div id="tab-trips"></div>
+  <div id="tab-docs" style="display:none"></div>
+</main>
+
+<script>window.__API_BASE__ = "http://localhost:8000";</script>
+<script type="module">
+  import { apiFetch, getSession, getGuestId, fmtTime } from "/app.js";
+
+  function esc(s) { return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+  async function load() {
+    const session = await getSession();
+    if (!session?.access_token) {
+      document.getElementById("stats").innerHTML = `<div class="empty-state"><h3>Sign in required</h3><p>Log in with Google to see your dashboard.</p><br><a href="/" class="btn btn-primary">Sign In</a></div>`;
+      return;
+    }
+
+    const r = await apiFetch("/user/profile");
+    if (!r.ok) {
+      document.getElementById("stats").innerHTML = `<div class="empty-state"><h3>Error loading</h3><p>Could not load profile.</p></div>`;
+      return;
+    }
+    const data = await r.json();
+    const s = data.stats || {};
+    const trips = data.trips || [];
+
+    document.getElementById("stats").innerHTML = `
+      <div class="stat"><div class="stat-num">${s.total_trips||0}</div><div class="stat-label">Trips</div></div>
+      <div class="stat"><div class="stat-num">${s.total_days_planned||0}</div><div class="stat-label">Days Planned</div></div>
+      <div class="stat"><div class="stat-num">${s.total_bookings||0}</div><div class="stat-label">Bookings</div></div>
+      <div class="stat"><div class="stat-num">${s.total_orders||0}</div><div class="stat-label">Orders</div></div>
+    `;
+
+    // Cities tag bar
+    if (s.cities_visited?.length) {
+      const tagBar = document.createElement("div");
+      tagBar.style.cssText = "display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 16px;";
+      s.cities_visited.forEach(c => {
+        const tag = document.createElement("span");
+        tag.textContent = c;
+        tag.style.cssText = "font-size:11px;padding:3px 10px;border-radius:999px;border:1px solid rgba(125,211,252,.15);background:rgba(125,211,252,.06);color:rgba(125,211,252,.85);";
+        tagBar.appendChild(tag);
+      });
+      document.getElementById("stats").after(tagBar);
+    }
+
+    const tripsHtml = trips.length ? trips.map(t => `
+      <div class="trip-card" onclick="location.href='/chat?trip=${esc(t.id)}'">
+        <div class="trip-info">
+          <div class="trip-title">${esc(t.title||"Untitled")}</div>
+          <div class="trip-meta">${(t.cities||[]).join(" · ")}  ${t.start_date||""} → ${t.end_date||""}  ·  ${fmtTime(t.updated_at)}</div>
+        </div>
+        <div class="trip-days">${t.day_count||0} days</div>
+      </div>
+    `).join("") : `<div class="empty-state"><h3>No trips yet</h3><p><a href="/chat" class="btn btn-primary">Start your first trip</a></p></div>`;
+    document.getElementById("tab-trips").innerHTML = tripsHtml;
+
+    await loadDocuments();
+  }
+
+  async function loadDocuments() {
+    const r2 = await apiFetch("/user/documents");
+    const docs = r2.ok ? (await r2.json()).documents || [] : [];
+
+    function expiryBadge(d) {
+      if (!d.summary?.expiry) return "";
+      const exp = new Date(d.summary.expiry);
+      const now = new Date();
+      const diff = (exp - now) / (1000*86400);
+      if (diff < 0) return `<span class="badge-expired">Expired</span>`;
+      if (diff < 90) return `<span class="badge-expiring">Expires in ${Math.ceil(diff)}d</span>`;
+      return `<span class="badge-valid">Valid</span>`;
+    }
+
+    const iconMap = { passport:"🛂", visa:"🛃", insurance:"🏥", other:"📄" };
+    const docsHtml = docs.length ? docs.map(d => `
+      <div class="doc-card">
+        <div class="doc-icon">${iconMap[d.doc_type]||"📄"}</div>
+        <div class="doc-info">
+          <div class="doc-type">${esc(d.label||d.doc_type)} ${expiryBadge(d)}</div>
+          <div class="doc-detail">${d.summary?.nationality||""} ${d.summary?.expiry||""}</div>
+        </div>
+        <button class="btn btn-danger" onclick="deleteDoc('${esc(d.id)}')">Delete</button>
+      </div>
+    `).join("") : `<div class="empty-state"><h3>No documents</h3><p>Store passport and visa info securely.</p></div>`;
+
+    docsHtml += `
+      <div style="margin-top:20px;">
+        <h3>Add Document</h3>
+        <form class="dark-form" id="addDocForm">
+          <select id="docType"><option value="passport">Passport</option><option value="visa">Visa</option><option value="insurance">Insurance</option><option value="other">Other</option></select>
+          <input id="docLabel" placeholder="Label (e.g. Main Passport)">
+          <input id="docExpiry" type="date" placeholder="Expiry date">
+          <input id="docNationality" placeholder="Nationality (for passport)">
+          <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+      </div>`;
+    document.getElementById("tab-docs").innerHTML = docsHtml;
+
+    document.getElementById("addDocForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const docType = document.getElementById("docType").value;
+      const label = document.getElementById("docLabel").value.trim();
+      const expiry = document.getElementById("docExpiry").value;
+      const nationality = document.getElementById("docNationality").value.trim();
+      await apiFetch("/user/documents", {
+        method: "POST",
+        body: { doc_type: docType, label, data: { expiry, nationality } }
+      });
+      location.reload();
+    };
+  }
+
+  window.showTab = function(name) {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.textContent.toLowerCase() === name));
+    document.getElementById("tab-trips").style.display = name === "trips" ? "block" : "none";
+    document.getElementById("tab-docs").style.display = name === "docs" ? "block" : "none";
+  };
+
+  window.deleteDoc = async function(id) {
+    if (!confirm("Delete this document?")) return;
+    await apiFetch(`/user/documents/${encodeURIComponent(id)}`, { method: "DELETE" });
+    location.reload();
+  };
+
+  load();
+</script>
+</body>
+</html>
