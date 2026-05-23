@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -82,34 +82,40 @@
     <header>
       <div class="brand">
         <div class="dot"></div>
-        <div class="name">China Travel Agent</div>
+        <div class="name" data-i18n="app.title">China Travel Agent</div>
       </div>
-      <div id="authArea"></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div id="langSwitcherArea"></div>
+        <div id="authArea"></div>
+      </div>
     </header>
 
     <main>
       <div class="hero">
-        <h1>Plan your China trip</h1>
-        <p class="sub">少问问题，多交流。先开聊，行程与订单会自动归档到你的历史里（登录后）。</p>
+        <h1 data-i18n="app.tagline">Plan your China trip</h1>
+        <p class="sub" data-i18n="app.subtitle">Ask less, chat more. Trip history saved automatically (after login).</p>
         <form id="startForm">
-          <input id="prompt" placeholder="开始对话…（例如：北京 5 天游玩，美食+历史，节奏轻松）" />
-          <button id="startBtn" type="submit">Start</button>
+          <input id="prompt" data-i18n="app.placeholder" placeholder="Start chatting... (e.g. Beijing 5 days, food+history, relaxed pace)" />
+          <button id="startBtn" type="submit" data-i18n="app.start">Start</button>
         </form>
         <div class="links">
-          <a href="/chat">Open chat</a>
+          <a href="/chat" data-i18n="app.open_chat">Open chat</a>
           <span class="sep">·</span>
-          <a href="#" id="googleLink">Sign in with Google</a>
+          <a href="#" id="googleLink" data-i18n="app.sign_in">Sign in with Google</a>
           <span class="sep">·</span>
-          <span>Continue as guest</span>
+          <span data-i18n="app.guest">Continue as guest</span>
         </div>
       </div>
     </main>
 
-    <footer>提示：未登录也能试用（本地保留最近 3 个会话）。登录后将同步保存对话/行程/订单历史。</footer>
+    <footer data-i18n="app.footer">Tip: Try without login (last 3 sessions saved locally). Login to sync across devices.</footer>
 
     <script>window.__API_BASE__ = "http://localhost:8000";</script>
     <script type="module">
       import { newTripId, signInWithGoogle, setTopRightAuthUI } from "/app.js";
+      import { initI18n, renderLangSwitcher } from "/i18n.js";
+      initI18n();
+      renderLangSwitcher("langSwitcherArea");
       setTopRightAuthUI({ containerId: "authArea" });
       document.getElementById("googleLink").onclick = (e) => { e.preventDefault(); signInWithGoogle(); };
       document.getElementById("startForm").onsubmit = (e) => {

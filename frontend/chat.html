@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -129,10 +129,11 @@
     <header>
       <div class="brand">
         <div class="dot"></div>
-        <div class="name">China Travel Agent</div>
+        <div class="name" data-i18n="app.title">China Travel Agent</div>
       </div>
       <div class="right">
-        <button class="ghost" id="btnDetails" style="display:none">Details</button>
+        <div id="langSwitcherArea"></div>
+        <button class="ghost" id="btnDetails" style="display:none" data-i18n="chat.close">Details</button>
         <div id="authArea"></div>
       </div>
     </header>
@@ -148,21 +149,22 @@
           <div class="detailsMeta" id="dMeta"></div>
         </div>
         <div class="tabs">
-          <button class="tab active" data-tab="itinerary">行程</button>
-          <button class="tab" data-tab="hotel">酒店</button>
-          <button class="tab" data-tab="orders">RFP&订单</button>
+          <button class="tab active" data-tab="itinerary" data-i18n="chat.itinerary">Itinerary</button>
+          <button class="tab" data-tab="hotel" data-i18n="chat.hotel">Hotel</button>
+          <button class="tab" data-tab="orders" data-i18n="chat.orders">Orders</button>
         </div>
         <div id="panel"></div>
       </aside>
       <footer>
         <form id="msgForm">
-          <input id="msgInput" placeholder="开始对话…（回车发送）" />
-          <button id="sendBtn" type="submit">Send</button>
+          <input id="msgInput" data-i18n="chat.type_message" placeholder="Type a message…" />
+          <button id="sendBtn" type="submit" data-i18n="chat.send">Send</button>
         </form>
       </footer>
     </div>
 
     <script>window.__API_BASE__ = "http://localhost:8000";</script>
+    <script type="module" src="/i18n.js"></script>
     <script type="module" src="/app.js"></script>
     <script type="module" src="/chat.js"></script>
   </body>

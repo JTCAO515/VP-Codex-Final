@@ -12,6 +12,7 @@ import {
   saveGuestTripMeta,
   setTopRightAuthUI,
 } from "./app.js";
+import { initI18n, renderLangSwitcher, t } from "./i18n.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -32,7 +33,7 @@ function renderTripsList(trips, activeId) {
   el.innerHTML = "";
   const top = document.createElement("div");
   top.className = "sideTop";
-  top.innerHTML = `<button class="pill" id="btnNew">+ New</button>`;
+  top.innerHTML = `<button class="pill" id="btnNew" data-i18n="chat.new_trip">+ New Trip</button>`;
   el.appendChild(top);
   top.querySelector("#btnNew").onclick = () => {
     const id = newTripId();
@@ -274,7 +275,9 @@ async function sendMessage(tripId, text) {
 }
 
 async function main() {
+  initI18n();
   setTopRightAuthUI({ containerId: "authArea" });
+  renderLangSwitcher("langSwitcherArea");
 
   const tripId = qs("trip") || newTripId();
   const initial = qs("q");

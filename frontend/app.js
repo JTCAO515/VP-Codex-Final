@@ -137,11 +137,11 @@ export function setTopRightAuthUI({ containerId = "authArea" } = {}) {
     const sb = await getSupabase();
     const session = await getSession();
     if (!sb || !session) {
-      el.innerHTML = `<button class="ghost" id="btnSignIn">Sign in</button>`;
+      el.innerHTML = `<button class="ghost" id="btnSignIn" data-i18n="app.sign_in">Sign in</button>`;
       document.getElementById("btnSignIn").onclick = signInWithGoogle;
       return;
     }
-    el.innerHTML = `<span class="badge">Signed in</span><button class="ghost" id="btnSignOut">Sign out</button>`;
+    el.innerHTML = `<span class="badge">Signed in</span><button class="ghost" id="btnSignOut" data-i18n="chat.sign_out">Sign out</button>`;
     document.getElementById("btnSignOut").onclick = async () => {
       await signOut();
       location.reload();
