@@ -7,6 +7,18 @@
       "destination": "/frontend/assets/$1"
     },
     {
+      "source": "/robots.txt",
+      "destination": "/frontend/robots.txt"
+    },
+    {
+      "source": "/manifest.json",
+      "destination": "/frontend/manifest.json"
+    },
+    {
+      "source": "/sw.js",
+      "destination": "/frontend/sw.js"
+    },
+    {
       "source": "/app.js",
       "destination": "/frontend/app.js"
     },

@@ -3,7 +3,40 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>China Travel Agent</title>
+    <title>China Travel Agent — AI-Powered Trip Planner</title>
+    <meta name="description" content="Plan your China trip with AI. Itineraries, hotels, local tips — all in one chat. Supports English, Chinese, Russian, Spanish, Arabic, Korean, Japanese, French, German." />
+    <meta name="keywords" content="China travel, trip planner, itinerary, hotel booking, AI travel assistant" />
+    <meta property="og:title" content="China Travel Agent — AI Trip Planner" />
+    <meta property="og:description" content="Chat with AI to plan your perfect China trip. Multi-language support." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://go2china.space" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="theme-color" content="#7dd3fc" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="canonical" href="https://go2china.space" />
+    <link rel="alternate" hreflang="en" href="https://go2china.space/?lang=en" />
+    <link rel="alternate" hreflang="zh" href="https://go2china.space/?lang=zh" />
+    <link rel="alternate" hreflang="ru" href="https://go2china.space/?lang=ru" />
+    <link rel="alternate" hreflang="es" href="https://go2china.space/?lang=es" />
+    <link rel="alternate" hreflang="ar" href="https://go2china.space/?lang=ar" />
+    <link rel="alternate" hreflang="ko" href="https://go2china.space/?lang=ko" />
+    <link rel="alternate" hreflang="ja" href="https://go2china.space/?lang=ja" />
+    <link rel="alternate" hreflang="fr" href="https://go2china.space/?lang=fr" />
+    <link rel="alternate" hreflang="de" href="https://go2china.space/?lang=de" />
+    <link rel="alternate" hreflang="x-default" href="https://go2china.space" />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "China Travel Agent",
+      "url": "https://go2china.space",
+      "description": "AI-powered China travel planner with itinerary builder, hotel booking, and multi-language support.",
+      "applicationCategory": "TravelApplication",
+      "operatingSystem": "All",
+      "inLanguage": ["en","zh","ru","es","ar","ko","ja","fr","de"],
+      "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
+    }
+    </script>
     <style>
       :root{
         --bg0:#05070b;
@@ -127,6 +160,11 @@
         if (t) u.searchParams.set("q", t);
         window.location.href = u.toString();
       };
+    </script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("/sw.js").catch(() => {});
+      }
     </script>
   </body>
 </html>
