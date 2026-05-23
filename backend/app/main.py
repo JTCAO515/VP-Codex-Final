@@ -2,11 +2,15 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+import os
+
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.db import init_db
 from app.models import Base
+from app.middleware import SecurityMiddleware, RateLimitMiddleware
+from app.middleware import http_exception_handler, generic_exception_handler
 from app.routers.chat import router as chat_router
 from app.routers.config import router as config_router
 from app.routers.health import router as health_router
@@ -26,16 +30,36 @@ def create_app() -> FastAPI:
         init_db(Base.metadata)
         yield
 
-    app = FastAPI(title="China Travel Agent MVP", version="2.2.0", lifespan=lifespan)
+    app = FastAPI(
+        title="China Travel Agent",
+        version="3.0.0",
+        lifespan=lifespan,
+        docs_url=None if not os.getenv("IS_DEV") else "/docs",
+        redoc_url=None,
+    )
 
-    # 便于本地静态页面/跨域联调（生产环境请收紧 allow_origins）
+    # CORS — development: all origins; production: go2china.space only
+    is_prod = not os.getenv("IS_DEV", "")
+    allow_origins = (
+        ["https://go2china.space", "https://www.go2china.space"]
+        if is_prod
+        else ["*"]
+    )
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=False,
-        allow_methods=["*"],
+        allow_origins=allow_origins,
+        allow_credentials=True if is_prod else False,
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allow_headers=["*"],
     )
+
+    # Security & rate limiting (after CORS)
+    app.add_middleware(SecurityMiddleware)
+    app.add_middleware(RateLimitMiddleware)
+
+    # Error handlers (production-safe: no stack traces)
+    app.add_exception_handler(HTTPException, http_exception_handler)
+    app.add_exception_handler(Exception, generic_exception_handler)
 
     app.include_router(health_router, tags=["health"])
     app.include_router(config_router, tags=["config"])

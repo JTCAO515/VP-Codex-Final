@@ -15,6 +15,10 @@
       "destination": "/frontend/chat.js"
     },
     {
+      "source": "/i18n.js",
+      "destination": "/frontend/i18n.js"
+    },
+    {
       "source": "/auth/callback",
       "destination": "/frontend/auth/callback.html"
     },
