@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 from app.auth import get_principal
 from app.db import session_scope
 from app.models import EventLog, HotelBooking, Trip
-from app.providers import hotel_provider
+from app.providers import get_hotel_provider
 
 router = APIRouter()
 
@@ -22,7 +22,7 @@ class HotelSearchIn(BaseModel):
 
 @router.post("/hotel/search")
 def hotel_search(payload: HotelSearchIn):
-    offers = hotel_provider.search(payload.city, payload.check_in, payload.check_out, payload.adults)
+    offers = get_hotel_provider().search(payload.city, payload.check_in, payload.check_out, payload.adults)
     return {"offers": offers}
 
 
@@ -54,7 +54,7 @@ def hotel_book(payload: HotelBookingIn, request: Request):
             )
         )
 
-        provider_res = hotel_provider.create_booking(payload.offer_id, payload.guest_info)
+        provider_res = get_hotel_provider().create_booking(payload.offer_id, payload.guest_info)
         booking.provider_payload = provider_res
         booking.status = provider_res.get("status", "confirmed")
         if booking.status not in ALLOWED_BOOKING_STATUSES:

@@ -66,3 +66,57 @@ class StubHotelProvider(HotelProvider):
 
 hotel_provider: HotelProvider = StubHotelProvider()
 
+
+class SeedHotelProvider(HotelProvider):
+    """v2.5: Realistic hotel data from seed (60+ Chinese hotels across major cities)."""
+
+    def __init__(self):
+        from app.seed_hotels import get_hotels_for_city
+        self._get = get_hotels_for_city
+
+    def search(self, city: str, check_in: str, check_out: str, adults: int) -> list[dict]:
+        hotels = self._get(city)
+        if not hotels:
+            # Try case-insensitive
+            hotels = self._get(city.title()) or self._get(city.capitalize())
+        results = []
+        for h in hotels:
+            # Calculate total price
+            try:
+                nights = max(1, (__import__("datetime").datetime.strptime(check_out, "%Y-%m-%d") - __import__("datetime").datetime.strptime(check_in, "%Y-%m-%d")).days)
+            except Exception:
+                nights = 1
+            results.append({
+                "offer_id": f"seed-{city.lower()}-{h['name_en'].lower().replace(' ', '-')[:40]}",
+                "name": h["name"],
+                "name_en": h.get("name_en", ""),
+                "stars": h["stars"],
+                "price_per_night": h["price_per_night"],
+                "total_price": h["price_per_night"] * nights,
+                "currency": "CNY",
+                "rating": h.get("rating", 4.0),
+                "review_count": h.get("review_count", 0),
+                "address": h.get("address", ""),
+                "city": city,
+                "image_url": h.get("image_url", ""),
+                "amenities": h.get("amenities", []),
+                "cancel_policy": h.get("cancel_policy", ""),
+                "pay_type": "guarantee",
+            })
+        return results
+
+    def create_booking(self, offer_id: str, guest_info: dict) -> dict:
+        return {"provider_booking_ref": f"SEED-{offer_id}-{__import__('uuid').uuid4().hex[:8]}", "status": "confirmed"}
+
+
+def get_hotel_provider() -> HotelProvider:
+    """Select hotel provider based on environment."""
+    import os
+    provider_name = os.getenv("HOTEL_PROVIDER", "seed").lower()
+    if provider_name == "seed":
+        return SeedHotelProvider()
+    if provider_name == "stub":
+        return StubHotelProvider()
+    # Default to seed
+    return SeedHotelProvider()
+
