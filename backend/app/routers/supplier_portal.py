@@ -12,6 +12,19 @@ from app.security import require_supplier
 router = APIRouter()
 
 
+@router.get("/supplier/me")
+def supplier_me(supplier=Depends(require_supplier)):
+    """Verify API key and return supplier info."""
+    return {
+        "supplier": {
+            "id": supplier.id,
+            "name": supplier.name,
+            "status": supplier.status,
+            "profile": supplier.profile,
+        }
+    }
+
+
 @router.get("/supplier/rfps")
 def supplier_rfps(db: Session = Depends(get_db), supplier=Depends(require_supplier)):
     rfps = (

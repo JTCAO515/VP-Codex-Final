@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RFP Detail - Supplier Portal</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, sans-serif; background: #0f0f0f; color: #e0e0e0; min-height: 100vh; }
+header { background: #1a1a1a; border-bottom: 1px solid #333; padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+header a { color: #4a9eff; text-decoration: none; font-size: 14px; }
+header h1 { font-size: 16px; color: #f0f0f0; }
+.container { max-width: 720px; margin: 0 auto; padding: 24px; }
+h2 { font-size: 16px; margin: 20px 0 12px; color: #ccc; }
+.info { background: #1a1a1a; border: 1px solid #333; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+.info p { font-size: 13px; margin-bottom: 6px; color: #aaa; }
+.info strong { color: #e0e0e0; }
+.quote-card { background: #1a1a1a; border: 1px solid #333; border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+.quote-card .status { font-size: 11px; padding: 2px 8px; border-radius: 4px; }
+.quote-card .status.submitted { background: #1a3a1a; color: #4caf50; }
+.quote-card .status.revised { background: #1a2a3a; color: #4a9eff; }
+.form-group { margin-bottom: 14px; }
+label { display: block; font-size: 13px; color: #aaa; margin-bottom: 4px; }
+input, textarea { width: 100%; padding: 10px; background: #252525; border: 1px solid #444; border-radius: 8px; color: #e0e0e0; font-size: 14px; }
+input:focus, textarea:focus { outline: none; border-color: #4a9eff; }
+textarea { min-height: 80px; resize: vertical; }
+.row { display: flex; gap: 12px; }
+.row .form-group { flex: 1; }
+button { padding: 10px 24px; background: #4a9eff; color: #fff; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; }
+button:hover { background: #3a8eef; }
+button.secondary { background: #333; color: #ccc; }
+.msg { font-size: 13px; margin-top: 8px; }
+.msg.ok { color: #4caf50; }
+.msg.err { color: #f44336; }
+</style>
+</head>
+<body>
+<header>
+  <a href="/supplier/dashboard.html">← Dashboard</a>
+  <h1>RFP Detail</h1>
+</header>
+<div class="container">
+  <div class="info" id="rfpInfo">Loading...</div>
+
+  <h2>My Quotes</h2>
+  <div id="quotesList">Loading...</div>
+
+  <h2>Submit New Quote</h2>
+  <div class="form-group"><label>Price (CNY)</label><input type="number" id="priceAmt" placeholder="e.g. 5000" min="1"></div>
+  <div class="row">
+    <div class="form-group"><label>Currency</label><input type="text" id="priceCur" value="CNY"></div>
+    <div class="form-group"><label>Unit</label><input type="text" id="priceUnit" value="total"></div>
+  </div>
+  <div class="form-group"><label>Included (comma-separated)</label><input type="text" id="included" placeholder="Guide service, Transportation"></div>
+  <div class="form-group"><label>Excluded</label><input type="text" id="excluded" placeholder="Meals, Tickets"></div>
+  <div class="form-group"><label>Proposal Notes</label><textarea id="proposalNotes" placeholder="Describe your service plan..."></textarea></div>
+  <button onclick="submitQuote()">Submit Quote</button>
+  <div class="msg" id="msg"></div>
+</div>
+<script>
+const API = window.location.origin + '/api';
+const KEY = localStorage.getItem('supplier_apikey');
+if (!KEY) { window.location.href = '/supplier/login.html'; }
+const H = { 'Authorization': 'Bearer ' + KEY };
+const params = new URLSearchParams(window.location.search);
+const rfpId = params.get('id');
+if (!rfpId) { window.location.href = '/supplier/dashboard.html'; }
+
+async function init() {
+  try {
+    const r = await fetch(API + '/supplier/rfps/' + rfpId, { headers: H });
+    const d = await r.json();
+    document.getElementById('rfpInfo').innerHTML = `
+      <p><strong>Service Types:</strong> ${d.rfp.service_types.join(', ') || 'N/A'}</p>
+      <p><strong>Status:</strong> ${d.rfp.status}</p>
+      <p><strong>Requirements:</strong> ${JSON.stringify(d.rfp.requirements)}</p>
+    `;
+    const ql = document.getElementById('quotesList');
+    if (!d.my_quotes.length) { ql.innerHTML = '<p style="color:#666">No quotes submitted yet.</p>'; }
+    else ql.innerHTML = d.my_quotes.map(q => `
+      <div class="quote-card">
+        <p><strong>¥${q.price.amount || '?'} ${q.price.currency || 'CNY'}</strong> /${q.price.unit || 'total'} <span class="status ${q.status}">${q.status}</span> (v${q.revision})</p>
+        <p style="font-size:12px;color:#888">Included: ${(q.included||[]).join(', ') || '-'}</p>
+      </div>
+    `).join('');
+  } catch(e) {
+    document.getElementById('rfpInfo').textContent = 'Failed to load RFP.';
+  }
+}
+
+async function submitQuote() {
+  const price = {
+    amount: parseInt(document.getElementById('priceAmt').value) || 0,
+    currency: document.getElementById('priceCur').value || 'CNY',
+    unit: document.getElementById('priceUnit').value || 'total'
+  };
+  if (!price.amount) { showMsg('Please enter a price.', 'err'); return; }
+  const body = {
+    price,
+    included: document.getElementById('included').value.split(',').map(s=>s.trim()).filter(Boolean),
+    excluded: document.getElementById('excluded').value.split(',').map(s=>s.trim()).filter(Boolean),
+    proposal: { notes: document.getElementById('proposalNotes').value }
+  };
+  try {
+    const r = await fetch(API + '/supplier/rfps/' + rfpId + '/quotes', {
+      method: 'POST', headers: { ...H, 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    if (!r.ok) throw new Error((await r.json()).detail || 'Failed');
+    showMsg('Quote submitted!', 'ok');
+    setTimeout(() => location.reload(), 1000);
+  } catch(e) { showMsg(e.message, 'err'); }
+}
+
+function showMsg(text, cls) {
+  const m = document.getElementById('msg');
+  m.textContent = text; m.className = 'msg ' + cls;
+}
+
+init();
+</script>
+</body>
+</html>
