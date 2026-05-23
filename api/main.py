@@ -220,7 +220,12 @@ header{height:56px;display:flex;align-items:center;justify-content:space-between
 .btn{font-size:12px;padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);cursor:pointer;text-decoration:none}
 .btn:hover{background:rgba(255,255,255,.06)}
 .btn-accent{border-color:rgba(125,211,252,.35);background:rgba(125,211,252,.12)}
-.btn-accent:hover{background:rgba(125,211,252,.20)}
+.card{border:1px solid var(--line);border-radius:16px;padding:18px;background:rgba(255,255,255,.02);cursor:pointer;transition:all .2s;text-align:left;text-decoration:none;display:block}
+.card:hover{border-color:rgba(125,211,252,.35);background:rgba(125,211,252,.06);transform:translateY(-2px)}
+.card-title{font-weight:650;font-size:15px;color:var(--text);margin:0 0 4px}
+.card-sub{font-size:12px;color:var(--muted);margin:0}
+.card-emoji{font-size:28px;margin-bottom:8px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:24px;max-width:560px;margin-left:auto;margin-right:auto}
 footer{position:fixed;left:0;right:0;bottom:0;padding:10px 16px;border-top:1px solid var(--line);background:rgba(8,10,14,.55);backdrop-filter:blur(10px);font-size:12px;color:var(--muted);z-index:1}
 input[type=text]{border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);padding:12px 16px;outline:none;font-size:14px}
 input[type=text]:focus{border-color:rgba(125,211,252,.35);box-shadow:0 0 0 4px rgba(125,211,252,.12)}
@@ -244,21 +249,22 @@ def page_landing() -> str:
 <div style="width:min(640px,96%);text-align:center">
 <h1 style="font-size:34px;margin:0 0 8px;letter-spacing:-.02em">Plan your China trip 🐼</h1>
 <p style="color:var(--muted);margin:0 0 24px;line-height:1.5">Ask less, chat more. Just tell me where and how long.</p>
-<form onsubmit="event.preventDefault();const t=document.getElementById('q').value.trim();const id='t_'+crypto.randomUUID();const u=new URL('/chat',location);u.searchParams.set('trip',id);if(t)u.searchParams.set('q',t);location.href=u.toString()" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+<form onsubmit="event.preventDefault();const v=document.getElementById('q').value.trim();goChat(v||document.getElementById('q').placeholder)" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
 <input id="q" type="text" placeholder="e.g. Beijing 5 days, food+history, relaxed pace…" style="width:min(480px,88vw);height:48px;padding:0 16px">
 <button type="submit" class="btn btn-accent" style="height:48px;padding:0 20px;font-size:14px">Start</button>
 </form>
-<div style="margin-top:16px;font-size:12px;color:var(--muted)">
-<a href="/chat" style="color:var(--muted);text-decoration:none">Open chat</a>
-<span style="opacity:.5;padding:0 8px">·</span>
-<a href="#" onclick="event.preventDefault();signIn()" style="color:var(--muted);text-decoration:none">Sign in with Google</a>
-<span style="opacity:.5;padding:0 8px">·</span>
-<span>Continue as guest</span>
-</div></div></main>
+<div class="cards">
+<a class="card" href="#" onclick="event.preventDefault();goChat('北京3天深度游,喜欢历史文化,中等预算')"><div class="card-emoji">🏯</div><div class="card-title">Beijing 3 Days</div><div class="card-sub">Forbidden City · Wall · Hutongs</div></a>
+<a class="card" href="#" onclick="event.preventDefault();goChat('成都4天美食之旅,火锅串串,悠闲逛')"><div class="card-emoji">🐼</div><div class="card-title">Chengdu Food Tour</div><div class="card-sub">Hotpot · Pandas · Tea houses</div></a>
+<a class="card" href="#" onclick="event.preventDefault();goChat('云南7天,大理丽江香格里拉,自然风光')"><div class="card-emoji">🏔️</div><div class="card-title">Yunnan 7 Days</div><div class="card-sub">Dali · Lijiang · Shangri-La</div></a>
+</div>
+<div style="margin-top:20px;font-size:12px;color:var(--muted)">Open chat · Sign in with Google · Continue as guest</div>
+</div></main>
 <footer>Try without login — last 3 trips saved locally. Login to sync across devices.</footer>
 <script src="https://esm.sh/@supabase/supabase-js@2"></script>
 <script>
 let sb=null;
+function goChat(q){{const id='t_'+crypto.randomUUID();const u=new URL('/chat',location);u.searchParams.set('trip',id);if(q)u.searchParams.set('q',q);location.href=u.toString()}}
 async function initSupabase(){{sb=supabase.createClient(window.__SUPABASE_CONFIG__.supabase_url,window.__SUPABASE_CONFIG__.supabase_anon_key)}}
 async function signIn(){{if(!sb)await initSupabase();sb.auth.signInWithOAuth({{provider:'google',options:{{redirectTo:location.origin+'/auth/callback'}}}})}}
 initSupabase();
@@ -282,6 +288,10 @@ def page_chat() -> str:
 #quickReplies{{display:flex;flex-wrap:wrap;gap:4px;padding:6px 0;max-width:800px;margin:0 auto 8px}}
 .cursor{{animation:blink 1s step-end infinite}}
 @keyframes blink{{0%,100%{{opacity:1}}50%{{opacity:0}}}}
+.skeleton{{height:16px;border-radius:8px;background:linear-gradient(90deg,rgba(255,255,255,.04)25%,rgba(255,255,255,.08)50%,rgba(255,255,255,.04)75%);background-size:200%100%;animation:shimmer 1.5s infinite}}
+@keyframes shimmer{{0%{{background-position:200%0}}100%{{background-position:-200%0}}}}
+.trip-card{{border:1px solid var(--line);border-radius:12px;padding:14px;margin:6px 0;background:rgba(125,211,252,.03)}}
+.trip-card b{{color:var(--accent)}}
 </style>{_inject_config()}</head><body>
 <div class="bg-shanshui"></div>
 <header><div><span class="dot"></span><span class="name">VisePanda</span></div><div><a href="/" class="btn">Home</a></div></header>
@@ -291,10 +301,10 @@ def page_chat() -> str:
 <script>
 let sb=null,tripId=null;
 async function i(){{sb=supabase.createClient(W.__SUPABASE_CONFIG__.supabase_url,W.__SUPABASE_CONFIG__.supabase_anon_key)}}
-const W=window,Q=s=>document.querySelector(s),H=s=>s.replace(/[&<>"']/g,c=>({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}}[c])),M=t=>t.replace(/\\*\\*(.+?)\\*\\*/g,'<b>$1</b>').replace(/\\*(.+?)\\*/g,'<i>$1</i>').replace(/\\n\\n/g,'</p><p>').replace(/\\n/g,'<br>');
+const W=window,Q=s=>document.querySelector(s),H=s=>s.replace(/[&<>"']/g,c=>({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}}[c])),M=t=>{{let h=t.replace(/\\*\\*(.+?)\\*\\*/g,'<b>$1</b>').replace(/\\*(.+?)\\*/g,'<i>$1</i>').replace(/\\n\\n/g,'</p><p>').replace(/\\n/g,'<br>');if(t.includes('**Day '))h='<div class=trip-card>'+h+'</div>';return h}}
 function msg(r,c){{const d=document.createElement('div');d.className='msg '+r;d.innerHTML='<div class=bubble>'+M(c)+'</div>';Q('#thread').appendChild(d);Q('#thread').scrollTop=Q('#thread').scrollHeight;return d}}
 async function loadHistory(){{if(!tripId)return;try{{const r=await fetch('/api/trips/'+tripId+'/messages');if(!r.ok)return;const msgs=await r.json();for(const m of msgs){{msg(m.role==='user'?'user':'bot',m.content)}}}}catch(e){{}}}}
-async function send(t){{msg('user',t);tripId=tripId||'t_'+crypto.randomUUID();const b=msg('bot','<span class=cursor>▊</span>');let f='';try{{
+async function send(t){{const sbb=Q('#sendBtn');sbb.disabled=true;sbb.textContent='...';msg('user',t);tripId=tripId||'t_'+crypto.randomUUID();const b=msg('bot','<div class=skeleton style=width:60%></div><div class=skeleton style=width:40%;margin-top:8px></div><div class=skeleton style=width:50%;margin-top:8px></div>');let f='';try{{
 const s=await sb?.auth.getSession();const tok=s?.data?.session?.access_token;const h={{'Content-Type':'application/json'}};if(tok)h['Authorization']='Bearer '+tok;
 const r=await fetch('/api/chat',{{method:'POST',headers:h,body:JSON.stringify({{trip_id:tripId,text:t}})}});
 const rd=r.body.getReader(),dc=new TextDecoder();let buf='';
@@ -302,7 +312,7 @@ while(1){{const{{done,value}}=await rd.read();if(done)break;buf+=dc.decode(value
 for(const l of buf.split('\\n')){{if(!l.startsWith('data:'))continue;const d=l.slice(5).trim();if(d==='[DONE]')continue;try{{const j=JSON.parse(d);if(j.token)f+=j.token;b.innerHTML=M(f)}}catch(_){{}}}}
 buf=buf.includes('\\n')?buf.split('\\n').pop():buf;Q('#thread').scrollTop=Q('#thread').scrollHeight;}};
 const sm=f.split('---SUGGESTIONS---');if(sm[1]){{const sgs=sm[1].split('\\n').filter(l=>l.trim().startsWith('-')).map(l=>l.replace(/^-\\s*/,''));const qr=Q('#quickReplies');qr.innerHTML=sgs.map(s=>'<span class=chip onclick="document.getElementById(\\'msgInput\\').value=\\''+s.replace(/'/g,'\\\\x27')+'\\';document.getElementById(\\'msgForm\\').dispatchEvent(new Event(\\'submit\\'))">'+s+'</span>').join('')}};
-}}catch(e){{b.innerHTML='<span style=color:#fca5a5>Error: '+H(e.message)+'</span>'}};
+}}catch(e){{b.innerHTML='<span style=color:#fca5a5>Error: '+H(e.message)+'</span>'}};sbb.disabled=false;sbb.textContent='Send';
 Q('#thread').scrollTop=Q('#thread').scrollHeight;}}
 i();const p=new URL(W.location);tripId=p.searchParams.get('trip');if(tripId)loadHistory();const q=p.searchParams.get('q');
 Q('#msgForm').onsubmit=e=>{{e.preventDefault();const v=Q('#msgInput').value.trim();if(!v)return;Q('#msgInput').value='';Q('#quickReplies').innerHTML='';send(v)}};

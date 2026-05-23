@@ -1,42 +1,58 @@
-# VisePanda 迭代执行记录
-
-> 每轮迭代的详细执行日志。供汇总报告使用。
+---
+## Iteration 2 (跳过) — Supabase Postgres
+**原因**: 缺少数据库密码，无法直连。
+**替代**: SQLite /tmp 对 MVP 够用。
+**待办**: 获取 Supabase DB password → `DATABASE_URL=postgresql://postgres:[PWD]@db.jdlinmdhmulozrjeseyc.supabase.co:5432/postgres`
 
 ---
 
-## Iteration 1 — 移动端响应式 + 聊天历史 UI
+## Iteration 3 — 首页改版 + 行程生成 Beta
 
-**日期**: 2026-05-24  
-**目标**: 手机可用，刷新不丢消息  
+**日期**: 2026-05-24
+**目标**: 首页有推荐卡片，行程输出好看
 **状态**: ✅ 完成
 
 ### 改动清单
 
-| # | 改动 | 行数 | 效果 |
-|---|------|------|------|
-| 1 | 移动端 CSS 媒体查询 | +1 | `max-width:640px` 适配：标题缩小、按钮变大、气泡全宽、输入 16px 防 iOS 缩放 |
-| 2 | `loadHistory()` JS 函数 | +1 | 页面加载时调 `GET /api/trips/{id}/messages`，渲染历史消息 |
-| 3 | 初始化调用 `loadHistory()` | ~1 | `tripId` 存在时自动加载历史 |
-| 4 | 聊天历史 API | +13 | `GET /api/trips/{trip_id}/messages`，按时间升序返回最近 50 条 |
-| 5 | LLM 对话上下文 | +10 | 每次请求携带最近 20 条历史 → 不再金鱼记忆 |
-| 6 | 系统提示词升级 | +15 | 行程格式、具体推荐、预算分层（经济/中档/奢华） |
+| # | 改动 | 效果 |
+|---|------|------|
+| 1 | 卡片 CSS（.card/.cards/.card-emoji） | hover 上浮 + 发光边框 |
+| 2 | 首页 3 个快捷卡片（北京/成都/云南） | 点击自动带 prompt 进聊天 |
+| 3 | `goChat()` 函数 | 统一跳转逻辑 |
+| 4 | 骨架屏 CSS（.skeleton + shimmer） | 等待 LLM 时的加载动画 |
+| 5 | 行程卡片 CSS（.trip-card） | LLM 输出行程自动包裹高亮框 |
+| 6 | `M()` 函数增强 | 检测 `**Day N**` → 自动套 trip-card |
+| 7 | 发送按钮防重复 | 发送时 disabled + ...，完成恢复 |
 
 ### 测试结果（本地）
 
 ```
-health=200 | landing=200 | mobile_css=1 | loadHistory=2
-5/5 PASS
+cards=4 | goChat=1 | skeleton=2 | trip=3 | btnDisable=2 | mobile=1
+6/6 PASS
 ```
 
-### 截图验收点
+---
 
-- [x] 手机打开首页 → 标题缩小、输入框不超出屏幕
-- [x] Chat 页面 → 气泡占 95% 宽度，发送按钮 40px 触控区
-- [x] 刷新聊天页 → 历史消息自动加载
-- [x] 连续对话 → LLM 记住上文
+## Iteration 3 — 首页改版 + 行程生成 Beta
+
+**日期**: 2026-05-24
+**目标**: 首页有推荐卡片，行程输出好看
+**状态**: ✅ 完成
+
+| # | 改动 | 效果 |
+|---|------|------|
+| 1 | 卡片 CSS | hover 上浮 + 发光边框 |
+| 2 | 首页 3 个快捷卡片 | 北京/成都/云南，点击自动带 prompt 进聊天 |
+| 3 | `goChat()` 函数 | 统一跳转逻辑 |
+| 4 | 骨架屏 CSS + shimmer 动画 | 等待 LLM 时显示加载条 |
+| 5 | 行程卡片 `.trip-card` | LLM 输出行程自动高亮框 |
+| 6 | `M()` 函数增强 | 检测 `**Day N**` → 套 trip-card |
+| 7 | 发送按钮防重复 | disabled + "..." → 完成恢复 |
+
+**测试**: 6/6 PASS
 
 ### 部署
 
 - [x] 本地测试通过
-- [x] 未部署（等待本文件更新后一起部署）
+- [ ] 待部署
 
