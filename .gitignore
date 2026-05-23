@@ -15,3 +15,5 @@ backend/*.sqlite3
 
 /.uploads/
 /.superpowers/
+.env
+.env.vercel
