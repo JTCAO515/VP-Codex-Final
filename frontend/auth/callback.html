@@ -15,7 +15,7 @@
       <div style="font-size:16px;font-weight:650;" data-i18n="auth.signing_in">Signing in…</div>
       <div class="muted" data-i18n="auth.redirect">Redirecting in 3s…</div>
     </div>
-    <script>window.__API_BASE__ = "http://localhost:8000";</script>
+    <script>if (location.hostname === "localhost" || location.hostname === "127.0.0.1") window.__API_BASE__ = "http://localhost:8000";</script>
     <script type="module">
       import { getSupabase } from "/app.js";
       import { initI18n } from "/i18n.js";

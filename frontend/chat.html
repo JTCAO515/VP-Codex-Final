@@ -170,7 +170,7 @@
       </footer>
     </div>
 
-    <script>window.__API_BASE__ = "http://localhost:8000";</script>
+    <script>if (location.hostname === "localhost" || location.hostname === "127.0.0.1") window.__API_BASE__ = "http://localhost:8000";</script>
     <script type="module" src="/i18n.js"></script>
     <script type="module" src="/app.js"></script>
     <script type="module" src="/chat.js"></script>

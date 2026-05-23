@@ -86,7 +86,7 @@
   <div id="tab-docs" style="display:none"></div>
 </main>
 
-<script>window.__API_BASE__ = "http://localhost:8000";</script>
+<script>if (location.hostname === "localhost" || location.hostname === "127.0.0.1") window.__API_BASE__ = "http://localhost:8000";</script>
 <script type="module">
   import { apiFetch, getSession, getGuestId, fmtTime } from "/app.js";
 

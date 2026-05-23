@@ -21,8 +21,22 @@ _JWKS_CACHE: dict[str, Any] = {"ts": 0.0, "jwks": None}
 
 
 def _supabase_url() -> str:
-    v = os.getenv("SUPABASE_URL", "").strip().rstrip("/")
+    v = (
+        os.getenv("SUPABASE_URL")
+        or os.getenv("NEXT_PUBLIC_SUPABASE_URL")
+        or os.getenv("VITE_SUPABASE_URL")
+        or ""
+    ).strip().rstrip("/")
     return v
+
+
+def _supabase_anon_key() -> str:
+    return (
+        os.getenv("SUPABASE_ANON_KEY")
+        or os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+        or os.getenv("VITE_SUPABASE_ANON_KEY")
+        or ""
+    ).strip()
 
 
 def _jwks_url() -> str:
