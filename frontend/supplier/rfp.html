@@ -68,7 +68,7 @@ if (!rfpId) { window.location.href = '/supplier/dashboard.html'; }
 
 async function init() {
   try {
-    const r = await fetch(API + '/supplier/rfps/' + rfpId, { headers: H });
+    const r = await fetch(API + '/supplier/rfps/' + rfpId, { headers: H() });
     const d = await r.json();
     document.getElementById('rfpInfo').innerHTML = `
       <p><strong>Service Types:</strong> ${d.rfp.service_types.join(', ') || 'N/A'}</p>
@@ -103,7 +103,7 @@ async function submitQuote() {
   };
   try {
     const r = await fetch(API + '/supplier/rfps/' + rfpId + '/quotes', {
-      method: 'POST', headers: { ...H, 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+      method: 'POST', headers: { ...H(), 'Content-Type': 'application/json' }, body: JSON.stringify(body)
     });
     if (!r.ok) throw new Error((await r.json()).detail || 'Failed');
     showMsg('Quote submitted!', 'ok');

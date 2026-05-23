@@ -51,11 +51,11 @@ const API = window.location.origin + '/api';
 const KEY = localStorage.getItem('supplier_apikey');
 if (!KEY) { window.location.href = '/supplier/login.html'; }
 
-const H = { 'Authorization': 'Bearer ' + KEY };
+const H = () => ({ 'X-API-Key': KEY });
 
 async function init() {
   try {
-    const r = await fetch(API + '/supplier/me', { headers: H });
+    const r = await fetch(API + '/supplier/me', { headers: H() });
     const d = await r.json();
     document.getElementById('supplierName').textContent = d.supplier.name;
   } catch(e) { logout(); }
@@ -64,7 +64,7 @@ async function init() {
 
 async function loadRfps() {
   try {
-    const r = await fetch(API + '/supplier/rfps', { headers: H });
+    const r = await fetch(API + '/supplier/rfps', { headers: H() });
     const d = await r.json();
     const el = document.getElementById('panel-rfps');
     if (!d.rfps.length) { el.innerHTML = '<div class="empty">No RFPs yet. Check back later.</div>'; return; }
@@ -79,7 +79,7 @@ async function loadRfps() {
 
 async function loadOrders() {
   try {
-    const r = await fetch(API + '/supplier/orders', { headers: H });
+    const r = await fetch(API + '/supplier/orders', { headers: H() });
     const d = await r.json();
     const el = document.getElementById('panel-orders');
     if (!d.orders.length) { el.innerHTML = '<div class="empty">No orders yet.</div>'; return; }
