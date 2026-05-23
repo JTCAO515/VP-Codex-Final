@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Signing in…</title>
+    <style>
+      body{margin:0;display:flex;align-items:center;justify-content:center;height:100vh;background:#05070b;color:rgba(255,255,255,.86);font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+      .box{max-width:520px;text-align:center}
+      .muted{opacity:.65;font-size:12px;margin-top:8px}
+    </style>
+  </head>
+  <body>
+    <div class="box">
+      <div style="font-size:16px;font-weight:650;">正在完成登录…</div>
+      <div class="muted">如果 3 秒后没有跳转，请刷新页面。</div>
+    </div>
+    <script type="module">
+      import { getSupabase } from "/app.js";
+      const sb = await getSupabase();
+      if (sb) {
+        // 会触发 code exchange & session 落地
+        await sb.auth.getSession();
+      }
+      setTimeout(() => (location.href = "/chat"), 300);
+    </script>
+  </body>
+</html>
+

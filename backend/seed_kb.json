@@ -1,0 +1,32 @@
+[
+  {
+    "type": "dish",
+    "title_zh": "宫保鸡丁",
+    "pinyin": "Gongbao Jiding",
+    "title_en": "Kung Pao Chicken",
+    "brief": "经典川菜：鸡丁配花生，酸甜咸辣平衡，香而不腻。",
+    "highlights": ["花生香脆", "微辣偏香", "下饭"],
+    "tips": ["对花生过敏请务必提前说明", "不吃辣可要求“微辣/不辣”"],
+    "keywords": ["川菜", "鸡肉", "花生", "辣"]
+  },
+  {
+    "type": "dish",
+    "title_zh": "麻婆豆腐",
+    "pinyin": "Mapo Doufu",
+    "title_en": "Mapo Tofu",
+    "brief": "川菜代表之一：麻、辣、烫、香，豆腐软嫩配牛肉末。",
+    "highlights": ["花椒麻香", "口味浓郁"],
+    "tips": ["不吃麻可要求少花椒", "素食者可问是否可不放肉末"],
+    "keywords": ["川菜", "豆腐", "花椒", "辣"]
+  },
+  {
+    "type": "poi",
+    "title_zh": "故宫博物院",
+    "pinyin": "Gugong (The Palace Museum)",
+    "title_en": "The Palace Museum (Forbidden City)",
+    "brief": "明清两代皇宫，规模宏大，适合半天到一天参观。",
+    "highlights": ["中轴线建筑群", "珍宝馆/钟表馆", "拍照点丰富"],
+    "tips": ["旺季建议提前预约/错峰", "穿舒适鞋子，步行量大"],
+    "keywords": ["北京", "历史", "博物馆", "皇宫"]
+  }
+]
