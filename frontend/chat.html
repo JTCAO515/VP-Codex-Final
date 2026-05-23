@@ -121,6 +121,13 @@
       .smallBtn{font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid var(--line); background:rgba(255,255,255,.03); color:var(--text); cursor:pointer;}
       .smallBtn:hover{background:rgba(255,255,255,.06)}
       .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:11px; white-space:pre-wrap;}
+      .cursor-blink{animation: blink 1s step-end infinite;}
+      @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+      .bubble p{margin:0}
+      .bubble ul{margin:4px 0;padding-left:18px}
+      .bubble code{background:rgba(255,255,255,.08);padding:1px 4px;border-radius:3px;font-size:12px}
+      .bubble strong{color:rgba(255,255,255,.95)}
+      .bubble a{color:var(--accent)}
     </style>
   </head>
   <body>

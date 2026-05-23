@@ -17,16 +17,191 @@ import { initI18n, renderLangSwitcher, t } from "./i18n.js";
 const $ = (id) => document.getElementById(id);
 
 function escapeHtml(s) {
-  return (s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  return (s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;", "`": "&#96;" }[c]));
 }
 
-function renderMessage(role, content) {
+// ── Markdown ─────────────────────────────────────────────────
+
+function simpleMarkdown(text) {
+  let html = escapeHtml(text);
+  html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  html = html.replace(/\*(.+?)\*/g, "<em>$1</em>");
+  html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+  html = html.replace(/\n\n/g, "</p><p>");
+  html = html.replace(/\n/g, "<br>");
+  return "<p>" + html + "</p>";
+}
+
+// ── Chat History ─────────────────────────────────────────────
+
+let _historyCache = [];
+
+function pushHistory(role, content) {
+  _historyCache.push({ role, content });
+  if (_historyCache.length > 100) _historyCache.shift();
+}
+
+function getHistory() {
+  return _historyCache;
+}
+
+// ── Quick Replies ────────────────────────────────────────────
+
+function renderQuickReplies(suggestions, inputId) {
+  const existing = document.getElementById("ap-quick-replies");
+  if (existing) existing.remove();
+  if (!suggestions || !suggestions.length) return;
+
+  const wrap = document.createElement("div");
+  wrap.id = "ap-quick-replies";
+  wrap.style.cssText = "display:flex;gap:6px;flex-wrap:wrap;padding:6px 0;";
+
+  suggestions.forEach((text) => {
+    const chip = document.createElement("button");
+    chip.textContent = text;
+    chip.style.cssText =
+      "font-size:11px;padding:5px 10px;border-radius:999px;border:1px solid rgba(125,211,252,.2);background:rgba(125,211,252,.06);color:rgba(255,255,255,.8);cursor:pointer;white-space:nowrap;";
+    chip.onmouseenter = () => { chip.style.background = "rgba(125,211,252,.14)"; };
+    chip.onmouseleave = () => { chip.style.background = "rgba(125,211,252,.06)"; };
+    chip.onclick = () => {
+      const input = document.getElementById(inputId);
+      if (input) {
+        input.value = text;
+        input.form.dispatchEvent(new Event("submit", { cancelable: true }));
+      }
+    };
+    wrap.appendChild(chip);
+  });
+
+  const thread = $("thread");
+  thread.appendChild(wrap);
+  thread.scrollTop = thread.scrollHeight;
+}
+
+// ── Render ───────────────────────────────────────────────────
+
+function renderMessage(role, content, isMarkdown = false) {
   const wrap = document.createElement("div");
   wrap.className = `msg ${role}`;
-  wrap.innerHTML = `<div class="bubble">${escapeHtml(content)}</div>`;
+  const inner = isMarkdown ? simpleMarkdown(content) : escapeHtml(content);
+  wrap.innerHTML = `<div class="bubble">${inner}</div>`;
   $("thread").appendChild(wrap);
   $("thread").scrollTop = $("thread").scrollHeight;
+  return wrap;
 }
+
+function renderStreamingBubble(role) {
+  const wrap = document.createElement("div");
+  wrap.className = `msg ${role}`;
+  wrap.innerHTML = `<div class="bubble" id="streaming-bubble"><span class="cursor-blink">▊</span></div>`;
+  $("thread").appendChild(wrap);
+  $("thread").scrollTop = $("thread").scrollHeight;
+  return wrap.querySelector("#streaming-bubble");
+}
+
+// ── SSE Streaming ────────────────────────────────────────────
+
+async function sendMessageStreaming(tripId, text) {
+  renderMessage("user", text);
+  pushHistory("user", text);
+  if (!(await getSession())?.access_token) {
+    appendGuestMessage(tripId, { role: "user", content: text });
+  }
+
+  const bubble = renderStreamingBubble("bot");
+  let fullText = "";
+  let suggestions = [];
+
+  // Remove existing quick replies
+  const oldQR = document.getElementById("ap-quick-replies");
+  if (oldQR) oldQR.remove();
+
+  try {
+    const session = await getSession();
+    const guestId = getGuestId();
+    const url = session?.access_token
+      ? `${window.__API_BASE__}/chat/stream` || "/api/chat/stream"
+      : (window.__API_BASE__ ? `${window.__API_BASE__}/chat/stream` : "/api/chat/stream");
+
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        trip_id: tripId,
+        text,
+        guest_id: session?.access_token ? undefined : guestId,
+        history: getHistory().slice(0, -1),
+      }),
+    });
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        const data = line.slice(6);
+        if (data === "[DONE]") continue;
+        try {
+          const parsed = JSON.parse(data);
+          if (parsed.token) {
+            fullText += parsed.token;
+            // Extract suggestions
+            const sugMatch = fullText.split("---SUGGESTIONS---");
+            if (sugMatch.length > 1) {
+              suggestions = sugMatch[1]
+                .split("\n")
+                .filter((l) => l.startsWith("- "))
+                .map((l) => l.slice(2).trim());
+            }
+            const displayText = sugMatch[0] || fullText;
+            bubble.innerHTML = simpleMarkdown(displayText);
+          }
+          if (parsed.error) {
+            bubble.innerHTML = `<span style="color:#fca5a5">Error: ${escapeHtml(parsed.error)}</span>`;
+          }
+        } catch (_) {}
+      }
+      $("thread").scrollTop = $("thread").scrollHeight;
+    }
+  } catch (e) {
+    bubble.innerHTML = `<span style="color:#fca5a5">Network error: ${escapeHtml(e.message)}</span>`;
+  }
+
+  if (!fullText) fullText = "(no response)";
+  pushHistory("assistant", fullText);
+
+  // Save to guest storage
+  if (!(await getSession())?.access_token) {
+    appendGuestMessage(tripId, { role: "assistant", content: fullText });
+    saveGuestTripMeta({
+      trip_id: tripId,
+      title: `Trip ${tripId.slice(0, 6)}`,
+      updated_at: new Date().toISOString(),
+    });
+  }
+
+  // Show quick replies
+  if (suggestions.length > 0) {
+    renderQuickReplies(suggestions, "msgInput");
+  }
+}
+
+// Fallback: non-streaming send (kept for compat)
+async function sendMessage(tripId, text) {
+  return sendMessageStreaming(tripId, text);
+}
+
+// ── Sidebar ──────────────────────────────────────────────────
 
 function renderTripsList(trips, activeId) {
   const el = $("sidebar");
@@ -46,7 +221,9 @@ function renderTripsList(trips, activeId) {
   trips.forEach((t) => {
     const item = document.createElement("div");
     item.className = "tripItem" + (t.id === activeId ? " active" : "");
-    item.innerHTML = `<div class="tripTitle">${escapeHtml(t.title || "Untitled")}</div><div class="tripMeta">${escapeHtml(t.updated_at || "")}</div>`;
+    item.innerHTML = `<div class="tripTitle">${escapeHtml(t.title || "Untitled")}</div><div class="tripMeta">${escapeHtml(
+      t.updated_at || ""
+    )}</div>`;
     item.onclick = () => {
       const u = new URL(location.href);
       u.searchParams.set("trip", t.id);
@@ -64,6 +241,8 @@ function setActiveTab(tab) {
 function setPanel(html) {
   $("panel").innerHTML = html;
 }
+
+// ── Details Panel ────────────────────────────────────────────
 
 async function loadTripDetail(tripId) {
   const r = await apiFetch(`/trips/${encodeURIComponent(tripId)}`);
@@ -93,20 +272,23 @@ async function loadOrders(tripId) {
 async function renderDetailsItinerary(tripId) {
   const session = await getSession();
   if (!session?.access_token) {
-    setPanel(`<div class="card"><h4>Itinerary</h4><div class="kv"><div>Tip</div><div>Guest trips only save chat locally. Log in to use the full itinerary planner.</div></div></div>`);
+    setPanel(
+      `<div class="card"><h4>Itinerary</h4><div class="kv"><div>Tip</div><div>Guest trips only save chat locally. Log in to use the full itinerary planner.</div></div></div>`
+    );
     return;
   }
   const r = await apiFetch(`/trips/${encodeURIComponent(tripId)}/itinerary`);
-  const data = r.ok ? (await r.json()) : null;
+  const data = r.ok ? await r.json() : null;
   if (!data) {
-    setPanel(`<div class="card"><h4>Itinerary</h4><div class="kv"><div>Status</div><div>Not found / no access</div></div></div>`);
+    setPanel(
+      `<div class="card"><h4>Itinerary</h4><div class="kv"><div>Status</div><div>Not found / no access</div></div></div>`
+    );
     return;
   }
   $("dTitle").textContent = data.title || "Trip";
   $("dMeta").textContent = `${(data.cities || []).join(", ")}  ·  ${data.start_date || "?"} — ${data.end_date || "?"}`;
   setPanel(`<div id="planner-root"></div>`);
 
-  // Load planner module lazily
   const mod = await import("./itinerary-planner.js");
   mod.renderPlanner("planner-root", tripId, data.itinerary || { days: [] });
 }
@@ -115,7 +297,9 @@ async function renderDetailsHotel(tripId) {
   const session = await getSession();
   if (!session?.access_token) {
     requireLoginPrompt();
-    setPanel(`<div class="card"><h4>酒店</h4><div class="kv"><div>提示</div><div>登录后可查看与管理酒店订单。</div></div></div>`);
+    setPanel(
+      `<div class="card"><h4>Hotel</h4><div class="kv"><div>Tip</div><div>Log in to view and manage hotel bookings.</div></div></div>`
+    );
     return;
   }
   const bookings = await loadHotelBookings(tripId);
@@ -136,13 +320,13 @@ async function renderDetailsHotel(tripId) {
     </div>`
     )
     .join("");
-  setPanel(rows || `<div class="card"><h4>酒店</h4><div class="kv"><div>状态</div><div>暂无订单</div></div></div>`);
+  setPanel(rows || `<div class="card"><h4>Hotel</h4><div class="kv"><div>Status</div><div>No bookings</div></div></div>`);
 
   document.querySelectorAll("[data-cancel]").forEach((btn) => {
     btn.onclick = async () => {
       const id = btn.getAttribute("data-cancel");
       const r = await apiFetch(`/hotel/bookings/${encodeURIComponent(id)}:cancel`, { method: "POST" });
-      if (!r.ok) alert("取消失败");
+      if (!r.ok) alert("Cancel failed");
       await renderDetailsHotel(tripId);
     };
   });
@@ -152,7 +336,9 @@ async function renderDetailsOrders(tripId) {
   const session = await getSession();
   if (!session?.access_token) {
     requireLoginPrompt();
-    setPanel(`<div class="card"><h4>RFP&订单</h4><div class="kv"><div>提示</div><div>登录后可查看询价、报价与服务订单。</div></div></div>`);
+    setPanel(
+      `<div class="card"><h4>RFP & Orders</h4><div class="kv"><div>Tip</div><div>Log in to view quotes and service orders.</div></div></div>`
+    );
     return;
   }
   const rfps = await loadRfps(tripId);
@@ -196,10 +382,10 @@ async function renderDetailsOrders(tripId) {
 
   setPanel(
     `
-    <div class="card"><h4>Service Orders（${orders.length}）</h4></div>
-    ${orderHtml || `<div class="card"><div class="kv"><div>状态</div><div>暂无订单</div></div></div>`}
-    <div class="card"><h4>RFPs（${rfps.length}）</h4></div>
-    ${rfpHtml || `<div class="card"><div class="kv"><div>状态</div><div>暂无 RFP</div></div></div>`}
+    <div class="card"><h4>Service Orders (${orders.length})</h4></div>
+    ${orderHtml || `<div class="card"><div class="kv"><div>Status</div><div>No orders</div></div></div>`}
+    <div class="card"><h4>RFPs (${rfps.length})</h4></div>
+    ${rfpHtml || `<div class="card"><div class="kv"><div>Status</div><div>No RFPs</div></div></div>`}
     `
   );
 
@@ -213,6 +399,8 @@ async function renderDetailsOrders(tripId) {
   });
 }
 
+// ── Main ─────────────────────────────────────────────────────
+
 async function loadTripsAndMaybeMessages(tripId) {
   const session = await getSession();
   if (session?.access_token) {
@@ -225,7 +413,11 @@ async function loadTripsAndMaybeMessages(tripId) {
       if (mr.ok) {
         const mb = await mr.json();
         $("thread").innerHTML = "";
-        (mb.messages || []).forEach((m) => renderMessage(m.role === "assistant" ? "bot" : "user", m.content));
+        (mb.messages || []).forEach((m) => {
+          const role = m.role === "assistant" ? "bot" : "user";
+          renderMessage(role, m.content);
+          pushHistory(role, m.content);
+        });
       }
     }
     return;
@@ -237,31 +429,10 @@ async function loadTripsAndMaybeMessages(tripId) {
   if (tripId) {
     $("thread").innerHTML = "";
     const msgs = getGuestMessages(tripId);
-    msgs.forEach((m) => renderMessage(m.role === "assistant" ? "bot" : "user", m.content));
-  }
-}
-
-async function sendMessage(tripId, text) {
-  const session = await getSession();
-  const guestId = getGuestId();
-
-  renderMessage("user", text);
-  if (!session?.access_token) {
-    appendGuestMessage(tripId, { role: "user", content: text });
-  }
-
-  const payload = session?.access_token ? { trip_id: tripId, text } : { trip_id: tripId, text, guest_id: guestId };
-  const r = await apiFetch("/chat/messages", { method: "POST", body: payload });
-  const body = await r.json();
-  const reply = body.reply || "(no reply)";
-  renderMessage("bot", reply);
-  if (!session?.access_token) {
-    appendGuestMessage(tripId, { role: "assistant", content: reply });
-    // update trip meta locally
-    saveGuestTripMeta({
-      trip_id: tripId,
-      title: (body.trip && body.trip.title) || `Trip ${tripId.slice(0, 6)}`,
-      updated_at: new Date().toISOString(),
+    msgs.forEach((m) => {
+      const role = m.role === "assistant" ? "bot" : "user";
+      renderMessage(role, m.content);
+      pushHistory(role, m.content);
     });
   }
 }
@@ -274,7 +445,6 @@ async function main() {
   const tripId = qs("trip") || newTripId();
   const initial = qs("q");
 
-  // mobile: toggle details
   const btnDetails = $("btnDetails");
   if (btnDetails) {
     btnDetails.onclick = () => {
@@ -295,7 +465,6 @@ async function main() {
     };
   });
 
-  // ensure url has trip
   if (!qs("trip")) {
     const u = new URL(location.href);
     u.searchParams.set("trip", tripId);
@@ -313,8 +482,7 @@ async function main() {
     const t = input.value.trim();
     if (!t) return;
     input.value = "";
-    await sendMessage(tripId, t);
-    // refresh itinerary tab after new messages (might have new itinerary versions)
+    await sendMessageStreaming(tripId, t);
     if (activeTab === "itinerary") await renderDetailsItinerary(tripId);
   };
 
@@ -322,7 +490,7 @@ async function main() {
     const u = new URL(location.href);
     u.searchParams.delete("q");
     history.replaceState({}, "", u.toString());
-    await sendMessage(tripId, initial);
+    await sendMessageStreaming(tripId, initial);
   }
 }
 

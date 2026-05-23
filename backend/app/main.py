@@ -21,6 +21,7 @@ from app.routers.planner import router as planner_router
 from app.routers.rfps import router as rfps_router
 from app.routers.supplier_portal import router as supplier_portal_router
 from app.routers.suppliers import router as suppliers_router
+from app.routers.stream import router as stream_router
 from app.routers.trips import router as trips_router
 from app.routers.translate import router as translate_router
 
@@ -65,6 +66,7 @@ def create_app() -> FastAPI:
     app.include_router(health_router, tags=["health"])
     app.include_router(config_router, tags=["config"])
     app.include_router(chat_router, tags=["chat"])
+    app.include_router(stream_router, tags=["stream"])
     app.include_router(trips_router, tags=["trips"])
     app.include_router(translate_router, tags=["translate"])
     app.include_router(kb_router, tags=["kb"])
