@@ -74,7 +74,7 @@ def test_llm_config_nuwa_defaults(monkeypatch):
 
     cfg = load_llm_config()
     assert cfg.enabled is True
-    assert "nuwaflux.com" in cfg.base_url
+    assert "deepseek.com" in cfg.base_url
     assert cfg.model != ""
     assert cfg.api_key == "test_key"
 
