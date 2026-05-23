@@ -31,14 +31,14 @@ def load_llm_config() -> LLMConfig:
     enabled = os.getenv("LLM_ENABLED", "").strip() == "1"
 
     # Default to DeepSeek API when enabled but no explicit base_url
-    default_base = "https://api.deepseek.com/v1"
+    default_base = "https://api.deepseek.com"
     base_url = os.getenv("LLM_BASE_URL", "").strip()
     if not base_url:
         base_url = default_base
 
     api_key = os.getenv("LLM_API_KEY", "")
 
-    default_model = "deepseek-chat"
+    default_model = "deepseek-v4-flash"
     model = os.getenv("LLM_MODEL", "").strip()
     if not model:
         model = default_model
