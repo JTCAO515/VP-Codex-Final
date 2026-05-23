@@ -16,7 +16,7 @@ from typing import AsyncGenerator
 
 import httpx
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, Response, StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy import JSON, DateTime, ForeignKey, String, Text, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship, sessionmaker
@@ -307,17 +307,18 @@ function msg(r,c){{const d=document.createElement('div');d.className='msg '+r;co
 async function loadHistory(){{if(!tripId)return;try{{const r=await fetch('/api/trips/'+tripId+'/messages');if(!r.ok)return;const msgs=await r.json();for(const m of msgs){{msg(m.role==='user'?'user':'bot',m.content)}}}}catch(e){{}}}}
 async function send(t){{const sbb=Q('#sendBtn');sbb.disabled=true;sbb.textContent='...';msg('user',t);tripId=tripId||'t_'+crypto.randomUUID();localStorage.setItem('vp_trip',tripId);const b=msg('bot','<div class=skeleton style=width:60%></div><div class=skeleton style=width:40%;margin-top:8px></div><div class=skeleton style=width:50%;margin-top:8px></div>');let f='';try{{
 const s=await sb?.auth.getSession();const tok=s?.data?.session?.access_token;const h={{'Content-Type':'application/json'}};if(tok)h['Authorization']='Bearer '+tok;
-const r=await fetch('/api/chat',{{method:'POST',headers:h,body:JSON.stringify({{trip_id:tripId,text:t}})}});
+let r;try{{r=await fetch('/api/chat',{{method:'POST',headers:h,body:JSON.stringify({{trip_id:tripId,text:t}})}});
+}}catch(fe){{b.innerHTML='<span style=color:#fca5a5>Connection failed. Check your network.</span> <a href=# onclick="send(\\''+t.replace(/'/g,'\\\\x27')+'\\');return false" style=color:var(--accent);text-decoration:underline>Retry</a>';sbb.disabled=false;sbb.textContent='Send';return}}
 const rd=r.body.getReader(),dc=new TextDecoder();let buf='';
 while(1){{const{{done,value}}=await rd.read();if(done)break;buf+=dc.decode(value,{{stream:true}});
 for(const l of buf.split('\\n')){{if(!l.startsWith('data:'))continue;const d=l.slice(5).trim();if(d==='[DONE]')continue;try{{const j=JSON.parse(d);if(j.token)f+=j.token;b.innerHTML=M(f)}}catch(_){{}}}}
 buf=buf.includes('\\n')?buf.split('\\n').pop():buf;smartScroll();}};
 const sm=f.split('---SUGGESTIONS---');if(sm[1]){{const sgs=sm[1].split('\\n').filter(l=>l.trim().startsWith('-')).map(l=>l.replace(/^-\\s*/,''));const qr=Q('#quickReplies');qr.innerHTML=sgs.map(s=>'<span class=chip onclick="document.getElementById(\\'msgInput\\').value=\\''+s.replace(/'/g,'\\\\x27')+'\\';document.getElementById(\\'msgForm\\').dispatchEvent(new Event(\\'submit\\'))">'+s+'</span>').join('')}};
-}}catch(e){{b.innerHTML='<span style=color:#fca5a5>Error: '+H(e.message)+'</span>'}};sbb.disabled=false;sbb.textContent='Send';
+}}catch(e){{b.innerHTML='<span style=color:#fca5a5>Error: '+H(e.message)+'</span> <a href=# onclick="send(\\''+t.replace(/'/g,'\\\\x27')+'\\');return false" style=color:var(--accent);text-decoration:underline>Retry</a>'}};sbb.disabled=false;sbb.textContent='Send';
 smartScroll();}}
 function smartScroll(){{const t=Q('#thread');if(t.scrollHeight-t.scrollTop-t.clientHeight<200)t.scrollTop=t.scrollHeight}}
 function clearChat(){{Q('#thread').innerHTML='';localStorage.removeItem('vp_trip')}}
-i();const p=new URL(W.location);tripId=p.searchParams.get('trip')||localStorage.getItem('vp_trip');if(tripId)loadHistory();const q=p.searchParams.get('q');
+i();setTimeout(()=>{{if(!sb)Q('#thread').innerHTML='<div style=padding:20px;color:var(--muted)>Loading services… please wait or <a href=# onclick=location.reload() style=color:var(--accent)>refresh</a></div>'}},5000);const p=new URL(W.location);tripId=p.searchParams.get('trip')||localStorage.getItem('vp_trip');if(tripId)loadHistory();const q=p.searchParams.get('q');
 Q('#msgForm').onsubmit=e=>{{e.preventDefault();const v=Q('#msgInput').value.trim();if(!v)return;Q('#msgInput').value='';Q('#quickReplies').innerHTML='';send(v)}};
 if(q){{p.searchParams.delete('q');history.replaceState(null,'',p.toString());send(q)}}
 </script></body></html>"""
@@ -352,7 +353,12 @@ app = FastAPI(title="VisePanda", version="0.1.0", lifespan=lifespan)
 
 @app.get("/api/health")
 def health():
-    return {"ok": True}
+    return {"ok": True, "version": "0.1.0", "db": "postgres" if DB_URL else "sqlite"}
+
+@app.get("/favicon.ico")
+@app.get("/favicon.png")
+def favicon():
+    return Response(status_code=204)
 
 
 @app.get("/", response_class=HTMLResponse)

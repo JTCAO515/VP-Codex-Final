@@ -73,3 +73,21 @@ cards=4 | goChat=1 | skeleton=2 | trip=3 | btnDisable=2 | mobile=1
 
 **测试**: 6/6 PASS
 
+
+---
+
+## Iteration 5 — 错误处理 + 离线韧性
+
+**日期**: 2026-05-24
+**状态**: ✅ 完成
+
+| # | 改动 | 效果 |
+|---|------|------|
+| 1 | favicon 路由 | 返回 204，消灭 500 错误日志 |
+| 2 | 错误重试按钮 | LLM 失败时显示 "Retry" 链接 |
+| 3 | 网络错误捕获 | "Connection failed" + 重试按钮 |
+| 4 | Supabase 加载 fallback | 5s 未加载显示刷新提示 |
+| 5 | health 增强 | 返回 version + db 类型 |
+
+**测试**: 7/7 PASS
+
