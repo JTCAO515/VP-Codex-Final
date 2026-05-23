@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Shared Itinerary · China Travel Agent</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9/dist/leaflet.css">
+  <style>
+    :root{
+      --bg0:#05070b;
+      --bg1:#0a0f17;
+      --line:rgba(255,255,255,.08);
+      --muted:rgba(255,255,255,.62);
+      --text:rgba(255,255,255,.92);
+      --accent:#7dd3fc;
+      font-family: ui-sans-serif,system-ui,-apple-system,sans-serif;
+    }
+    body{
+      margin:0;
+      min-height:100vh;
+      background: radial-gradient(1200px 800px at 30% 15%, #121826 0%, var(--bg1) 55%, var(--bg0) 100%);
+      color:var(--text);
+    }
+    header{
+      height:56px;display:flex;align-items:center;justify-content:space-between;
+      padding:0 16px;border-bottom:1px solid var(--line);
+      background:rgba(8,10,14,.55);backdrop-filter:blur(10px);
+    }
+    .brand{display:flex;gap:10px;align-items:center;}
+    .dot{width:10px;height:10px;border-radius:99px;background:var(--accent);box-shadow:0 0 18px rgba(125,211,252,.45);}
+    .name{font-weight:650;font-size:14px;}
+    main{max-width:960px;margin:0 auto;padding:24px 16px 80px;}
+    h1{margin:0 0 4px;font-size:28px;}
+    .meta{color:var(--muted);font-size:13px;margin-bottom:24px;}
+    .day{border:1px solid rgba(255,255,255,.06);border-radius:12px;background:rgba(255,255,255,.015);padding:20px;margin-bottom:16px;}
+    .day h2{margin:0 0 12px;font-size:16px;color:var(--accent);}
+    .act{display:flex;gap:12px;align-items:flex-start;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+    .act:last-child{border-bottom:none}
+    .act-time{font-size:12px;color:var(--muted);min-width:50px;padding-top:2px;}
+    .act-body{flex:1}
+    .act-title{font-size:14px;font-weight:600;}
+    .act-details{font-size:11px;color:var(--muted);margin-top:2px;}
+    .act-note{font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;font-style:italic;}
+    .tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:999px;font-weight:600;margin-left:6px;text-transform:uppercase;}
+    .tag-sightseeing{background:rgba(125,211,252,.15);color:#7dd3fc}
+    .tag-food{background:rgba(251,191,36,.15);color:#fbbf24}
+    .tag-transport{background:rgba(167,139,250,.15);color:#a78bfa}
+    .tag-hotel{background:rgba(52,211,153,.15);color:#34d399}
+    .tag-activity{background:rgba(244,114,182,.15);color:#f472b6}
+    #map{height:300px;border-radius:12px;border:1px solid rgba(255,255,255,.08);margin:24px 0;}
+    .cta{text-align:center;margin:40px 0;}
+    .cta a{
+      display:inline-block;padding:12px 28px;border-radius:999px;
+      background:rgba(125,211,252,.14);border:1px solid rgba(125,211,252,.25);
+      color:var(--text);text-decoration:none;font-size:14px;
+    }
+    .cta a:hover{background:rgba(125,211,252,.22)}
+    .empty{text-align:center;padding:60px 20px;color:var(--muted);}
+    .empty h2{font-size:20px;color:var(--text)}
+    .loading{text-align:center;padding:80px 20px;color:var(--muted);}
+  </style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="dot"></div>
+    <div class="name">China Travel Agent</div>
+  </div>
+</header>
+<main>
+  <div id="content" class="loading">Loading itinerary…</div>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9/dist/leaflet.js"></script>
+<script>
+  const token = window.location.pathname.split("/shared/")[1];
+  const root = document.getElementById("content");
+
+  function esc(s) { return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+  async function load() {
+    if (!token) { root.innerHTML='<div class="empty"><h2>No itinerary found</h2><p>This link is incomplete.</p></div>'; return; }
+
+    try {
+      const r = await fetch(`/api/shared/${encodeURIComponent(token)}`);
+      if (!r.ok) throw new Error("Not found");
+      const data = await r.json();
+      render(data);
+    } catch(e) {
+      root.innerHTML=`<div class="empty"><h2>Itinerary not found</h2><p>This shared link may be expired or incorrect.</p>
+        <div class="cta"><a href="/">Plan your own trip →</a></div></div>`;
+    }
+  }
+
+  function render(data) {
+    const days = (data.itinerary?.days || []);
+    if (!days.length) {
+      root.innerHTML=`<div class="empty"><h2>Empty itinerary</h2><p>No days planned yet.</p>
+        <div class="cta"><a href="/">Plan your own trip →</a></div></div>`;
+      return;
+    }
+
+    const markers = [];
+    const daysHtml = days.map(d => {
+      const acts = (d.activities||[]).map(a => {
+        if (a.location) markers.push({lat:a.location.lat, lng:a.location.lng, name:a.location.name||a.title, title:a.title});
+        return `<div class="act">
+          <div class="act-time">${esc(a.time||"--:--")}</div>
+          <div class="act-body">
+            <div class="act-title">${esc(a.title||"(untitled)")}<span class="tag tag-${esc(a.type||"sightseeing")}">${esc(a.type||"sightseeing")}</span></div>
+            <div class="act-details">${a.duration_min||0}min${a.location?` · ${esc(a.location.name)}`:""}</div>
+            ${a.notes?`<div class="act-note">${esc(a.notes)}</div>`:""}
+          </div>
+        </div>`;
+      }).join("");
+      return `<div class="day">
+        <h2>Day ${d.day}${d.date?" — "+d.date:""}</h2>
+        ${acts||'<div style="color:rgba(255,255,255,.25);font-size:12px">No activities</div>'}
+      </div>`;
+    }).join("");
+
+    const citiesStr = (data.cities||[]).join(", ");
+    const dateStr = data.start_date ? `${data.start_date} — ${data.end_date||data.start_date}` : "";
+
+    root.innerHTML = `
+      <h1>${esc(data.title||"Shared Itinerary")}</h1>
+      <div class="meta">${[citiesStr, dateStr].filter(Boolean).join(" · ")}</div>
+      ${markers.length ? `<div id="map"></div>` : ""}
+      ${daysHtml}
+      <div class="cta"><a href="/">Plan your own China trip →</a></div>`;
+
+    if (markers.length) {
+      const map = L.map("map").setView([markers[0].lat, markers[0].lng], 12);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:18,attribution:"&copy; OSM"}).addTo(map);
+      markers.forEach(m => L.marker([m.lat,m.lng]).addTo(map).bindPopup(esc(m.title)));
+      if (markers.length > 1) {
+        const bounds = L.latLngBounds(markers.map(m=>[m.lat,m.lng]));
+        map.fitBounds(bounds.pad(0.1));
+      }
+    }
+  }
+
+  load();
+</script>
+</body>
+</html>

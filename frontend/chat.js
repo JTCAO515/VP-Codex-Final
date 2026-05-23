@@ -93,30 +93,22 @@ async function loadOrders(tripId) {
 async function renderDetailsItinerary(tripId) {
   const session = await getSession();
   if (!session?.access_token) {
-    setPanel(`<div class="card"><h4>行程</h4><div class="kv"><div>提示</div><div>游客模式仅本地保存聊天。登录后可跨端查看完整行程版本。</div></div></div>`);
+    setPanel(`<div class="card"><h4>Itinerary</h4><div class="kv"><div>Tip</div><div>Guest trips only save chat locally. Log in to use the full itinerary planner.</div></div></div>`);
     return;
   }
-  const trip = await loadTripDetail(tripId);
-  if (!trip) {
-    setPanel(`<div class="card"><h4>行程</h4><div class="kv"><div>状态</div><div>未找到/无权限</div></div></div>`);
+  const r = await apiFetch(`/trips/${encodeURIComponent(tripId)}/itinerary`);
+  const data = r.ok ? (await r.json()) : null;
+  if (!data) {
+    setPanel(`<div class="card"><h4>Itinerary</h4><div class="kv"><div>Status</div><div>Not found / no access</div></div></div>`);
     return;
   }
-  $("dTitle").textContent = trip.title || "Trip";
-  $("dMeta").textContent = `${(trip.cities || []).join(", ")}  ·  ${fmtTime(trip.updated_at)}`;
+  $("dTitle").textContent = data.title || "Trip";
+  $("dMeta").textContent = `${(data.cities || []).join(", ")}  ·  ${data.start_date || "?"} — ${data.end_date || "?"}`;
+  setPanel(`<div id="planner-root"></div>`);
 
-  const versions = trip.itinerary_versions || [];
-  const current = trip.current_itinerary || null;
-  const html = `
-    <div class="card">
-      <h4>当前行程</h4>
-      <div class="mono">${escapeHtml(JSON.stringify(current, null, 2))}</div>
-    </div>
-    <div class="card">
-      <h4>历史版本（${versions.length}）</h4>
-      <div class="mono">${escapeHtml(JSON.stringify(versions, null, 2))}</div>
-    </div>
-  `;
-  setPanel(html);
+  // Load planner module lazily
+  const mod = await import("./itinerary-planner.js");
+  mod.renderPlanner("planner-root", tripId, data.itinerary || { days: [] });
 }
 
 async function renderDetailsHotel(tripId) {

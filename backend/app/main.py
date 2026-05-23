@@ -17,6 +17,7 @@ from app.routers.health import router as health_router
 from app.routers.hotel import router as hotel_router
 from app.routers.kb import router as kb_router
 from app.routers.payments import router as payments_router
+from app.routers.planner import router as planner_router
 from app.routers.rfps import router as rfps_router
 from app.routers.supplier_portal import router as supplier_portal_router
 from app.routers.suppliers import router as suppliers_router
@@ -70,6 +71,7 @@ def create_app() -> FastAPI:
     app.include_router(hotel_router, tags=["hotel"])
     app.include_router(payments_router, tags=["payments"])
     app.include_router(suppliers_router, tags=["suppliers"])
+    app.include_router(planner_router, tags=["planner"])
     app.include_router(rfps_router, tags=["rfp"])
     app.include_router(supplier_portal_router, tags=["supplier"])
 

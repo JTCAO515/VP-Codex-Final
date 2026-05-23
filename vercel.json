@@ -19,8 +19,16 @@
       "destination": "/frontend/i18n.js"
     },
     {
+      "source": "/itinerary-planner.js",
+      "destination": "/frontend/itinerary-planner.js"
+    },
+    {
       "source": "/auth/callback",
       "destination": "/frontend/auth/callback.html"
+    },
+    {
+      "source": "/shared/(.*)",
+      "destination": "/frontend/shared.html"
     },
     {
       "source": "/chat",
