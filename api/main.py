@@ -260,6 +260,14 @@ input[type=text]:focus{border-color:rgba(125,211,252,.35);box-shadow:0 0 0 4px r
 .recent-trip:hover{border-color:rgba(125,211,252,.35);background:rgba(125,211,252,.06)}
 .recent-trip-label{font-size:14px;font-weight:500}
 .recent-trip-meta{font-size:11px;color:var(--muted)}
+.trip-card{border-left:3px solid var(--accent)!important;background:linear-gradient(135deg,rgba(125,211,252,.06),transparent)!important}
+.price-budget{color:#4ade80}
+.price-mid{color:#fbbf24}
+.price-luxury{color:#f87171}
+code{background:rgba(0,0,0,.3);padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono','Fira Code','Cascadia Code',monospace;font-size:.9em}
+pre{background:rgba(0,0,0,.4);padding:12px 16px;border-radius:10px;border:1px solid var(--line);overflow-x:auto;margin:8px 0}
+pre code{background:none;padding:0;border-radius:0}
+#quickReplies .chip{background:rgba(255,255,255,.05);border-color:var(--line);color:var(--muted)}
 @media(max-width:640px){h1{font-size:24px!important}header{padding:0 12px}.btn{padding:6px 12px;font-size:11px}footer{font-size:11px;padding:8px 12px}.bubble{max-width:95%!important;font-size:15px}#msgForm{gap:6px}#msgInput{height:40px;font-size:16px}#sendBtn{height:44px;padding:0 20px;font-size:14px}.chat-footer{padding:10px 12px;padding-bottom:calc(10px + env(safe-area-inset-bottom))}#thread{padding:12px 12px 140px;padding-bottom:calc(140px + env(safe-area-inset-bottom))}input[type=text]{font-size:16px}.welcome-chips{gap:4px!important}}
 """
 
@@ -364,6 +372,7 @@ def page_chat() -> str:
 .msg.user .bubble{{background:rgba(125,211,252,.10);border-color:rgba(125,211,252,.18)}}
 .msg.bot .bubble p{{margin:0}}
 .chip{{font-size:11px;padding:5px 10px;border-radius:999px;border:1px solid rgba(125,211,252,.2);background:rgba(125,211,252,.06);color:rgba(255,255,255,.8);cursor:pointer;white-space:nowrap;margin:4px 4px 0 0;display:inline-block}}
+#quickReplies .chip{{background:rgba(255,255,255,.05);border-color:var(--line);color:var(--muted);padding:8px 14px;border-radius:10px;font-size:12px}}
 .chat-footer{{position:fixed;bottom:0;left:0;right:0;padding:12px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:rgba(8,10,14,.55);backdrop-filter:blur(10px);z-index:2}}
 #msgForm{{display:flex;gap:10px;align-items:center;max-width:800px;margin:0 auto}}
 #msgInput{{flex:1;height:44px;padding:0 14px;font-size:14px}}
@@ -374,7 +383,7 @@ def page_chat() -> str:
 @keyframes blink{{0%,100%{{opacity:1}}50%{{opacity:0}}}}
 .skeleton{{height:16px;border-radius:8px;background:linear-gradient(90deg,rgba(255,255,255,.04)25%,rgba(255,255,255,.08)50%,rgba(255,255,255,.04)75%);background-size:200%100%;animation:shimmer 1.5s infinite}}
 @keyframes shimmer{{0%{{background-position:200%0}}100%{{background-position:-200%0}}}}
-.trip-card{{border:1px solid var(--line);border-radius:12px;padding:14px;margin:6px 0;background:rgba(125,211,252,.03)}}
+.trip-card{{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:14px 14px 14px 11px;margin:6px 0;background:linear-gradient(135deg,rgba(125,211,252,.06),transparent)}}
 .trip-card b{{color:var(--accent)}}
 .welcome{{text-align:center;padding:40px 20px;color:var(--muted)}}
 .welcome h2{{font-size:20px;color:var(--text);margin:0 0 6px}}

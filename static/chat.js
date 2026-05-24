@@ -17,8 +17,17 @@ const H = s => s.replace(/[&<>"']/g, c => ({
 
 const M = text => {
     let h = text
+        .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
         .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
         .replace(/\*(.+?)\*/g, '<i>$1</i>')
+        .replace(/¥(\d+)([–-]\d+)?(\s*\+\s*)?/g, function(m, n1, n2, plus) {
+            const num = parseInt(n1);
+            let cls = 'price-budget';
+            if (num >= 300 && num < 1000) cls = 'price-mid';
+            else if (num >= 1000) cls = 'price-luxury';
+            return '<span class=' + cls + '>¥' + n1 + (n2 || '') + (plus || '') + '</span>';
+        })
         .replace(/\n\n/g, '</p><p>')
         .replace(/\n/g, '<br>');
     if (text.includes('**Day ')) h = '<div class=trip-card>' + h + '</div>';
