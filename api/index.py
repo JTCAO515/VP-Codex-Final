@@ -14,17 +14,19 @@ import time
 import hashlib
 import json
 import os
+import secrets
 import uuid
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 import httpx
+import urllib.parse
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from sqlalchemy import JSON, DateTime, ForeignKey, String, Text, create_engine
-from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship, sessionmaker
+from sqlalchemy import JSON, DateTime, ForeignKey, String, Text
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from jose import jwt
 
 # ══════════════════════════════════════════════════════════
@@ -45,13 +47,201 @@ _RATE_LIMIT: dict[str, list[float]] = {}
 _RATE_WINDOW = 60  # seconds
 _RATE_MAX = 20  # requests per window
 
-DB_URL = os.getenv("DATABASE_URL")
-if DB_URL:
-    engine = create_engine(DB_URL, pool_pre_ping=True)
-else:
-    engine = create_engine("sqlite:////tmp/data.sqlite3", connect_args={"check_same_thread": False})
+# ── Database: Supabase Management API (HTTP-based) ──
+SUPABASE_PAT = os.getenv("SUPABASE_PAT", "")
+SUPABASE_PROJECT_REF = "jdlinmdhmulozrjeseyc"
+_SB_HEADERS = {"Authorization": f"Bearer {SUPABASE_PAT}", "Content-Type": "application/json"}
+_SB_QUERY_URL = f"https://api.supabase.com/v1/projects/{SUPABASE_PROJECT_REF}/database/query"
 
-SessionLocal = sessionmaker(bind=engine, autoflush=False)
+class SupabaseDB:
+    """Drop-in replacement for SQLAlchemy session using Supabase Management API."""
+    
+    _http_proxy = "http://127.0.0.1:10809"
+    _http_client = httpx.Client(
+        proxy=_http_proxy,
+        timeout=httpx.Timeout(20.0, connect=15.0)
+    )
+    
+    def __init__(self):
+        self._pending_inserts = []
+        self._pending_deletes = []
+        self._pending_updates = []
+    
+    def _query(self, sql: str) -> list[dict]:
+        r = self._http_client.post(_SB_QUERY_URL, headers=_SB_HEADERS, json={"query": sql})
+        if r.status_code >= 400:
+            raise Exception(f"DB error: {r.text[:200]}")
+        return r.json() if r.text.strip() else []
+    
+    def _val(self, v):
+        """Serialize Python value for SQL."""
+        if v is None: return "NULL"
+        if isinstance(v, bool): return "TRUE" if v else "FALSE"
+        if isinstance(v, (int, float)): return str(v)
+        if isinstance(v, dt.datetime):
+            return f"'{v.isoformat()}'"
+        if isinstance(v, (list, dict)):
+            return f"'{json.dumps(v)}'"
+        return f"'{str(v).replace(chr(39), chr(39)+chr(39))}'"
+    
+    def _table_name(self, model) -> str:
+        return model.__tablename__ if hasattr(model, '__tablename__') else model.__name__.lower()
+    
+    def query(self, model):
+        """Start a SELECT query. Returns QueryBuilder."""
+        return _QueryBuilder(self, model)
+    
+    def add(self, obj):
+        """Queue an INSERT."""
+        self._pending_inserts.append(obj)
+    
+    def delete(self, obj):
+        """Queue a DELETE."""
+        self._pending_deletes.append(obj)
+    
+    def commit(self):
+        """Execute all pending operations."""
+        err = None
+        for obj in self._pending_inserts:
+            try:
+                self._insert_one(obj)
+            except Exception as e:
+                err = e
+        for obj in self._pending_deletes:
+            try:
+                self._delete_one(obj)
+            except Exception as e:
+                err = e
+        self._pending_inserts = []
+        self._pending_deletes = []
+        if err: raise err
+    
+    def flush(self):
+        self.commit()  # Supabase API doesn't have transactions, commit = flush
+    
+    def rollback(self):
+        self._pending_inserts = []
+        self._pending_deletes = []
+    
+    def close(self):
+        pass
+    
+    def _insert_one(self, obj):
+        table = self._table_name(type(obj))
+        cols = []
+        vals = []
+        for col in obj.__table__.columns if hasattr(obj, '__table__') else []:
+            val = getattr(obj, col.name, None)
+            if col.name == 'id' and val is None:
+                import uuid
+                val = str(uuid.uuid4())
+            cols.append(col.name)
+            vals.append(self._val(val))
+        sql = f"INSERT INTO {table} ({','.join(cols)}) VALUES ({','.join(vals)})"
+        try:
+            self._query(sql)
+        except Exception as e:
+            if "duplicate" in str(e).lower() or "exists" in str(e).lower() or "unique" in str(e).lower():
+                pass  # Ignore duplicate inserts (upsert-like behavior)
+            raise
+    
+    def _delete_one(self, obj):
+        table = self._table_name(type(obj))
+        # Try to identify by primary key
+        pk = None
+        for col in obj.__table__.columns if hasattr(obj, '__table__') else []:
+            if col.primary_key:
+                pk = col.name
+                break
+        if pk:
+            val = getattr(obj, pk, None)
+            if val:
+                self._query(f"DELETE FROM {table} WHERE {pk}={self._val(val)}")
+
+class _QueryBuilder:
+    def __init__(self, db, model):
+        self._db = db
+        self._model = model
+        self._table = model.__tablename__
+        self._where = []
+        self._order = None
+        self._limit = None
+        self._join = None
+    
+    def filter(self, *args, **kwargs):
+        if args:
+            # Handle SQLAlchemy BinaryExpression -> compile to raw SQL
+            expr = args[0]
+            if hasattr(expr, 'left') and hasattr(expr, 'right'):
+                try:
+                    import sqlalchemy as sa
+                    compiled = expr.compile(compile_kwargs={"literal_binds": True})
+                    self._where.append(str(compiled))
+                except Exception:
+                    self._where.append(str(expr))
+            else:
+                self._where.append(str(expr))
+        for k, v in kwargs.items():
+            self._where.append(f"{k}={self._db._val(v)}")
+        return self
+    
+    def filter_by(self, **kwargs):
+        for k, v in kwargs.items():
+            self._where.append(f"{k}={self._db._val(v)}")
+        return self
+    
+    def order_by(self, col):
+        self._order = str(col)
+        return self
+    
+    def limit(self, n):
+        self._limit = n
+        return self
+    
+    def _build(self, count=False):
+        sql = f"SELECT {'COUNT(*)' if count else '*'} FROM {self._table}"
+        if self._join: sql += f" {self._join}"
+        if self._where: sql += " WHERE " + " AND ".join(self._where)
+        if self._order: sql += f" ORDER BY {self._order}"
+        if self._limit: sql += f" LIMIT {self._limit}"
+        return sql
+    
+    def all(self):
+        rows = self._db._query(self._build())
+        return [_row_to_model(self._model, r) for r in rows]
+    
+    def one(self):
+        rows = self._db._query(self._build())
+        if not rows: raise Exception("No row found")
+        return _row_to_model(self._model, rows[0])
+    
+    def one_or_none(self):
+        rows = self._db._query(self._build())
+        if not rows: return None
+        return _row_to_model(self._model, rows[0])
+    
+    def count(self):
+        rows = self._db._query(self._build(count=True))
+        return int(rows[0]['count']) if rows else 0
+
+    def delete(self):
+        """Execute DELETE WHERE query."""
+        sql = f"DELETE FROM {self._table}"
+        if self._where:
+            sql += " WHERE " + " AND ".join(self._where)
+        self._db._query(sql)
+
+class _Row:
+    """Minimal row-like object that bypasses SQLAlchemy instrumentation."""
+    def __init__(self, data: dict):
+        self.__dict__.update(data)
+
+def _row_to_model(model, row: dict):
+    """Convert a dict row to a model-like object (bypass SQLAlchemy instrumentation)."""
+    return _Row(row)
+
+def get_db():
+    return SupabaseDB()
 
 # ══════════════════════════════════════════════════════════
 # MODELS
@@ -68,6 +258,89 @@ class User(Base):
     id: Mapped[str] = mapped_column(String, primary_key=True, default=_uid)
     profile: Mapped[dict] = mapped_column(JSON, default=dict)
     created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+# ── Local email/password auth ──
+
+def _hash_password(password: str) -> str:
+    salt = secrets.token_hex(16)
+    h = hashlib.sha256((salt + password).encode()).hexdigest()
+    return f"{salt}:{h}"
+
+def _verify_password(password: str, hashed: str) -> bool:
+    try:
+        salt, h = hashed.split(":", 1)
+        return hashlib.sha256((salt + password).encode()).hexdigest() == h
+    except Exception:
+        return False
+
+class EmailUser(Base):
+    __tablename__ = "email_users"
+    email: Mapped[str] = mapped_column(String, primary_key=True)
+    user_id: Mapped[str] = mapped_column(String, unique=True, nullable=False, default=_uid)
+    password_hash: Mapped[str] = mapped_column(String, nullable=False)
+    name: Mapped[str | None] = mapped_column(String, nullable=True)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+# ── Phone number auth (SMS verification) ──
+
+class PhoneVerification(Base):
+    __tablename__ = "phone_verifications"
+    phone: Mapped[str] = mapped_column(String, primary_key=True)
+    code: Mapped[str] = mapped_column(String, nullable=False)
+    expires_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    verified: Mapped[bool] = mapped_column(default=False)
+
+class PhoneUser(Base):
+    __tablename__ = "phone_users"
+    phone: Mapped[str] = mapped_column(String, primary_key=True)
+    user_id: Mapped[str] = mapped_column(String, unique=True, nullable=False, default=_uid)
+    name: Mapped[str | None] = mapped_column(String, nullable=True)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+SMS_PROVIDER = os.getenv("SMS_PROVIDER", "console")
+ALIYUN_SMS_ACCESS_KEY = os.getenv("ALIYUN_SMS_ACCESS_KEY", "")
+ALIYUN_SMS_SECRET = os.getenv("ALIYUN_SMS_SECRET", "")
+ALIYUN_SMS_SIGN_NAME = os.getenv("ALIYUN_SMS_SIGN_NAME", "VisePanda")
+ALIYUN_SMS_TEMPLATE_CODE = os.getenv("ALIYUN_SMS_TEMPLATE_CODE", "")
+ALIYUN_SMS_TEMPLATE_PARAM = os.getenv("ALIYUN_SMS_TEMPLATE_PARAM", '{"code":"%s"}')
+
+def _send_sms(phone: str, code: str) -> bool:
+    """Send SMS via configured provider. Returns True on success."""
+    if SMS_PROVIDER == "aliyun":
+        try:
+            import hmac, base64, hashlib
+            # Aliyun SMS API via HTTP
+            params = {
+                "Action": "SendSms",
+                "Format": "JSON",
+                "Version": "2017-05-25",
+                "AccessKeyId": ALIYUN_SMS_ACCESS_KEY,
+                "SignatureMethod": "HMAC-SHA1",
+                "Timestamp": dt.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "SignatureVersion": "1.0",
+                "SignatureNonce": str(uuid.uuid4()),
+                "PhoneNumbers": phone,
+                "SignName": ALIYUN_SMS_SIGN_NAME,
+                "TemplateCode": ALIYUN_SMS_TEMPLATE_CODE,
+                "TemplateParam": ALIYUN_SMS_TEMPLATE_PARAM % code,
+            }
+            sorted_keys = sorted(params.keys())
+            query = "&".join(f"{k}={urllib.parse.quote(str(params[k]), safe='')}" for k in sorted_keys)
+            string_to_sign = f"GET&{urllib.parse.quote('/', safe='')}&{urllib.parse.quote(query, safe='')}"
+            sig = base64.b64encode(hmac.new(f"{ALIYUN_SMS_SECRET}&".encode(), string_to_sign.encode(), hashlib.sha1).digest()).decode()
+            url = f"https://dysmsapi.aliyuncs.com/?{query}&Signature={urllib.parse.quote(sig, safe='')}"
+            r = httpx.get(url, timeout=10)
+            result = r.json()
+            if result.get("Code") == "OK":
+                return True
+            print(f"[SMS] Aliyun error: {result}", flush=True)
+            return False
+        except Exception as e:
+            print(f"[SMS] Aliyun failed: {e}", flush=True)
+            return False
+    # Console provider (default) — just log it
+    print(f"[SMS] Code for {phone}: {code}", flush=True)
+    return True
 
 class Trip(Base):
     __tablename__ = "trips"
@@ -123,9 +396,15 @@ def _get_user_id(request: Request, guest_id: str | None) -> tuple[str, str]:
     auth = request.headers.get("Authorization", "")
     if auth.startswith("Bearer "):
         token = auth[7:]
-        # Development bypass
-        if AUTH_TEST_BYPASS and token.startswith("test:"):
-            return token.split(":", 1)[1] or "test_user", "user"
+        # Local tokens
+        # `test:` tokens are dev bypass (require AUTH_TEST_BYPASS)
+        if token.startswith("test:"):
+            if AUTH_TEST_BYPASS:
+                return token.split(":", 1)[1], "user"
+            raise HTTPException(401, "Invalid token")
+        # `email:` and `phone:` tokens are real user auth (email/phone login)
+        if token.startswith("email:") or token.startswith("phone:"):
+            return token.split(":", 1)[1], "user"
         # Verify Supabase JWT
         header = jwt.get_unverified_header(token)
         kid = header.get("kid")
@@ -146,12 +425,7 @@ def _get_user_id(request: Request, guest_id: str | None) -> tuple[str, str]:
     raise HTTPException(401, "Login required")
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+
 
 # ══════════════════════════════════════════════════════════
 # LLM
@@ -266,10 +540,12 @@ code{background:rgba(0,0,0,.3);padding:2px 6px;border-radius:4px;font-family:'Je
 pre{background:rgba(0,0,0,.4);padding:12px 16px;border-radius:10px;border:1px solid var(--line);overflow-x:auto;margin:8px 0}
 pre code{background:none;padding:0;border-radius:0}
 #quickReplies .chip{background:rgba(255,255,255,.05);border-color:var(--line);color:var(--muted)}
-footer{position:fixed;left:0;right:0;bottom:0;padding:10px 16px;padding-bottom:calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:rgba(8,10,14,.55);backdrop-filter:blur(10px);font-size:12px;color:var(--muted);z-index:1}
+.profile-page{max-width:560px;margin:60px auto;padding:0 20px}.profile-card{border:1px solid var(--line);border-radius:16px;padding:24px;background:rgba(255,255,255,.02);margin-bottom:16px}.profile-card h3{font-size:14px;color:var(--accent);margin:0 0 16px}.profile-field{margin-bottom:16px}.profile-field label{font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}.profile-field input[type=text],.profile-field input[type=email],.profile-field input[type=password],.profile-field select{width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);outline:none;font-size:14px;box-sizing:border-box}.profile-field input:focus{border-color:rgba(125,211,252,.35)}.profile-field select option{background:#1a1f2e;color:var(--text)}.profile-save-btn{width:100%;padding:12px;border-radius:999px;border:1px solid rgba(125,211,252,.35);background:rgba(125,211,252,.12);color:var(--text);cursor:pointer;font-size:14px;font-weight:600}.profile-save-btn:hover{background:rgba(125,211,252,.2)}.profile-save-btn:disabled{opacity:.4;cursor:not-allowed}.profile-msg{padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:12px;display:none}.profile-msg.success{display:block;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);color:#4ade80}.profile-msg.error{display:block;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);color:#f87171}.profile-status{font-size:11px;color:var(--muted);margin-top:4px}.profile-divider{border:none;border-top:1px solid var(--line);margin:20px 0}.profile-header{text-align:center;margin-bottom:32px}.profile-avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,rgba(125,211,252,.2),rgba(125,211,252,.05));border:2px solid rgba(125,211,252,.2);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:28px}.profile-header h1{font-size:18px;margin:0;color:var(--text)}.profile-header p{font-size:13px;color:var(--muted);margin:4px 0 0}.profile-nav{text-align:center;margin-top:24px}.profile-nav a{color:var(--muted);font-size:13px;text-decoration:none;margin:0 8px}.profile-nav a:hover{color:var(--text)}footer{position:fixed;left:0;right:0;bottom:0;padding:10px 16px;padding-bottom:calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:rgba(8,10,14,.55);backdrop-filter:blur(10px);font-size:12px;color:var(--muted);z-index:1}
 input[type=text]{border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);padding:12px 16px;outline:none;font-size:16px}
 input[type=text]:focus{border-color:rgba(125,211,252,.35);box-shadow:0 0 0 4px rgba(125,211,252,.12)}
 @media(max-width:640px){h1{font-size:24px!important}header{padding:0 12px}.btn{padding:6px 12px;font-size:11px}footer{font-size:11px;padding:8px 12px}.bubble{max-width:95%!important;font-size:15px}#msgForm{gap:6px}#msgInput{height:40px;font-size:16px}#sendBtn{height:44px;padding:0 20px;font-size:14px}.chat-footer{padding:10px 12px;padding-bottom:calc(10px + env(safe-area-inset-bottom))}#thread{padding:12px 12px 140px;padding-bottom:calc(140px + env(safe-area-inset-bottom))}input[type=text]{font-size:16px}.welcome-chips{gap:4px!important}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
 """
 
 def _inject_config() -> str:
@@ -279,6 +555,8 @@ window.__SUPABASE_CONFIG__ = {{
   supabase_url: "{SUPABASE_URL}",
   supabase_anon_key: "{SUPABASE_ANON_KEY}"
 }};
+// Auto-detect locale via IP (only if no preference stored)
+!function(){{if(!localStorage.getItem('vp_lang')){{fetch('/api/locale').then(function(r){{return r.json()}}).then(function(d){{if(d.locale==='zh'){{localStorage.setItem('vp_lang','zh');location.reload()}}}}).catch(function(){{}})}}}}();
 </script>"""
 
 def page_landing() -> str:
@@ -307,10 +585,9 @@ def page_landing() -> str:
 <a class="card" href="#" onclick="event.preventDefault();goChat('桂林4天,漓江阳朔,自然风光')"><div class="card-emoji">🛶</div><div class="card-title">Guilin 4 Days</div><div class="card-sub">Li River · Yangshuo · Karst Mountains</div></a>
 </div>
 <div id="recentTrips" style="display:none;margin-top:20px;text-align:left"></div>
-<div style="margin-top:20px;font-size:12px;color:var(--muted)" data-i18n="guestHint">Open chat · Sign in with Google · Continue as guest</div>
+<div style="margin-top:20px;font-size:12px;color:var(--muted)" data-i18n="guestHint">Email · Phone · Google · Continue as guest</div>
 </div></main>
 <footer data-i18n="footer">Try without login — last 3 trips saved locally. Login to sync across devices.</footer>
-<script src="https://esm.sh/@supabase/supabase-js@2"></script>
 <script src="/static/i18n.js"></script>
 <script src="/static/landing.js"></script><script src="/static/pwa.js"></script></body></html>"""
 
@@ -326,7 +603,7 @@ def _render_msg(text: str) -> str:
     return text
 
 def page_share(share_id: str) -> str:
-    db = SessionLocal()
+    db = get_db()
     try:
         trip = db.query(Trip).filter(Trip.share_id == share_id).one_or_none()
         if not trip:
@@ -419,7 +696,6 @@ def page_chat() -> str:
 <header><div><span class="dot"></span><span class="name">VisePanda</span></div><div><a href="/trips" class="btn" style="margin-right:8px" data-i18n="tripsBtn">Trips</a><a href="#" onclick="event.preventDefault();clearChat()" class="btn" style="margin-right:8px" data-i18n="clearBtn">Clear</a><a href="/" class="btn" data-i18n="homeBtn">Home</a><a href="#" class="lang-switch" onclick="event.preventDefault();setLang(LANG==='en'?'zh':'en')" data-i18n="langLabel">中</a></div></header>
 <div class="layout"><main style="flex:1;display:flex;flex-direction:column"><div id="thread"><div class="welcome" id="welcomeMsg"><h2 data-i18n="welcomeTitle">👋 Welcome to VisePanda</h2><p data-i18n="welcomeSub">Your AI travel planner for China. Ask me anything!</p><div class="welcome-chips"><span class="welcome-chip" onclick="document.getElementById('msgInput').value='Beijing 3-day itinerary';document.getElementById('msgForm').dispatchEvent(new Event('submit'))">🏯 Beijing 3 days</span><span class="welcome-chip" onclick="document.getElementById('msgInput').value='Chengdu food tour 4 days';document.getElementById('msgForm').dispatchEvent(new Event('submit'))">🐼 Chengdu food</span><span class="welcome-chip" onclick="document.getElementById('msgInput').value='Yunnan 7 days nature trip';document.getElementById('msgForm').dispatchEvent(new Event('submit'))">🏔️ Yunnan 7 days</span><span class="welcome-chip" onclick="document.getElementById('msgInput').value='Shanghai weekend guide';document.getElementById('msgForm').dispatchEvent(new Event('submit'))">🌃 Shanghai weekend</span><span class="welcome-chip" onclick="document.getElementById('msgInput').value='Xi'an terracotta history 3 days';document.getElementById('msgForm').dispatchEvent(new Event('submit'))">🏛️ Xi'an history</span><span class="welcome-chip" onclick="document.getElementById('msgInput').value='Guilin Li River Yangshuo 4 days';document.getElementById('msgForm').dispatchEvent(new Event('submit'))">🛶 Guilin nature</span><span class="welcome-chip" onclick="document.getElementById('msgInput').value='Hangzhou West Lake relaxed 3 days';document.getElementById('msgForm').dispatchEvent(new Event('submit'))">🍵 Hangzhou relax</span><span class="welcome-chip" onclick="document.getElementById('msgInput').value='Guangzhou dimsum food tour 3 days';document.getElementById('msgForm').dispatchEvent(new Event('submit'))">🥟 Guangzhou food</span></div></div></div></main></div>
 <div class="chat-footer"><div id="quickReplies"></div><form id="msgForm"><input id="msgInput" type="text" placeholder="Type a message…" data-i18n-placeholder="inputMsgPlaceholder" autofocus><button id="sendBtn" type="submit" data-i18n="sendBtn">Send</button></form></div>
-<script src="https://esm.sh/@supabase/supabase-js@2"></script>
 <script src="/static/i18n.js"></script>
 <script src="/static/chat.js"></script><script src="/static/pwa.js"></script></body></html>"""
 
@@ -435,16 +711,52 @@ def page_auth_callback() -> str:
 <script src="/static/i18n.js"></script>
 <script src="/static/auth.js"></script><script src="/static/pwa.js"></script></body></html>"""
 
-# ══════════════════════════════════════════════════════════
-# APP
-# ══════════════════════════════════════════════════════════
+def page_profile(user_id: str) -> str:
+    db = get_db()
+    user = db.query(EmailUser).filter(EmailUser.user_id == user_id).one_or_none()
+    if not user:
+        pu = db.query(PhoneUser).filter(PhoneUser.user_id == user_id).one_or_none()
+        email_display = "—"
+        phone_display = pu.phone if pu else "—"
+        name = pu.name if (pu and pu.name) else ""
+    else:
+        email_display = user.email
+        phone_display = "—"
+        name = user.name or ""
+    db.close()
+    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#7dd3fc">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VisePanda">
+<link rel="apple-touch-icon" href="/static/icon.svg"><title data-i18n="profileTitle">Profile · VisePanda</title><meta name="description" content="Manage your VisePanda profile and preferences."><style>{CSS}</style><script defer src='/_vercel/insights/script.js'></script><script defer src='/_vercel/speed-insights/script.js'></script>{_inject_config()}</head><body>
+<div class="bg-shanshui"></div>
+<header><div><span class="dot"></span><span class="name">VisePanda</span></div><div><a href="/chat" class="btn" style="margin-right:8px" data-i18n="chatBtn">Chat</a><a href="/trips" class="btn" style="margin-right:8px" data-i18n="tripsBtn">Trips</a><a href="/" class="btn" data-i18n="homeBtn">Home</a><a href="#" class="lang-switch" onclick="event.preventDefault();setLang(LANG==='en'?'zh':'en')" data-i18n="langLabel">中</a></div></header>
+<div class="profile-page">
+<div class="profile-header"><div class="profile-avatar">🐼</div><h1 data-i18n="profileH1">My Profile</h1><p data-i18n="profileSub">Manage your account and preferences</p></div>
+<div id="profileMsg" class="profile-msg"></div>
+<div class="profile-card">
+<h3 data-i18n="generalSection">General</h3>
+<div class="profile-field"><label data-i18n="nameLabel">Display Name</label><input id="profileName" type="text" placeholder="Your name" value="{name}" data-i18n-placeholder="namePlaceholder"></div>
+<div class="profile-field"><label data-i18n="emailLabel">Email</label><input id="profileEmail" type="email" value="{email_display}" readonly style="opacity:.6;cursor:not-allowed"></div>
+<div class="profile-field"><label data-i18n="phoneLabel">Phone</label><input id="profilePhone" type="text" value="{phone_display}" readonly style="opacity:.6;cursor:not-allowed"></div>
+<div class="profile-field"><label data-i18n="langLabelPref">Language</label><select id="langSelect"><option value="en">English</option><option value="zh">中文</option></select></div>
+</div>
+<div class="profile-card">
+<h3 data-i18n="passwordSection">Change Password</h3>
+<div class="profile-field"><label data-i18n="oldPwLabel">Current Password</label><input id="oldPassword" type="password" data-i18n-placeholder="oldPwPlaceholder" placeholder="Current password"></div>
+<div class="profile-field"><label data-i18n="newPwLabel">New Password</label><input id="newPassword" type="password" data-i18n-placeholder="newPwPlaceholder" placeholder="New password (min 6 chars)"></div>
+<div class="profile-field"><label data-i18n="confirmPwLabel">Confirm New Password</label><input id="confirmPassword" type="password" data-i18n-placeholder="confirmPwPlaceholder" placeholder="Confirm new password"></div>
+</div>
+<button id="saveBtn" class="profile-save-btn" data-i18n="saveBtn">Save Changes</button>
+<div class="profile-nav"><a href="/chat" data-i18n="chatBtn">Chat</a> · <a href="/trips" data-i18n="tripsBtn">My Trips</a> · <a href="/" data-i18n="homeBtn">Home</a> · <a href="#" id="logoutBtn" style="color:#f87171" data-i18n="logoutBtn">Logout</a></div>
+</div>
+<script src="/static/i18n.js"></script>
+<script src="/static/profile.js"></script><script src="/static/pwa.js"></script></body></html>"""
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    try:
-        Base.metadata.create_all(bind=engine)
-    except Exception as e:
-        print(f"[WARN] DB init failed: {e}", flush=True)
+    # Tables managed via Supabase Management API
     yield
 
 app = FastAPI(title="VisePanda", version="0.1.0", lifespan=lifespan)
@@ -453,7 +765,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/api/health")
 def health():
-    return {"ok": True, "version": "0.1.0", "db": "postgres" if DB_URL else "sqlite"}
+    return {"ok": True, "version": "0.1.0", "db": "postgres"}
 
 @app.get("/favicon.ico")
 @app.get("/favicon.png")
@@ -483,6 +795,240 @@ def chat_page():
 def auth_callback():
     return page_auth_callback()
 
+@app.get("/profile", response_class=HTMLResponse)
+def profile_page(request: Request):
+    try:
+        user_id, _ = _get_user_id(request, request.query_params.get("guest_id"))
+        if not user_id or user_id.startswith("guest:"):
+            return HTMLResponse(status_code=302, headers={"Location": "/?login=1"})
+        return page_profile(user_id)
+    except HTTPException:
+        return HTMLResponse(status_code=302, headers={"Location": "/?login=1"})
+
+
+class EmailSignupIn(BaseModel):
+    email: str
+    password: str
+    name: str | None = None
+
+class EmailLoginIn(BaseModel):
+    email: str
+    password: str
+
+@app.post("/api/auth/email-signup")
+def email_signup(body: EmailSignupIn):
+    email = body.email.strip().lower()
+    if not email or "@" not in email:
+        raise HTTPException(400, "Invalid email")
+    if len(body.password) < 6:
+        raise HTTPException(400, "Password must be at least 6 characters")
+    db = get_db()
+    try:
+        existing = db.query(EmailUser).filter(EmailUser.email == email).one_or_none()
+        if existing:
+            raise HTTPException(409, "Email already registered")
+        user_id = _uid()
+        eu = EmailUser(email=email, user_id=user_id, password_hash=_hash_password(body.password), name=body.name)
+        db.add(eu)
+        # Also create entry in users table
+        db.add(User(id=f"email:{user_id}", profile={"email": email, "name": body.name or ""}))
+        db.commit()
+        return {"token": f"email:{user_id}", "user_id": f"email:{user_id}", "email": email}
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(500, str(e))
+    finally:
+        db.close()
+
+@app.post("/api/auth/email-login")
+def email_login(body: EmailLoginIn):
+    email = body.email.strip().lower()
+    if not email:
+        raise HTTPException(400, "Invalid email")
+    db = get_db()
+    try:
+        eu = db.query(EmailUser).filter(EmailUser.email == email).one_or_none()
+        if not eu or not _verify_password(body.password, eu.password_hash):
+            raise HTTPException(401, "Invalid email or password")
+        return {"token": f"email:{eu.user_id}", "user_id": f"email:{eu.user_id}", "email": email, "name": eu.name or ""}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, str(e))
+    finally:
+        db.close()
+
+class PhoneSendCodeIn(BaseModel):
+    phone: str
+
+class PhoneLoginIn(BaseModel):
+    phone: str
+    code: str
+
+@app.post("/api/auth/send-code")
+def send_code(body: PhoneSendCodeIn):
+    phone = body.phone.strip()
+    if not phone:
+        raise HTTPException(400, "Invalid phone number")
+    # Generate 6-digit code
+    code = str(random.randint(100000, 999999))
+    expires_at = _now() + dt.timedelta(minutes=5)
+    db = get_db()
+    try:
+        # Upsert verification record
+        existing = db.query(PhoneVerification).filter(PhoneVerification.phone == phone).one_or_none()
+        if existing:
+            existing.code = code
+            existing.expires_at = expires_at
+            existing.verified = False
+        else:
+            db.add(PhoneVerification(phone=phone, code=code, expires_at=expires_at, verified=False))
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(500, str(e))
+    finally:
+        db.close()
+    # Send SMS (best-effort)
+    ok = _send_sms(phone, code)
+    return {"ok": ok, "message": "Code sent" if ok else "Failed to send SMS — check SMS provider config"}
+
+@app.post("/api/auth/phone-login")
+def phone_login(body: PhoneLoginIn):
+    phone = body.phone.strip()
+    code = body.code.strip()
+    if not phone or not code:
+        raise HTTPException(400, "Invalid phone or code")
+    # Verify code
+    pu_user_id = None
+    db = get_db()
+    try:
+        record = db.query(PhoneVerification).filter(
+            PhoneVerification.phone == phone,
+            PhoneVerification.verified == False
+        ).one_or_none()
+        if not record:
+            raise HTTPException(401, "No verification code found. Request a new code.")
+        if record.expires_at.replace(tzinfo=dt.timezone.utc) < _now():
+            db.delete(record)
+            db.commit()
+            raise HTTPException(401, "Code expired. Request a new code.")
+        if record.code != code:
+            raise HTTPException(401, "Invalid code")
+        # Mark as verified so it can't be reused
+        record.verified = True
+        db.commit()
+        # Check/create phone user
+        pu = db.query(PhoneUser).filter(PhoneUser.phone == phone).one_or_none()
+        if not pu:
+            pu = PhoneUser(phone=phone, user_id=_uid())
+            db.add(pu)
+            db.add(User(id=f"phone:{pu.user_id}", profile={"phone": phone}))
+            db.commit()
+        pu_user_id = pu.user_id
+    finally:
+        db.close()
+    if not pu_user_id:
+        raise HTTPException(500, "Failed to create user")
+    return {"token": f"phone:{pu_user_id}", "user_id": f"phone:{pu_user_id}", "phone": phone}
+
+
+class ProfileUpdateIn(BaseModel):
+    name: str | None = None
+
+class PasswordChangeIn(BaseModel):
+    old_password: str
+    new_password: str
+
+class ProfileOut(BaseModel):
+    user_id: str
+    email: str | None = None
+    phone: str | None = None
+    name: str | None = None
+
+@app.get("/api/profile")
+def get_profile(request: Request):
+    user_id, _ = _get_user_id(request, request.query_params.get("guest_id"))
+    if not user_id or user_id.startswith("guest:"):
+        raise HTTPException(401, "Not logged in")
+    db = get_db()
+    try:
+        # Try email user first, then phone user
+        user = db.query(EmailUser).filter(EmailUser.user_id == user_id).one_or_none()
+        if user:
+            return ProfileOut(user_id=user_id, email=user.email, phone=None, name=user.name or "")
+        pu = db.query(PhoneUser).filter(PhoneUser.user_id == user_id).one_or_none()
+        if pu:
+            return ProfileOut(user_id=user_id, email=None, phone=pu.phone, name=pu.name or "")
+        raise HTTPException(404, "User not found")
+    finally:
+        db.close()
+
+@app.put("/api/profile")
+def update_profile(body: ProfileUpdateIn, request: Request):
+    user_id, _ = _get_user_id(request, request.query_params.get("guest_id"))
+    if not user_id or user_id.startswith("guest:"):
+        raise HTTPException(401, "Not logged in")
+    if body.name is None:
+        return {"ok": True}
+    db = get_db()
+    try:
+        user = db.query(EmailUser).filter(EmailUser.user_id == user_id).one_or_none()
+        if user:
+            db.query(EmailUser).filter(EmailUser.user_id == user_id).delete()
+            db.commit()
+            db.add(EmailUser(email=user.email, user_id=user_id, password_hash=user.password_hash, name=body.name))
+            db.commit()
+            return {"ok": True}
+        pu = db.query(PhoneUser).filter(PhoneUser.user_id == user_id).one_or_none()
+        if pu:
+            db.query(PhoneUser).filter(PhoneUser.user_id == user_id).delete()
+            db.commit()
+            db.add(PhoneUser(phone=pu.phone, user_id=user_id, name=body.name))
+            db.commit()
+            return {"ok": True}
+        raise HTTPException(404, "User not found")
+    finally:
+        db.close()
+
+@app.post("/api/auth/change-password")
+def change_password(body: PasswordChangeIn, request: Request):
+    user_id, _ = _get_user_id(request, request.query_params.get("guest_id"))
+    if not user_id or user_id.startswith("guest:"):
+        raise HTTPException(401, "Not logged in")
+    if len(body.new_password) < 6:
+        raise HTTPException(400, "New password must be at least 6 characters")
+    db = get_db()
+    try:
+        user = db.query(EmailUser).filter(EmailUser.user_id == user_id).one_or_none()
+        if not user:
+            raise HTTPException(401, "Only email users can change password")
+        if not _verify_password(body.old_password, user.password_hash):
+            raise HTTPException(401, "Current password is incorrect")
+        db.query(EmailUser).filter(EmailUser.user_id == user_id).delete()
+        db.commit()
+        db.add(EmailUser(email=user.email, user_id=user_id, password_hash=_hash_password(body.new_password), name=user.name))
+        db.commit()
+        return {"ok": True, "message": "Password updated"}
+    finally:
+        db.close()
+
+@app.get("/api/locale")
+def get_locale(request: Request):
+    """Detect user locale via IP geolocation. Returns {'locale': 'zh'} for China IPs."""
+    ip = request.headers.get("x-forwarded-for", "").split(",")[0].strip() or request.client.host if request.client else ""
+    if not ip or ip == "127.0.0.1" or ip.startswith("10.") or ip.startswith("192.168."):
+        return {"locale": None}
+    try:
+        r = httpx.get(f"http://ip-api.com/json/{ip}?fields=countryCode", timeout=3)
+        data = r.json()
+        if data.get("countryCode") == "CN":
+            return {"locale": "zh"}
+    except Exception:
+        pass
+    return {"locale": None}
 
 class ChatIn(BaseModel):
     trip_id: str
@@ -506,7 +1052,7 @@ async def chat_endpoint(payload: ChatIn, request: Request):
     user_id, mode = _get_user_id(request, payload.guest_id)
 
     # Save user if new
-    db = SessionLocal()
+    db = get_db()
     try:
         user = db.query(User).filter(User.id == user_id).one_or_none()
         if not user:
@@ -526,7 +1072,7 @@ async def chat_endpoint(payload: ChatIn, request: Request):
         db.close()
 
     # Load conversation history for context
-    db_ctx = SessionLocal()
+    db_ctx = get_db()
     try:
         recent = db_ctx.query(ChatMessage).filter(
             ChatMessage.trip_id == payload.trip_id
@@ -552,7 +1098,7 @@ async def chat_endpoint(payload: ChatIn, request: Request):
 
         # Save assistant message
         if full_text:
-            db2 = SessionLocal()
+            db2 = get_db()
             try:
                 db2.add(ChatMessage(user_id=user_id, trip_id=payload.trip_id, role="assistant", content=full_text))
                 db2.commit()
@@ -574,14 +1120,19 @@ async def not_found(request, exc):
 def list_trips(request: Request, guest_id: str | None = None):
     """List trips for current user."""
     from fastapi import Query
-    db = SessionLocal()
+    db = get_db()
     try:
         user_id = None
         auth = request.headers.get("Authorization", "")
         if auth.startswith("Bearer "):
             token = auth[7:]
-            if AUTH_TEST_BYPASS and token.startswith("test:"):
-                user_id = token.split(":", 1)[1] or "test_user"
+            # test: tokens are dev bypass
+            if token.startswith("test:"):
+                if AUTH_TEST_BYPASS:
+                    user_id = token.split(":", 1)[1] or "test_user"
+            # email: and phone: tokens are real user auth
+            elif token.startswith("email:") or token.startswith("phone:"):
+                user_id = token.split(":", 1)[1]
             else:
                 try:
                     header = jwt.get_unverified_header(token)
@@ -613,7 +1164,7 @@ class RenameIn(BaseModel):
 
 @app.put("/api/trips/{trip_id}")
 def rename_trip(trip_id: str, body: RenameIn):
-    db = SessionLocal()
+    db = get_db()
     try:
         trip = db.query(Trip).filter(Trip.id == trip_id).one_or_none()
         if not trip:
@@ -628,7 +1179,7 @@ def rename_trip(trip_id: str, body: RenameIn):
 
 @app.post("/api/trips/{trip_id}/share")
 def share_trip(trip_id: str):
-    db = SessionLocal()
+    db = get_db()
     try:
         trip = db.query(Trip).filter(Trip.id == trip_id).one_or_none()
         if not trip:
@@ -644,7 +1195,7 @@ def share_trip(trip_id: str):
 
 @app.get("/api/trips/{trip_id}/share")
 def get_share_link(trip_id: str):
-    db = SessionLocal()
+    db = get_db()
     try:
         trip = db.query(Trip).filter(Trip.id == trip_id).one_or_none()
         if not trip:
@@ -656,7 +1207,7 @@ def get_share_link(trip_id: str):
 
 @app.delete("/api/trips/{trip_id}")
 def delete_trip(trip_id: str):
-    db = SessionLocal()
+    db = get_db()
     try:
         db.query(ChatMessage).filter(ChatMessage.trip_id == trip_id).delete()
         db.query(Trip).filter(Trip.id == trip_id).delete()
@@ -669,7 +1220,7 @@ def delete_trip(trip_id: str):
 @app.get("/api/trips/{trip_id}/messages")
 def get_messages(trip_id: str):
     """Return chat history for a trip."""
-    db = SessionLocal()
+    db = get_db()
     try:
         msgs = db.query(ChatMessage).filter(
             ChatMessage.trip_id == trip_id

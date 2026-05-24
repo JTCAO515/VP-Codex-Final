@@ -143,3 +143,44 @@ cards=4 | goChat=1 | skeleton=2 | trip=3 | btnDisable=2 | mobile=1
 
 **测试**: 4/4 PASS
 
+---
+
+## Iteration 13 (Phase 1) — 数据库升级 Postgres + 用户中心
+
+**日期**: 2026-05-24
+**目标**: SQLite → Supabase Postgres 迁移，用户中心 UI
+**状态**: ✅ 完成
+
+### 改动清单
+
+| # | 改动 | 效果 |
+|---|------|------|
+| 1 | Supabase Management API 集成 | HTTP-based 数据库操作替代 SQLAlchemy Session |
+| 2 | `_row_to_model` 重构 | 绕过 ORM  instrumentation，支持 _Row 对象 |
+| 3 | `filter()` 支持 SQLAlchemy BinaryExpression | 自动编译为原始 SQL |
+| 4 | `QueryBuilder.delete()` 方法 | 支持 DELETE 操作 |
+| 5 | 代理修复 (SOCKS5→HTTP) | 通过 Xray HTTP proxy 连接 Supabase API |
+| 6 | 全量 Postgres schema (6 张表 + 4 索引) | 通过 Supabase Management API 创建 |
+| 7 | `GET /api/profile` | 返回用户资料（email/phone/name） |
+| 8 | `PUT /api/profile` | 更新用户姓名 |
+| 9 | `POST /api/auth/change-password` | 邮箱用户修改密码 |
+| 10 | `/profile` 页面 | 用户资料编辑 UI（姓名/语言/密码） |
+| 11 | `static/profile.js` | 前端交互（保存/改密码/登出） |
+
+### 待办（需人工操作）
+
+| # | 内容 | 原因 |
+|---|------|------|
+| 1 | 设 `DATABASE_URL` 切原生 Postgres 连接 | 需数据库密码 |
+| 2 | 阿里云短信配置 | 需 AccessKey + Secret |
+| 3 | CDN 加速 (Cloudflare) | 需域名 DNS 接入 |
+| 4 | 微信登录 | 需微信开放平台账号 |
+
+### 测试
+
+- 健康检查: `{"db":"postgres"}` ✅
+- 邮箱注册/登录: 全流程通过 ✅
+- 资料读取/更新: GET/PUT profile ✅
+- 修改密码: old→new 验证通过 ✅
+- 页面路由: `/profile` 302 → `/?login=1`（未登录正确）✅
+

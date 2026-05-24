@@ -2,10 +2,16 @@
 let sb = null, tripId = null;
 
 async function i() {
-    sb = supabase.createClient(
-        window.__SUPABASE_CONFIG__.supabase_url,
-        window.__SUPABASE_CONFIG__.supabase_anon_key
-    );
+    try {
+        const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+        sb = createClient(
+            window.__SUPABASE_CONFIG__.supabase_url,
+            window.__SUPABASE_CONFIG__.supabase_anon_key
+        );
+    } catch(e) {
+        // Supabase unavailable (China network) — continue with local auth
+        sb = null;
+    }
 }
 
 const W = window;
@@ -95,16 +101,16 @@ async function send(text) {
 
     let f = '';
     try {
-        // Auth: try local token first, then Supabase
         const token = localStorage.getItem('vp_token');
         const h = { 'Content-Type': 'application/json' };
         if (token) {
             h['Authorization'] = 'Bearer ' + token;
-        } else {
-            const s = await sb?.auth.getSession();
+        } else if (sb) {
+            const s = await sb.auth.getSession();
             const tok = s?.data?.session?.access_token;
             if (tok) h['Authorization'] = 'Bearer ' + tok;
         }
+        // No token? Send without auth — backend handles guest mode
 
         let r;
         try {
@@ -168,34 +174,29 @@ async function send(text) {
     smartScroll();
 }
 
-// Init
-i();
-setTimeout(function() {
-    if (!sb) {
-        var lt = (typeof t === 'function') ? t('loading') : 'Loading services… please wait or ';
-        var rf = (typeof t === 'function') ? t('refresh') : 'refresh';
-        Q('#thread').innerHTML = '<div style=padding:20px;color:var(--muted)>' + lt + '<a href=# onclick=location.reload() style=color:var(--accent)>' + rf + '</a></div>';
+// Init — on DOM ready
+(async function() {
+    await i();
+    const p = new URL(W.location);
+    tripId = p.searchParams.get('trip') || localStorage.getItem('vp_trip');
+    if (tripId) loadHistory();
+    const q = p.searchParams.get('q');
+
+    Q('#msgForm').onsubmit = e => {
+        e.preventDefault();
+        const v = Q('#msgInput').value.trim();
+        if (!v) return;
+        Q('#msgInput').value = '';
+        Q('#quickReplies').innerHTML = '';
+        send(v);
+    };
+
+    if (q) {
+        p.searchParams.delete('q');
+        history.replaceState(null, '', p.toString());
+        send(q);
     }
-}, 5000);
-const p = new URL(W.location);
-tripId = p.searchParams.get('trip') || localStorage.getItem('vp_trip');
-if (tripId) loadHistory();
-const q = p.searchParams.get('q');
-
-Q('#msgForm').onsubmit = e => {
-    e.preventDefault();
-    const v = Q('#msgInput').value.trim();
-    if (!v) return;
-    Q('#msgInput').value = '';
-    Q('#quickReplies').innerHTML = '';
-    send(v);
-};
-
-if (q) {
-    p.searchParams.delete('q');
-    history.replaceState(null, '', p.toString());
-    send(q);
-}
+})();
 
 // Expose send globally for onclick handlers
 W.send = send;
