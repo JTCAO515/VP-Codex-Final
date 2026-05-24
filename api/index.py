@@ -300,6 +300,17 @@ def page_landing() -> str:
 <script src="/static/i18n.js"></script>
 <script src="/static/landing.js"></script><script src="/static/pwa.js"></script></body></html>"""
 
+def _render_msg(text: str) -> str:
+    """Convert LLM markdown to HTML (mirrors chat.js M())."""
+    import re
+    text = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', text)
+    text = re.sub(r'\*(.+?)\*', r'<i>\1</i>', text)
+    text = re.sub(r'\n\n', '</p><p>', text)
+    text = text.replace('\n', '<br>')
+    if '**Day ' in text:
+        text = '<div class=trip-card>' + text + '</div>'
+    return text
+
 def page_share(share_id: str) -> str:
     db = SessionLocal()
     try:
@@ -309,7 +320,7 @@ def page_share(share_id: str) -> str:
         msgs = db.query(ChatMessage).filter(ChatMessage.trip_id == trip.id).order_by(ChatMessage.created_at.asc()).all()
     finally:
         db.close()
-    msgs_html = ''.join(f'<div class="msg {m.role}"><div class=bubble>{m.content}</div></div>' for m in msgs)
+    msgs_html = ''.join(f'<div class="msg {m.role}"><div class=bubble>{_render_msg(m.content)}</div></div>' for m in msgs)
     title = trip.title or 'Shared Trip'
     return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="manifest" href="/static/manifest.json">
 <meta name="theme-color" content="#7dd3fc">
@@ -318,7 +329,7 @@ def page_share(share_id: str) -> str:
 <meta name="apple-mobile-web-app-title" content="VisePanda">
 <link rel="apple-touch-icon" href="/static/icon.svg"><title>{title} · VisePanda</title><meta name="description" content="AI-planned China trip itinerary"><meta property="og:title" content="{title}"><style>{CSS}.share-header{{text-align:center;padding:24px 16px 12px;position:relative;z-index:1}}.share-header h2{{font-size:20px;margin:0;color:var(--text)}}.share-header p{{color:var(--muted);font-size:14px;margin:4px 0}}.share-thread{{max-width:700px;margin:0 auto;padding:12px 16px 100px;position:relative;z-index:1}}.share-footer{{text-align:center;padding:20px;position:relative;z-index:1}}.msg{{margin:8px 0}}.msg.assistant .bubble{{border:1px solid var(--line);border-radius:14px;padding:10px 14px;line-height:1.5;background:rgba(255,255,255,.03);white-space:pre-wrap}}.msg.user .bubble{{background:rgba(125,211,252,.10);border-color:rgba(125,211,252,.18)}}.bubble{{max-width:700px}}
 </style><script defer src='/_vercel/insights/script.js'></script><script defer src='/_vercel/speed-insights/script.js'></script></head><body><div class="bg-shanshui"></div>
-<div class="share-header"><h2>🐼 {title}</h2><p data-i18n="shareAI">AI-planned trip · {len(msgs)} messages</p></div>
+<div class="share-header"><h2>🐼 {title}</h2><p data-i18n="shareAI">AI-planned trip · {len(msgs)} messages</p><a href="/" class="btn btn-accent" style="margin-top:16px;display:inline-block" data-i18n="planYourOwn">🚀 Create your own trip</a></div>
 <div class="share-thread">{msgs_html}</div>
 <div class="share-footer"><a href="/" class="btn btn-accent" data-i18n="planYourOwn">Plan your own trip</a><script src="/static/i18n.js"></script></div>
 <script src="/static/pwa.js"></script></body></html>'''
@@ -337,6 +348,12 @@ def page_trips() -> str:
 .trip-item h3{{font-size:16px;margin:0 0 6px;color:var(--text)}}
 .trip-item .meta{{font-size:12px;color:var(--muted)}}
 .empty{{text-align:center;padding:60px 20px;color:var(--muted)}}
+.modal-overlay{{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9998;animation:fadeIn .15s ease}}
+.modal-content{{background:#1a1f2e;border:1px solid var(--line);border-radius:16px;padding:24px;max-width:420px;width:90vw;animation:scaleIn .15s ease}}
+#toast{{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#fff;padding:10px 20px;border-radius:999px;font-size:14px;z-index:9999;animation:fadeInOut 1.8s ease forwards;pointer-events:none}}
+@keyframes fadeIn{{from{{opacity:0}}to{{opacity:1}}}}
+@keyframes scaleIn{{from{{opacity:0;transform:scale(.95)}}to{{opacity:1;transform:scale(1)}}}}
+@keyframes fadeInOut{{0%{{opacity:0;transform:translateX(-50%) translateY(8px)}}15%{{opacity:1;transform:translateX(-50%) translateY(0)}}85%{{opacity:1;transform:translateX(-50%) translateY(0)}}100%{{opacity:0;transform:translateX(-50%) translateY(-8px)}}}}
 </style><script defer src='/_vercel/insights/script.js'></script><script defer src='/_vercel/speed-insights/script.js'></script></head><body>
 <div class="bg-shanshui"></div>
 <header><div><span class="dot"></span><span class="name">VisePanda</span></div><div><a href="/" class="btn" data-i18n="homeBtn">Home</a><a href="#" class="lang-switch" onclick="event.preventDefault();setLang(LANG==='en'?'zh':'en')" data-i18n="langLabel">中</a></div></header>

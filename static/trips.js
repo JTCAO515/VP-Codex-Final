@@ -10,7 +10,6 @@ function _t(key) {
         renameBtn: '✏️ Rename',
         deleteBtn: '🗑 Delete',
         messages: 'messages',
-        sharePrompt: 'Share link:',
         shareFailed: 'Failed to share',
         renamePrompt: 'Rename trip:',
         deleteConfirm: 'Delete this trip and all messages?'
@@ -52,10 +51,66 @@ async function shareTrip(id) {
     const r = await fetch('/api/trips/' + id + '/share', { method: 'POST' });
     if (r.ok) {
         const d = await r.json();
-        prompt(_t('sharePrompt'), location.origin + d.url);
+        showShareModal(location.origin + d.url);
     } else {
-        alert(_t('shareFailed'));
+        showToast('❌ ' + _t('shareFailed'));
     }
+}
+
+let shareModalEl = null;
+
+function showShareModal(url) {
+    hideShareModal();
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.id = 'shareModal';
+    overlay.onclick = hideShareModal;
+    overlay.innerHTML =
+        '<div class="modal-content" onclick="event.stopPropagation()">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">' +
+        '<h3 style="margin:0;font-size:17px;font-weight:650">🔗 Share Trip</h3>' +
+        '<button onclick="hideShareModal()" ' +
+        'style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:22px;padding:0 4px;line-height:1">×</button>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px">' +
+        '<input type="text" id="shareLinkInput" value="' + url + '" readonly ' +
+        'style="flex:1;padding:12px 14px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--text);font-size:13px;outline:none">' +
+        '<button onclick="copyShareLink()" id="copyBtn" ' +
+        'style="padding:12px 18px;border-radius:8px;border:1px solid rgba(125,211,252,.35);background:rgba(125,211,252,.12);color:var(--text);cursor:pointer;font-size:13px;white-space:nowrap;font-weight:600">📋 Copy</button>' +
+        '</div></div>';
+    document.body.appendChild(overlay);
+    shareModalEl = overlay;
+    setTimeout(() => document.getElementById('shareLinkInput')?.select(), 100);
+}
+
+function hideShareModal() {
+    if (shareModalEl) {
+        shareModalEl.remove();
+        shareModalEl = null;
+    }
+}
+
+async function copyShareLink() {
+    const input = document.getElementById('shareLinkInput');
+    if (!input) return;
+    try {
+        await navigator.clipboard.writeText(input.value);
+    } catch {
+        input.select();
+        document.execCommand('copy');
+    }
+    showToast('✅ Copied!');
+    setTimeout(hideShareModal, 600);
+}
+
+function showToast(msg) {
+    const existing = document.getElementById('toast');
+    if (existing) existing.remove();
+    const t = document.createElement('div');
+    t.id = 'toast';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => { const el = document.getElementById('toast'); if (el) el.remove(); }, 2000);
 }
 
 async function renameTrip(id, oldTitle) {
