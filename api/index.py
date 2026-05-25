@@ -534,6 +534,54 @@ footer{border-top:1px solid rgba(212,168,75,.08);background:rgba(10,8,16,.4);col
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes scaleIn{from{opacity:0;transform:scale(.93)}to{opacity:1;transform:scale(1)}}
 @keyframes brushIn{0%{clip-path:inset(0 100% 0 0)}100%{clip-path:inset(0 0 0 0)}}
+/* ── Animate.css inspired entrance animations ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeInRight{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes fadeInLeft{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes pulseGlow{0%,100%{opacity:.35}50%{opacity:.5}}
+@keyframes sealPulse{0%,100%{box-shadow:0 0 12px rgba(220,74,58,.15)}50%{box-shadow:0 0 22px rgba(220,74,58,.3)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes scaleInRotate{from{opacity:0;transform:scale(.85) rotate(-4deg)}to{opacity:1;transform:scale(1) rotate(-2deg)}}
+
+/* Animated utility classes */
+.anim-fade-up{animation:fadeUp .5s ease both}
+.anim-fade-right{animation:fadeInRight .4s ease both}
+.anim-fade-left{animation:fadeInLeft .4s ease both}
+.anim-delay-1{animation-delay:.1s}.anim-delay-2{animation-delay:.2s}.anim-delay-3{animation-delay:.3s}
+.anim-delay-4{animation-delay:.4s}.anim-delay-5{animation-delay:.5s}.anim-delay-6{animation-delay:.6s}
+.anim-delay-7{animation-delay:.7s}.anim-delay-8{animation-delay:.8s}
+
+/* Background breathing */
+.bg-shanshui{animation:pulseGlow 8s ease-in-out infinite}
+
+/* Seal logo pulse */
+.logo-seal .seal{animation:sealPulse 3s ease-in-out infinite}
+
+/* Message entrance */
+.msg{animation:fadeUp .35s ease both}
+.msg.user{animation:fadeInRight .35s ease both}
+.msg.bot{animation:fadeInLeft .35s ease both}
+
+/* Card stagger for landing */
+.card{animation:fadeUp .45s ease both}
+.card:nth-child(1){animation-delay:.05s}.card:nth-child(2){animation-delay:.1s}
+.card:nth-child(3){animation-delay:.15s}.card:nth-child(4){animation-delay:.2s}
+.card:nth-child(5){animation-delay:.25s}.card:nth-child(6){animation-delay:.3s}
+.card:nth-child(7){animation-delay:.35s}.card:nth-child(8){animation-delay:.4s}
+
+/* Hero text entrance */
+h1{animation:fadeUp .5s ease both}
+p{animation:fadeUp .5s ease both;animation-delay:.1s}
+form{animation:fadeUp .5s ease both;animation-delay:.15s}
+.cat-nav{animation:fadeUp .5s ease both;animation-delay:.2s}
+
+/* Skeleton shimmer */
+.skeleton{animation:shimmer 1.5s infinite;background:linear-gradient(90deg,rgba(255,255,255,.04)25%,rgba(255,255,255,.1)50%,rgba(255,255,255,.04)75%);background-size:200% 100%}
+
+/* Button press feedback */
+.btn:active,.btn-accent:active,.btn-red:active,.cat-tag:active{transform:scale(.96)}
+.card:active{transform:scale(.98)}
+
 """
 
 def _inject_config() -> str:
@@ -567,14 +615,14 @@ def page_landing() -> str:
 </form>
 <div class="cat-nav"><span class="cat-tag active" data-cat="all" onclick="filterCards('all')">🔥 全部</span><span class="cat-tag" data-cat="food" onclick="filterCards('food')">🍜 美食</span><span class="cat-tag" data-cat="history" onclick="filterCards('history')">🏯 历史</span><span class="cat-tag" data-cat="nature" onclick="filterCards('nature')">🏔️ 自然</span><span class="cat-tag" data-cat="city" onclick="filterCards('city')">🌃 都市</span></div>
 <div class="cards" id="cardGrid">
-<a class="card" data-cat="history" href="#" onclick="event.preventDefault();goChat('北京3天深度游,喜欢历史文化,中等预算')"><div class="card-emoji">🏯</div><div class="card-title">北京 3天</div><div class="card-sub">故宫 · 长城 · 胡同</div></a>
-<a class="card" data-cat="food" href="#" onclick="event.preventDefault();goChat('成都4天美食之旅,火锅串串,悠闲逛')"><div class="card-emoji">🐼</div><div class="card-title">成都 4天</div><div class="card-sub">火锅 · 熊猫 · 盖碗茶</div></a>
-<a class="card" data-cat="nature" href="#" onclick="event.preventDefault();goChat('云南7天,大理丽江香格里拉,自然风光')"><div class="card-emoji">🏔️</div><div class="card-title">云南 7天</div><div class="card-sub">大理 · 丽江 · 香格里拉</div></a>
-<a class="card" data-cat="city" href="#" onclick="event.preventDefault();goChat('上海3天,摩登都市,外滩迪士尼')"><div class="card-emoji">🌃</div><div class="card-title">上海 3天</div><div class="card-sub">外滩 · 迪士尼 · 法租界</div></a>
-<a class="card" data-cat="history" href="#" onclick="event.preventDefault();goChat('西安3天历史游,兵马俑古城墙,中等预算')"><div class="card-emoji">🏛️</div><div class="card-title">西安 3天</div><div class="card-sub">兵马俑 · 城墙 · 回民街</div></a>
-<a class="card" data-cat="nature" href="#" onclick="event.preventDefault();goChat('桂林4天,漓江阳朔,自然风光')"><div class="card-emoji">🛶</div><div class="card-title">桂林 4天</div><div class="card-sub">漓江 · 阳朔 · 梯田</div></a>
-<a class="card" data-cat="food" href="#" onclick="event.preventDefault();goChat('广州3天,早茶美食文化,市区逛')"><div class="card-emoji">🥟</div><div class="card-title">广州 3天</div><div class="card-sub">早茶 · 沙面 · 小蛮腰</div></a>
-<a class="card" data-cat="nature" href="#" onclick="event.preventDefault();goChat('重庆3天,山城美食夜景,魔幻8D')"><div class="card-emoji">🌆</div><div class="card-title">重庆 3天</div><div class="card-sub">洪崖洞 · 火锅 · 轻轨</div></a>
+<a class="card anim-fade-up" data-cat="history" href="#" onclick="event.preventDefault();goChat('北京3天深度游,喜欢历史文化,中等预算')"><div class="card-emoji">🏯</div><div class="card-title">北京 3天</div><div class="card-sub">故宫 · 长城 · 胡同</div></a>
+<a class="card anim-fade-up" data-cat="food" href="#" onclick="event.preventDefault();goChat('成都4天美食之旅,火锅串串,悠闲逛')"><div class="card-emoji">🐼</div><div class="card-title">成都 4天</div><div class="card-sub">火锅 · 熊猫 · 盖碗茶</div></a>
+<a class="card anim-fade-up" data-cat="nature" href="#" onclick="event.preventDefault();goChat('云南7天,大理丽江香格里拉,自然风光')"><div class="card-emoji">🏔️</div><div class="card-title">云南 7天</div><div class="card-sub">大理 · 丽江 · 香格里拉</div></a>
+<a class="card anim-fade-up" data-cat="city" href="#" onclick="event.preventDefault();goChat('上海3天,摩登都市,外滩迪士尼')"><div class="card-emoji">🌃</div><div class="card-title">上海 3天</div><div class="card-sub">外滩 · 迪士尼 · 法租界</div></a>
+<a class="card anim-fade-up" data-cat="history" href="#" onclick="event.preventDefault();goChat('西安3天历史游,兵马俑古城墙,中等预算')"><div class="card-emoji">🏛️</div><div class="card-title">西安 3天</div><div class="card-sub">兵马俑 · 城墙 · 回民街</div></a>
+<a class="card anim-fade-up" data-cat="nature" href="#" onclick="event.preventDefault();goChat('桂林4天,漓江阳朔,自然风光')"><div class="card-emoji">🛶</div><div class="card-title">桂林 4天</div><div class="card-sub">漓江 · 阳朔 · 梯田</div></a>
+<a class="card anim-fade-up" data-cat="food" href="#" onclick="event.preventDefault();goChat('广州3天,早茶美食文化,市区逛')"><div class="card-emoji">🥟</div><div class="card-title">广州 3天</div><div class="card-sub">早茶 · 沙面 · 小蛮腰</div></a>
+<a class="card anim-fade-up" data-cat="nature" href="#" onclick="event.preventDefault();goChat('重庆3天,山城美食夜景,魔幻8D')"><div class="card-emoji">🌆</div><div class="card-title">重庆 3天</div><div class="card-sub">洪崖洞 · 火锅 · 轻轨</div></a>
 </div>
 <div id="recentTrips" style="display:none;margin-top:20px;text-align:left"></div>
 <div style="margin-top:16px;font-size:12px;color:var(--muted)" data-i18n="guestHint">📧 Email · 📱 Phone · 🔑 Google · 👤 Guest</div>
