@@ -1677,14 +1677,18 @@ async def calendar_export(request: Request):
 # ── Currency converter ──
 @app.get("/api/fx/{amount}/{from_curr}/{to_curr}")
 def fx_route(amount: float, from_curr: str, to_curr: str = "CNY"):
-    """GET /api/fx/100/USD/CNY → converted amount"""
+    """GET /api/fx/100/USD/CNY → converted amount (inline, no import)"""
     try:
-        from fx import convert
-        result = convert(amount, from_curr, to_curr)
-        return JSONResponse(result)
+        _RATES = {"USD":1.0,"CNY":7.24,"EUR":0.92,"GBP":0.79,"JPY":151.5,"KRW":1350,"THB":36.5,"SGD":1.35,"HKD":7.82,"TWD":32.5,"AUD":1.53,"CAD":1.38,"MYR":4.72,"VND":25450,"INR":83.5,"RUB":92.0}
+        f, t = from_curr.upper(), to_curr.upper()
+        if f == t:
+            return JSONResponse({"amount": amount, "from": f, "to": t, "result": amount, "rate": 1.0})
+        if f in _RATES and t in _RATES:
+            rate = _RATES[t] / _RATES[f]
+            return JSONResponse({"amount": amount, "from": f, "to": t, "result": round(amount * rate, 2), "rate": rate})
+        return JSONResponse({"error": f"Unknown currency: {f} or {t}"}, status_code=400)
     except Exception as e:
-        print(f"FX error: {e}")
-        return JSONResponse({"error": "Currency conversion failed"}, status_code=500)
+        return JSONResponse({"error": f"FX failed: {repr(e)}"}, status_code=500)
 
 
 # ── Itinerary validation ──
