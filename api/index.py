@@ -342,6 +342,14 @@ def _send_sms(phone: str, code: str) -> bool:
     print(f"[SMS] Code for {phone}: {code}", flush=True)
     return True
 
+class UserPreference(Base):
+    __tablename__ = "user_preferences"
+    id = Column(String, primary_key=True, default=lambda: _uid())
+    user_id = Column(String, unique=True, nullable=False)
+    preferences = Column(JSON, default=dict)
+    created_at = Column(DateTime, default=lambda: dt.datetime.utcnow())
+    updated_at = Column(DateTime, default=lambda: dt.datetime.utcnow(), onupdate=lambda: dt.datetime.utcnow())
+
 class Trip(Base):
     __tablename__ = "trips"
     id: Mapped[str] = mapped_column(String, primary_key=True, default=_uid)
@@ -1401,8 +1409,26 @@ async def chat_endpoint(payload: ChatIn, request: Request):
             else:
                 yield chunk
 
-        # Save assistant message
+        # Save assistant message + track preferences
         if full_text:
+            # Simple preference extraction from user messages
+            user_prefs = db2.query(UserPreference).filter(UserPreference.user_id == user_id).one_or_none()
+            if not user_prefs:
+                user_prefs = UserPreference(user_id=user_id, preferences={})
+                db2.add(user_prefs)
+            # Extract budget/style from context
+            pref = user_prefs.preferences or {}
+            for msg in context_msgs[-3:]:
+                if msg["role"] == "user":
+                    txt = msg["content"]
+                    if "穷游" in txt or "省钱" in txt or "经济" in txt: pref["budget"] = "budget"
+                    elif "豪华" in txt or "五星" in txt: pref["budget"] = "luxury"
+                    else: pref["budget"] = "mid"
+                    if "美食" in txt: pref["style"] = "food"
+                    elif "历史" in txt: pref["style"] = "history"
+                    elif "自然" in txt: pref["style"] = "nature"
+            user_prefs.preferences = pref
+            db2.commit()
             db2 = get_db()
             try:
                 db2.add(ChatMessage(user_id=user_id, trip_id=payload.trip_id, role="assistant", content=full_text))
