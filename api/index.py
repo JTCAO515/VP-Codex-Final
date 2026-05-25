@@ -434,6 +434,7 @@ def _get_user_id(request: Request, guest_id: str | None) -> tuple[str, str]:
 from api.prompt import SYSTEM_PROMPT, get_system_prompt, get_proactive_questions
 from data.tools.packing import get_packing_list
 from data.tools.travel_tools import recommend_destination, generate_caption
+from data.tools.pricing import estimate_trip_cost, get_weather_advice
 
 async def stream_llm(messages: list[dict]) -> AsyncGenerator[str, None]:
     if not LLM_ENABLED or not LLM_API_KEY:
