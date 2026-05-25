@@ -175,6 +175,7 @@ async function send(text) {
                         smartScroll();
                         
                         // Show map with trip data
+                        updateSidebar(j);
                         const mapContainer = Q('#tripMap');
                         if (mapContainer && tripId && !mapContainer._mapLoading) {
                             mapContainer._mapLoading = true;
@@ -250,3 +251,20 @@ async function send(text) {
 
 // Expose send globally for onclick handlers
 W.send = send;
+
+// ── Sidebar toggle ──
+function toggleSidebar() {
+    var sb = document.getElementById('sidebar');
+    var btn = document.getElementById('sidebarToggle');
+    sb.classList.toggle('visible');
+    btn.classList.toggle('visible');
+}
+
+// ── Update sidebar trip info ──
+function updateSidebar(tripData) {
+    var itin = tripData.current_itinerary || {};
+    var cities = document.getElementById('tripCities');
+    var days = document.getElementById('tripDays');
+    if (cities) cities.textContent = (itin.cities || ['—']).join(' → ');
+    if (days) days.textContent = (itin.day_count || '—') + ' days';
+}
