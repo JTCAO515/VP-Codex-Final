@@ -851,6 +851,9 @@ def page_chat() -> str:
 .vp-map-label{{background:none!important;border:none!important;box-shadow:none!important;color:rgba(255,255,255,.7)!important;font-size:11px!important;font-weight:600}}
 .leaflet-container{{background:#0a0f17!important}}
 .leaflet-control-zoom a{{background:rgba(255,255,255,.05)!important;color:rgba(255,255,255,.8)!important;border-color:var(--line)!important}}
+.vp-map-controls{{display:flex;gap:4px;padding:6px 12px;background:rgba(10,8,16,.5);border-bottom:1px solid var(--line)}}
+.vp-map-controls button{{background:none;border:1px solid var(--line);border-radius:4px;color:rgba(255,255,255,.7);padding:4px 10px;font-size:11px;cursor:pointer;transition:all .15s}}
+.vp-map-controls button:hover{{border-color:rgba(212,168,75,.3);color:var(--gold)}}
 .skel-block{{padding:4px 0}}.skel-line{{height:14px;border-radius:7px;margin:8px 0}}.skel-w-10{{width:10%}}.skel-w-20{{width:20%}}.skel-w-30{{width:30%}}.skel-w-40{{width:40%}}.skel-w-50{{width:50%}}.skel-w-60{{width:60%}}.skel-w-70{{width:70%}}.skel-w-80{{width:80%}}
 @keyframes shimmer{{0%{{background-position:200%0}}100%{{background-position:-200%0}}}}
 .trip-card{{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:14px 14px 14px 11px;margin:6px 0;background:linear-gradient(135deg,rgba(125,211,252,.06),transparent)}}

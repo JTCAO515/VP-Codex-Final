@@ -243,6 +243,14 @@ VP_MAP.setupDaySwitcher = function(container, days) {
     const existing = container.querySelector('.vp-day-tabs');
     if (existing) existing.remove();
     
+    // Map action controls
+    const controls = document.createElement('div');
+    controls.className = 'vp-map-controls';
+    controls.innerHTML = '<button onclick="this.closest(\'.vp-map-container\').querySelector(\'.vp-day-tabs\')?this.closest(\'.vp-map-container\').querySelector(\'.vp-day-tabs\').scrollIntoView({behavior:\'smooth\'}):\'\'">📍 路线</button>' +
+        '<button onclick="var c=this.closest(\'.vp-map-container\');c.style.height=c.style.height===\'480px\'?\'320px\':\'480px\'">🔍 缩放</button>' +
+        '<button onclick="VP_MAP.captureMap(this.closest(\'.vp-map-container\'))">📸 截图</button>';
+    container.parentNode.insertBefore(controls, container);
+    
     const tabs = document.createElement('div');
     tabs.className = 'vp-day-tabs';
     tabs.style.cssText = 'display:flex;gap:4px;padding:6px 12px;border-bottom:1px solid rgba(255,255,255,.06);overflow-x:auto;background:rgba(10,8,16,.4)';
@@ -286,3 +294,14 @@ style.textContent = `
 .vp-map-popup .leaflet-popup-close-button { color:rgba(255,255,255,.4)!important }
 `;
 document.head.appendChild(style);
+
+// ── Map screenshot ──
+VP_MAP.captureMap = function(container) {
+    if (!container) container = document.querySelector('.vp-map-container');
+    if (!container) return;
+    // Use canvas-based approach: tell user to take a screenshot
+    // For now, scroll to map and highlight
+    container.scrollIntoView({behavior:'smooth'});
+    container.style.boxShadow = '0 0 0 3px var(--gold)';
+    setTimeout(function(){container.style.boxShadow = '';}, 2000);
+};
