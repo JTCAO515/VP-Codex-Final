@@ -1,6 +1,7 @@
 """Simple currency converter. Uses frankfurter.app with static fallback."""
 import httpx
 import time
+import json
 
 _FX_CACHE: dict = {}
 _CACHE_TTL = 3600
@@ -13,8 +14,8 @@ _FALLBACK_RATES = {
 }
 
 
-async def convert(amount: float, from_curr: str, to_curr: str = "CNY") -> dict:
-    """Convert amount between currencies."""
+def convert(amount: float, from_curr: str, to_curr: str = "CNY") -> dict:
+    """Convert amount between currencies. Synchronous for Vercel compatibility."""
     from_curr = from_curr.upper()
     to_curr = to_curr.upper()
 
@@ -28,21 +29,19 @@ async def convert(amount: float, from_curr: str, to_curr: str = "CNY") -> dict:
         return {"amount": amount, "from": from_curr, "to": to_curr, "result": round(amount * rate, 2), "rate": rate}
 
     try:
-        async with httpx.AsyncClient(timeout=5) as client:
-            resp = await client.get(f"https://api.frankfurter.app/latest?from={from_curr}&to={to_curr}")
+        with httpx.Client(timeout=5) as client:
+            resp = client.get(f"https://api.frankfurter.app/latest?from={from_curr}&to={to_curr}")
             if resp.status_code == 200:
                 data = resp.json()
                 rate = data["rates"][to_curr]
                 _FX_CACHE[cache_key] = (time.time(), rate)
-                result = round(amount * rate, 2)
-                return {"amount": amount, "from": from_curr, "to": to_curr, "result": result, "rate": rate}
+                return {"amount": amount, "from": from_curr, "to": to_curr, "result": round(amount * rate, 2), "rate": rate}
     except Exception:
         pass
 
     if from_curr in _FALLBACK_RATES and to_curr in _FALLBACK_RATES:
         rate = _FALLBACK_RATES[to_curr] / _FALLBACK_RATES[from_curr]
         _FX_CACHE[cache_key] = (time.time(), rate)
-        result = round(amount * rate, 2)
-        return {"amount": amount, "from": from_curr, "to": to_curr, "result": result, "rate": rate, "source": "fallback"}
+        return {"amount": amount, "from": from_curr, "to": to_curr, "result": round(amount * rate, 2), "rate": rate, "source": "fallback"}
 
     return {"error": f"Unknown currency: {from_curr} or {to_curr}"}

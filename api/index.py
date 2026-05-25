@@ -1643,15 +1643,16 @@ def get_messages(trip_id: str):
 
 # ── Weather API (wttr.in) ──
 @app.get("/api/weather/{city}")
-async def weather_route(city: str):
+def weather_route(city: str):
     """GET /api/weather/Beijing → 3-day forecast JSON"""
     try:
-        from weather import get_weather
-        data = await get_weather(city)
+        from weather import get_weather_sync
+        data = get_weather_sync(city)
         if data is None:
             return JSONResponse({"error": "Weather unavailable"}, status_code=503)
         return JSONResponse(data)
-    except Exception:
+    except Exception as e:
+        print(f"Weather error: {e}")
         return JSONResponse({"error": "Weather service error"}, status_code=500)
 
 
@@ -1668,19 +1669,21 @@ async def calendar_export(request: Request):
             media_type="text/calendar",
             headers={"Content-Disposition": "attachment; filename=trip.ics"}
         )
-    except Exception:
+    except Exception as e:
+        print(f"Calendar error: {e}")
         return JSONResponse({"error": "Calendar generation failed"}, status_code=500)
 
 
 # ── Currency converter ──
 @app.get("/api/fx/{amount}/{from_curr}/{to_curr}")
-async def fx_route(amount: float, from_curr: str, to_curr: str = "CNY"):
+def fx_route(amount: float, from_curr: str, to_curr: str = "CNY"):
     """GET /api/fx/100/USD/CNY → converted amount"""
     try:
         from fx import convert
-        result = await convert(amount, from_curr, to_curr)
+        result = convert(amount, from_curr, to_curr)
         return JSONResponse(result)
-    except Exception:
+    except Exception as e:
+        print(f"FX error: {e}")
         return JSONResponse({"error": "Currency conversion failed"}, status_code=500)
 
 
