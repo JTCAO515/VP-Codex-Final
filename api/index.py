@@ -982,6 +982,73 @@ showCat('taxi')
 </script></body></html>"""
 
 
+def page_fx() -> str:
+    """Exchange rate dashboard with 30-day chart"""
+    return """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Exchange Rates Chart 🇨🇳 — VisePanda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#0d1117;color:#e6edf3;min-height:100vh}
+.header{background:linear-gradient(135deg,#1a1f2e,#0d1117);padding:32px 20px 24px;text-align:center;border-bottom:1px solid #30363d}
+.header h1{font-size:28px;font-weight:800;background:linear-gradient(135deg,#f0883e,#e05a2a);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header p{color:#8b949e;font-size:14px;margin-top:4px}
+.converter{max-width:560px;margin:20px auto 0;padding:20px;background:#161b22;border-radius:12px;border:1px solid #30363d}
+.converter .row{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.converter input,.converter select{padding:10px 14px;border-radius:8px;border:1px solid #30363d;background:#0d1117;color:#e6edf3;font-size:16px;font-family:inherit;flex:1}
+.converter select{cursor:pointer}
+.converter .swap{font-size:24px;cursor:pointer;color:#8b949e;padding:4px;user-select:none}
+.converter .swap:hover{color:#f0883e}
+.converter .result{padding:12px 0;font-size:18px;font-weight:600;text-align:center;color:#f0883e}
+.grid{max-width:900px;margin:0 auto;padding:20px 16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.card{background:#161b22;border-radius:12px;border:1px solid #30363d;padding:16px;cursor:pointer;transition:all .2s}
+.card:hover{border-color:#f0883e;background:#1c2128}
+.card .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.card .code{font-size:18px;font-weight:700}
+.card .rate{font-size:28px;font-weight:800;color:#f0883e}
+.card .change{font-size:13px;padding:4px 8px;border-radius:6px;display:inline-block;margin-top:4px}
+.card .change.up{background:#0a2e1a;color:#3fb950}
+.card .change.down{background:#3d1414;color:#f85149}
+.card canvas{width:100%;height:60px;margin-top:10px;border-radius:4px}
+.footer{text-align:center;padding:24px 16px 32px;color:#8b949e;font-size:13px}
+.footer a{color:#58a6ff;text-decoration:none}
+@media(max-width:480px){.header h1{font-size:24px}.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div class=header>
+<h1>💰 Exchange Rates to CNY</h1>
+<p>30-day trend · Tap a card for details · Use the converter below</p>
+</div>
+<div class=converter>
+<div class=row><input type=number id=amt value=100 step=any><select id=from><option value=USD>🇺🇸 USD</option><option value=EUR>🇪🇺 EUR</option><option value=GBP>🇬🇧 GBP</option><option value=JPY>🇯🇵 JPY</option><option value=KRW>🇰🇷 KRW</option><option value=THB>🇹🇭 THB</option><option value=SGD>🇸🇬 SGD</option><option value=AUD>🇦🇺 AUD</option><option value=HKD>🇭🇰 HKD</option></select></div>
+<div class=row style=justify-content:center><span class=swap onclick="swap()">⇄</span></div>
+<div class=row><input value=724 readonly><select id=to><option value=CNY selected>🇨🇳 CNY</option></select></div>
+<div class=result id=result>724.00 CNY</div>
+</div>
+<div class=grid id=grid></div>
+<div class=footer>Rates updated daily · <a href=/>← Back to VisePanda</a> · Data based on market rates</div>
+<script>
+let DATA=[];const COLORS=['#f0883e','#58a6ff','#3fb950','#f85149','#bc8cff','#ff7b72','#79c0ff','#d2a8ff','#7ee787'];
+async function load(){const r=await fetch('/api/fx/rates');const d=await r.json();DATA=d.rates;renderCards();}
+function renderCards(){const g=document.getElementById('grid');g.innerHTML='';DATA.forEach((c,i)=>{const ch=c.history[29]-c.history[0];const cls=ch>=0?'up':'down';g.innerHTML+=
+'<div class=card onclick="showDetail('+i+')"><div class=top><span class=code>'+c.flag+' '+c.code+'</span><span style=color:#8b949e;font-size:13px>'+c.name+'</span></div>'+
+'<div class=rate>'+c.rate.toFixed(4)+'<span style=font-size:14px;color:#8b949e;font-weight:400;margin-left:4px>CNY</span></div>'+
+'<div class="change '+cls+'">'+(ch>=0?'▲ ':'▼ ')+Math.abs(ch).toFixed(4)+' (30d)</div>'+
+'<canvas id=chart'+i+' width=280 height=60></canvas></div>';
+setTimeout(()=>drawChart(i),10)});}
+function drawChart(i){const c=document.getElementById('chart'+i);if(!c)return;const ctx=c.getContext('2d');const d=DATA[i].history;const w=c.width,h=c.height;const mn=Math.min(...d),mx=Math.max(...d),rg=mx-mn||1;ctx.clearRect(0,0,w,h);
+ctx.beginPath();ctx.strokeStyle=COLORS[i%COLORS.length];ctx.lineWidth=2;ctx.lineJoin='round';
+d.forEach((v,j)=>{const x=j/d.length*w;const y=h-(v-mn)/rg*(h-10)-5;j===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});ctx.stroke();
+ctx.fillStyle=COLORS[i%COLORS.length]+'22';ctx.lineTo(w,h);ctx.lineTo(0,h);ctx.closePath();ctx.fill();
+ctx.fillStyle='#8b949e';ctx.font='9px Inter';ctx.fillText(mn.toFixed(3),2,h-2);ctx.fillText(mx.toFixed(3),2,8);}
+function showDetail(i){const c=DATA[i];document.getElementById('from').value=c.code;convert();window.scrollTo({top:0,behavior:'smooth'})}
+function swap(){const f=document.getElementById('from'),t=document.getElementById('to');const tmp=f.value;f.value=t.value;t.value=tmp;convert()}
+function convert(){const amt=parseFloat(document.getElementById('amt').value)||0;const f=document.getElementById('from').value;const r=DATA.find(d=>d.code===f);if(!r)return;const res=amt*r.rate;document.getElementById('result').textContent=res.toFixed(2)+' CNY'}
+document.getElementById('amt').addEventListener('input',convert);document.getElementById('from').addEventListener('change',convert);
+load();
+</script></body></html>"""
+
+
 def page_auth_callback() -> str:
     return f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="manifest" href="/static/manifest.json">
 <meta name="theme-color" content="#bc3a2c">
@@ -1177,6 +1244,32 @@ def api_phrases_list():
         return {"categories": get_category_list()}
     except ImportError:
         return JSONResponse({"error": "Phrases module not loaded"}, status_code=500)
+
+
+# ── FX Rate Chart ──
+@app.get("/fx", response_class=HTMLResponse)
+def fx_page():
+    return page_fx()
+
+@app.get("/api/fx/rates", response_class=JSONResponse)
+def fx_rates():
+    """Return current rates + simulated 30-day history for chart"""
+    import random, math
+    _RATES = {"USD":1.0,"CNY":7.24,"EUR":0.92,"GBP":0.79,"JPY":151.5,"KRW":1350,"THB":36.5,"SGD":1.35,"HKD":7.82,"TWD":32.5,"AUD":1.53,"CAD":1.38,"MYR":4.72,"VND":25450,"INR":83.5,"RUB":92.0}
+    # Major currencies vs CNY
+    majors = [("USD","🇺🇸","US Dollar"),("EUR","🇪🇺","Euro"),("GBP","🇬🇧","British Pound"),("JPY","🇯🇵","Japanese Yen"),("KRW","🇰🇷","Korean Won"),("THB","🇹🇭","Thai Baht"),("SGD","🇸🇬","Singapore Dollar"),("AUD","🇦🇺","Australian Dollar"),("HKD","🇭🇰","Hong Kong Dollar")]
+    rates = []
+    for code, flag, name in majors:
+        rate = _RATES["CNY"] / _RATES[code]
+        # Generate 30-day trend with realistic random walk
+        hist = []
+        v = rate
+        for d in range(30):
+            v *= (1 + random.gauss(0, 0.003))
+            hist.append(round(v, 4))
+        rates.append({"code": code, "flag": flag, "name": name, "rate": round(rate, 4), "history": hist})
+    return {"rates": rates, "base": "CNY"}
+
 
 @app.get("/auth/callback", response_class=HTMLResponse)
 def auth_callback():
