@@ -541,6 +541,13 @@ header{height:56px;display:flex;align-items:center;justify-content:space-between
 .card:hover::before,.card:hover::after{opacity:1}
 .card-title{font-weight:650;font-size:15px;color:var(--text);margin:0 0 4px}
 .card-sub{font-size:11px;color:var(--muted);margin:0}
+.card-img-wrap{width:100%;height:120px;border-radius:8px;overflow:hidden;margin-bottom:8px;position:relative;background:var(--bg1)}
+.card-bg{width:100%;height:100%;object-fit:cover;transition:transform .3s}
+.card:hover .card-bg{transform:scale(1.05)}
+.card-emoji-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:32px}
+.card-body{padding:0}
+.card-title{font-weight:650;font-size:14px;color:var(--text);margin:0 0 2px}
+.card-sub{font-size:11px;color:var(--muted);margin:0}
 .card-emoji{font-size:26px;margin-bottom:8px;display:block}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:20px;max-width:530px;margin-left:auto;margin-right:auto}
 .lang-switch{font-size:11px;padding:5px 10px;border-radius:4px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);cursor:pointer;margin-left:6px;text-decoration:none;transition:all .2s}
@@ -693,7 +700,7 @@ def page_landing() -> str:
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="VisePanda">
-<link rel="apple-touch-icon" href="/static/icon.svg"><title data-i18n="title">VisePanda — AI China Travel Planner</title><meta name="description" data-i18n-content="metaDesc" content="Your AI-powered guide to traveling China. Get personalized day-by-day itineraries, food recommendations, hotel tips, and local insights — just tell us where and how long."><meta property="og:title" content="VisePanda — AI China Travel Planner"><meta property="og:description" content="Personalized China travel itineraries powered by AI — built by travelers, for travelers."><meta property="og:type" content="website"><meta name="twitter:card" content="summary_large_image"><style>{CSS}</style><script defer src='/_vercel/insights/script.js'></script><script defer src='/_vercel/speed-insights/script.js'></script>{_inject_config()}</head><body>
+<link rel="icon" type="image/jpeg" href="/static/img/logo-icon.jpg"><link rel="apple-touch-icon" href="/static/img/logo-icon.jpg"><title data-i18n="title">VisePanda — AI China Travel Planner</title><meta name="description" data-i18n-content="metaDesc" content="Your AI-powered guide to traveling China. Get personalized day-by-day itineraries, food recommendations, hotel tips, and local insights — just tell us where and how long."><meta property="og:title" content="VisePanda — AI China Travel Planner"><meta property="og:description" content="Personalized China travel itineraries powered by AI — built by travelers, for travelers."><meta property="og:type" content="website"><meta property="og:image" content="https://go2china.space/static/img/og-image.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><style>{CSS}</style><script defer src='/_vercel/insights/script.js'></script><script defer src='/_vercel/speed-insights/script.js'></script>{_inject_config()}</head><body>
 <div class="bg-shanshui"></div>
 <header><div><a href="/" class="logo-seal"><span class="seal">熊</span><span class="name">VisePanda</span></a></div><div id="authArea"><a href="#" class="lang-switch" onclick="event.preventDefault();setLang(LANG==='en'?'zh':'en')" data-i18n="langLabel">中</a><a href="#" onclick="event.preventDefault();signIn()" class="btn btn-accent" style="color:var(--gold-bright)" data-i18n="signIn">Sign in</a><a href="#" onclick="event.preventDefault();toggleTheme()" class="lang-switch" id="themeToggle" title="Toggle theme">🌓</a></div></header>
 <main style="position:relative;min-height:calc(100vh-56px);display:flex;align-items:center;justify-content:center;padding:24px 16px 90px;z-index:1">
@@ -731,14 +738,56 @@ def page_landing() -> str:
 </div>
 <div class="cat-nav"><span class="cat-tag active" data-cat="all" onclick="filterCards('all')">🔥 All</span><span class="cat-tag" data-cat="food" onclick="filterCards('food')">🍜 Food</span><span class="cat-tag" data-cat="history" onclick="filterCards('history')">🏯 History</span><span class="cat-tag" data-cat="nature" onclick="filterCards('nature')">🏔️ Nature</span><span class="cat-tag" data-cat="city" onclick="filterCards('city')">🌃 Cities</span></div>
 <div class="cards" id="cardGrid">
-<a class="card anim-fade-up" data-cat="history" href="#" onclick="event.preventDefault();goChat('Beijing 3 days, Forbidden City Great Wall hutongs, mid-range')"><div class="card-emoji">🏯</div><div class="card-title">Beijing</div><div class="card-sub">Forbidden City · Great Wall · Hutongs</div></a>
-<a class="card anim-fade-up" data-cat="food" href="#" onclick="event.preventDefault();goChat('Chengdu 4 days, hotpot street food pandas')"><div class="card-emoji">🐼</div><div class="card-title">Chengdu</div><div class="card-sub">Hotpot · Pandas · Tea Houses</div></a>
-<a class="card anim-fade-up" data-cat="nature" href="#" onclick="event.preventDefault();goChat('Yunnan 7 days, Dali Lijiang Shangri-La')"><div class="card-emoji">🏔️</div><div class="card-title">Yunnan</div><div class="card-sub">Dali Old Town · Jade Dragon · Shangri-La</div></a>
-<a class="card anim-fade-up" data-cat="city" href="#" onclick="event.preventDefault();goChat('Shanghai 3 days, The Bund Disney French Concession')"><div class="card-emoji">🌃</div><div class="card-title">Shanghai</div><div class="card-sub">The Bund · Disney · Art Deco</div></a>
-<a class="card anim-fade-up" data-cat="history" href="#" onclick="event.preventDefault();goChat('Xi\'an 3 days, Terracotta Warriors ancient capital')"><div class="card-emoji">🏛️</div><div class="card-title">Xi'an</div><div class="card-sub">Terracotta Warriors · Muslim Quarter</div></a>
-<a class="card anim-fade-up" data-cat="nature" href="#" onclick="event.preventDefault();goChat('Guilin 4 days, Li River Yangshuo rice terraces')"><div class="card-emoji">🛶</div><div class="card-title">Guilin</div><div class="card-sub">Li River · Yangshuo · Rice Terraces</div></a>
-<a class="card anim-fade-up" data-cat="food" href="#" onclick="event.preventDefault();goChat('Guangzhou 3 days, dim sum culinary tour')"><div class="card-emoji">🥟</div><div class="card-title">Guangzhou</div><div class="card-sub">Dim Sum · Cantonese · Night Markets</div></a>
-<a class="card anim-fade-up" data-cat="city" href="#" onclick="event.preventDefault();goChat('Chongqing 3 days, night views hotpot 8D city')"><div class="card-emoji">🌆</div><div class="card-title">Chongqing</div><div class="card-sub">Night Views · Hotpot · Hongyadong</div></a>
+<a class="card anim-fade-up" data-cat="history" href="#" onclick="event.preventDefault();goChat('Beijing')">
+<div class="card-img-wrap">
+<img src="/static/img/city-beijing.jpg" alt="Beijing" class="card-bg" loading="lazy" onerror="this.style.display='none';document.getElementById('fe_beijing').style.display='flex'">
+<div id="fe_beijing" class="card-emoji-fallback" style="display:none">🏯</div>
+</div>
+<div class="card-body"><div class="card-title">Beijing</div><div class="card-sub">故宫 · 长城 · 胡同</div></div>
+</a><a class="card anim-fade-up" data-cat="food" href="#" onclick="event.preventDefault();goChat('Chengdu')">
+<div class="card-img-wrap">
+<img src="/static/img/city-chengdu.jpg" alt="Chengdu" class="card-bg" loading="lazy" onerror="this.style.display='none';document.getElementById('fe_chengdu').style.display='flex'">
+<div id="fe_chengdu" class="card-emoji-fallback" style="display:none">🐼</div>
+</div>
+<div class="card-body"><div class="card-title">Chengdu</div><div class="card-sub">火锅 · 熊猫 · 宽窄巷子</div></div>
+</a><a class="card anim-fade-up" data-cat="city" href="#" onclick="event.preventDefault();goChat('Shanghai')">
+<div class="card-img-wrap">
+<img src="/static/img/city-shanghai.jpg" alt="Shanghai" class="card-bg" loading="lazy" onerror="this.style.display='none';document.getElementById('fe_shanghai').style.display='flex'">
+<div id="fe_shanghai" class="card-emoji-fallback" style="display:none">🌃</div>
+</div>
+<div class="card-body"><div class="card-title">Shanghai</div><div class="card-sub">外滩 · 迪士尼 · 法租界</div></div>
+</a><a class="card anim-fade-up" data-cat="history" href="#" onclick="event.preventDefault();goChat('Xi'an')">
+<div class="card-img-wrap">
+<img src="/static/img/city-xian.jpg" alt="Xi'an" class="card-bg" loading="lazy" onerror="this.style.display='none';document.getElementById('fe_xian').style.display='flex'">
+<div id="fe_xian" class="card-emoji-fallback" style="display:none">🏛️</div>
+</div>
+<div class="card-body"><div class="card-title">Xi'an</div><div class="card-sub">兵马俑 · 古城墙 · 回民街</div></div>
+</a><a class="card anim-fade-up" data-cat="nature" href="#" onclick="event.preventDefault();goChat('Guilin')">
+<div class="card-img-wrap">
+<img src="/static/img/city-guilin.jpg" alt="Guilin" class="card-bg" loading="lazy" onerror="this.style.display='none';document.getElementById('fe_guilin').style.display='flex'">
+<div id="fe_guilin" class="card-emoji-fallback" style="display:none">🛶</div>
+</div>
+<div class="card-body"><div class="card-title">Guilin</div><div class="card-sub">漓江 · 阳朔 · 象鼻山</div></div>
+</a><a class="card anim-fade-up" data-cat="city" href="#" onclick="event.preventDefault();goChat('Guangzhou')">
+<div class="card-img-wrap">
+<img src="/static/img/city-guangzhou.jpg" alt="Guangzhou" class="card-bg" loading="lazy" onerror="this.style.display='none';document.getElementById('fe_guangzhou').style.display='flex'">
+<div id="fe_guangzhou" class="card-emoji-fallback" style="display:none">🥟</div>
+</div>
+<div class="card-body"><div class="card-title">Guangzhou</div><div class="card-sub">早茶 · 小蛮腰 · 沙面</div></div>
+</a><a class="card anim-fade-up" data-cat="city" href="#" onclick="event.preventDefault();goChat('Chongqing')">
+<div class="card-img-wrap">
+<img src="/static/img/city-chongqing.jpg" alt="Chongqing" class="card-bg" loading="lazy" onerror="this.style.display='none';document.getElementById('fe_chongqing').style.display='flex'">
+<div id="fe_chongqing" class="card-emoji-fallback" style="display:none">🌆</div>
+</div>
+<div class="card-body"><div class="card-title">Chongqing</div><div class="card-sub">洪崖洞 · 火锅 · 轻轨穿楼</div></div>
+</a><a class="card anim-fade-up" data-cat="nature" href="#" onclick="event.preventDefault();goChat('Hangzhou')">
+<div class="card-img-wrap">
+<img src="/static/img/city-hangzhou.jpg" alt="Hangzhou" class="card-bg" loading="lazy" onerror="this.style.display='none';document.getElementById('fe_hangzhou').style.display='flex'">
+<div id="fe_hangzhou" class="card-emoji-fallback" style="display:none">🍵</div>
+</div>
+<div class="card-body"><div class="card-title">Hangzhou</div><div class="card-sub">西湖 · 断桥 · 灵隐寺</div></div>
+</a>
+
 </div>
 <div id="recentTrips" style="display:none;margin-top:20px;text-align:left"></div>
 <div style="margin-top:16px;font-size:12px;color:var(--muted)" data-i18n="guestHint">✉️ Email · 📱 Phone · 🔑 Google · 👤 Guest mode</div>
@@ -1438,12 +1487,13 @@ def hotels_page():
     from data.knowledge.hotels import HOTELS
     cards_html = "".join(
         f'<div class=hc data-name="{c["name_en"].lower()} {c["name_zh"]}">'
+        f'<img src="/static/img/city-{key}.jpg" alt="{c["name_en"]}" class=hc-img loading=lazy onerror="this.style.display=\'none\'">'
         f'<div class=ht><span class=hc-name>{c["name_zh"]}</span><span class=hc-en>{c["name_en"]}</span></div>'
         f'<div class=tier><span class=tl>Budget</span><span class=tv>{c["budget"]["range"]}</span><span class=td>{c["budget"]["desc"]} · {c["budget"]["areas"]}</span></div>'
         f'<div class=tier><span class=tl>Mid</span><span class=tv>{c["mid"]["range"]}</span><span class=td>{c["mid"]["desc"]} · {c["mid"]["areas"]}</span></div>'
         f'<div class=tier><span class=tl>Luxury</span><span class=tv>{c["luxury"]["range"]}</span><span class=td>{c["luxury"]["desc"]} · {c["luxury"]["areas"]}</span></div>'
         f'<div class=tp>💡 {c["tip"]}</div></div>'
-        for c in HOTELS.values()
+        for key, c in HOTELS.items()
     )
     return _nav("/hotels") + f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hotel Guide — VisePanda</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -1456,8 +1506,9 @@ def hotels_page():
 .search input{{width:100%;padding:12px 16px;border-radius:10px;border:1px solid #30363d;background:#161b22;color:#e6edf3;font-size:15px;font-family:inherit;outline:none;transition:border-color .2s}}
 .search input:focus{{border-color:#f0883e}}
 .grid{{max-width:800px;margin:0 auto;padding:20px 16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}}
-.hc{{background:#161b22;border-radius:14px;border:1px solid #30363d;padding:18px;transition:border-color .2s}}
+.hc{{background:#161b22;border-radius:14px;border:1px solid #30363d;padding:18px;transition:border-color .2s;overflow:hidden}}
 .hc:hover{{border-color:#f0883e;background:#1c2128}}
+.hc-img{{width:100%;height:140px;object-fit:cover;border-radius:10px;margin-bottom:12px}}
 .ht{{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #21262d}}
 .hc-name{{font-size:20px;font-weight:700}}.hc-en{{color:#8b949e;font-size:13px}}
 .tier{{display:grid;grid-template-columns:60px 1fr;gap:4px 12px;padding:7px 0;border-bottom:1px solid #21262d}}
