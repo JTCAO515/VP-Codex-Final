@@ -3,6 +3,7 @@ import json
 from data.knowledge.cities import CITIES
 from data.knowledge.food import FOOD
 from data.knowledge.tips import TIPS
+from data.knowledge.emergency import format_emergency_phone_numbers, format_embassy_summary
 from data.knowledge.hotels import format_price_summary as hotels_prompt
 from data.knowledge.packing import format_for_prompt as packing_prompt
 from data.knowledge.phrases import get_category_list, format_for_prompt as phrases_prompt
@@ -62,6 +63,11 @@ SYSTEM_PROMPT = f"""你是 VisePanda (熊猫行)，一个专业的 AI 中国旅�
 
 **酒店价格参考（15城经济/中档/豪华三档）：**
 {hotels_prompt()}
+
+**紧急求助（报警/急救/丢护照/大使馆信息）：**
+{format_emergency_phone_numbers()}
+
+{format_embassy_summary()}
 
 ### 4. 回答风格
 - 中文优先，用户用英文则英文回复
