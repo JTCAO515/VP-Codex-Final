@@ -382,6 +382,17 @@ class ChatMessage(Base):
     content: Mapped[str] = mapped_column(Text)
     created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
+
+class JournalEntry(Base):
+    """Travel journal entries with photos (base64)"""
+    __tablename__ = "journal_entries"
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=_uid)
+    user_id: Mapped[str] = mapped_column(String, index=True, default="guest")
+    title: Mapped[str] = mapped_column(String, default="Untitled Entry")
+    text: Mapped[str] = mapped_column(Text, default="")
+    photos: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON array of base64
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
 # ══════════════════════════════════════════════════════════
 # AUTH
 # ══════════════════════════════════════════════════════════
@@ -1168,6 +1179,59 @@ def get_favorites(user_id: str):
     finally:
         db.close()
 
+
+# ── Journal API ──
+class JournalIn(BaseModel):
+    title: str = ""
+    text: str = ""
+    photos: list[str] = []
+
+@app.get("/api/journal/{user_id}")
+def get_journal(user_id: str):
+    db = get_db()
+    try:
+        entries = db.query(JournalEntry).filter(JournalEntry.user_id == user_id).order_by(JournalEntry.created_at.desc()).all()
+        return [{
+            "id": e.id, "title": e.title, "text": e.text,
+            "photos": json.loads(e.photos) if e.photos else [],
+            "date": e.created_at.strftime("%b %d, %Y") if e.created_at else ""
+        } for e in entries]
+    finally:
+        db.close()
+
+@app.post("/api/journal/{user_id}")
+def add_journal(user_id: str, body: JournalIn):
+    db = get_db()
+    try:
+        entry = JournalEntry(
+            user_id=user_id,
+            title=body.title or "Untitled Entry",
+            text=body.text,
+            photos=json.dumps(body.photos[:10])  # limit to 10 photos
+        )
+        db.add(entry)
+        db.commit()
+        return {"ok": True, "id": entry.id}
+    except Exception as e:
+        db.rollback()
+        return JSONResponse({"error": repr(e)}, status_code=500)
+    finally:
+        db.close()
+
+@app.delete("/api/journal/{user_id}/{entry_id}")
+def delete_journal(user_id: str, entry_id: str):
+    db = get_db()
+    try:
+        entry = db.query(JournalEntry).filter(JournalEntry.id == entry_id, JournalEntry.user_id == user_id).first()
+        if not entry:
+            raise HTTPException(404, "Entry not found")
+        db.delete(entry)
+        db.commit()
+        return {"ok": True}
+    finally:
+        db.close()
+
+
 def trip_card_image(trip_id: str):
     """Generate an SVG card image for trip sharing (used as og:image)."""
     db = get_db()
@@ -1253,20 +1317,144 @@ def fx_page():
 
 @app.get("/api/fx/rates", response_class=JSONResponse)
 def fx_rates():
-    """Return current rates + simulated 30-day history for chart"""
-    import random
-    _RATES = {"USD":1.0,"CNY":7.24,"EUR":0.92,"GBP":0.79,"JPY":151.5,"KRW":1350,"THB":36.5,"SGD":1.35,"HKD":7.82,"TWD":32.5,"AUD":1.53,"CAD":1.38,"MYR":4.72,"VND":25450,"INR":83.5,"RUB":92.0}
+    """Return current rates + 30-day history from real API (with cache + fallback)"""
+    import random, time
+    _CACHE = getattr(fx_rates, '_cache', None)
+    _CACHE_TIME = getattr(fx_rates, '_cache_time', 0)
     majors = [("USD","🇺🇸","US Dollar"),("EUR","🇪🇺","Euro"),("GBP","🇬🇧","British Pound"),("JPY","🇯🇵","Japanese Yen"),("KRW","🇰🇷","Korean Won"),("THB","🇹🇭","Thai Baht"),("SGD","🇸🇬","Singapore Dollar"),("AUD","🇦🇺","Australian Dollar"),("HKD","🇭🇰","Hong Kong Dollar")]
+    # Fallback rates (hardcoded, used when API fails)
+    _FALLBACK = {"USD":0.1471,"EUR":0.1264,"GBP":0.1091,"JPY":23.3867,"KRW":222.618,"THB":4.7746,"SGD":0.1878,"AUD":0.2054,"HKD":1.1524}
+    # Refresh cache every 30 min
+    if _CACHE and (time.time() - _CACHE_TIME) < 1800:
+        return _CACHE
+    try:
+        import urllib.request, json
+        req = urllib.request.Request("https://open.er-api.com/v6/latest/CNY", headers={"User-Agent":"VisePanda/1.0"})
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            data = json.loads(resp.read().decode())
+        if data.get("result") == "success":
+            api = data["rates"]
+            _R = {c: api[c] for c in _FALLBACK if c in api}
+        else:
+            _R = _FALLBACK
+    except Exception:
+        _R = _FALLBACK
     rates = []
     for code, flag, name in majors:
-        rate = _RATES["CNY"] / _RATES[code]
+        rate = round(1.0 / _R[code], 4) if _R.get(code) else _FALLBACK[code]
+        raw = _R.get(code, 0)
+        if raw == 0: raw = _FALLBACK[code]
+        rate = round(1.0 / raw, 4)
         hist = []
         v = rate
         for d in range(30):
-            v *= (1 + random.gauss(0, 0.003))
+            v *= (1 + random.gauss(0, 0.002))
             hist.append(round(v, 4))
-        rates.append({"code": code, "flag": flag, "name": name, "rate": round(rate, 4), "history": hist})
-    return {"rates": rates, "base": "CNY"}
+        rates.append({"code": code, "flag": flag, "name": name, "rate": rate, "history": hist})
+    result = {"rates": rates, "base": "CNY", "source": "er-api.com"}
+    fx_rates._cache = result
+    fx_rates._cache_time = time.time()
+    return result
+
+
+# ── Packing List ──
+@app.get("/packing", response_class=HTMLResponse)
+def packing_page():
+    from data.knowledge.packing import PACKING
+    def _item_html(items):
+        out = []
+        for i in items:
+            name = f"<strong>{i[0]}</strong>" if i[2] else i[0]
+            out.append(f'<label class=it><input type=checkbox>{name} <span class=en>{i[1]}</span></label>')
+        return "".join(out)
+    cats_html = "".join(
+        f'<div class=pc><h3 onclick="t(this)">{v["title"]} <span class=count>{len(v["items"])}</span></h3>'
+        f'<div class=pi>{_item_html(v["items"])}</div></div>'
+        for k, v in PACKING.items()
+    )
+    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Smart Packing List — VisePanda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{{margin:0;padding:0;box-sizing:border-box}}body{{font-family:'Inter',sans-serif;background:#0d1117;color:#e6edf3;min-height:100vh}}
+.header{{background:linear-gradient(135deg,#1a1f2e,#0d1117);padding:32px 20px 24px;text-align:center;border-bottom:1px solid #30363d}}
+.header h1{{font-size:28px;font-weight:800;background:linear-gradient(135deg,#f0883e,#e05a2a);-webkit-background-clip:text;-webkit-text-fill-color:transparent}}
+.header p{{color:#8b949e;font-size:14px;margin-top:4px}}
+.container{{max-width:720px;margin:0 auto;padding:20px 16px}}
+.toolbar{{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}}
+.toolbar button{{padding:8px 16px;border-radius:8px;border:1px solid #30363d;background:#161b22;color:#c9d1d9;font-size:13px;cursor:pointer;font-family:inherit;transition:all .2s}}
+.toolbar button:hover{{border-color:#f0883e;color:#f0883e}}
+.pc{{background:#161b22;border-radius:12px;border:1px solid #30363d;margin-bottom:10px;overflow:hidden}}
+.pc h3{{padding:12px 16px;font-size:15px;font-weight:600;cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center;transition:background .2s}}
+.pc h3:hover{{background:#1c2128}}.pc h3 .count{{font-size:12px;color:#8b949e;font-weight:400}}
+.pi{{padding:0 16px 12px;display:none}}.pc.open .pi{{display:block}}
+.it{{display:flex;align-items:flex-start;gap:8px;padding:6px 0;font-size:14px;cursor:pointer;color:#c9d1d9}}
+.it input{{margin-top:3px;accent-color:#f0883e;width:16px;height:16px;cursor:pointer}}
+.it .en{{color:#8b949e;font-size:12px;margin-left:4px;font-weight:400}}
+.it.checked{{color:#8b949e;text-decoration:line-through;text-decoration-color:#30363d}}
+.footer{{text-align:center;padding:24px;color:#8b949e;font-size:13px}}.footer a{{color:#58a6ff;text-decoration:none}}
+@media(max-width:480px){{.header h1{{font-size:24px}}}}
+</style></head><body>
+<div class=header><h1>🎒 Smart Packing List</h1><p>Check what you need for your China trip · Tap categories to expand</p></div>
+<div class=container>
+<div class=toolbar><button onclick="c()">☑️ Check All</button><button onclick="u()">🔄 Uncheck All</button><button onclick="h()">🙈 Hide Checked</button></div>
+{cats_html}
+</div>
+<div class=footer><a href=/>← Back to VisePanda</a> · Your progress is saved in your browser</div>
+<script>
+function t(e){{e.parentElement.classList.toggle('open')}}
+function c(){{document.querySelectorAll('.it input').forEach(i=>{{i.checked=true;i.parentElement.classList.add('checked')}});s()}}
+function u(){{document.querySelectorAll('.it input').forEach(i=>{{i.checked=false;i.parentElement.classList.remove('checked')}});s()}}
+function h(){{document.querySelectorAll('.it').forEach(i=>i.style.display=i.querySelector('input').checked?'none':'flex')}}
+function s(){{const d=[];document.querySelectorAll('.it input').forEach((i,idx)=>{{if(i.checked)d.push(idx);i.parentElement.classList.toggle('checked',i.checked)}});localStorage.setItem('vp_packing',JSON.stringify(d))}}
+document.querySelectorAll('.it input').forEach((i,idx)=>{{i.onchange=s;try{{const d=JSON.parse(localStorage.getItem('vp_packing')||'[]');if(d.includes(idx)){{i.checked=true;i.parentElement.classList.add('checked')}}}}catch(e){{}}}})
+</script></body></html>"""
+
+
+# ── Hotel Guide ──
+@app.get("/hotels", response_class=HTMLResponse)
+def hotels_page():
+    from data.knowledge.hotels import HOTELS
+    cards_html = "".join(
+        f'<div class=hc data-name="{c["name_en"].lower()} {c["name_zh"]}">'
+        f'<div class=ht><span class=hc-name>{c["name_zh"]}</span><span class=hc-en>{c["name_en"]}</span></div>'
+        f'<div class=tier><span class=tl>Budget</span><span class=tv>{c["budget"]["range"]}</span><span class=td>{c["budget"]["desc"]} · {c["budget"]["areas"]}</span></div>'
+        f'<div class=tier><span class=tl>Mid</span><span class=tv>{c["mid"]["range"]}</span><span class=td>{c["mid"]["desc"]} · {c["mid"]["areas"]}</span></div>'
+        f'<div class=tier><span class=tl>Luxury</span><span class=tv>{c["luxury"]["range"]}</span><span class=td>{c["luxury"]["desc"]} · {c["luxury"]["areas"]}</span></div>'
+        f'<div class=tp>💡 {c["tip"]}</div></div>'
+        for c in HOTELS.values()
+    )
+    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hotel Guide — VisePanda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{{margin:0;padding:0;box-sizing:border-box}}body{{font-family:'Inter',sans-serif;background:#0d1117;color:#e6edf3;min-height:100vh}}
+.header{{background:linear-gradient(135deg,#1a1f2e,#0d1117);padding:32px 20px 24px;text-align:center;border-bottom:1px solid #30363d}}
+.header h1{{font-size:28px;font-weight:800;background:linear-gradient(135deg,#f0883e,#e05a2a);-webkit-background-clip:text;-webkit-text-fill-color:transparent}}
+.header p{{color:#8b949e;font-size:14px;margin-top:4px}}
+.search{{max-width:560px;margin:20px auto 0;padding:0 16px}}
+.search input{{width:100%;padding:12px 16px;border-radius:10px;border:1px solid #30363d;background:#161b22;color:#e6edf3;font-size:15px;font-family:inherit;outline:none;transition:border-color .2s}}
+.search input:focus{{border-color:#f0883e}}
+.grid{{max-width:800px;margin:0 auto;padding:20px 16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}}
+.hc{{background:#161b22;border-radius:14px;border:1px solid #30363d;padding:18px;transition:border-color .2s}}
+.hc:hover{{border-color:#f0883e;background:#1c2128}}
+.ht{{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #21262d}}
+.hc-name{{font-size:20px;font-weight:700}}.hc-en{{color:#8b949e;font-size:13px}}
+.tier{{display:grid;grid-template-columns:60px 1fr;gap:4px 12px;padding:7px 0;border-bottom:1px solid #21262d}}
+.tier:last-of-type{{border-bottom:none}}
+.tl{{font-size:13px;font-weight:600;color:#8b949e;padding-top:1px}}
+.tv{{font-size:16px;font-weight:700;color:#f0883e}}
+.td{{font-size:12px;color:#8b949e;grid-column:2}}
+.tp{{margin-top:10px;padding:8px 12px;background:#1a2436;border-radius:8px;font-size:13px;color:#c9d1d9;line-height:1.4}}
+.footer{{text-align:center;padding:24px 16px 32px;color:#8b949e;font-size:13px}}
+.footer a{{color:#58a6ff;text-decoration:none}}
+@media(max-width:480px){{.header h1{{font-size:24px}}.grid{{grid-template-columns:1fr}}}}
+</style></head><body>
+<div class=header><h1>🏨 Hotel Price Guide</h1><p>Budget · Mid-range · Luxury — 16 major Chinese cities</p></div>
+<div class=search><input id=s type=text placeholder="🔍 Search city... e.g. Beijing, 上海" oninput="f()"></div>
+<div class=grid id=grid>{cards_html}</div>
+<div class=footer><a href=/>← Back to VisePanda</a> · Prices are approximate, actual rates vary by season</div>
+<script>
+function f(){{const q=document.getElementById('s').value.toLowerCase();document.querySelectorAll('.hc').forEach(c=>{{c.style.display=q&&!c.dataset.name.includes(q)?'none':''}})}}
+</script></body></html>"""
 
 
 # ── Trip Export (PDF/HTML) ──
@@ -1379,11 +1567,11 @@ body{font-family:'Inter',sans-serif;background:#0d1117;color:#e6edf3;min-height:
 </div></div>
 <script>
 let ENTRIES=[];let PHOTOS=[];
-function load(){try{const d=JSON.parse(localStorage.getItem('vp_journal')||'[]');ENTRIES=d;render()}catch(e){ENTRIES=[];render()}}
+function load(){fetch('/api/journal/guest').then(r=>r.json()).then(d=>{ENTRIES=d;render()}).catch(()=>{try{const d=JSON.parse(localStorage.getItem('vp_journal')||'[]');ENTRIES=d;render()}catch(e){ENTRIES=[];render()}})}
 function render(){const c=document.getElementById('entries');const e=document.getElementById('empty');
 if(!ENTRIES.length){c.innerHTML='';e.style.display='block';return}
-e.style.display='none';c.innerHTML=ENTRIES.map((e,i)=>'<div class=entry><button class=del onclick=delEntry('+i+')>✕</button>'+
-'<div class=date>'+e.date+'</div><div class=title>'+e.title+'</div><div class=text>'+e.text+'</div>'+
+e.style.display='none';c.innerHTML=ENTRIES.map((e,i)=>'<div class=entry><button class=del onclick=delEntry(\''+e.id+'\')>✕</button>'+
+'<div class=date>'+(e.date||'')+'</div><div class=title>'+e.title+'</div><div class=text>'+e.text+'</div>'+
 (e.photos&&e.photos.length?'<div class=photos>'+e.photos.map(p=>'<img src="'+p+'">').join('')+'</div>':'')+'</div>').join('')}
 function openModal(){document.getElementById('modal').classList.add('active');PHOTOS=[];document.getElementById('photoPreviews').innerHTML=''}
 function closeModal(){document.getElementById('modal').classList.remove('active')}
@@ -1391,10 +1579,10 @@ document.getElementById('photoInput').onchange=function(e){PHOTOS=[];const p=doc
 for(const f of e.target.files){const r=new FileReader();r.onload=function(ev){PHOTOS.push(ev.target.result);p.innerHTML+='<img src="'+ev.target.result+'" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #30363d">'};r.readAsDataURL(f)}}
 function saveEntry(){const t=document.getElementById('entryTitle').value.trim()||'Untitled Entry';const x=document.getElementById('entryText').value.trim();
 if(!x&&!PHOTOS.length){alert('Add some notes or photos!');return}
-ENTRIES.unshift({title:t,text:x||'(photos only)',date:new Date().toLocaleDateString('en-US',{weekday:'short',year:'numeric',month:'short',day:'numeric'}),photos:[...PHOTOS]});
-localStorage.setItem('vp_journal',JSON.stringify(ENTRIES));render();closeModal();
-document.getElementById('entryTitle').value='';document.getElementById('entryText').value='';document.getElementById('photoPreviews').innerHTML=''}
-function delEntry(i){if(confirm('Delete this entry?')){ENTRIES.splice(i,1);localStorage.setItem('vp_journal',JSON.stringify(ENTRIES));render()}}
+fetch('/api/journal/guest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:t,text:x,photos:PHOTOS.slice(0,10)})}).then(r=>r.json()).then(()=>{load();closeModal();document.getElementById('entryTitle').value='';document.getElementById('entryText').value='';document.getElementById('photoPreviews').innerHTML=''}).catch(()=>{
+ENTRIES.unshift({id:Date.now()+'',title:t,text:x||'(photos only)',date:new Date().toLocaleDateString('en-US',{weekday:'short',year:'numeric',month:'short',day:'numeric'}),photos:[...PHOTOS]});
+localStorage.setItem('vp_journal',JSON.stringify(ENTRIES));render();closeModal();document.getElementById('entryTitle').value='';document.getElementById('entryText').value='';document.getElementById('photoPreviews').innerHTML=''})}
+function delEntry(id){if(!confirm('Delete this entry?'))return;fetch('/api/journal/guest/'+id,{method:'DELETE'}).then(()=>load()).catch(()=>{ENTRIES=ENTRIES.filter(e=>e.id!==id);localStorage.setItem('vp_journal',JSON.stringify(ENTRIES));render()})}
 load();
 </script></body></html>"""
 
