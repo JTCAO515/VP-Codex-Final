@@ -1181,6 +1181,7 @@ def get_favorites(user_id: str):
 
 
 # ── Journal API ──
+_JOURNAL_STORE: dict[str, list[dict]] = {}  # user_id -> entries (in-memory, survives cold starts poorly)
 class JournalIn(BaseModel):
     title: str = ""
     text: str = ""
@@ -1188,48 +1189,28 @@ class JournalIn(BaseModel):
 
 @app.get("/api/journal/{user_id}")
 def get_journal(user_id: str):
-    db = get_db()
-    try:
-        entries = db.query(JournalEntry).filter(JournalEntry.user_id == user_id).order_by(JournalEntry.created_at.desc()).all()
-        return [{
-            "id": e.id, "title": e.title, "text": e.text,
-            "photos": json.loads(e.photos) if e.photos else [],
-            "date": e.created_at.strftime("%b %d, %Y") if e.created_at else ""
-        } for e in entries]
-    finally:
-        db.close()
+    entries = _JOURNAL_STORE.get(user_id, [])
+    return entries
 
 @app.post("/api/journal/{user_id}")
 def add_journal(user_id: str, body: JournalIn):
-    db = get_db()
-    try:
-        entry = JournalEntry(
-            user_id=user_id,
-            title=body.title or "Untitled Entry",
-            text=body.text,
-            photos=json.dumps(body.photos[:10])  # limit to 10 photos
-        )
-        db.add(entry)
-        db.commit()
-        return {"ok": True, "id": entry.id}
-    except Exception as e:
-        db.rollback()
-        return JSONResponse({"error": repr(e)}, status_code=500)
-    finally:
-        db.close()
+    entry = {
+        "id": _uid(),
+        "title": body.title or "Untitled Entry",
+        "text": body.text,
+        "photos": body.photos[:10],
+        "date": dt.datetime.utcnow().strftime("%b %d, %Y")
+    }
+    if user_id not in _JOURNAL_STORE:
+        _JOURNAL_STORE[user_id] = []
+    _JOURNAL_STORE[user_id].insert(0, entry)
+    return {"ok": True, "id": entry["id"]}
 
 @app.delete("/api/journal/{user_id}/{entry_id}")
 def delete_journal(user_id: str, entry_id: str):
-    db = get_db()
-    try:
-        entry = db.query(JournalEntry).filter(JournalEntry.id == entry_id, JournalEntry.user_id == user_id).first()
-        if not entry:
-            raise HTTPException(404, "Entry not found")
-        db.delete(entry)
-        db.commit()
-        return {"ok": True}
-    finally:
-        db.close()
+    entries = _JOURNAL_STORE.get(user_id, [])
+    _JOURNAL_STORE[user_id] = [e for e in entries if e["id"] != entry_id]
+    return {"ok": True}
 
 
 def trip_card_image(trip_id: str):
