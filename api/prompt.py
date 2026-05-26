@@ -3,6 +3,7 @@ import json
 from data.knowledge.cities import CITIES
 from data.knowledge.food import FOOD
 from data.knowledge.tips import TIPS
+from data.knowledge.hotels import format_price_summary as hotels_prompt
 from data.knowledge.packing import format_for_prompt as packing_prompt
 from data.knowledge.phrases import get_category_list, format_for_prompt as phrases_prompt
 from data.knowledge.transport import get_transport_summary
@@ -53,11 +54,14 @@ SYSTEM_PROMPT = f"""你是 VisePanda (熊猫行)，一个专业的 AI 中国旅�
 **交通数据（主要城市间高铁+航班）：**
 {get_transport_summary()}
 
-**语言急救卡（语言急救卡 — 8大类64句常用短语，含中文+拼音+英文）：**
+**语言急救卡（8大类64句常用短语，含中文+拼音+英文）：**
 {phrases_prompt()}
 
 **智能打包清单（根据季节/场景/天数推荐行李清单）：**
 {packing_prompt()}
+
+**酒店价格参考（15城经济/中档/豪华三档）：**
+{hotels_prompt()}
 
 ### 4. 回答风格
 - 中文优先，用户用英文则英文回复
