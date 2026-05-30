@@ -349,7 +349,11 @@ pre code{background:none;padding:0;border-radius:0}
 /* Adjust hero position for decor */
 .hero{overflow:hidden}
 @media(max-width:800px){.hero-decor{display:none}}
-@media(max-width:480px){.dest-grid{grid-template-columns:1fr}.hero{padding:30px 16px 80px}.search-box{flex-direction:column;border-radius:16px;background:transparent;border:none;gap:8px;padding:0}.search-box input{border:1px solid var(--line);border-radius:999px;padding:12px 16px;height:44px;background:rgba(255,255,255,.03)}.search-box button{width:100%;height:44px}.hero h1{font-size:26px}.destinations{padding:0 16px 60px}.trust-bar{flex-wrap:wrap;gap:8px}}
+/* Touch optimizations */
+*{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+#thread{-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+@media(hover:none){.dest-card:hover{transform:none}.dest-card:hover .dest-bg{transform:none}.btn:hover{background:rgba(255,255,255,.03);border-color:var(--line)}}
+@media(max-width:480px){.dest-grid{grid-template-columns:1fr}.hero{padding:30px 16px 80px}.search-box{flex-direction:column;border-radius:16px;background:transparent;border:none;gap:8px;padding:0}.search-box input{border:1px solid var(--line);border-radius:999px;padding:12px 16px;height:44px;font-size:16px;background:rgba(255,255,255,.03)}.search-box button{width:100%;height:44px}.hero h1{font-size:26px}.destinations{padding:0 16px 60px}.trust-bar{flex-wrap:wrap;gap:8px}.brand-name{display:none}.hero-eyebrow{font-size:10px}.chip,.welcome-chip{padding:8px 14px;font-size:12px}.chat-footer{padding:8px 12px}.time{font-size:9px}}
 """
 
 def _inject_config() -> str:
@@ -484,7 +488,7 @@ def page_chat() -> str:
 #quickReplies .chip{{background:rgba(255,255,255,.05);border-color:var(--line);color:var(--muted);padding:8px 14px;border-radius:10px;font-size:12px}}
 .chat-footer{{position:fixed;bottom:0;left:0;right:0;padding:12px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:rgba(8,10,14,.55);backdrop-filter:blur(10px);z-index:2}}
 #msgForm{{display:flex;gap:10px;align-items:center;max-width:800px;margin:0 auto}}
-#msgInput{{flex:1;height:44px;padding:0 14px;font-size:14px}}
+#msgInput{{flex:1;height:44px;padding:0 14px;font-size:16px}}
 #sendBtn{{height:44px;padding:0 20px;background:rgba(125,211,252,.14);border:1px solid rgba(125,211,252,.35);border-radius:999px;color:var(--text);cursor:pointer;font-size:14px}}
 #sendBtn:hover{{background:rgba(125,211,252,.22);transform:scale(1.04);box-shadow:0 0 20px rgba(125,211,252,.15)}}#sendBtn:active{{transform:scale(.96)}}
 #quickReplies{{display:flex;flex-wrap:wrap;gap:4px;padding:6px 0;max-width:800px;margin:0 auto 8px}}

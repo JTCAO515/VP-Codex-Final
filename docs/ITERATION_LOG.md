@@ -364,3 +364,21 @@ supabase-js: ✅ 0 script tags (dynamic import only)
 | `loading=lazy` + `onerror` emoji回退 | 首屏不加载下方图片，出图失败自动降级 |
 | hover `.dest-bg{scale(1.07)}` 放大 | 图片悬停动效 |
 | 移动端wide图全宽 | 响应式适配 |
+
+---
+
+## Iteration 123 — 暗色/亮色主题切换
+
+**日期**: 2026-05-30
+**目标**: 一键主题切换 + 系统偏好检测 + 持久化
+**状态**: ✅ 完成
+
+### 改动
+| 项 | 说明 |
+|----|------|
+| `[data-theme="light"]` 覆盖8组CSS变量 | 完整亮色配色（auto bg/text/muted/line/accent） |
+| `<head>`内联主题初始化脚本 | 读取localStorage > prefers-color-scheme > 默认dark |
+| header `.theme-toggle` 按钮 | 🌙→☀️ 双向切换，点击即时生效 |
+| `localStorage.setItem('vp_theme')` | 刷新/下次访问保留偏好 |
+| `*{transition:background/border/color}` | 切换时全站平滑过渡，无闪烁 |
+| onload自动匹配图标 | 切到light显示🌙，切到dark显示☀️ |
