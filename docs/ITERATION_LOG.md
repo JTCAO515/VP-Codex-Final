@@ -347,3 +347,20 @@ supabase-js: ✅ 0 script tags (dynamic import only)
 | 所有目的地卡片中文prompt→英文 | `北京3天深度游` → `Beijing 3 days history culture mid budget` |
 | welcome chips中文→英文 | `北京3天行程` → `Beijing 3-day itinerary` |
 | 移除i18n自动检测中文逻辑 | 站点默认英文，不再根据浏览器语言自动切换中文 |
+
+---
+
+## Iteration 122 — 城市卡片图片化
+
+**日期**: 2026-05-30
+**目标**: Landing页目的地卡片使用Seedream图片
+**状态**: ✅ 完成
+
+### 改动
+| 项 | 说明 |
+|----|------|
+| 6个dest-card内部嵌入`.dest-img-wrap` + `<img>` | 卡片从纯emoji文本→图片卡片 |
+| 图片路径 `/static/img/city-{name}.jpg` | 北京/成都/上海/西安/桂林有图，Yunnan回退 |
+| `loading=lazy` + `onerror` emoji回退 | 首屏不加载下方图片，出图失败自动降级 |
+| hover `.dest-bg{scale(1.07)}` 放大 | 图片悬停动效 |
+| 移动端wide图全宽 | 响应式适配 |
