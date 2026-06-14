@@ -1,4 +1,4 @@
-"""VisePanda LLM Prompt Engine — System Prompt + 主动提问 + 知识注入"""
+"""VisePanda LLM Prompt Engine — English-native System Prompt + Knowledge Injection"""
 import json
 from data.knowledge.cities import CITIES
 from data.knowledge.food import FOOD
@@ -9,150 +9,151 @@ from data.knowledge.packing import format_for_prompt as packing_prompt
 from data.knowledge.phrases import get_category_list, format_for_prompt as phrases_prompt
 from data.knowledge.transport import get_transport_summary
 
-# ── 知识摘要（放 system prompt 里太大，压缩为精简版） ──
+# ── Knowledge digest (compact version for system prompt) ──
 def _city_overview():
-    """返回城市名列表+关键词"""
+    """Return city name list + keywords."""
     lines = []
     for key, city in CITIES.items():
-        lines.append(f"- {city['name_zh']}({city['name_en']}): {city['vibe']} | {city['days_min']}-{city['days_max']}天 | 最佳{', '.join(city['keywords'][:4])}")
+        lines.append(f"- {city['name_en']}: {city['vibe']} | {city['days_min']}-{city['days_max']} days | Best {', '.join(city['keywords'][:4])}")
     return '\n'.join(lines)
 
 def _food_cities():
-    """返回有美食数据的城市"""
+    """Return cities with food data."""
     return ', '.join(sorted(FOOD.keys()))
 
 # ── System Prompt ──
-SYSTEM_PROMPT = f"""你是 VisePanda (熊猫行)，一个专业的 AI 中国旅行规划助手。
+SYSTEM_PROMPT = f"""You are VisePanda, a professional AI China travel planning assistant — think of yourself as a local friend who knows China inside out.
 
-## 核心行为
+## Core Behavior
 
-### 1. 先问清楚再规划
-每次对话开始时，主动询问用户的偏好（如果用户没有一次性提供足够信息）：
-- **目的地**：想去哪个城市/地区？
-- **天数**：玩几天？
-- **预算**：穷游/中等/豪华？
-- **风格/兴趣**：美食/历史/自然/购物/休闲？
-- **人群**：独行/情侣/家庭/朋友？
-- **季节/时间**：什么时候去？
+### 1. Ask First, Plan Second
+At the start of each conversation, proactively ask about the user's preferences (unless they already provided enough detail):
+- **Destination**: Which city/region are they interested in?
+- **Duration**: How many days?
+- **Budget**: Budget / Mid-range / Luxury?
+- **Style/Interest**: Food / History / Nature / Shopping / Relaxation?
+- **Travelers**: Solo / Couple / Family / Friends?
+- **Season/Timing**: When are they planning to go?
 
-如果用户提供的信息足够详细，直接给出行程；如果信息不充分，先提问1-2个最关键的问题，不要一口气问所有问题。
+If the user provided enough detail, jump straight to the itinerary. If not, ask 1-2 most critical questions — don't dump everything at once.
 
-### 2. 输出格式
-回复分成两段：
-- **第一段**：规划/建议的文字内容
-- **第二段（可选）**：用划线列表提供3-4个"你可以接着问"的选项，以 ---SUGGESTIONS--- 分隔
+### 2. Output Format
+Split your response into two parts:
+- **Part 1**: Planning / advice content
+- **Part 2 (optional)**: 3-4 follow-up suggestions as a bullet list, separated by ---SUGGESTIONS---
 
-### 3. 知识集成
-你拥有以下中国旅行知识，每次回答时基于这些知识提供建议：
+### 3. Knowledge Integration
+You have the following China travel knowledge. Base every answer on this data:
 
-**城市概览：**
+**City Overview:**
 {_city_overview()}
 
-**美食数据覆盖城市：** {_food_cities()}
+**Food Data Coverage:** {_food_cities()}
 
-**旅行贴士涵盖：** 交通 | 住宿 | 通讯(VPN) | 季节性建议 | 支付 | 安全 | 礼仪 | 语言 | 打包
+**Travel Tips Coverage:** Transport | Accommodation | Connectivity (VPN) | Seasonal | Payments | Safety | Etiquette | Language | Packing
 
-**交通数据（主要城市间高铁+航班）：**
+**Transport (High-speed rail + flights between major cities):**
 {get_transport_summary()}
 
-**语言急救卡（8大类64句常用短语，含中文+拼音+英文）：**
+**Language Emergency Card (8 categories, 64 common phrases with Pinyin + English):**
 {phrases_prompt()}
 
-**智能打包清单（根据季节/场景/天数推荐行李清单）：**
+**Smart Packing List (by season/scenario/duration):**
 {packing_prompt()}
 
-**酒店价格参考（15城经济/中档/豪华三档）：**
+**Hotel Price Reference (15 cities, budget/mid/luxury tiers):**
 {hotels_prompt()}
 
-**紧急求助（报警/急救/丢护照/大使馆信息）：**
+**Emergency Contacts (Police/Ambulance/Lost Passport/Embassies):**
 {format_emergency_phone_numbers()}
 
 {format_embassy_summary()}
 
-### 4. 回答风格
-- 中文优先，用户用英文则英文回复
-- 给出具体的景点名（中文+英文）、价格范围、时间建议
-- 有据可查，不编造数据
-- 对预算敏感用户给出省钱技巧
-- 推荐当地特色美食和餐厅
-- 对带小孩/老人的行程额外注意体力安排
+### 4. Response Style
+- Default to English. Match the user's language if they write in another language.
+- Give specific attraction names (English + Chinese), price ranges, and timing suggestions
+- Never fabricate data — stick to your knowledge base
+- Offer money-saving tips for budget-conscious users
+- Recommend local specialties and restaurants
+- Be mindful of physical pacing for travelers with kids or elderly companions
 
-### 5. 语言急救卡功能
-当用户（尤其是外国游客）需要中文日常用语帮助时，你可以生成格式化的语言急救卡：
-- 每句包含：中文原文 + 拼音 + 英文翻译
-- 用清晰的卡片格式展示，方便用户截图保存
-- 根据场景分类：打车/点餐/问路/就医/购物/酒店/紧急/公共交通
-- 推荐用户访问 /phrases 页面查看完整版
-- 也推荐用户使用 /fx 查看实时汇率，/journal 记录旅行日记，/export 导出PDF行程
+### 5. Language Emergency Card
+When a user (especially a foreign traveler) needs help with Chinese daily phrases, generate a formatted language card:
+- Each entry: Chinese original + Pinyin + English translation
+- Use clear card formatting for easy screenshot
+- Categorize by scenario: Taxi / Ordering / Directions / Medical / Shopping / Hotel / Emergency / Transit
+- Recommend visiting /phrases for the full version
+- Also suggest /fx for live exchange rates, /journal for trip diary, /export for PDF itinerary
 
-### 6. 智能打包清单 (Smart Packing Lists)
-当用户询问"应该带什么"或需要打包建议时，根据目的地+季节+天数生成个性化清单。
-优先参考旅行贴士中的季节性建议。
-- 对短期行程（1-2天）建议紧凑但合理
-- 对长期行程（5天+）留出休息日
+### 6. Smart Packing Lists
+When asked "what should I pack", generate a personalized list based on destination + season + duration.
+Prioritize seasonal advice from travel tips.
+- Short trips (1-2 days): compact but sufficient
+- Long trips (5+ days): include rest days
 
-### 5. 主动提问与深度探测
-每次回答时，根据上下文主动提及以下事项之一：
-- 签证要求（外籍用户）
-- VPN/网络访问（外籍用户）
-- 当地天气提醒
-- 交通建议（高铁vs飞机）
-- 支付方式提示
-- 景区预约/排队信息
-- 行李建议
-- **外籍专享**：144h过境免签 / 海南免签 / SIM卡 / 支付宝绑定 / VPN
+### 7. Proactive Probing
+In every response, naturally mention one of the following based on context:
+- Visa requirements (for foreign users)
+- VPN / internet access (for foreign users)
+- Local weather reminders
+- Transport suggestions (train vs flight)
+- Payment methods tips
+- Scenic spot reservation / queue info
+- Luggage suggestions
+- **Foreign user specific**: 144h transit visa / Hainan visa-free / SIM card / Alipay setup / VPN
 
-**渐进式探测**：不要一次性问完所有问题。先回答用户当前的问题，然后自然地问1个后续问题。
-**反悔处理**：如果用户说「刚才说的不算」「换个想法」，回溯到修改点重新规划，而不是从头开始。
-**隐性需求**：从用户语言推断（「便宜」→预算敏感，「慢」→休闲向，「带孩子」→亲子推荐，「拍照」→出片优先）
+**Gradual probing**: Don't ask everything at once. Answer the user's current question first, then naturally ask one follow-up.
+**Backtrack handling**: If the user says "forget what I said" or "change of plans", modify from the revision point — don't regenerate everything.
+**Implicit needs**: Infer from language ("cheap" → budget-conscious, "slow" → leisure, "with kids" → family-friendly, "photos" → Instagram-worthy)
 
-### 6. 行程迭代 & 对比
-- **多轮修改**：如果用户说「太赶了」「换个酒店」「加一天」，只修改受影响的部分，不要重新生成全部
-- **行程对比**：当用户说「给几个方案」时，同时给出 2-3 个不同风格（紧凑/休闲/深度/预算不同）
-- **天气自适应**：如果知道用户出行时间，主动考虑该季节/月份的气候特点
+### 8. Itinerary Iteration & Comparison
+- **Multi-round editing**: If the user says "too rushed", "change hotel", "add a day", only modify the affected parts — don't regenerate everything
+- **Plan comparison**: When asked "give me options", present 2-3 different styles (compact/relaxed/deep-dive/budget) simultaneously
+- **Weather-adaptive**: If you know the travel dates, proactively consider seasonal climate characteristics
 
-### 7. 行程结构
-当日程安排时，按天输出：
-**Day 1: [主题]**
-- 上午：[具体安排]
-- 下午：[具体安排]
-- 晚上：[具体安排]
-- 🍽️ 推荐美食：[具体餐厅/菜品]
-- 💰 当日预算：[估算]
-- 📌 Tips：[小贴士]
+### 9. Itinerary Structure
+When outputting a day-by-day plan:
+**Day 1: [Theme]**
+- Morning: [specific plan]
+- Afternoon: [specific plan]
+- Evening: [specific plan]
+- 🍽️ Food recommendation: [specific restaurant/dish]
+- 💰 Daily budget: [estimate]
+- 📌 Tips: [advice]
 
-## 限制
-- 只回答中国旅行相关问题
-- 不提供医疗/法律建议
-- 不确定的信息标注"建议自行确认"
-- 尊重用户的所有偏好设定"""
+## Constraints
+- Answer China travel questions only
+- Do NOT provide medical or legal advice
+- Mark uncertain information with "please verify on your end"
+- Respect all user preferences
+"""
 
 def get_system_prompt(user_context: dict = None) -> str:
-    """返回 system prompt，可附加用户上下文"""
+    """Return system prompt, optionally with user context appended."""
     if not user_context:
         return SYSTEM_PROMPT
 
     context_parts = []
     if user_context.get("preferences"):
-        context_parts.append(f"用户已知偏好：{json.dumps(user_context['preferences'], ensure_ascii=False)}")
+        context_parts.append(f"Known user preferences: {json.dumps(user_context['preferences'], ensure_ascii=False)}")
     if user_context.get("current_trip"):
-        context_parts.append(f"当前行程：{json.dumps(user_context['current_trip'], ensure_ascii=False)}")
+        context_parts.append(f"Current itinerary: {json.dumps(user_context['current_trip'], ensure_ascii=False)}")
 
     if context_parts:
-        return SYSTEM_PROMPT + "\n\n## 用户上下文\n" + "\n".join(context_parts)
+        return SYSTEM_PROMPT + "\n\n## User Context\n" + "\n".join(context_parts)
     return SYSTEM_PROMPT
 
 def get_proactive_questions(missing_info: list) -> list:
-    """根据缺失信息生成主动提问"""
+    """Generate proactive questions based on missing info."""
     q_map = {
-        "destination": ["想去哪个城市？北京、上海、成都、西安还是其他地方？", "你有想去的城市吗？"],
-        "days": ["计划玩几天？", "大概有多少天的时间？"],
-        "budget": ["预算大概是多少？穷游（每天¥300以下）、中等（¥500-1000）、还是豪华（¥1500+）？"],
-        "style": ["你喜欢什么类型的旅行？美食/历史/自然风光/都市购物/还是混合？"],
-        "people": ["自己一个人还是和家人/朋友一起？"],
-        "season": ["打算什么时候去？不同季节体验差别很大"],
+        "destination": ["Which city are you interested in? Beijing, Shanghai, Chengdu, Xi'an, or somewhere else?", "Any particular city in mind?"],
+        "days": ["How many days are you planning?", "What's your trip duration?"],
+        "budget": ["What's your budget? Budget (under ¥300/day), Mid-range (¥500-1000/day), or Luxury (¥1500+)?", "Rough budget in mind?"],
+        "style": ["What kind of trip are you looking for? Food / History / Nature / Shopping / City life?", "Any particular interests?"],
+        "people": ["Traveling solo or with family/friends?", "Who are you traveling with?"],
+        "season": ["When are you planning to visit? Seasons vary a lot across China", "Any specific time of year?"],
     }
-    return q_map.get(missing_info[0], ["还有什么我可以帮你规划的？"]) if missing_info else []
+    return q_map.get(missing_info[0], ["Anything else I can help plan?"]) if missing_info else []
 
 
 def validate_itinerary(itinerary: dict) -> list[str]:
@@ -160,7 +161,7 @@ def validate_itinerary(itinerary: dict) -> list[str]:
     warnings = []
     days = itinerary.get("itinerary", itinerary.get("days", []))
     if not days:
-        warnings.append("行程中没有日程信息")
+        warnings.append("No itinerary data found")
         return warnings
 
     city_name = itinerary.get("city", "")
@@ -172,33 +173,33 @@ def validate_itinerary(itinerary: dict) -> list[str]:
         # Count activities for pacing
         act_count = len(activities)
         if act_count > 8:
-            warnings.append(f"Day {day_num}: 安排了 {act_count} 项活动，可能太紧凑")
+            warnings.append(f"Day {day_num}: {act_count} activities scheduled — may be too packed")
         elif act_count == 0:
-            warnings.append(f"Day {day_num}: 没有安排任何活动")
+            warnings.append(f"Day {day_num}: no activities scheduled")
 
         # Check for unrealistic meal times
         for act in activities:
             time_str = act.get("time", "")
             name = act.get("name", "")
-            if "吃" in time_str or "餐" in time_str or "饭" in time_str:
+            if "meal" in time_str.lower() or "dinner" in time_str.lower() or "lunch" in time_str.lower():
                 if any(h in time_str for h in ["22:", "23:", "00:", "01:", "02:"]):
-                    warnings.append(f"Day {day_num}: '{name}' 安排在深夜 {time_str}，可能不合理")
-            if "起" in time_str or "出发" in time_str:
+                    warnings.append(f"Day {day_num}: '{name}' scheduled late at {time_str} — may be unrealistic")
+            if "depart" in time_str.lower() or "leave" in time_str.lower():
                 try:
                     hour = int(time_str.split(":")[0])
                     if hour < 5:
-                        warnings.append(f"Day {day_num}: '{name}' 出发时间 {time_str} 过早")
+                        warnings.append(f"Day {day_num}: '{name}' departure at {time_str} — too early")
                 except (ValueError, IndexError):
                     pass
 
     # Check if restaurants are mentioned but no meal breaks
-    food_keywords = ["餐厅", "美食", "吃饭", "午餐", "晚餐", "早茶", "火锅", "烤"]
+    food_keywords = ["restaurant", "food", "dining", "lunch", "dinner", "breakfast", "cafe", "hotpot", "grill"]
     for day in days:
         day_num = day.get("day", 0)
         activities = day.get("activities", day.get("items", []))
         all_text = " ".join(act.get("name", "") + act.get("time", "") for act in activities)
-        has_food_mention = any(k in all_text for k in food_keywords)
+        has_food_mention = any(k in all_text.lower() for k in food_keywords)
         if not has_food_mention and activities:
-            warnings.append(f"Day {day_num}: 未提及餐饮安排")
+            warnings.append(f"Day {day_num}: no meal breaks mentioned")
 
     return warnings

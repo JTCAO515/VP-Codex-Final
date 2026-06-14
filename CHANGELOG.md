@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.0.4 (2026-06-14)
+- **🇬🇧 English-Native System Prompt** — Full system prompt rewritten in English. AI now defaults to English responses, matches user language.
+- **🗺️ AMap (Gaode) Integration** — Dual-map engine: AMap with security key config, Leaflet fallback.
+- **🔑 AMap Security Config** — `AMAP_KEY` + `AMAP_SECURITY_CODE` env vars via `/api/config` endpoint.
+- **📄 Documentation** — Updated CHANGELOG.md, README.md (English-native rewrite), PLAN.md.
+
 ## v3.0.3 (2026-06-15)
 - **🗺️ Map Tab** — Full China overview map with all 36 cities plotted. Supports AMap (Gaode) when API key configured, with Leaflet fallback.
 - **📍 All Cities Coordinates** — Expanded map data from 8 cities to all 36 cities with lat/lng coordinates.
