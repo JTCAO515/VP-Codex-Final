@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.0.7 (2026-06-14)
+- **🖼️ City Image Expansion** — 27 destination city photos downloaded from Wikimedia Commons, covering all major MAP_DATA cities
+- **🎨 Rich Visual Chat** — AI now inserts `[img:city_key]` markers in responses → real city photos rendered inline between bubbles
+- **📸 Zero-Dependency Image Pipeline** — Static JPEGs served from `/static/img/`, auto-detected by backend with city-/food-/exact-match fallback chain
+- **🌏 Coverage** — 27/36 cities have high-quality landscape images; graceful text fallback for the remaining 9
+
 ## v3.0.6 (2026-06-14)
 - **🧩 Multi-Bubble Responses** — AI now splits answers into logical sections (`---SPLIT---`), each rendered as a separate chat bubble with fade-in animation
 - **🖼️ Rich Media Support** — `[img:city_key]` markers trigger inline city/food images between bubbles. Backend auto-routes to `city-*.jpg` or `food-*.jpg` from static assets

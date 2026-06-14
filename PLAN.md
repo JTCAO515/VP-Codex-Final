@@ -59,6 +59,7 @@ LLM: DeepSeek V4 Flash (OpenAI 兼容 SSE 流式)
 | 10 | v3.0.4 | 🇬🇧 English-Native | English system prompt, AMap security config, clean docs |
 | 11 | v3.0.5 | 📱 Mobile UX | Bottom nav, chat overlay, safe area, dvh, touch targets |
 | **12** | **v3.0.6** | **🧩 Multi-Bubble + Rich Media** | Split responses, inline images, precision output |
+| **13** | **v3.0.7** | **🖼️ 27-City Photo Gallery** | Batch-download Wikimedia Commons images for 27/36 cities |
 
 ## v3.1 迭代计划
 
