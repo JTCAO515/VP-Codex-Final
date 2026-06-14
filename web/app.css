@@ -179,7 +179,6 @@ body{
 
 /* ─── Views ─── */
 .view{display:none;padding-bottom:60px}
-.view.active{display:block;animation:fadeIn .25s ease}
 
 /* ═══ HERO ═══ */
 .hero{
@@ -827,7 +826,7 @@ body{
   .brand-text{font-size:14px}
   .city-grid{grid-template-columns:repeat(2,1fr)}
   .tools-grid{grid-template-columns:repeat(2,1fr)}
-  .chat-container{height:calc(100vh - var(--header-h) - 30px);padding:8px}
+  .chat-container{height:calc(100dvh - var(--header-h) - 70px);padding:8px}
   .hero-deco{display:none}
   .modal-panel{max-width:95%;max-height:90vh;border-radius:var(--radius-lg)}
   .detail-header{padding:16px 16px 12px}
@@ -836,33 +835,41 @@ body{
 }
 
 /* Phone (<480px) */
-@media(max-width:480px){
+@media(max-width:640px){
+  /* ── Bottom Nav Layout ── */
+  .header-nav{display:none}
+  .bottom-nav{display:flex}
+  #main{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px))}
+  #footer{padding-bottom:calc(70px + env(safe-area-inset-bottom,0px))}
+
   .hero-title{font-size:22px}
   .hero-sub{font-size:13px}
   .hero{padding:32px 12px 28px;min-height:260px}
   .hero-panda{font-size:36px}
-  .hero-cta{padding:10px 24px;font-size:14px}
-  .header-nav{gap:2px}
-  .nav-btn{padding:4px 6px;font-size:11px}
+  .hero-cta{padding:10px 24px;font-size:14px;min-height:44px}
   .brand-text{display:none}
   .city-grid{grid-template-columns:1fr}
   .tools-grid{grid-template-columns:1fr}
   .city-card{min-height:170px}
-  .chat-container{height:calc(100vh - var(--header-h) - 40px);padding:4px}
+  .chat-container{height:calc(100dvh - var(--header-h) - 70px);padding:4px}
   .msg{max-width:95%}
   .chat-chip{font-size:11px;padding:4px 8px}
-  .chat-input{font-size:13px;min-height:40px;padding:8px 12px}
-  .chat-send,.chat-stop{font-size:13px;padding:8px 14px;height:40px}
-  #footer{padding:16px 12px;font-size:11px}
+  .chat-input{font-size:16px;min-height:44px;padding:12px 14px} /* 16px prevents iOS zoom */
+  .chat-send,.chat-stop{font-size:13px;padding:8px 14px;height:44px;min-width:60px}
+  .chat-input-bar{padding:8px 0 4px}
+  #footer{padding:12px}
+  /* Larger touch targets */
+  .nav-btn,.bn-btn{min-height:44px}
+  .theme-toggle{width:44px;height:44px}
+  .city-card{min-height:190px}
 }
 
-/* Small phone (<360px) */
 @media(max-width:360px){
   .hero-title{font-size:20px}
   .hero{padding:24px 10px 24px;min-height:240px}
   .city-grid{gap:8px}
   .city-card{padding:14px;min-height:150px}
-  .chat-container{height:calc(100vh - var(--header-h) - 30px)}
+  .chat-container{height:calc(100dvh - var(--header-h) - 65px)}
   .msg{max-width:98%}
 }
 
@@ -870,6 +877,54 @@ body{
 @media(prefers-reduced-motion:reduce){
   *,.hero-panda,.msg,.city-card,.city-bg-img,.city-emoji{animation:none!important;transition:none!important}
 }
+
+/* ═══════════════════════════════════════════════════════════
+   BOTTOM NAV (Mobile)
+   ═══════════════════════════════════════════════════════════ */
+
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:calc(56px + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);background:rgba(14,11,20,.92);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid var(--border-subtle);z-index:150;justify-content:space-around;align-items:center;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+[data-theme="light"] .bottom-nav{background:rgba(245,243,240,.92)}
+
+.bn-btn{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 10px;border-radius:var(--radius-md);font-size:10px;font-weight:500;color:var(--text-muted);transition:all .15s;min-width:48px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.bn-btn:hover{color:var(--text-primary);background:var(--bg-hover)}
+.bn-btn.active{color:var(--accent-red);background:var(--accent-red-soft)}
+.bn-icon{font-size:20px;line-height:1.2}
+.bn-label{font-size:9px;letter-spacing:.2px}
+
+/* ═══════════════════════════════════════════════════════════
+   CHAT OVERLAY (Mobile — slide-up panel)
+   ═══════════════════════════════════════════════════════════ */
+
+.chat-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:180;background:var(--bg-primary);display:flex;flex-direction:column;transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .25s ease}
+.chat-overlay.hidden{transform:translateY(100%);opacity:0;pointer-events:none}
+
+.chat-overlay-header{display:flex;align-items:center;gap:8px;padding:8px 12px;min-height:52px;border-bottom:1px solid var(--border-subtle);background:var(--bg-primary);position:relative;z-index:2}
+.chat-overlay-back{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-md);font-size:20px;color:var(--text-primary);transition:background .15s}
+.chat-overlay-back:hover{background:var(--bg-hover)}
+.chat-overlay-title{font-size:15px;font-weight:600;color:var(--text-primary)}
+
+.chat-overlay-body{flex:1;overflow:hidden;padding:12px 12px calc(12px + env(safe-area-inset-bottom,0px))}
+.chat-overlay-body .chat-container{height:100%!important}
+.chat-overlay-body .chat-messages{max-height:none;flex:1}
+.chat-overlay-body .chat-input-bar{padding-bottom:calc(4px + env(safe-area-inset-bottom,0px))}
+
+/* ── View slide transitions ── */
+.view{display:none;padding-bottom:60px;animation:none}
+.view.active{display:block}
+.view.slide-in{animation:slideInRight .25s cubic-bezier(.4,0,.2,1)}
+.view.slide-out{animation:slideOutLeft .2s cubic-bezier(.4,0,.2,1);pointer-events:none}
+
+@keyframes slideInRight{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideOutLeft{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(-20px)}}
+
+/* Mobile overrides for view padding with bottom nav */
+@media(max-width:640px){
+  .view.active{animation:slideInRight .2s ease}
+  .view{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px))}
+}
+
+/* ── 100dvh with fallback for older browsers ── */
+.chat-container{height:calc(100vh - var(--header-h) - 60px);height:calc(100dvh - var(--header-h) - 60px)}
 
 /* ═══════════════════════════════════════════════════════════
    MAP VIEW

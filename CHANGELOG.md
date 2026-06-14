@@ -1,5 +1,14 @@
 # Changelog
 
+## v3.0.5 (2026-06-14)
+- **📱 Mobile UX Overhaul** — Bottom nav bar (app-style tabs) on phones, replaces header nav
+- **💬 Chat Overlay Panel** — Chat opens as a slide-up panel on mobile instead of page switch
+- **⌨️ Keyboard-Safe Heights** — Replaced `100vh` with `100dvh` for chat containers
+- **🛡️ Safe Area Support** — Added `env(safe-area-inset-*)` for notched phones
+- **👆 Larger Touch Targets** — All buttons minimum 44px on mobile, 16px input text prevents iOS zoom
+- **🌀 Slide Transitions** — View changes animate with slide-in on mobile
+- **🔄 Real-time Overlay Sync** — Chat overlay auto-syncs messages when new ones arrive
+
 ## v3.0.4 (2026-06-14)
 - **🇬🇧 English-Native System Prompt** — Full system prompt rewritten in English. AI now defaults to English responses, matches user language.
 - **🗺️ AMap (Gaode) Integration** — Dual-map engine: AMap with security key config, Leaflet fallback.

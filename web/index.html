@@ -35,7 +35,7 @@
       <button class="nav-btn" data-view="cities" onclick="VP.navigate('cities')">🏙 Cities</button>
     </nav>
     <div class="header-right">
-      <span id="version-badge" class="version-badge">v3.0.4</span>
+      <span id="version-badge" class="version-badge">v3.0.5</span>
       <button class="theme-toggle" onclick="VP.toggleTheme()" aria-label="Toggle theme">🌙</button>
     </div>
   </header>
@@ -153,9 +153,38 @@
     <div id="trip-detail-panel" class="modal-panel"></div>
   </div>
 
+  <!-- ═══ MOBILE BOTTOM NAV ═══ -->
+  <nav id="bottom-nav" class="bottom-nav">
+    <button class="bn-btn active" data-view="home" onclick="VP.navigate('home')"><span class="bn-icon">🏠</span><span class="bn-label">Home</span></button>
+    <button class="bn-btn" data-view="chat" onclick="VP.navigate('chat')"><span class="bn-icon">💬</span><span class="bn-label">Chat</span></button>
+    <button class="bn-btn" data-view="map" onclick="VP.navigate('map')"><span class="bn-icon">🗺️</span><span class="bn-label">Map</span></button>
+    <button class="bn-btn" data-view="trips" onclick="VP.navigate('trips')"><span class="bn-icon">📋</span><span class="bn-label">Trips</span></button>
+    <button class="bn-btn" data-view="cities" onclick="VP.navigate('cities')"><span class="bn-icon">🏙</span><span class="bn-label">Cities</span></button>
+  </nav>
+
+  <!-- ═══ CHAT OVERLAY (for mobile — opens as panel overlay) ═══ -->
+  <div id="chat-overlay" class="chat-overlay hidden">
+    <div class="chat-overlay-header">
+      <button class="chat-overlay-back" onclick="VP.chatOverlayBack()">←</button>
+      <span class="chat-overlay-title">💬 VisePanda Chat</span>
+      <div style="flex:1"></div>
+    </div>
+    <div class="chat-overlay-body">
+      <div class="chat-container" style="height:100%;padding:0">
+        <div id="chat-messages-overlay" class="chat-messages"></div>
+        <div class="chat-suggestions" id="chat-suggestions-overlay"></div>
+        <div class="chat-input-bar">
+          <textarea id="chat-input-overlay" class="chat-input" rows="1" placeholder="Ask about China travel..." oninput="VP.autoResize(this)"></textarea>
+          <button id="chat-send-overlay" class="chat-send" disabled>Send</button>
+          <button id="chat-stop-overlay" class="chat-stop" style="display:none">⏹ Stop</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ═══ FOOTER ═══ -->
   <footer id="footer">
-    <p><span id="footer-version">VisePanda v3.0.4</span> · AI China Travel Planner · 🐼 · <span class="footer-clear" onclick="VP.clearChatHistory()" style="cursor:pointer;text-decoration:underline;opacity:.5">Clear chat</span></p>
+    <p><span id="footer-version">VisePanda v3.0.5</span> · AI China Travel Planner · 🐼 · <span class="footer-clear" onclick="VP.clearChatHistory()" style="cursor:pointer;text-decoration:underline;opacity:.5">Clear chat</span></p>
   </footer>
 </div>
 

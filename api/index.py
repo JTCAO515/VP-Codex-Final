@@ -1,5 +1,5 @@
 """
-VisePanda v3.0.4 — China Travel AI
+VisePanda v3.0.5 — China Travel AI
 WSGI handler. Zero pip dependencies (stdlib only).
 """
 from __future__ import annotations
@@ -637,7 +637,7 @@ def _handle_config(start_response):
         "amap_key": amap_key if use_amap else "",
         "amap_security_code": amap_security if use_amap else "",
         "use_amap": use_amap,
-        "version": "3.0.4",
+        "version": "3.0.5",
     })
 
 
@@ -714,7 +714,7 @@ def app(environ, start_response):
     if path == "/api/health" and method == "GET":
         return _json(start_response, {
             "status": "alive",
-            "version": "3.0.4",
+            "version": "3.0.5",
             "build": "2026-06-15",
         })
 

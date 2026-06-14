@@ -57,6 +57,7 @@ LLM: DeepSeek V4 Flash (OpenAI 兼容 SSE 流式)
 | 8 | v3.0.2 | 🔍 FAQ Matching | 10-category FAQ engine, query expansion, match badge |
 | 9 | v3.0.3 | 🗺️ Map Tab | Full China overview map, 36-city coordinates, AMap/Leaflet |
 | 10 | v3.0.4 | 🇬🇧 English-Native | English system prompt, AMap security config, clean docs |
+| 11 | v3.0.5 | 📱 Mobile UX | Bottom nav, chat overlay, safe area, dvh, touch targets |
 
 ## v3.1 迭代计划
 

@@ -56,7 +56,8 @@ const VP = (function(){
   // ── Navigation ──
   function navigate(view) {
     state.currentView = view;
-    $$('.nav-btn').forEach(btn => {
+    // Update both desktop and mobile nav buttons
+    $$('.nav-btn, .bn-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.view === view);
     });
     $$('.view').forEach(v => v.classList.remove('active'));
@@ -68,12 +69,19 @@ const VP = (function(){
     if (view === 'tools') loadTools();
     if (view === 'home') loadHomeCities();
     if (view === 'map') initMap();
+    // Close chat overlay if open
+    closeChatOverlay();
 
     window.location.hash = view;
   }
 
-  // ── Focus chat on a city ──
+  // ── Focus chat on a city (uses overlay on mobile) ──
   function focusChat(city) {
+    const isMobile = window.innerWidth <= 640;
+    if (isMobile) {
+      openChatOverlay(city);
+      return;
+    }
     const input = document.getElementById('chat-input');
     if (input) {
       input.value = `Plan a trip to ${city}`;
@@ -81,6 +89,75 @@ const VP = (function(){
       toggleSendButton(true);
       input.focus();
     }
+  }
+
+  // ── Chat Overlay (mobile) ──
+  function syncOverlayMessages() {
+    const mainContainer = document.getElementById('chat-messages');
+    const overlayContainer = document.getElementById('chat-messages-overlay');
+    if (!mainContainer || !overlayContainer) return;
+    overlayContainer.innerHTML = mainContainer.innerHTML;
+    overlayContainer.scrollTop = overlayContainer.scrollHeight;
+  }
+
+  function openChatOverlay(city) {
+    const overlay = document.getElementById('chat-overlay');
+    const input = document.getElementById('chat-input-overlay');
+    const stopBtn = document.getElementById('chat-stop-overlay');
+    const sendBtn = document.getElementById('chat-send-overlay');
+    if (!overlay) return;
+    overlay.classList.remove('hidden');
+    syncOverlayMessages();
+    // Show stop button if streaming
+    if (state.isStreaming && stopBtn) {
+      stopBtn.style.display = 'inline-block';
+      if (sendBtn) sendBtn.style.display = 'none';
+    }
+    if (input && city) {
+      input.value = `Plan a trip to ${city}`;
+      input.style.height = 'auto';
+      toggleSendOverlayBtn(true);
+      setTimeout(() => input.focus(), 350);
+    }
+  }
+
+  function closeChatOverlay() {
+    const overlay = document.getElementById('chat-overlay');
+    if (overlay) overlay.classList.add('hidden');
+  }
+
+  function chatOverlayBack() {
+    closeChatOverlay();
+  }
+
+  function syncOverlayMessages() {
+    const mainContainer = document.getElementById('chat-messages');
+    const overlayContainer = document.getElementById('chat-messages-overlay');
+    if (!mainContainer || !overlayContainer) return;
+    // Clone main chat messages into overlay
+    overlayContainer.innerHTML = mainContainer.innerHTML;
+    overlayContainer.scrollTop = overlayContainer.scrollHeight;
+  }
+
+  function toggleSendOverlayBtn(enable) {
+    const btn = document.getElementById('chat-send-overlay');
+    if (btn) btn.disabled = !enable;
+  }
+
+  // ── Send message via chat overlay ──
+  function sendOverlayMessage() {
+    const input = document.getElementById('chat-input-overlay');
+    const btn = document.getElementById('chat-send-overlay');
+    if (!input || !input.value.trim()) return;
+    // Sync input to main chat input and send
+    const mainInput = document.getElementById('chat-input');
+    if (mainInput) {
+      mainInput.value = input.value;
+      mainInput.style.height = 'auto';
+    }
+    closeChatOverlay();
+    navigate('chat');
+    sendMessage();
   }
 
   // ── Theme ──
@@ -570,6 +647,11 @@ const VP = (function(){
     `;
     container.appendChild(msg);
     container.scrollTop = container.scrollHeight;
+    // Sync overlay if visible
+    const overlay = document.getElementById('chat-overlay');
+    if (overlay && !overlay.classList.contains('hidden')) {
+      syncOverlayMessages();
+    }
     return msg;
   }
 
@@ -1140,9 +1222,15 @@ const VP = (function(){
   function mapOpenChat() {
     const detail = document.getElementById('map-city-detail');
     if (detail && detail.dataset.city) {
-      focusChat(detail.dataset.city);
-      navigate('chat');
+      const city = detail.dataset.city;
       mapCloseDetail();
+      const isMobile = window.innerWidth <= 640;
+      if (isMobile) {
+        openChatOverlay(city);
+      } else {
+        focusChat(city);
+        navigate('chat');
+      }
     }
   }
 
@@ -1183,6 +1271,31 @@ const VP = (function(){
           sendMessage();
         }
       });
+      chatInput.addEventListener('input', () => {
+        toggleSendButton(chatInput.value.trim().length > 0);
+      });
+    }
+
+    // Chat overlay input events (mobile)
+    const overlayInput = document.getElementById('chat-input-overlay');
+    const overlaySend = document.getElementById('chat-send-overlay');
+    if (overlayInput) {
+      overlayInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendOverlayMessage();
+        }
+      });
+      overlayInput.addEventListener('input', () => {
+        toggleSendOverlayBtn(overlayInput.value.trim().length > 0);
+      });
+    }
+    if (overlaySend) {
+      overlaySend.addEventListener('click', sendOverlayMessage);
+    }
+    const overlayStop = document.getElementById('chat-stop-overlay');
+    if (overlayStop) {
+      overlayStop.addEventListener('click', stopStreaming);
     }
 
     // Render chat suggestions
@@ -1205,6 +1318,7 @@ const VP = (function(){
     deleteTrip,
     mapCloseDetail,
     mapOpenChat,
+    chatOverlayBack,
     init,
   };
 })();
