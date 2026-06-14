@@ -34,10 +34,13 @@ MIME = {
 }
 TEXT_SUFFIXES = {".html", ".js", ".css", ".json", ".svg", ".txt"}
 
-# ── LLM config (set via Vercel env vars) ──
-DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
-DEEPSEEK_MODEL = os.environ.get("DEEPSEEK_MODEL", "deepseek-chat")
-DEEPSEEK_BASE = "https://api.deepseek.com/v1"
+# ── LLM config (check multiple env var names for compatibility) ──
+DEEPSEEK_API_KEY = (os.environ.get("DEEPSEEK_API_KEY", "")
+                    or os.environ.get("LLM_API_KEY", ""))
+DEEPSEEK_MODEL = os.environ.get("DEEPSEEK_MODEL",
+                 os.environ.get("LLM_MODEL", "deepseek-chat"))
+DEEPSEEK_BASE = (os.environ.get("DEEPSEEK_BASE_URL", "")
+                 or os.environ.get("LLM_BASE_URL", "https://api.deepseek.com/v1"))
 
 
 # ════════════════════════════════════════════════════════════
