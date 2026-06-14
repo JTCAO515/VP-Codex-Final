@@ -70,13 +70,21 @@ def _json_error(start_response, msg: str, status: str = "500 Internal Server Err
 
 
 def _read_post(environ) -> dict:
-    length = int(environ.get("CONTENT_LENGTH", "0") or "0")
+    """Read and parse POST body. Max 100KB to prevent abuse."""
+    raw_len = environ.get("CONTENT_LENGTH", "0") or "0"
+    try:
+        length = min(int(raw_len), 102_400)  # cap at 100KB
+    except (ValueError, TypeError):
+        length = 0
     if length <= 0:
         return {}
     raw = environ["wsgi.input"].read(length)
     if isinstance(raw, bytes):
-        raw = raw.decode("utf-8")
-    return json.loads(raw) if raw else {}
+        raw = raw.decode("utf-8", errors="replace")
+    try:
+        return json.loads(raw) if raw else {}
+    except json.JSONDecodeError:
+        return {}
 
 
 def _load_json(path) -> dict | list | None:
@@ -230,7 +238,7 @@ def _yield_with_images(content):
     """Process content for [img:city_key] markers, yield tokens and images."""
     pattern = r'\[img:([a-z_]+)(?:\|([^\]]+))?\]'
     parts = re.split(pattern, content)
-    static_img_dir = os.path.join(os.path.dirname(__file__), "..", "static", "img")
+    static_img_dir = str(STATIC_DIR / "img")
     i = 0
     while i < len(parts):
         if parts[i]:
@@ -327,7 +335,7 @@ def _handle_chat(environ, start_response):
                     chunk = resp.read(4096)
                     if not chunk:
                         break
-                    buffer += chunk.decode("utf-8")
+                    buffer += chunk.decode("utf-8", errors="replace")
                     lines = buffer.split("\n")
                     buffer = lines.pop()  # keep incomplete line
 
@@ -686,7 +694,7 @@ def _handle_config(start_response):
         "amap_key": amap_key if use_amap else "",
         "amap_security_code": amap_security if use_amap else "",
         "use_amap": use_amap,
-        "version": "3.0.7",
+        "version": "3.0.8",
     })
 
 
@@ -763,7 +771,7 @@ def app(environ, start_response):
     if path == "/api/health" and method == "GET":
         return _json(start_response, {
             "status": "alive",
-            "version": "3.0.7",
+            "version": "3.0.8",
             "build": "2026-06-15",
         })
 

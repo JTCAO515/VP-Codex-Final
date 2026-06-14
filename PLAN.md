@@ -60,6 +60,7 @@ LLM: DeepSeek V4 Flash (OpenAI 兼容 SSE 流式)
 | 11 | v3.0.5 | 📱 Mobile UX | Bottom nav, chat overlay, safe area, dvh, touch targets |
 | **12** | **v3.0.6** | **🧩 Multi-Bubble + Rich Media** | Split responses, inline images, precision output |
 | **13** | **v3.0.7** | **🖼️ 27-City Photo Gallery** | Batch-download Wikimedia Commons images for 27/36 cities |
+| **14** | **v3.0.8** | **🔒 Adversarial Code Review** | Security hardening, XSS prevention, multi-bubble abort fix, UTF-8 safety, code consistency |
 
 ## v3.1 迭代计划
 

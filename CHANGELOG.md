@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.0.8 (2026-06-14)
+- **🔒 Security Hardening** — `_read_post` now caps request body at 100KB, wraps CONTENT_LENGTH parse in try/except, catches JSON decode errors
+- **🛡️ XSS Prevention** — Image bubble URLs and labels sanitized via `escHtml()`, URL whitelist (relative or https only)
+- **🧩 Multi-Bubble Abort** — `AbortController` now saves all split bubbles on stop, not just the last one
+- **🌐 UTF-8 Safety** — SSE stream decoder uses `errors="replace"` to survive partial multi-byte characters at chunk boundaries
+- **♻️ Code Consistency** — `_yield_with_images` uses `STATIC_DIR` constant instead of ad-hoc path construction
+
 ## v3.0.7 (2026-06-14)
 - **🖼️ City Image Expansion** — 27 destination city photos downloaded from Wikimedia Commons, covering all major MAP_DATA cities
 - **🎨 Rich Visual Chat** — AI now inserts `[img:city_key]` markers in responses → real city photos rendered inline between bubbles

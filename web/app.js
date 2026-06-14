@@ -804,21 +804,26 @@ const VP = (function(){
             } else if (parsed.image) {
               // Insert an image bubble
               const img = parsed.image;
-              const imgBubble = document.createElement('div');
-              imgBubble.className = 'msg msg-bot msg-image';
-              imgBubble.innerHTML = `
-                <div class="msg-avatar">🐼</div>
-                <div class="msg-body">
-                  <div class="msg-sender">VisePanda · ${img.label}</div>
-                  <div class="msg-text img-msg">
-                    <img src="${img.url}" alt="${img.label}" class="chat-image" loading="lazy" onclick="window.open('${img.url}')">
+              const safeLabel = escHtml(img.label || '');
+              const safeUrl = escHtml(img.url || '');
+              // Only allow relative or https URLs
+              if (safeUrl && (safeUrl.startsWith('/') || safeUrl.startsWith('https://'))) {
+                const imgBubble = document.createElement('div');
+                imgBubble.className = 'msg msg-bot msg-image';
+                imgBubble.innerHTML = `
+                  <div class="msg-avatar">🐼</div>
+                  <div class="msg-body">
+                    <div class="msg-sender">VisePanda · ${safeLabel}</div>
+                    <div class="msg-text img-msg">
+                      <img src="${safeUrl}" alt="${safeLabel}" class="chat-image" loading="lazy" onclick="window.open('${safeUrl}')">
+                    </div>
                   </div>
-                </div>
-              `;
-              const container = document.getElementById('chat-messages');
-              if (container) {
-                container.appendChild(imgBubble);
-                container.scrollTop = container.scrollHeight;
+                `;
+                const container = document.getElementById('chat-messages');
+                if (container) {
+                  container.appendChild(imgBubble);
+                  container.scrollTop = container.scrollHeight;
+                }
               }
             } else if (parsed.faq) {
               // FAQ match badge - show above the response
@@ -882,8 +887,17 @@ const VP = (function(){
       }
     } catch (e) {
       if (e.name === 'AbortError') {
-        // User stopped - save partial
-        if (state._partialContent) {
+        // User stopped - save multi-bubble content
+        removeMessage(typingId);
+        // Add the current incomplete bubble
+        if (currentBubble && currentBubble.trim()) {
+          bubbleParts.push(currentBubble);
+        }
+        if (bubbleParts.length > 0) {
+          const combined = bubbleParts.join('\n\n---\n\n');
+          state.messages.push({role: 'assistant', content: combined});
+          saveMessages();
+        } else if (state._partialContent) {
           state.messages.push({role: 'assistant', content: state._partialContent});
           saveMessages();
         }
