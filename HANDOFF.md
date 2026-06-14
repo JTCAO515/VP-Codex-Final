@@ -1,319 +1,271 @@
-# VisePanda v3.0.1 — Handoff Document
+# VisePanda v3.0.8 — Handoff Document
 
-> **Last Updated:** 2026-06-14  
-> **Status:** ✅ All 3 Phases Complete  
-> **Repo:** `JTCAO515/vise-panda-2` (SSH: `git@github.com:JTCAO515/vise-panda-2.git`)  
-> **Live URL:** `https://vise-panda-2.vercel.app`  
-> **Agent Memory Key:** `VisePanda v3.0.1` in `.hermes/skills/`
+> **Last Updated:** 2026-06-14
+> **Status:** ⏸️ Paused — 14 iterations completed (v3.0.1 → v3.0.8)
+> **Repo:** `git@github.com:JTCAO515/vise-panda-2.git` (SSH only — HTTPS times out)
+> **Live URL:** https://www.go2china.space (Vercel auto-deploy on push)
+> **Agent Memory Key:** `VisePanda`, `vise-panda-2`, `go2china`
 
 ---
 
 ## 1. Product Overview
 
-**VisePanda** is an AI-powered China travel planning platform. Users chat with a panda-themed AI assistant (DeepSeek V4 Flash) to get personalized day-by-day itineraries, food recommendations, hotel suggestions, and local tips across 36 Chinese cities.
+**AI China Travel Platform** — Specialized AI travel planner for travelers to China.
 
-**Core philosophy:** "Like chatting with a local friend who knows China." Not a generic AI chatbot — a curated knowledge base + structured output + China-specific expertise.
-
-**Target users:** English-speaking foreigners visiting or living in China; high-end independent travelers to China.
-
----
+Powered by DeepSeek V4 Flash + 36-city curated knowledge base, it covers destination recommendations, day-by-day itineraries, local food/hotel/transport tips, and travel toolkit. Not a generic AI assistant — a China-specialized AI travel planner with Panda × Chinese aesthetic.
 
 ## 2. Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    Vercel Serverless                      │
-│                                                          │
-│  ┌─────────────┐  ┌──────────────┐  ┌────────────────┐  │
-│  │  web/        │  │  api/        │  │  data/          │  │
-│  │  index.html  │  │  index.py    │  │  cities.json    │  │
-│  │  app.css     │  │  (WSGI,      │  │  food.json     │  │
-│  │  app.js      │  │  stdlib)     │  │  hotels.json   │  │
-│  └──────┬───────┘  └──────┬───────┘  │  tips.json     │  │
-│         │                 │          │  tools.json     │  │
-│         │  SSE Stream     │          └────────────────┘  │
-│         ├─────────────────┤                              │
-│         │                 ▼                              │
-│         │     ┌───────────────────┐                      │
-│         │     │  DeepSeek V4 Flash│                      │
-│         │     │  (deepseek-chat)  │                      │
-│         │     └───────────────────┘                      │
-│         ▼                                                │
-│  ┌─────────────┐                                         │
-│  │  static/    │  (23 city images, legacy v2 files)      │
-│  └─────────────┘                                         │
-└─────────────────────────────────────────────────────────┘
+┌─ Frontend (SPA) ─────────────────────┐
+│  index.html + app.js + app.css        │
+│  Panda Chinese Style, Dark/Light      │
+│  Leaflet (fallback) / AMap (Gaode)    │
+│  SSE streaming chat                   │
+│  Multi-bubble rendering (v3.0.6)      │
+│  Inline city images (v3.0.7)          │
+└────────┬───────────────┬──────────────┘
+         │ fetch/SSE     │ static files
+         ▼               ▼
+┌─ Vercel WSGI (Python stdlib) ────────┐
+│  api/index.py — all routes            │
+│  api/prompt.py — system prompt        │
+│  /api/chat    → SSE stream (DeepSeek) │
+│  /api/cities  → city knowledge base   │
+│  /api/map     → 36-city coordinates   │
+│  /api/config  → AMap keys (env vars)  │
+│  /static/     → city images (27 .jpg) │
+│  data/        → JSON knowledge base   │
+└────────┬──────────────────────────────┘
+         │ LLM call
+         ▼
+┌─ DeepSeek V4 Flash ───────────────────┐
+│  deepseek-chat model                  │
+│  SSE streaming, temp=0.7, max=2048    │
+└───────────────────────────────────────┘
 ```
 
 ### Key Design Decisions
 
 | Decision | Choice | Why |
 |----------|--------|-----|
-| **Backend** | Python WSGI, stdlib only | Zero pip deps = zero Vercel build failures |
-| **Frontend** | Single-page app, vanilla JS | No framework overhead, fast load |
-| **LLM** | DeepSeek V4 Flash (`deepseek-chat`) | Best price/quality for travel content |
-| **Database** | JSON files + localStorage | No server DB needed at current scale |
-| **Design** | Panda × Chinese aesthetic | Stands out from generic AI tools |
-| **Deploy** | GitHub → Vercel auto-deploy | Push to `main` = deploy automatically |
+| Backend | Python WSGI (stdlib only) | Zero pip deps, cold start fast on Vercel |
+| Frontend | Vanilla JS SPA | No framework overhead, direct DOM control |
+| LLM | DeepSeek V4 Flash | Cost-effective, fast streaming, Chinese travel expertise |
+| Maps | AMap (Gaode) + Leaflet fallback | AMap for China (better data), Leaflet when no key |
+| State | localStorage | No backend DB needed, simple persistence |
+| Images | Static JPEGs from Wikimedia | Zero API cost, fast loading, CC-licensed |
+| Chat | Multi-bubble SSE | Split sections into separate bubbles, inline images |
 
----
+## 3. Current State
 
-## 3. Current State (v3.0.1)
+### ✅ Completed
 
-### Phase 1 — Foundation ✅
-- [x] WSGI handler with routing, 404 handling, static file serving
-- [x] 36-city knowledge base (cities/food/hotels/tips/tools) in JSON
-- [x] SSE streaming chat with DeepSeek V4 Flash
-- [x] System prompt with full knowledge injection (per-city food/hotels/tips/price estimates)
-- [x] Dark/light theme CSS variable system
+| Phase | Feature | Version |
+|-------|---------|:-------:|
+| 🏗️ Core | WSGI backend, SPA frontend, routing | v3.0.1 |
+| 🗺️ Maps | Leaflet dark maps, POI markers, AMap integration | v3.0.1 → v3.0.4 |
+| 💬 Chat | SSE streaming, DeepSeek, markdown rendering | v3.0.1 |
+| 🔍 FAQ | 10-category matching engine, query expansion | v3.0.2 |
+| 📚 Knowledge | 36 cities, food/hotels/tips/pricing JSON | v3.0.1 |
+| 🎨 Design | Panda × Chinese, dark/light dual themes | v3.0.1 |
+| 📱 Mobile | Bottom nav, chat overlay, safe-area, dvh | v3.0.5 |
+| 🧩 Multi-Bubble | Split responses into separate bubbles | v3.0.6 |
+| 🖼️ Images | 27 city photos from Wikimedia Commons | v3.0.7 |
+| 🔒 Security | Input validation, XSS protection, abort fix | v3.0.8 |
+| 🇬🇧 English | English-native system prompt | v3.0.4 |
+| 🚀 Deploy | Vercel WSGI auto-deploy from GitHub | v3.0.1 |
 
-### Phase 2 — Experience ✅
-- [x] Real city images on cards (8 cities with JPGs)
-- [x] Hero decorations (bamboo/lanterns/clouds) with float animations
-- [x] Chat suggestion chips (context-aware, 6 options)
-- [x] Markdown rendering in chat (bold/lists/code/HR)
-- [x] Stop streaming button
-- [x] City detail modal (food/hotels/tips/highlights)
-- [x] Chat history persistence (localStorage, Ctrl+Shift+C clears)
-- [x] Card stagger entrance animations
-- [x] 4-breakpoint responsive (1024/768/480/360px)
-- [x] Multi-turn conversation city tracking (`currentCity`)
-- [x] Light theme full component adaptation
+### 🟡 Known Quirks / Gotchas
 
-### Phase 3 — Depth ✅
-- [x] Trip persistence (auto-save itineraries to localStorage)
-- [x] Trips tab (list/load/share/delete)
-- [x] Trip share (copy clean text to clipboard with brand header)
-- [x] Toast notifications
-- [x] Leaflet dark map (8 cities, 33 POIs, color-coded markers)
-- [x] Price estimate data (7 cities: budget/mid/luxury daily, flight, food)
-- [x] Price estimates injected into system prompt
-- [x] Trip validation API (`/api/validate`)
-
-### Known Quirks / Gotchas
-
-1. **Vercel .python-version:** Uses 3.12 (vercel.json says 3.11 but .python-version=3.12 wins)
-2. **Git push only:** Vercel CLI OIDC tokens expire; always push via SSH to `git@github.com:JTCAO515/vise-panda-2.git`
-3. **DeepSeek env vars:** Code checks `LLM_API_KEY` first, then `DEEPSEEK_API_KEY`. Configured in Vercel dashboard.
-4. **City images:** Only 8 of 36 cities have real JPGs (`static/img/city-{name}.jpg`). Others show gradient fallback.
-5. **Map data:** Only 8 major cities have coordinate/POI data. Other cities show no map section.
-6. **Trip storage:** localStorage only (max ~5MB). Heavy use will hit quota — no server-side persistence.
-7. **Static file detection:** `_serve_static` checks `web/` then `static/` — legacy v2 files in `static/` may conflict.
-
----
+| # | Issue | Impact |
+|---|-------|--------|
+| 1 | **Git push timeout** — SSH works but large image files (60MB+) cause intermittent push timeouts. Use `GIT_SSH_COMMAND="ssh -o ServerAliveInterval=120"` for large pushes | Low — retry works |
+| 2 | **ESTIMATE_DATA only covers 7/36 cities** — Only Beijing, Shanghai, Chengdu, Guangzhou, Xi'an, Guilin, Hangzhou have pricing data | Low — other cities show blank estimates |
+| 3 | **MAP_DATA POIs only for 8 cities** — Shenzhen onward have coordinates but no POI list | Low — map markers work |
+| 4 | **syncOverlayMessages() defined twice** — Lines 95 and 133 in app.js. Second overwrites first. Works correctly but confusing | Very low |
+| 5 | **Docstring says v3.0.5** — api/index.py line 2 has stale version in docstring | Cosmetic |
+| 6 | **Vercel cold start** — First request after idle period takes ~3-5s due to Python WSGI cold start | Acceptable |
 
 ## 4. File Structure
 
 ```
 vise-panda-2/
 ├── api/
-│   └── index.py           # WSGI handler (~550 lines, stdlib only)
-│                          # ALL routes: health, chat, cities, tools, estimate, validate, static
-│
-├── web/                   # ACTIVE frontend (v3.0.1)
-│   ├── index.html         # SPA entry: Header, Hero, Chat, Trips, Cities views, Modals
-│   ├── app.css            # Panda × China design system (~800 lines, CSS vars)
-│   └── app.js             # Frontend logic (~950 lines, IIFE pattern)
-│
-├── data/                  # Knowledge base (JSON)
-│   ├── cities.json        # 36 cities: name_cn, province, best_season, days, vibe, highlights
-│   ├── food.json          # 31 cities: name_en/name_cn, description, price_range, must_try
-│   ├── hotels.json        # 31 cities: budget/mid/luxury (range, desc, areas), tip
-│   ├── tips.json          # 12 cities: local insider tips
-│   └── tools.json         # 5 tools: packing, pricing, visa, phrases, emergency
-│
-├── static/                # LEGACY v2 files (keep for images only)
-│   └── img/               # 17 JPGs: 8 city photos, 4 food, 5 brand/other
-│
-├── docs/                  # Legacy v2 documentation (not updated for v3)
-│
-├── vercel.json            # @vercel/python, all routes → api/index.py
-├── .python-version        # 3.12
-├── requirements.txt       # Empty (stdlib only)
-│
-├── PRD_PRODUCT_ANALYSIS.md  # Strategy canvas, competitive analysis, opportunity tree
-├── PLAN.md                  # Phase 1-3 iteration roadmap
-├── README.md                # Quickstart, API docs, project overview
-└── DESIGN.md                # v2 design reference (not updated for v3)
+│   ├── index.py          ACTIVE — WSGI handler (all routes, ~812 lines, stdlib only)
+│   └── prompt.py         ACTIVE — System prompt template (~200 lines, English-native)
+├── web/
+│   ├── index.html        ACTIVE — SPA entry, header/footer/nav/chat-overlay
+│   ├── app.js            ACTIVE — Frontend logic (~1382 lines, vanilla JS IIFE)
+│   └── app.css           ACTIVE — Panda Chinese style system (~1000 lines)
+├── data/
+│   ├── cities.json       ACTIVE — 36-city knowledge base (attractions/food/tips)
+│   ├── food.json         ACTIVE — City food data
+│   ├── hotels.json       ACTIVE — Hotel pricing by tier
+│   ├── tips.json         ACTIVE — Local travel tips
+│   ├── faq.json          ACTIVE — 10-category FAQ matching data
+│   └── tools.json        ACTIVE — Travel toolkit (packing/pricing/visa/phrases/emergency)
+├── static/
+│   └── img/              ACTIVE — 27 city images + food images + logo files
+│       ├── city-{name}.jpg  27 city skyline photos
+│       ├── food-{name}.jpg  4 food photos
+│       ├── great-wall.jpg   Landmark photo
+│       └── logo-*.jpg        Brand assets
+├── vercel.json           ACTIVE — Vercel deployment config
+├── CHANGELOG.md          ACTIVE — Version history (v3.0.1 → v3.0.8)
+├── README.md             ACTIVE — English-native product README
+├── PLAN.md               ACTIVE — Iteration roadmap (Iter 1-14)
+├── PRD_PRODUCT_ANALYSIS.md  ACTIVE — Product strategy document
+├── HANDOFF.md            THIS FILE
+└── .vercel/              AUTO — Vercel build cache
 ```
 
----
+## 5. API / Interface
 
-## 5. API Endpoints
+| Method | Endpoint | Description | Notes |
+|--------|----------|-------------|-------|
+| GET | `/api/health` | Health check + version | Returns `{"status":"alive","version":"3.0.8"}` |
+| POST | `/api/chat` | SSE streaming chat | Body: `{messages: [...], city?: string}`. Returns SSE stream with `token`, `split`, `image`, `faq`, `done`, `error` events |
+| GET | `/api/cities` | List all cities | Returns summary with name_cn, best_season, vibe, highlights |
+| GET | `/api/cities/:city` | City detail | Returns full city data + food + hotels + tips + map + estimates |
+| GET | `/api/map` | 36-city coordinates | Returns `{cities: {name: {lat, lng}}}` |
+| GET | `/api/config` | Client config | Returns `{amap_key, amap_security_code, use_amap, version}` |
+| GET | `/api/estimate` | Price estimates | Returns estimates for 7 major cities |
+| POST | `/api/validate` | Trip validation | Validates city + days, returns seasonal tips |
+| GET | `/api/tools` | List travel tools | Returns `{tools: {name: description}}` |
+| GET | `/api/tools/:name` | Tool detail | Returns tool data (packing/pricing/visa/phrases/emergency) |
+| GET | `/*` | Static files | Serves from `web/` first, then `static/` |
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/api/health` | Health check → `{"status":"alive","version":"3.0.1"}` | None |
-| POST | `/api/chat` | SSE streaming chat. Body: `{messages, city?}` | None |
-| GET | `/api/cities` | List all 36 cities (summary: name, season, days, vibe, image, highlights) | None |
-| GET | `/api/cities/:city` | City detail (food[], hotels{}, tips[], map{}, estimate{}) | None |
-| GET | `/api/tools` | List 5 tools | None |
-| GET | `/api/tools/:name` | Tool detail data | None |
-| GET | `/api/estimate` | Price estimates for 7 major cities | None |
-| POST | `/api/validate` | Validate trip. Body: `{city, days}` → `{valid, warnings, tips}` | None |
-| GET | `/*` | Static files (web/ then static/) | None |
+### SSE Event Types
 
-### Chat Request Format
-```json
-{
-  "messages": [
-    {"role": "user", "content": "Plan 3 days in Beijing"},
-    {"role": "assistant", "content": "..."}
-  ],
-  "city": "beijing"
-}
-```
-
-### Chat Response Format (SSE)
-```
-event: message
-data: {"token": "Based"}
-
-event: message
-data: {"token": " on"}
-
-event: message
-data: {"token": ""}
-
-event: message
-data: {"done": true}
-```
-
----
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `message` | `{"token": "..."}` | Streamed text token |
+| `message` | `{"split": true}` | Multi-bubble boundary |
+| `message` | `{"image": {"key": "...", "url": "...", "label": "..."}}` | Inline city image |
+| `message` | `{"faq": {...}}` | FAQ match badge |
+| `message` | `{"done": true}` | Stream complete |
+| `error` | `{"error": "..."}` | Stream error |
 
 ## 6. Key Config
 
-### Environment Variables (Vercel Dashboard)
+| Variable | Description | Source |
+|----------|-------------|-------|
+| `LLM_API_KEY` | DeepSeek API key | Vercel env |
+| `LLM_MODEL` | Model name (default: `deepseek-chat`) | Vercel env |
+| `LLM_BASE_URL` | API base URL (default: `https://api.deepseek.com/v1`) | Vercel env |
+| `AMAP_KEY` | Gaode (AMap) JS API key | Vercel env |
+| `AMAP_SECURITY_CODE` | Gaode security JS code | Vercel env |
 
-| Variable | Value | Notes |
-|----------|-------|-------|
-| `LLM_API_KEY` | `sk-...` | DeepSeek API key (code checks this first) |
-| `DEEPSEEK_API_KEY` | `sk-...` | Fallback variable name |
-| `LLM_BASE_URL` | `https://api.deepseek.com` | OpenAI-compatible endpoint |
-| `DEEPSEEK_MODEL` | `deepseek-chat` | DeepSeek V4 Flash model name |
+Fallback env vars: `DEEPSEEK_API_KEY`, `DEEPSEEK_MODEL`, `DEEPSEEK_BASE_URL` also supported.
 
-### Vercel Config (`vercel.json`)
-- Runtime: `@vercel/python`
-- Max Lambda: 10MB
-- All routes → `api/index.py`
-- `.vercelignore` excludes unnecessary files
+## 7. Core Logic / Data Flow
 
----
-
-## 7. System Prompt Architecture
-
-The system prompt is built dynamically in `_build_system_prompt(params)`:
-
-1. **Identity:** "VisePanda, expert AI China travel planner"
-2. **Core rules:** Use specific data, structured format, be honest
-3. **Itinerary format:** Day-by-day with 🕐🍽️🏨💡 emoji markers
-4. **Quick format:** For brief recommendations
-5. **City knowledge:** When `city` param is set, injects:
-   - City info (name_cn, province, season, days, vibe)
-   - Food (6 items, ⭐ for must-try, with prices)
-   - Hotels (budget/mid/luxury with areas and prices)
-   - Local tips (up to 4)
-   - **Price estimates** (budget/mid/luxury daily, flight, meal)
-6. **Popular cities guide:** 8-city quick reference table
-
-**Total system prompt length:** ~2,500 chars for Beijing (varies by city data)
-
----
-
-## 8. Frontend Component Map
+### Chat Flow
 
 ```
-index.html
-├── #header (fixed, glassmorphism)
-│   ├── .brand (🐼 VisePanda)
-│   ├── .header-nav
-│   │   ├── Home
-│   │   ├── Chat
-│   │   ├── Trips
-│   │   └── Cities
-│   └── .theme-toggle (🌙/☀️)
-│
-├── #main
-│   ├── #view-home
-│   │   ├── .hero (panda float, deco elements, CTA)
-│   │   └── .city-grid (8 cards with skeleton loading)
-│   │
-│   ├── #view-chat
-│   │   ├── #chat-messages (scrollable, markdown rendered)
-│   │   ├── #chat-suggestions (context-aware chips)
-│   │   └── .chat-input-bar (textarea + Send/Stop)
-│   │
-│   ├── #view-trips
-│   │   └── #trips-grid (saved itinerary cards)
-│   │
-│   └── #view-cities
-│       └── #cities-grid (all 36 city cards)
-│
-├── #city-detail-overlay (modal: info/food/hotels/tips/map/estimate)
-├── #trip-detail-overlay (modal for trip view)
-└── #footer
+User Input → detectCity() → addMessage(user)
+  → POST /api/chat {messages: [...], city: detectCity() || currentCity}
+  → Backend: _handle_chat()
+    → _match_faq(user_text) — optional FAQ expansion
+    → _build_system_prompt(city, faq_match) — inject knowledge base
+    → POST DeepSeek API (SSE stream)
+    → Stream response with _yield_with_images() processing
+      → ---SPLIT--- markers → split event
+      → [img:city_key] markers → image event
+      → regular text → token event
+  → Frontend: SSE reader processes events
+    → token → currentBubble += token
+    → split → commit bubble, start new
+    → image → insert image bubble
+    → done → commit final bubbles
 ```
 
----
+### Image Resolution
 
-## 9. Data Flow
+AI outputs `[img:beijing]` or `[img:food-chengdu]` in stream. Backend resolves:
+1. `{key}.jpg` (exact match)
+2. `city-{key}.jpg` (city photo)
+3. `food-{key}.jpg` (food photo)
+→ Found: emit `image` event → Frontend renders inline
+→ Not found: emit `token` with `[Label]` text fallback
+
+## 8. Frontend / UI Component Map
 
 ```
-User types message
-  → detectCity() checks for city names in input
-  → Send message + city to /api/chat
-    → API builds system prompt with city knowledge
-    → DeepSeek V4 Flash generates SSE stream
-    → Frontend renders markdown tokens in real-time
-  → After response completes:
-    → autoSaveTrip() detects if it's an itinerary (Day markers)
-    → If yes: saves to localStorage, shows "Saved!" note
-    → updateSuggestions() refreshes chips based on context
+App (VP IIFE)
+├── Header
+│   ├── Nav bar (desktop): Home, Chat, Map, Cities
+│   ├── Version badge (v3.0.8)
+│   └── Theme toggle (🌙/☀️)
+├── Views
+│   ├── view-home: Hero + City cards grid (top 8)
+│   ├── view-chat: Full chat container + input
+│   ├── view-map: Full China overview (AMap/Leaflet)
+│   ├── view-trips: Saved itineraries list
+│   ├── view-cities: All 36 city cards grid
+│   └── view-tools: Travel toolkit cards
+├── Overlays
+│   ├── chat-overlay (mobile): Slide-up chat panel
+│   ├── city-detail-overlay: City modal with sections
+│   └── city-detail-panel: Detail sections
+├── Chat Container
+│   ├── Messages (msg-user, msg-bot, msg-image)
+│   ├── Multi-bubble rendering (bubble-spacer)
+│   └── Typing indicator + stop button
+├── Bottom Nav (mobile): Home/Chat/Map/Trips/Tools
+└── Footer: Version + clear chat
 ```
 
----
+## 9. Dependencies
 
-## 10. Next Steps (Phase 4+)
+| Layer | Technology | Version |
+|-------|-----------|---------|
+| Backend | Python 3.11 (stdlib only) | — |
+| Frontend | Vanilla JS + CSS3 + HTML5 | — |
+| LLM | DeepSeek V4 Flash | `deepseek-chat` |
+| Maps | AMap JS API v2 / Leaflet + CartoDB dark | — |
+| Deployment | Vercel Serverless | `@vercel/python` |
+| Images | Wikimedia Commons (CC-licensed) | 27 city JPEGs |
 
-| Priority | Feature | Complexity | Notes |
-|----------|---------|------------|-------|
-| 🔴 | **Knowledge expansion** (36→50+ cities) | Medium | Need data for ~20 more cities + POI coordinates |
-| 🔴 | **Server-side trip persistence** | Medium | Move from localStorage to JSON project DB or Supabase |
-| 🟡 | **Trip comparison** (2-3 itineraries side by side) | Medium | Chat refinement feature |
-| 🟡 | **Social sharing** (Twitter/X,小红书 format export) | Low | Format itinerary text for social platforms |
-| 🟡 | **PWA** (offline, service worker, manifest) | Medium | Use existing `static/sw.js` as base |
-| 🟢 | **More map POIs** (remaining cities) | Low | Add coordinates and POIs to MAP_DATA |
-| 🟢 | **City food images** (static/img/food-*.jpg for more cities) | Low | Currently only 4 cities have food photos |
-| 🟢 | **i18n** (Chinese language mode) | Medium | Toggle between EN/CN interfaces |
+Zero pip dependencies. Pure Python stdlib for backend (`urllib`, `json`, `os`, `re`, `ssl`, `pathlib`).
 
-### Quick Wins (can be done in 1 iteration)
-1. Add remaining 28 city coordinates + basic POIs
-2. Fix README.md to reflect current v3.0.1 state (it's still showing "To Build")
-3. Update DESIGN.md for v3.0.1 design system
+## 10. Next Steps
 
----
+| Pri | Feature | Complexity | Notes |
+|:---:|---------|:----------:|-------|
+| 🟡 | **Fill remaining 9 city images** — huangshan, jiuzhaigou, lanzhou, guiyang, xining, hohhot, nanchang, yunnan, zhangjiajie | Low | Failed during v3.0.7 batch due to Wikimedia rate limiting |
+| 🟡 | **Expand ESTIMATE_DATA to all 36 cities** — Only 7 have pricing info | Low | Add budget/mid/luxury ranges for remaining cities |
+| 🟢 | **PWA support** — manifest.json exists (`static/manifest.json`), sw.js exists. Need to wire up service worker registration | Medium | Improve offline UX |
+| 🟢 | **Trip sharing** — Export itinerary as text card / shareable link | Medium | Social sharing feature |
+| 🟢 | **Expand knowledge base** — 36 → 50+ cities | Medium | More coverage |
+| 🟢 | **WeChat Mini Program / Telegram Bot** | High | Cross-platform expansion |
+| 🟢 | **Update docstring** — api/index.py line 2 says v3.0.5, should match actual | Trivial | Cosmetic |
 
 ## 11. Troubleshooting
 
 | Problem | Cause | Fix |
 |---------|-------|-----|
-| Vercel deploy fails | .python-version != vercel.json runtime | Keep both at 3.12 |
-| Chat returns empty | DeepSeek API key not set | Check Vercel env vars for LLM_API_KEY |
-| City images not showing | Path mismatch | Images at `static/img/city-{name}.jpg`, served as `/static/img/...` |
-| Map not rendering | Leaflet CDN blocked | Check browser console; may need fallback CDN |
-| Trip not auto-saving | Content doesn't match itinerary pattern | Check regex: `/\*\*Day \d+|Day \d+:/i` |
-| Git push fails (HTTPS timeout) | China GFW blocks GitHub HTTPS | Use SSH: `git@github.com:JTCAO515/vise-panda-2.git` |
-
----
+| Git push hangs/timeout | SSH upload of 60MB+ image files is slow | `GIT_SSH_COMMAND="ssh -o ServerAliveInterval=120" git push origin main` or retry |
+| Vercel HTTPS checkout fails | HTTPS git auth needs token | Use SSH remote: `git@github.com:JTCAO515/vise-panda-2.git` |
+| AMap not loading | Missing `AMAP_KEY` or `AMAP_SECURITY_CODE` env vars | Check Vercel env vars; app falls back to Leaflet |
+| Chat response empty | LLM API key missing or expired | Check `LLM_API_KEY` in Vercel env |
+| City image not showing | AI used `[img:unknown_city]` where no image exists | Backend falls back to text label `[City Name]` |
 
 ## 12. References
 
-- **PRD + Strategy:** `PRD_PRODUCT_ANALYSIS.md` (19KB — strategic canvas, competitive analysis, opportunity tree)
-- **Iteration Plan:** `PLAN.md` (6KB — full roadmap with all 15 iterations)
-- **Design System:** CSS variables in `web/app.css` (dark + light themes)
-- **Popular Design References:** Hermes skill `popular-web-designs` (54 design systems: Linear, Vercel, Stripe, etc.)
-- **Vercel Python Deployment:** Hermes skill `vercel-python-deployment`
+| Resource | Link |
+|----------|------|
+| Live site | https://www.go2china.space |
+| GitHub repo | `git@github.com:JTCAO515/vise-panda-2.git` |
+| DeepSeek API | https://api.deepseek.com |
+| AMap (Gaode) | https://console.amap.com/ |
+| Vercel dashboard | https://vercel.com/jtcao515/vise-panda-2 |
+| Design reference | Linear, Vercel, Stripe design systems |
+| CHANGELOG | `CHANGELOG.md` — full version history |
+| PLAN | `PLAN.md` — iteration roadmap |
+| PRD | `PRD_PRODUCT_ANALYSIS.md` — product strategy |
 
 ---
 
-*End of Handoff. For questions, check `PLAN.md` or search session history for "VisePanda".*
+*End of Handoff. To resume: `cd ~/projects/vise-panda-2`, then send "HANDOFF.md" to resume from this snapshot.*
