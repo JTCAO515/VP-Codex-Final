@@ -179,8 +179,10 @@ body{
 }
 .hero-bg{
   position:absolute;inset:0;
-  background:radial-gradient(ellipse at 50% 0%,rgba(188,58,44,.08) 0%,transparent 60%),
-              radial-gradient(ellipse at 80% 100%,rgba(201,169,110,.05) 0%,transparent 50%);
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(188,58,44,.08) 0%,transparent 60%),
+    radial-gradient(ellipse at 80% 100%,rgba(201,169,110,.05) 0%,transparent 50%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 400'%3E%3Cpath d='M0,300 C200,250 300,350 500,280 C700,210 800,320 1000,260 C1100,230 1150,250 1200,240 L1200,400 L0,400Z' fill='rgba(255,255,255,.015)'/%3E%3Cpath d='M0,340 C150,310 250,360 400,320 C550,280 650,350 800,310 C950,270 1050,330 1200,300 L1200,400 L0,400Z' fill='rgba(255,255,255,.008)'/%3E%3C/svg%3E") no-repeat bottom/100%;
   pointer-events:none;
 }
 .hero-content{position:relative;z-index:1;max-width:640px;margin:0 auto}
@@ -228,20 +230,30 @@ body{
 }
 
 .city-card{
+  position:relative;
   background:var(--bg-surface);
   border:1px solid var(--border-default);
   border-radius:var(--radius-xl);
   padding:18px;
   transition:all .2s;
   cursor:pointer;
-  min-height:140px;
+  min-height:180px;
+  display:flex;flex-direction:column;justify-content:space-between;
+  overflow:hidden;
 }
 .city-card:hover{
-  background:var(--bg-elevated);
   border-color:var(--accent-gold-soft);
-  transform:translateY(-2px);
-  box-shadow:var(--shadow-card);
+  transform:translateY(-3px);
+  box-shadow:var(--shadow-elevated);
 }
+.city-card:hover .city-emoji{transform:scale(1.15)}
+.city-card-top{display:flex;align-items:flex-start;justify-content:space-between}
+.city-emoji{font-size:32px;transition:transform .2s;line-height:1}
+.city-card-bottom{position:relative;z-index:1}
+.city-name{font-size:16px;font-weight:600;margin-bottom:1px}
+.city-sub{font-size:12px;color:var(--text-muted);margin-bottom:2px}
+.city-meta{font-size:11px;color:var(--text-dim)}
+.city-vibe{font-size:11px;color:var(--accent-gold);margin-top:4px;font-weight:500}
 
 /* ─── Tool Cards ─── */
 .tools-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}

@@ -238,26 +238,35 @@ def _build_system_prompt(params: dict) -> str:
 def _handle_cities(start_response, path: str):
     """GET /api/cities — list all cities. GET /api/cities/:city — city detail."""
     cities = _load_json(DATA_DIR / "cities.json")
+    food = _load_json(DATA_DIR / "food.json") or {}
+    hotels = _load_json(DATA_DIR / "hotels.json") or {}
+    tips = _load_json(DATA_DIR / "tips.json") or {}
     if cities is None:
         return _json_error(start_response, "City data not found")
 
     parts = path.strip("/").split("/")
     if len(parts) == 2:  # /api/cities
-        # Return summary: name + brief info
+        # Return summary with highlights
         summary = {}
         for name, info in cities.items():
             summary[name] = {
                 "name_cn": info.get("name_cn", ""),
                 "best_season": info.get("best_season", ""),
                 "days": info.get("days", ""),
-                "highlights": info.get("highlights", [])[:3],
-                "image": f"/static/img/city-{name.lower()}.jpg",
+                "vibe": info.get("vibe", ""),
+                "highlights": info.get("highlights", []),
+                "image": info.get("image", ""),
+                "budget_tip": info.get("budget_tip", ""),
             }
         return _json(start_response, {"cities": summary})
     elif len(parts) == 3:  # /api/cities/beijing
         city_name = parts[2]
         if city_name in cities:
-            return _json(start_response, {"city": cities[city_name]})
+            detail = dict(cities[city_name])
+            detail["food"] = food.get(city_name, [])
+            detail["hotels"] = hotels.get(city_name, {})
+            detail["tips"] = tips.get(city_name, [])
+            return _json(start_response, {"city": detail})
         return _json_error(start_response, f"City '{city_name}' not found", "404 Not Found")
     return _json_error(start_response, "Not found", "404 Not Found")
 

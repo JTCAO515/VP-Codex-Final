@@ -1,1 +1,1096 @@
-{}
+{
+  "packing": {
+    "name": "Packing Checklist",
+    "desc": "What to pack by season and trip type",
+    "data": {
+      "essentials": {
+        "title": "📄 必备证件 (Essential Documents)",
+        "items": [
+          [
+            "护照 (原件+复印件)",
+            "Passport (original + photocopy)",
+            true
+          ],
+          [
+            "签证 (打印版)",
+            "Visa (printed copy)",
+            true
+          ],
+          [
+            "酒店预订确认单",
+            "Hotel booking confirmations",
+            true
+          ],
+          [
+            "机票/火车票电子票",
+            "Flight/train e-tickets",
+            true
+          ],
+          [
+            "旅行保险单",
+            "Travel insurance policy",
+            false
+          ],
+          [
+            "护照照片 (2张备用)",
+            "Passport photos (2 spare)",
+            false
+          ],
+          [
+            "国际驾照翻译件",
+            "International Driving Permit",
+            false
+          ]
+        ]
+      },
+      "spring": {
+        "title": "🌸 春季 (3-5月)",
+        "items": [
+          [
+            "薄外套/风衣",
+            "Light jacket / trench coat",
+            true
+          ],
+          [
+            "长袖T恤+牛仔裤",
+            "Long-sleeve shirts + jeans",
+            true
+          ],
+          [
+            "舒适运动鞋",
+            "Comfortable walking shoes",
+            true
+          ],
+          [
+            "雨伞/折叠雨衣",
+            "Umbrella / packable raincoat",
+            true
+          ],
+          [
+            "薄围巾 (防早晚凉)",
+            "Light scarf (for cool mornings/evenings)",
+            false
+          ],
+          [
+            "花粉过敏药",
+            "Allergy medication (pollen)",
+            false
+          ]
+        ]
+      },
+      "summer": {
+        "title": "☀️ 夏季 (6-8月)",
+        "items": [
+          [
+            "短袖T恤 (多带几件)",
+            "T-shirts (pack extra — you'll sweat through them)",
+            true
+          ],
+          [
+            "薄长裤/短裤",
+            "Light pants / shorts",
+            true
+          ],
+          [
+            "防晒霜 SPF50+",
+            "Sunscreen SPF50+",
+            true
+          ],
+          [
+            "遮阳帽+太阳镜",
+            "Sun hat + sunglasses",
+            true
+          ],
+          [
+            "便携小风扇",
+            "Portable mini fan",
+            false
+          ],
+          [
+            "防蚊液",
+            "Mosquito repellent",
+            true
+          ],
+          [
+            "速干毛巾",
+            "Quick-dry towel",
+            false
+          ],
+          [
+            "水壶 (保持补水)",
+            "Reusable water bottle",
+            false
+          ]
+        ]
+      },
+      "autumn": {
+        "title": "🍂 秋季 (9-11月)",
+        "items": [
+          [
+            "薄毛衣/卫衣",
+            "Light sweater / hoodie",
+            true
+          ],
+          [
+            "夹克/冲锋衣",
+            "Jacket / windbreaker",
+            true
+          ],
+          [
+            "长裤+牛仔裤",
+            "Long pants + jeans",
+            true
+          ],
+          [
+            "舒适徒步鞋",
+            "Comfortable walking/hiking shoes",
+            true
+          ],
+          [
+            "围巾",
+            "Scarf",
+            false
+          ],
+          [
+            "保湿护肤品",
+            "Moisturizer (air gets dry)",
+            false
+          ]
+        ]
+      },
+      "winter": {
+        "title": "❄️ 冬季 (12-2月)",
+        "items": [
+          [
+            "羽绒服/厚大衣",
+            "Down jacket / heavy coat",
+            true
+          ],
+          [
+            "保暖内衣 (打底)",
+            "Thermal underwear (base layer)",
+            true
+          ],
+          [
+            "厚毛衣/羊毛衫",
+            "Thick sweater / wool sweater",
+            true
+          ],
+          [
+            "手套+帽子+围巾",
+            "Gloves + hat + scarf",
+            true
+          ],
+          [
+            "保暖靴/防滑鞋",
+            "Warm boots / non-slip shoes",
+            true
+          ],
+          [
+            "暖宝宝贴",
+            "Hand warmers / heat packs",
+            false
+          ],
+          [
+            "润唇膏+护手霜",
+            "Lip balm + hand cream",
+            true
+          ],
+          [
+            "保温杯",
+            "Thermos / insulated bottle",
+            false
+          ]
+        ]
+      },
+      "beach": {
+        "title": "🏖️ 海边度假",
+        "items": [
+          [
+            "泳衣/泳裤",
+            "Swimsuit / trunks",
+            true
+          ],
+          [
+            "沙滩拖鞋",
+            "Flip-flops / sandals",
+            true
+          ],
+          [
+            "防晒霜 (防水型)",
+            "Water-resistant sunscreen",
+            true
+          ],
+          [
+            "防水手机袋",
+            "Waterproof phone pouch",
+            false
+          ],
+          [
+            "沙滩巾",
+            "Beach towel",
+            false
+          ],
+          [
+            "墨镜+遮阳帽",
+            "Sunglasses + sun hat",
+            true
+          ],
+          [
+            "防水包",
+            "Waterproof bag",
+            false
+          ]
+        ]
+      },
+      "hiking": {
+        "title": "⛰️ 户外徒步/登山",
+        "items": [
+          [
+            "登山鞋 (防滑防水)",
+            "Hiking boots (waterproof, grippy)",
+            true
+          ],
+          [
+            "冲锋衣/防风外套",
+            "Waterproof jacket / shell",
+            true
+          ],
+          [
+            "速干衣裤",
+            "Quick-dry shirt + pants",
+            true
+          ],
+          [
+            "登山杖",
+            "Trekking poles",
+            false
+          ],
+          [
+            "头灯/手电筒",
+            "Headlamp / flashlight",
+            false
+          ],
+          [
+            "急救包",
+            "First aid kit",
+            true
+          ],
+          [
+            "高热量零食 (能量棒)",
+            "High-energy snacks (protein bars)",
+            true
+          ],
+          [
+            "水袋/大容量水壶",
+            "Hydration pack / large water bottle",
+            true
+          ]
+        ]
+      },
+      "business": {
+        "title": "💼 商务出行",
+        "items": [
+          [
+            "正装/西装 (一套)",
+            "Business suit (one set)",
+            true
+          ],
+          [
+            "皮鞋",
+            "Formal shoes",
+            true
+          ],
+          [
+            "熨烫便携器",
+            "Portable steamer/iron",
+            false
+          ],
+          [
+            "名片 (中英文)",
+            "Business cards (Chinese + English)",
+            false
+          ],
+          [
+            "笔记本电脑+充电器",
+            "Laptop + charger",
+            true
+          ],
+          [
+            "转换插头 (中国标准)",
+            "Travel adapter (China: Type A/I, 220V)",
+            true
+          ],
+          [
+            "备用USB线",
+            "Spare USB cables",
+            false
+          ]
+        ]
+      },
+      "tech": {
+        "title": "📱 电子产品",
+        "items": [
+          [
+            "手机+充电器+数据线",
+            "Phone + charger + cable",
+            true
+          ],
+          [
+            "移动电源/充电宝(≤20000mAh)",
+            "Power bank (≤20000mAh — flight safe)",
+            true
+          ],
+          [
+            "转换插头 (中国用)",
+            "Travel adapter for China",
+            true
+          ],
+          [
+            "耳机/耳塞",
+            "Headphones / earplugs",
+            false
+          ],
+          [
+            "相机",
+            "Camera (optional)",
+            false
+          ],
+          [
+            "VPN已安装 (非常重要!)",
+            "VPN installed on phone (essential!)",
+            true
+          ],
+          [
+            "手机SIM卡槽针",
+            "SIM ejector tool",
+            false
+          ]
+        ]
+      },
+      "health": {
+        "title": "💊 药品/健康",
+        "items": [
+          [
+            "常用药: 感冒药+止泻药+止痛药",
+            "Basic meds: cold meds, anti-diarrhea, painkillers",
+            true
+          ],
+          [
+            "创可贴+消毒棉片",
+            "Band-aids + antiseptic wipes",
+            true
+          ],
+          [
+            "晕车药 (如需)",
+            "Motion sickness meds (if needed)",
+            false
+          ],
+          [
+            "个人处方药 (带足量)",
+            "Personal prescription meds (bring enough)",
+            true
+          ],
+          [
+            "口罩 (备几个)",
+            "Face masks (a few spares)",
+            false
+          ],
+          [
+            "体温计",
+            "Thermometer",
+            false
+          ],
+          [
+            "维生素C/泡腾片",
+            "Vitamin C / effervescent tablets",
+            false
+          ]
+        ]
+      }
+    }
+  },
+  "pricing": {
+    "name": "Price Estimates",
+    "desc": "Transport, food, and accommodation costs",
+    "data": {
+      "故宫": 60,
+      "长城": 45,
+      "天坛": 15,
+      "颐和园": 30,
+      "兵马俑": 120,
+      "大熊猫基地": 55,
+      "都江堰": 80,
+      "西湖": 0,
+      "灵隐寺": 75,
+      "鼓浪屿": 0,
+      "黄鹤楼": 70,
+      "嵩山少林": 100,
+      "张家界": 225,
+      "黄山": 190,
+      "九寨沟": 169,
+      "莫高窟": 238,
+      "青海湖": 0,
+      "布达拉宫": 200,
+      "玉龙雪山": 100,
+      "高铁_每100km": 45,
+      "飞机_国内": 500,
+      "地铁_次": 4,
+      "打车_起步": 12,
+      "打车_perkm": 2.5,
+      "青旅_晚": 80,
+      "快捷_晚": 200,
+      "精品_晚": 400,
+      "五星_晚": 1000,
+      "早餐": 15,
+      "午餐": 40,
+      "晚餐_普通": 60,
+      "晚餐_豪华": 200,
+      "小吃_次": 20,
+      "饮料_杯": 15
+    }
+  },
+  "visa": {
+    "name": "China Visa Guide",
+    "desc": "Visa types, requirements, application process",
+    "data": {
+      "visa_free_transit_144h": {
+        "name": "144小时过境免签",
+        "eligible": "53个国家公民（含美/英/法/德/澳/日/韩等）",
+        "cities": "北京/上海/广州/深圳/成都/重庆/西安/昆明/杭州等20+城市",
+        "duration": "144小时（6天）",
+        "conditions": [
+          "持有前往第三国的联程机票/车票",
+          "在指定城市区域内活动（不可出该省/直辖市）",
+          "需从该城市的特定口岸入境",
+          "必须从入境口岸所在省/直辖市的同一口岸出境"
+        ],
+        "how_to_apply": "到达口岸后填写《临时入境申请表》，边检审批"
+      },
+      "visa_free_hainan": {
+        "name": "海南免签",
+        "eligible": "59个国家公民",
+        "duration": "30天",
+        "conditions": [
+          "仅限在海南省行政区域内活动",
+          "可从海南所有对外开放口岸入境"
+        ],
+        "note": "适合专程去海南度假的旅客"
+      },
+      "tourist_visa_l": {
+        "name": "L字旅游签证",
+        "eligible": "所有国家",
+        "duration": "30-90天（单次/多次）",
+        "how_to_apply": [
+          "在中国驻外使领馆申请",
+          "需提供护照原件、照片、往返机票、酒店预订",
+          "部分国家可通过旅行社代办（省心）",
+          "费用约¥700-1000（因国家而异）"
+        ],
+        "processing_time": "4-7个工作日",
+        "tip": "建议提前1-2个月申请，旅游旺季可能更久"
+      },
+      "visa_free_hong_kong": {
+        "name": "香港/澳门入境",
+        "eligible": "大部分国家免签7-90天不等",
+        "note": "香港和澳门的签证政策与中国大陆不同，通常更宽松",
+        "tip": "从香港/澳门入境大陆仍需办理中国签证（除非符合144h过境条件）"
+      },
+      "apr_recommendations": [
+        "⭐ 短期旅行(1-6天) → 144小时过境免签（省钱省时间）",
+        "⭐ 专程度假 → 海南免签30天（海滩+免税购物）",
+        "⭐ 探亲/深度游(7-30天) → L字旅游签证（申请需要时间）",
+        "⭐ 同时游香港/澳门+大陆 → 先飞香港(免签)→再进大陆(144h免签)→香港出境"
+      ],
+      "important_notes": [
+        "签证政策可能随时调整，出行前务必确认最新信息",
+        "所有外国人在中国大陆必须随身携带护照原件",
+        "住宿：酒店必须登记外国人信息（所有涉外酒店均可）",
+        "高铁/飞机：外国人可以买票，建议提前网上购票（12306英文版）",
+        "货币：微信/支付宝可绑定Visa/Mastercard，但需在入境后操作",
+        "通讯：建议购买中国联通/移动的临时SIM卡（机场可买）",
+        "VPN：访问Google/Instagram/Facebook需要VPN，提前安装好"
+      ]
+    }
+  },
+  "phrases": {
+    "name": "Useful Chinese Phrases",
+    "desc": "Essential phrases for travelers",
+    "data": {
+      "taxi": {
+        "title_zh": "🚕 打车",
+        "title_en": "Taxi / Ride-hailing",
+        "icon": "🚕",
+        "phrases": [
+          [
+            "请带我去这个地址",
+            "qǐng dài wǒ qù zhè ge dì zhǐ",
+            "Please take me to this address"
+          ],
+          [
+            "打表吗？",
+            "dǎ biǎo ma?",
+            "Do you use the meter?"
+          ],
+          [
+            "前面路口停就可以了",
+            "qián miàn lù kǒu tíng jiù kě yǐ le",
+            "You can stop at the intersection ahead"
+          ],
+          [
+            "我要去机场/火车站",
+            "wǒ yào qù jī chǎng / huǒ chē zhàn",
+            "I need to go to the airport / train station"
+          ],
+          [
+            "多少钱？",
+            "duō shǎo qián?",
+            "How much is it?"
+          ],
+          [
+            "可以用支付宝/微信支付吗？",
+            "kě yǐ yòng zhī fù bǎo / wēi xìn zhī fù ma?",
+            "Can I pay with Alipay / WeChat Pay?"
+          ],
+          [
+            "请开一下后备箱",
+            "qǐng kāi yī xià hòu bèi xiāng",
+            "Please open the trunk"
+          ],
+          [
+            "我赶时间，能开快一点吗？",
+            "wǒ gǎn shí jiān, néng kāi kuài yī diǎn ma?",
+            "I'm in a hurry, can you drive faster?"
+          ]
+        ]
+      },
+      "dining": {
+        "title_zh": "🍜 点餐",
+        "title_en": "Ordering Food",
+        "icon": "🍜",
+        "phrases": [
+          [
+            "有英文菜单吗？",
+            "yǒu yīng wén cài dān ma?",
+            "Do you have an English menu?"
+          ],
+          [
+            "有什么推荐的？",
+            "yǒu shén me tuī jiàn de?",
+            "What do you recommend?"
+          ],
+          [
+            "我不要辣的",
+            "wǒ bù yào là de",
+            "I don't want it spicy"
+          ],
+          [
+            "我对花生/海鲜过敏",
+            "wǒ duì huā shēng / hǎi xiān guò mǐn",
+            "I'm allergic to peanuts / seafood"
+          ],
+          [
+            "请给我一双筷子",
+            "qǐng gěi wǒ yī shuāng kuài zi",
+            "Please give me a pair of chopsticks"
+          ],
+          [
+            "买单 / 结账",
+            "mǎi dān / jié zhàng",
+            "Check, please"
+          ],
+          [
+            "打包",
+            "dǎ bāo",
+            "Takeaway / To go"
+          ],
+          [
+            "分开付",
+            "fēn kāi fù",
+            "Separate checks, please"
+          ]
+        ]
+      },
+      "directions": {
+        "title_zh": "🗺️ 问路",
+        "title_en": "Asking Directions",
+        "icon": "🗺️",
+        "phrases": [
+          [
+            "请问这里怎么走？",
+            "qǐng wèn zhè lǐ zěn me zǒu?",
+            "How do I get here?"
+          ],
+          [
+            "附近有地铁站吗？",
+            "fù jìn yǒu dì tiě zhàn ma?",
+            "Is there a subway station nearby?"
+          ],
+          [
+            "步行过去要多久？",
+            "bù xíng guò qù yào duō jiǔ?",
+            "How long does it take to walk there?"
+          ],
+          [
+            "坐几路公交？",
+            "zuò jǐ lù gōng jiāo?",
+            "Which bus number should I take?"
+          ],
+          [
+            "我能用导航吗？",
+            "wǒ néng yòng dǎo háng ma?",
+            "Can I use navigation here? (Google Maps is blocked in China)"
+          ],
+          [
+            "请在地图上指给我看",
+            "qǐng zài dì tú shàng zhǐ gěi wǒ kàn",
+            "Please show me on the map"
+          ],
+          [
+            "直走然后左转",
+            "zhí zǒu rán hòu zuǒ zhuǎn",
+            "Go straight then turn left"
+          ],
+          [
+            "在这个路口右转",
+            "zài zhè ge lù kǒu yòu zhuǎn",
+            "Turn right at this intersection"
+          ]
+        ]
+      },
+      "medical": {
+        "title_zh": "🏥 就医",
+        "title_en": "Medical / Emergency",
+        "icon": "🏥",
+        "phrases": [
+          [
+            "我不舒服，需要看医生",
+            "wǒ bù shū fu, xū yào kàn yī shēng",
+            "I feel unwell, I need to see a doctor"
+          ],
+          [
+            "最近的医院在哪里？",
+            "zuì jìn de yī yuàn zài nǎ lǐ?",
+            "Where is the nearest hospital?"
+          ],
+          [
+            "我发烧了",
+            "wǒ fā shāo le",
+            "I have a fever"
+          ],
+          [
+            "我肚子疼",
+            "wǒ dù zi téng",
+            "I have a stomachache"
+          ],
+          [
+            "我有保险",
+            "wǒ yǒu bǎo xiǎn",
+            "I have insurance"
+          ],
+          [
+            "请帮我叫救护车",
+            "qǐng bāng wǒ jiào jiù hù chē",
+            "Please call an ambulance"
+          ],
+          [
+            "我需要翻译",
+            "wǒ xū yào fān yì",
+            "I need an interpreter"
+          ],
+          [
+            "我受伤了",
+            "wǒ shòu shāng le",
+            "I'm injured"
+          ]
+        ]
+      },
+      "shopping": {
+        "title_zh": "🛍️ 购物",
+        "title_en": "Shopping",
+        "icon": "🛍️",
+        "phrases": [
+          [
+            "这个多少钱？",
+            "zhè ge duō shǎo qián?",
+            "How much is this?"
+          ],
+          [
+            "可以便宜一点吗？",
+            "kě yǐ pián yí yī diǎn ma?",
+            "Can you make it cheaper?"
+          ],
+          [
+            "可以试穿吗？",
+            "kě yǐ shì chuān ma?",
+            "Can I try it on?"
+          ],
+          [
+            "有更大/小号的吗？",
+            "yǒu gèng dà / xiǎo hào de ma?",
+            "Do you have a larger / smaller size?"
+          ],
+          [
+            "能退税吗？",
+            "néng tuì shuì ma?",
+            "Can I get a tax refund?"
+          ],
+          [
+            "我可以用信用卡吗？",
+            "wǒ kě yǐ yòng xìn yòng kǎ ma?",
+            "Can I use a credit card?"
+          ],
+          [
+            "我要这个",
+            "wǒ yào zhè ge",
+            "I'll take this one"
+          ],
+          [
+            "能帮忙包装成礼物吗？",
+            "néng bāng máng bāo zhuāng chéng lǐ wù ma?",
+            "Can you gift wrap it?"
+          ]
+        ]
+      },
+      "hotel": {
+        "title_zh": "🏨 酒店",
+        "title_en": "Hotel",
+        "icon": "🏨",
+        "phrases": [
+          [
+            "我预订了房间",
+            "wǒ yù dìng le fáng jiān",
+            "I have a reservation"
+          ],
+          [
+            "办理入住",
+            "bàn lǐ rù zhù",
+            "Check-in, please"
+          ],
+          [
+            "有Wi-Fi吗？密码是多少？",
+            "yǒu wi-fi ma? mì mǎ shì duō shǎo?",
+            "Is there Wi-Fi? What's the password?"
+          ],
+          [
+            "早餐几点开始？",
+            "zǎo cān jǐ diǎn kāi shǐ?",
+            "What time does breakfast start?"
+          ],
+          [
+            "可以延迟退房吗？",
+            "kě yǐ yán chí tuì fáng ma?",
+            "Can I do a late checkout?"
+          ],
+          [
+            "房间没有热水",
+            "fáng jiān méi yǒu rè shuǐ",
+            "There's no hot water in the room"
+          ],
+          [
+            "能帮我叫出租车吗？",
+            "néng bāng wǒ jiào chū zū chē ma?",
+            "Can you call a taxi for me?"
+          ],
+          [
+            "我需要多一条毛巾",
+            "wǒ xū yào duō yī tiáo máo jīn",
+            "I need one more towel"
+          ]
+        ]
+      },
+      "emergency": {
+        "title_zh": "🆘 紧急求助",
+        "title_en": "Emergency Help",
+        "icon": "🆘",
+        "phrases": [
+          [
+            "救命！",
+            "jiù mìng!",
+            "Help!"
+          ],
+          [
+            "报警电话是多少？",
+            "bào jǐng diàn huà shì duō shǎo?",
+            "What's the police number?"
+          ],
+          [
+            "拨打110 / 119 / 120",
+            "bō dǎ yī yī líng / yī yāo jiǔ / yī èr líng",
+            "Call 110 (police) / 119 (fire) / 120 (ambulance)"
+          ],
+          [
+            "我的护照丢了",
+            "wǒ de hù zhào diū le",
+            "I lost my passport"
+          ],
+          [
+            "我迷路了",
+            "wǒ mí lù le",
+            "I'm lost"
+          ],
+          [
+            "请帮我联系我的大使馆",
+            "qǐng bāng wǒ lián xì wǒ de dà shǐ guǎn",
+            "Please contact my embassy"
+          ],
+          [
+            "我被偷了",
+            "wǒ bèi tōu le",
+            "I've been robbed"
+          ],
+          [
+            "我遇到了麻烦",
+            "wǒ yù dào le má fan",
+            "I'm in trouble"
+          ]
+        ]
+      },
+      "transit": {
+        "title_zh": "🚇 公共交通",
+        "title_en": "Public Transit",
+        "icon": "🚇",
+        "phrases": [
+          [
+            "地铁票怎么买？",
+            "dì tiě piào zěn me mǎi?",
+            "How do I buy a subway ticket?"
+          ],
+          [
+            "到...多少钱？",
+            "dào ... duō shǎo qián?",
+            "How much to go to ...?"
+          ],
+          [
+            "在哪一站下车？",
+            "zài nǎ yī zhàn xià chē?",
+            "Which stop should I get off at?"
+          ],
+          [
+            "换乘站在哪里？",
+            "huàn chéng zhàn zài nǎ lǐ?",
+            "Where is the transfer station?"
+          ],
+          [
+            "末班车是几点？",
+            "mò bān chē shì jǐ diǎn?",
+            "What time is the last train?"
+          ],
+          [
+            "这个座位有人吗？",
+            "zhè ge zuò wèi yǒu rén ma?",
+            "Is this seat taken?"
+          ],
+          [
+            "可以用交通卡吗？",
+            "kě yǐ yòng jiāo tōng kǎ ma?",
+            "Can I use a transit card?"
+          ],
+          [
+            "我要充值交通卡",
+            "wǒ yào chōng zhí jiāo tōng kǎ",
+            "I need to top up my transit card"
+          ]
+        ]
+      }
+    }
+  },
+  "emergency": {
+    "name": "Emergency Info",
+    "desc": "Emergency contacts and procedures in China",
+    "data": {
+      "phone": {
+        "police": {
+          "number": "110",
+          "description": "Police (报警) — theft, assault, robbery"
+        },
+        "fire": {
+          "number": "119",
+          "description": "Fire Department (火警)"
+        },
+        "ambulance": {
+          "number": "120",
+          "description": "Ambulance / Medical Emergency (急救)"
+        },
+        "traffic": {
+          "number": "122",
+          "description": "Traffic Accident (交通事故)"
+        },
+        "directory": {
+          "number": "114",
+          "description": "Directory Assistance (查号台)"
+        }
+      },
+      "common_emergencies": {
+        "lost_passport": {
+          "title": "护照丢失 (Lost Passport)",
+          "steps": [
+            "1. 立即去最近的派出所报案，拿到《护照遗失报案回执》",
+            "2. 去你国家的大使馆/领事馆申请旅行证 (Emergency Travel Document)",
+            "3. 去出入境管理局办理签证补办手续",
+            "4. 如果时间紧急，旅行证可以代替护照用于离境"
+          ],
+          "tip": "建议随身带护照复印件或存在手机里，补办时有用"
+        },
+        "medical_emergency": {
+          "title": "医疗急救 (Medical Emergency)",
+          "steps": [
+            "1. 拨打120叫救护车 (免费急救电话)",
+            "2. 告诉接线员你的位置和症状（可以说简单英文）",
+            "3. 大的三甲医院都有国际部/涉外门诊",
+            "4. 带护照去急诊挂号，先治疗后付费",
+            "5. 联系你的旅行保险公司"
+          ],
+          "tip": "北京协和医院国际部、上海华山医院、广州中山一院都有英文服务"
+        },
+        "arrested": {
+          "title": "被拘留/被捕 (Arrested/Detained)",
+          "steps": [
+            "1. 你有权联系你的大使馆 — 要求通知使馆",
+            "2. 不要签署你不明白的中文文件",
+            "3. 要求翻译 — 法律规定必须提供翻译",
+            "4. 联系你的旅行保险和法律援助"
+          ],
+          "tip": "中国签证规定：所有外国人在中国必须遵守中国法律，不知道法律不是借口"
+        },
+        "natural_disaster": {
+          "title": "自然灾害 (Natural Disaster)",
+          "steps": [
+            "1. 听从当地政府和景区工作人员的指示",
+            "2. 关注中国地震台网或当地天气预警",
+            "3. 联系你的大使馆登记你所在位置",
+            "4. 保持手机电量，使用离线地图"
+          ],
+          "tip": "日本/台湾游客来大陆最常遇到台风/地震，提前关注天气预报"
+        }
+      },
+      "embassies": {
+        "us": {
+          "country": "美国 (United States)",
+          "phone": "010-8531-3000",
+          "emergency": "010-8531-4000 (after hours)",
+          "address": "北京朝阳区安家楼路55号",
+          "website": "https://china.usembassy-china.org.cn",
+          "cities": [
+            "北京",
+            "上海",
+            "广州",
+            "成都",
+            "沈阳",
+            "武汉"
+          ]
+        },
+        "uk": {
+          "country": "英国 (United Kingdom)",
+          "phone": "010-8529-6600",
+          "emergency": "010-8529-6600 (24h)",
+          "address": "北京朝阳区建国门外光华路11号",
+          "website": "https://www.gov.uk/world/china",
+          "cities": [
+            "北京",
+            "上海",
+            "广州",
+            "重庆",
+            "武汉"
+          ]
+        },
+        "au": {
+          "country": "澳大利亚 (Australia)",
+          "phone": "010-5140-4111",
+          "emergency": "010-5140-4248",
+          "address": "北京朝阳区亮马河南路14号塔园外交办公楼",
+          "website": "https://china.embassy.gov.au",
+          "cities": [
+            "北京",
+            "上海",
+            "广州",
+            "成都"
+          ]
+        },
+        "ca": {
+          "country": "加拿大 (Canada)",
+          "phone": "010-5139-4000",
+          "emergency": "010-5139-4000",
+          "address": "北京朝阳区亮马桥路10号",
+          "website": "https://www.international.gc.ca/china",
+          "cities": [
+            "北京",
+            "上海",
+            "广州",
+            "重庆"
+          ]
+        },
+        "sg": {
+          "country": "新加坡 (Singapore)",
+          "phone": "010-6532-1115",
+          "emergency": "010-6532-1115",
+          "address": "北京朝阳区亮马桥路42号",
+          "website": "https://www.mfa.gov.sg/beijing",
+          "cities": [
+            "北京",
+            "上海",
+            "广州",
+            "厦门",
+            "成都"
+          ]
+        },
+        "de": {
+          "country": "德国 (Germany)",
+          "phone": "010-8532-9000",
+          "emergency": "010-8532-9000",
+          "address": "北京朝阳区亮马桥路52号",
+          "website": "https://china.diplo.de",
+          "cities": [
+            "北京",
+            "上海",
+            "广州",
+            "成都"
+          ]
+        },
+        "fr": {
+          "country": "法国 (France)",
+          "phone": "010-8531-2000",
+          "emergency": "010-8531-2000",
+          "address": "北京朝阳区亮马桥路47号",
+          "website": "https://cn.ambafrance.org",
+          "cities": [
+            "北京",
+            "上海",
+            "广州",
+            "成都"
+          ]
+        },
+        "jp": {
+          "country": "日本 (Japan)",
+          "phone": "010-6532-2361",
+          "emergency": "010-6532-2361",
+          "address": "北京朝阳区亮马桥路1号",
+          "website": "https://www.cn.emb-japan.go.jp",
+          "cities": [
+            "北京",
+            "上海",
+            "广州",
+            "青岛",
+            "重庆",
+            "沈阳"
+          ]
+        },
+        "kr": {
+          "country": "韩国 (South Korea)",
+          "phone": "010-8531-0700",
+          "emergency": "010-8531-0700",
+          "address": "北京朝阳区亮马桥路26号",
+          "website": "https://overseas.mofa.go.kr/cn-zh",
+          "cities": [
+            "北京",
+            "上海",
+            "广州",
+            "青岛",
+            "成都",
+            "西安"
+          ]
+        }
+      }
+    }
+  }
+}

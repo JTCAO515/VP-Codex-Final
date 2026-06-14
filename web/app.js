@@ -40,6 +40,17 @@ const VP = (function(){
     window.location.hash = view;
   }
 
+  // ── Focus chat on a city ──
+  function focusChat(city) {
+    const input = document.getElementById('chat-input');
+    if (input) {
+      input.value = `Plan a trip to ${city}`;
+      input.style.height = 'auto';
+      toggleSendButton(true);
+      input.focus();
+    }
+  }
+
   // ── Theme ──
   function toggleTheme() {
     const current = document.documentElement.getAttribute('data-theme');
@@ -91,12 +102,21 @@ const VP = (function(){
     entries.forEach(([name, info]) => {
       const card = document.createElement('div');
       card.className = 'city-card';
-      card.onclick = () => navigate('chat');
+      card.style.backgroundImage = info.image ? `linear-gradient(180deg, rgba(14,11,20,0.3) 0%, rgba(14,11,20,0.85) 100%), url(${info.image})` : '';
+      card.style.backgroundSize = 'cover';
+      card.style.backgroundPosition = 'center';
+      card.onclick = () => { navigate('chat'); focusChat(name); };
+      const emoji = getCityEmoji(name);
       card.innerHTML = `
-        <div style="font-size:28px;margin-bottom:8px">${getCityEmoji(name)}</div>
-        <div style="font-size:16px;font-weight:600;margin-bottom:2px">${name}</div>
-        <div style="font-size:12px;color:var(--text-muted)">${info.name_cn || ''}</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:4px">${info.best_season || ''} · ${info.days || ''}</div>
+        <div class="city-card-top">
+          <span class="city-emoji">${emoji}</span>
+        </div>
+        <div class="city-card-bottom">
+          <div class="city-name">${name}</div>
+          <div class="city-sub">${info.name_cn || ''}</div>
+          <div class="city-meta">${info.best_season || ''} · ${info.days || ''}</div>
+          ${info.vibe ? `<div class="city-vibe">${info.vibe}</div>` : ''}
+        </div>
       `;
       grid.appendChild(card);
     });
@@ -113,15 +133,20 @@ const VP = (function(){
     Object.entries(data.cities).forEach(([name, info]) => {
       const card = document.createElement('div');
       card.className = 'city-card';
+      if (info.image) {
+        card.style.backgroundImage = `linear-gradient(180deg, rgba(14,11,20,0.2) 0%, rgba(14,11,20,0.8) 100%), url(${info.image})`;
+        card.style.backgroundSize = 'cover';
+        card.style.backgroundPosition = 'center';
+      }
+      card.onclick = () => { navigate('chat'); focusChat(name); };
       card.innerHTML = `
-        <div style="font-size:32px;margin-bottom:8px">${getCityEmoji(name)}</div>
-        <div style="font-size:16px;font-weight:600">${name}</div>
-        <div style="font-size:12px;color:var(--text-muted)">${info.name_cn || ''}</div>
-        <div style="font-size:12px;color:var(--text-secondary);margin-top:6px">
-          ${info.highlights ? info.highlights.join(' · ') : ''}
-        </div>
-        <div style="font-size:11px;color:var(--text-dim);margin-top:4px">
-          ${info.best_season || ''} · ${info.days || ''}
+        <div class="city-card-top"><span class="city-emoji">${getCityEmoji(name)}</span></div>
+        <div class="city-card-bottom">
+          <div class="city-name">${name}</div>
+          <div class="city-sub">${info.name_cn || ''}</div>
+          <div class="city-meta">${info.best_season || ''} · ${info.days || ''}</div>
+          ${info.vibe ? `<div class="city-vibe">${info.vibe}</div>` : ''}
+          ${info.budget_tip ? `<div style="font-size:10px;color:var(--text-dim);margin-top:4px">${info.budget_tip}</div>` : ''}
         </div>
       `;
       grid.appendChild(card);
