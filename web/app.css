@@ -697,6 +697,39 @@ body{
 }
 .save-note a{color:var(--accent-gold);font-weight:600;text-decoration:underline}
 
+/* ═══ MULTI-BUBBLE & IMAGE SUPPORT (v3.0.6) ═══ */
+.bubble-spacer{
+  height:4px;
+}
+.msg-image .msg-text{
+  padding:0;
+  background:none;
+}
+.msg-image .chat-image{
+  display:block;
+  width:100%;
+  max-height:320px;
+  object-fit:cover;
+  border-radius:var(--radius-sm);
+  cursor:zoom-in;
+  transition:filter .2s,transform .2s;
+}
+.msg-image .chat-image:hover{
+  filter:brightness(1.08);
+  transform:scale(1.01);
+}
+.msg-image .msg-body{
+  max-width:min(480px,70vw);
+}
+/* Fade-in cascade for multi-bubble responses */
+.msg-assistant{
+  animation:bubbleIn .3s ease both;
+}
+@keyframes bubbleIn{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
 /* ── FAQ Match Badge ── */
 .faq-badge{
   display:inline-flex;align-items:center;gap:5px;

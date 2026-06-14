@@ -225,6 +225,44 @@ def _match_faq(user_text: str) -> dict | None:
     return None
 
 
+# ── Helper: handle [img:city] markers in streaming content ──
+def _yield_with_images(content):
+    """Process content for [img:city_key] markers, yield tokens and images."""
+    pattern = r'\[img:([a-z_]+)(?:\|([^\]]+))?\]'
+    parts = re.split(pattern, content)
+    static_img_dir = os.path.join(os.path.dirname(__file__), "..", "static", "img")
+    i = 0
+    while i < len(parts):
+        if parts[i]:
+            yield _sse_event(json.dumps({"token": parts[i]}))
+        i += 1
+        if i < len(parts):
+            key = parts[i]
+            label = parts[i + 1] if i + 1 < len(parts) else key.replace('_', ' ').title()
+            i += 2
+            # Try exact match first: img/{key}.jpg
+            # Then try city-{key}.jpg, food-{key}.jpg
+            candidates = [
+                f"{key}.jpg",
+                f"city-{key}.jpg",
+                f"food-{key}.jpg",
+            ]
+            found = None
+            for name in candidates:
+                p = os.path.join(static_img_dir, name)
+                if os.path.exists(p):
+                    found = f"/static/img/{name}"
+                    break
+            if found:
+                yield _sse_event(json.dumps({"image": {
+                    "key": key,
+                    "url": found,
+                    "label": label,
+                }}))
+            else:
+                yield _sse_event(json.dumps({"token": f"[{label}]"}))
+
+
 def _handle_chat(environ, start_response):
     """POST /api/chat — SSE streaming chat with DeepSeek V4 Flash."""
     if not DEEPSEEK_API_KEY:
@@ -303,7 +341,18 @@ def _handle_chat(environ, start_response):
                                 delta = data.get("choices", [{}])[0].get("delta", {})
                                 content = delta.get("content", "")
                                 if content:
-                                    yield _sse_event(json.dumps({"token": content}))
+                                    # Check for special markers in content
+                                    if "---SPLIT---" in content:
+                                        # Emit split event (strip the marker from tokens)
+                                        parts = content.split("---SPLIT---")
+                                        for i, part in enumerate(parts):
+                                            if part:
+                                                # Check for image markers in this part
+                                                yield from _yield_with_images(part)
+                                            if i < len(parts) - 1:
+                                                yield _sse_event(json.dumps({"split": True}))
+                                    else:
+                                        yield from _yield_with_images(content)
                             except (json.JSONDecodeError, KeyError, IndexError):
                                 pass
         except Exception as ex:
@@ -637,7 +686,7 @@ def _handle_config(start_response):
         "amap_key": amap_key if use_amap else "",
         "amap_security_code": amap_security if use_amap else "",
         "use_amap": use_amap,
-        "version": "3.0.5",
+        "version": "3.0.6",
     })
 
 
@@ -714,7 +763,7 @@ def app(environ, start_response):
     if path == "/api/health" and method == "GET":
         return _json(start_response, {
             "status": "alive",
-            "version": "3.0.5",
+            "version": "3.0.6",
             "build": "2026-06-15",
         })
 

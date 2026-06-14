@@ -1,6 +1,12 @@
 # Changelog
 
-## v3.0.5 (2026-06-14)
+## v3.0.6 (2026-06-14)
+- **🧩 Multi-Bubble Responses** — AI now splits answers into logical sections (`---SPLIT---`), each rendered as a separate chat bubble with fade-in animation
+- **🖼️ Rich Media Support** — `[img:city_key]` markers trigger inline city/food images between bubbles. Backend auto-routes to `city-*.jpg` or `food-*.jpg` from static assets
+- **🎯 Accuracy Upgrade** — System prompt rewritten: AI must cite specific names/prices/distances, explicitly reference knowledge base, and avoid vague generalizations
+- **💬 Streamlined SSE** — Backend emits `split` and `image` events in the SSE stream for real-time multi-bubble + image rendering
+- **✨ Bubble Animations** — New `bubbleIn` CSS animation, bubble-spacer elements, image zoom-on-hover effect
+- **📸 Image Fallback** — When no static image exists for a city key, gracefully renders as text label `[City]` instead of broken image
 - **📱 Mobile UX Overhaul** — Bottom nav bar (app-style tabs) on phones, replaces header nav
 - **💬 Chat Overlay Panel** — Chat opens as a slide-up panel on mobile instead of page switch
 - **⌨️ Keyboard-Safe Heights** — Replaced `100vh` with `100dvh` for chat containers

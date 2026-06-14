@@ -767,6 +767,9 @@ const VP = (function(){
       let buffer = '';
       let botContent = '';
       let doneReceived = false;
+      // Multi-bubble support
+      let bubbleParts = [];
+      let currentBubble = '';
 
       while (true) {
         const {done, value} = await reader.read();
@@ -784,8 +787,39 @@ const VP = (function(){
           try {
             const parsed = JSON.parse(data);
             if (parsed.token) {
-              botContent += parsed.token;
-              updateTyping(typingId, botContent);
+              currentBubble += parsed.token;
+              updateTyping(typingId, currentBubble);
+            } else if (parsed.split) {
+              // Commit current bubble and start a new one
+              if (currentBubble.trim()) {
+                bubbleParts.push(currentBubble);
+              }
+              currentBubble = '';
+              // Keep typing indicator connected — just clear and reset
+              removeMessage(typingId);
+              const newId = addTyping();
+              typingId = newId;
+              // Update typing with accumulated content
+              setTimeout(() => updateTyping(typingId, ''), 50);
+            } else if (parsed.image) {
+              // Insert an image bubble
+              const img = parsed.image;
+              const imgBubble = document.createElement('div');
+              imgBubble.className = 'msg msg-bot msg-image';
+              imgBubble.innerHTML = `
+                <div class="msg-avatar">🐼</div>
+                <div class="msg-body">
+                  <div class="msg-sender">VisePanda · ${img.label}</div>
+                  <div class="msg-text img-msg">
+                    <img src="${img.url}" alt="${img.label}" class="chat-image" loading="lazy" onclick="window.open('${img.url}')">
+                  </div>
+                </div>
+              `;
+              const container = document.getElementById('chat-messages');
+              if (container) {
+                container.appendChild(imgBubble);
+                container.scrollTop = container.scrollHeight;
+              }
             } else if (parsed.faq) {
               // FAQ match badge - show above the response
               const f = parsed.faq;
@@ -803,15 +837,36 @@ const VP = (function(){
         }
       }
 
+      // ── Commit final bubbles ──
       removeMessage(typingId);
-      if (botContent) {
-        addMessage(botContent, 'assistant');
-        state.messages.push({role: 'assistant', content: botContent});
+      // Add remaining current bubble
+      if (currentBubble.trim()) {
+        bubbleParts.push(currentBubble);
+      }
+
+      // Build combined content for state + auto-save
+      const combinedContent = bubbleParts.join('\n\n---\n\n');
+
+      if (bubbleParts.length > 0) {
+        // Render each bubble separately
+        bubbleParts.forEach((part, idx) => {
+          addMessage(part, 'assistant');
+          // Small delay between bubbles for visual cascade
+          if (idx < bubbleParts.length - 1) {
+            const container = document.getElementById('chat-messages');
+            if (container) {
+              const spacer = document.createElement('div');
+              spacer.className = 'bubble-spacer';
+              container.appendChild(spacer);
+              container.scrollTop = container.scrollHeight;
+            }
+          }
+        });
+        state.messages.push({role: 'assistant', content: combinedContent});
         saveMessages();
         // Auto-save if looks like an itinerary
-        const saved = autoSaveTrip(currentCity, botContent);
+        const saved = autoSaveTrip(currentCity, combinedContent);
         if (saved) {
-          // Add subtle save indicator
           const msgs = document.getElementById('chat-messages');
           if (msgs) {
             const saveNote = document.createElement('div');
