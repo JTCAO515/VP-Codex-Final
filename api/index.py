@@ -204,32 +204,105 @@ def _handle_chat(environ, start_response):
 
 
 def _build_system_prompt(params: dict) -> str:
-    """Build system prompt with optional city/tool knowledge context."""
-    city = params.get("city", "")
+    """Build system prompt with full knowledge base injection."""
+    city = params.get("city", "").lower()
     prompt_parts = [
-        "You are VisePanda, an AI China travel planning expert. Help users plan trips within China.",
+        "You are VisePanda, an expert AI China travel planner. You have a comprehensive knowledge base of 36 Chinese cities.",
         "",
-        "Your responses should be:",
-        "- Practical and actionable (specific prices, transport times, restaurant names)",
-        "- Structured with day-by-day itineraries when appropriate",
-        "- Culturally aware (local customs, peak seasons, weather considerations)",
-        "- Honest about what you know and don't know",
+        "## CORE RULES",
+        "- Always use specific, real information from your knowledge base (specific restaurant names, prices, districts)",
+        "- When suggesting itineraries, ALWAYS use the structured Day format below",
+        "- Be honest: say 'I don't have specific data on that' instead of making things up",
+        "- Consider seasonality, weather, and local holidays in your recommendations",
+        "- For food recommendations, include specific dish names in both English and Chinese",
+        "- Include practical tips: transport options, budget ranges, peak hours to avoid",
         "",
-        "When suggesting itineraries, use this format:",
+        "## ITINERARY FORMAT",
+        "When creating a day-by-day plan, use this exact format:",
+        "",
         "**Day 1: [Title]**",
-        "- 🕐 Morning: [activity] at [location]",
-        "- 🕐 Afternoon: [activity] at [location]",
-        "- 🕐 Evening: [activity] at [location]",
-        "- 🍽️ Eat: [specific restaurant/food]",
-        "- 💡 Tip: [local advice]",
+        "- 🕐 Morning: [activity] at [specific location]",
+        "- 🕐 Afternoon: [activity] at [specific location]",
+        "- 🕐 Evening: [activity] at [specific location]",
+        "- 🍽️ Eat: [specific dish] at [restaurant name] (¥[price])",
+        "- 🏨 Stay: [recommended area] - [budget/mid/luxury option]",
+        "- 💡 Tip: [local insider advice]",
+        "",
+        "**Day 2: [Title]**",
+        "...(same format)...",
+        "",
+        "## QUICK RECOMMENDATION FORMAT",
+        "For quick tips, use:",
+        "- 🏙️ **City**: [name] (best season: [season], recommended: [days])",
+        "- 🎯 Vibe: [description]",
+        "- 🍽️ Must eat: [dish] at [place] (¥[price])",
+        "- 💰 Budget tip: [advice]",
+        "- 🏨 Stay: [area] - [price range]",
         "",
     ]
+
+    # Inject city-specific knowledge if provided
     if city:
-        city_data = _load_json(DATA_DIR / "cities.json")
-        if city_data and city in city_data:
-            info = city_data[city]
-            prompt_parts.append(f"## Knowledge: {city}")
-            prompt_parts.append(json.dumps(info, ensure_ascii=False, indent=2))
+        city_data = _load_json(DATA_DIR / "cities.json") or {}
+        food_data = _load_json(DATA_DIR / "food.json") or {}
+        hotels_data = _load_json(DATA_DIR / "hotels.json") or {}
+        tips_data = _load_json(DATA_DIR / "tips.json") or {}
+
+        info = city_data.get(city)
+        if info:
+            prompt_parts.append(f"\n## KNOWLEDGE: {city.title()}")
+            prompt_parts.append(f"- Name (CN): {info.get('name_cn', '')}")
+            prompt_parts.append(f"- Province: {info.get('province', '')}")
+            prompt_parts.append(f"- Best season: {info.get('best_season', '')}")
+            prompt_parts.append(f"- Recommended stay: {info.get('days', '')}")
+            prompt_parts.append(f"- Vibe: {info.get('vibe', '')}")
+            prompt_parts.append(f"- Budget tip: {info.get('budget_tip', '')}")
+            kw = info.get('keywords', [])
+            if kw:
+                prompt_parts.append(f"- Keywords: {', '.join(kw[:6])}")
+
+            # Food
+            foods = food_data.get(city, [])
+            if foods:
+                prompt_parts.append(f"\n### Must-eat Foods in {city.title()}")
+                for f in foods[:6]:
+                    en = f.get('name_en', '')
+                    desc = f.get('description', '')
+                    price = f.get('price_range', '')
+                    must = '⭐ ' if f.get('must_try') else '   '
+                    prompt_parts.append(f"{must}{en} ({desc}) {price}")
+
+            # Hotels
+            h = hotels_data.get(city, {})
+            if h:
+                prompt_parts.append(f"\n### Accommodation in {city.title()}")
+                b = h.get('budget', {})
+                m = h.get('mid', {})
+                lx = h.get('luxury', {})
+                if b: prompt_parts.append(f"- Budget: {b.get('range','')} — {b.get('desc','')} ({b.get('areas','')})")
+                if m: prompt_parts.append(f"- Mid: {m.get('range','')} — {m.get('desc','')} ({m.get('areas','')})")
+                if lx: prompt_parts.append(f"- Luxury: {lx.get('range','')} — {lx.get('desc','')} ({lx.get('areas','')})")
+                if h.get('tip'): prompt_parts.append(f"- Tip: {h['tip']}")
+
+            # Tips
+            tips = tips_data.get(city, [])
+            if tips:
+                prompt_parts.append(f"\n### Local Tips for {city.title()}")
+                for t in tips[:4]:
+                    if isinstance(t, dict):
+                        prompt_parts.append(f"- {t.get('en','')}: {t.get('tip','')}")
+                    else:
+                        prompt_parts.append(f"- {t}")
+
+    # Add general recommendation guidance
+    prompt_parts.append("")
+    prompt_parts.append("## POPULAR CITY GUIDE (Quick Reference)")
+    prompt_parts.append("Use this to recommend cities based on user preferences:")
+    all_cities = _load_json(DATA_DIR / "cities.json") or {}
+    for name, info in list(all_cities.items())[:8]:
+        vibes = info.get('vibe', '').split('·')[0].strip() if info.get('vibe') else ''
+        season = info.get('best_season', '')[:20]
+        prompt_parts.append(f"- {name.title()}: {vibes} | Best: {season} | {info.get('days','')}")
 
     return "\n".join(prompt_parts)
 
@@ -258,7 +331,9 @@ def _handle_cities(start_response, path: str):
                 "days": info.get("days", ""),
                 "vibe": info.get("vibe", ""),
                 "highlights": info.get("highlights", []),
-                "image": info.get("image", ""),
+                "image": f"/static/img/city-{name}.jpg" if os.path.exists(
+                    os.path.join(os.path.dirname(__file__), "..", "static", "img", f"city-{name}.jpg")
+                ) else "",
                 "budget_tip": info.get("budget_tip", ""),
             }
         return _json(start_response, {"cities": summary})

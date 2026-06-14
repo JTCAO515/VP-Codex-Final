@@ -58,7 +58,6 @@ const VP = (function(){
     document.documentElement.setAttribute('data-theme', next);
     localStorage.setItem('vp_theme', next);
     state.theme = next;
-    // Update toggle icon
     const btn = document.querySelector('.theme-toggle');
     if (btn) btn.textContent = next === 'dark' ? '🌙' : '☀️';
   }
@@ -75,19 +74,62 @@ const VP = (function(){
     }
   }
 
-  async function apiPost(path, data) {
-    try {
-      const r = await fetch(path, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(data),
-      });
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      return r;
-    } catch (e) {
-      console.error(`API POST ${path}:`, e);
-      return null;
+  // ── City emoji helper ──
+  function getCityEmoji(name) {
+    const map = {
+      beijing:'🏯', shanghai:'🌃', chengdu:'🐼', guangzhou:'🥟',
+      shenzhen:'🌆', hangzhou:'🌊', xi_an:'🏛️', guilin:'🏞️',
+      chongqing:'🌉', kunming:'🌸', suzhou:'🏯', nanjing:'🏛️',
+      lhasa:'🏔️', hong_kong:'🌃', macau:'🎰',
+    };
+    return map[name.toLowerCase().replace(/ /g,'_')] || '🏙️';
+  }
+
+  // ── City tag extractor ──
+  function getCityTags(name, info) {
+    const tags = [];
+    const vibe = (info.vibe || '').toLowerCase();
+    if (vibe.includes('food') || vibe.includes('cuisine')) tags.push('🍜 Foodie');
+    else if (name === 'chengdu' || name === 'guangzhou') tags.push('🍜 Foodie');
+    if (vibe.includes('nature') || vibe.includes('mountain') || vibe.includes('scenery') || vibe === 'nature') tags.push('🏞️ Nature');
+    if (vibe.includes('history') || vibe.includes('ancient') || vibe.includes('culture')) tags.push('🏛️ History');
+    if (vibe.includes('modern') || vibe.includes('city')) tags.push('🌃 Urban');
+    if (vibe.includes('nightlife') || vibe.includes('vibrant')) tags.push('🌙 Nightlife');
+    if (vibe.includes('relax') || vibe.includes('chill')) tags.push('🧘 Relax');
+    if (!tags.length) tags.push('📍 Destination');
+    return tags.slice(0, 2);
+  }
+
+  // ── Create city card element ──
+  function createCityCard(name, info) {
+    const card = document.createElement('div');
+    card.className = 'city-card';
+    card.onclick = () => { navigate('chat'); focusChat(name); };
+
+    const emoji = getCityEmoji(name);
+    const hasImg = info.image ? true : false;
+    if (hasImg) card.classList.add('has-img');
+    const tags = getCityTags(name, info);
+
+    let imgHtml = '';
+    if (hasImg) {
+      imgHtml = `<img class="city-bg-img" src="${info.image}" alt="${name}" loading="lazy" onerror="this.parentElement.classList.remove('has-img');this.remove()">`;
     }
+
+    card.innerHTML = imgHtml + `
+      <div class="city-card-top">
+        <span class="city-emoji">${emoji}</span>
+      </div>
+      <div class="city-card-bottom">
+        <div class="city-name">${name}</div>
+        <div class="city-sub">${info.name_cn || ''}</div>
+        <div class="city-meta">${info.best_season || ''} · ${info.days || ''}</div>
+        ${info.vibe ? `<div class="city-vibe">${info.vibe}</div>` : ''}
+        ${tags.length ? `<div class="city-tags">${tags.map(t => `<span class="city-tag">${t}</span>`).join('')}</div>` : ''}
+      </div>
+    `;
+
+    return card;
   }
 
   // ── Load Home Cities ──
@@ -100,25 +142,7 @@ const VP = (function(){
     grid.innerHTML = '';
     const entries = Object.entries(data.cities).slice(0, 8);
     entries.forEach(([name, info]) => {
-      const card = document.createElement('div');
-      card.className = 'city-card';
-      card.style.backgroundImage = info.image ? `linear-gradient(180deg, rgba(14,11,20,0.3) 0%, rgba(14,11,20,0.85) 100%), url(${info.image})` : '';
-      card.style.backgroundSize = 'cover';
-      card.style.backgroundPosition = 'center';
-      card.onclick = () => { navigate('chat'); focusChat(name); };
-      const emoji = getCityEmoji(name);
-      card.innerHTML = `
-        <div class="city-card-top">
-          <span class="city-emoji">${emoji}</span>
-        </div>
-        <div class="city-card-bottom">
-          <div class="city-name">${name}</div>
-          <div class="city-sub">${info.name_cn || ''}</div>
-          <div class="city-meta">${info.best_season || ''} · ${info.days || ''}</div>
-          ${info.vibe ? `<div class="city-vibe">${info.vibe}</div>` : ''}
-        </div>
-      `;
-      grid.appendChild(card);
+      grid.appendChild(createCityCard(name, info));
     });
   }
 
@@ -131,25 +155,7 @@ const VP = (function(){
 
     grid.innerHTML = '';
     Object.entries(data.cities).forEach(([name, info]) => {
-      const card = document.createElement('div');
-      card.className = 'city-card';
-      if (info.image) {
-        card.style.backgroundImage = `linear-gradient(180deg, rgba(14,11,20,0.2) 0%, rgba(14,11,20,0.8) 100%), url(${info.image})`;
-        card.style.backgroundSize = 'cover';
-        card.style.backgroundPosition = 'center';
-      }
-      card.onclick = () => { navigate('chat'); focusChat(name); };
-      card.innerHTML = `
-        <div class="city-card-top"><span class="city-emoji">${getCityEmoji(name)}</span></div>
-        <div class="city-card-bottom">
-          <div class="city-name">${name}</div>
-          <div class="city-sub">${info.name_cn || ''}</div>
-          <div class="city-meta">${info.best_season || ''} · ${info.days || ''}</div>
-          ${info.vibe ? `<div class="city-vibe">${info.vibe}</div>` : ''}
-          ${info.budget_tip ? `<div style="font-size:10px;color:var(--text-dim);margin-top:4px">${info.budget_tip}</div>` : ''}
-        </div>
-      `;
-      grid.appendChild(card);
+      grid.appendChild(createCityCard(name, info));
     });
   }
 
@@ -174,19 +180,113 @@ const VP = (function(){
     });
   }
 
-  // ── City emoji helper ──
-  function getCityEmoji(name) {
-    const map = {
-      beijing:'🏯', shanghai:'🌃', chengdu:'🐼', guangzhou:'🥟',
-      shenzhen:'🌆', hangzhou:'🌊', xi_an:'🏛️', guilin:'🏞️',
-      chongqing:'🌉', kunming:'🌸', suzhou:'🏯', nanjing:'🏛️',
-      lhasa:'🏔️', hong_kong:'🌃', macau:'🎰',
-    };
-    return map[name.toLowerCase().replace(/ /g,'_')] || '🏙️';
-  }
-
   // ── Chat ──
   let abortController = null;
+
+  // City list for auto-detection in user messages
+  const CITY_NAMES = [
+    'beijing','shanghai','chengdu','xian','guilin','yunnan','hangzhou',
+    'guangzhou','shenzhen','chongqing','changsha','nanjing','suzhou',
+    'harbin','zhangjiajie','tibet','sanya','dunhuang','luoyang','wuhan',
+    'xiamen','qingdao','dali','lijiang','huangshan','jiuzhaigou','lanzhou',
+    'kunming','hohhot','guiyang','fuzhou','macau','hong kong','taipei',
+  ];
+
+  function detectCity(text) {
+    const lower = text.toLowerCase();
+    for (const city of CITY_NAMES) {
+      if (lower.includes(city)) return city;
+    }
+    return '';
+  }
+
+  const SUGGESTIONS = [
+    '3 days in Beijing 🏯',
+    'Shanghai food tour 🥟',
+    'Chengdu panda trip 🐼',
+    'Guilin nature escape 🏞️',
+    'Xi\'an history guide 🏛️',
+    'Budget tips for China 💰',
+  ];
+
+  function renderSuggestions() {
+    const bar = document.getElementById('chat-suggestions');
+    if (!bar) return;
+    bar.innerHTML = '';
+    SUGGESTIONS.forEach(s => {
+      const chip = document.createElement('button');
+      chip.className = 'chat-chip';
+      chip.textContent = s;
+      chip.onclick = () => {
+        const input = document.getElementById('chat-input');
+        if (input) {
+          input.value = s.replace(/ 🏯| 🥟| 🐼| 🏞️| 🏛️| 💰/g, '');
+          input.style.height = 'auto';
+          toggleSendButton(true);
+          input.focus();
+        }
+      };
+      bar.appendChild(chip);
+    });
+  }
+
+  function addMessage(text, role) {
+    const container = document.getElementById('chat-messages');
+    if (!container) return null;
+
+    const msg = document.createElement('div');
+    msg.className = `msg msg-${role}`;
+    msg.innerHTML = `
+      <div class="msg-avatar">${role === 'bot' ? '🐼' : '👤'}</div>
+      <div class="msg-body">
+        <div class="msg-sender">${role === 'bot' ? 'VisePanda' : 'You'}</div>
+        <div class="msg-text">${text.replace(/\n/g, '<br>')}</div>
+      </div>
+    `;
+    container.appendChild(msg);
+    container.scrollTop = container.scrollHeight;
+    return msg;
+  }
+
+  function addTyping() {
+    const container = document.getElementById('chat-messages');
+    if (!container) return null;
+
+    const msg = document.createElement('div');
+    msg.className = 'msg msg-bot';
+    msg.id = 'typing-msg';
+    msg.innerHTML = `
+      <div class="msg-avatar">🐼</div>
+      <div class="msg-body">
+        <div class="msg-sender">VisePanda</div>
+        <div class="msg-text typing-dots"><span>.</span><span>.</span><span>.</span></div>
+      </div>
+    `;
+    container.appendChild(msg);
+    container.scrollTop = container.scrollHeight;
+    return msg;
+  }
+
+  function updateTyping(el, content) {
+    if (!el) return;
+    const textDiv = el.querySelector('.msg-text');
+    if (textDiv && content) textDiv.innerHTML = content.replace(/\n/g, '<br>') + '<span class="cursor-blink">▌</span>';
+  }
+
+  function removeMessage(el) {
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+  }
+
+  function toggleSendButton(enabled) {
+    const btn = document.getElementById('chat-send');
+    if (btn) btn.disabled = !enabled;
+  }
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+    toggleSendButton(el.value.trim().length > 0);
+  }
 
   async function sendMessage() {
     const input = document.getElementById('chat-input');
@@ -213,7 +313,8 @@ const VP = (function(){
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
-          messages: state.messages.slice(-10), // last 10 for context
+          messages: state.messages.slice(-10),
+          city: detectCity(text),
         }),
         signal: abortController.signal,
       });
@@ -250,143 +351,78 @@ const VP = (function(){
             } else if (parsed.error) {
               removeMessage(typingId);
               addMessage('Error: ' + parsed.error, 'bot');
-              state.isStreaming = false;
-              toggleSendButton(true);
               return;
+            } else if (parsed.done) {
+              // Done
             }
-          } catch(e) {}
+          } catch (e) {
+            // Incomplete JSON chunk, skip
+          }
         }
       }
 
-      // Finalize bot message
+      // Finalize
+      removeMessage(typingId);
       if (botContent) {
-        removeMessage(typingId);
         addMessage(botContent, 'bot');
         state.messages.push({role: 'assistant', content: botContent});
-      } else {
-        removeMessage(typingId);
-        addMessage('I\'m not sure how to help with that. Could you tell me more about your travel plans?', 'bot');
       }
-
     } catch (e) {
-      if (e.name !== 'AbortError') {
-        removeMessage(typingId);
-        addMessage('Connection error. Please check your network and try again.', 'bot');
-      }
+      if (e.name === 'AbortError') return;
+      removeMessage(typingId);
+      addMessage('Connection error. Please try again.', 'bot');
     } finally {
       state.isStreaming = false;
       abortController = null;
-      toggleSendButton(true);
     }
   }
 
-  function addMessage(text, role) {
-    const container = document.getElementById('chat-messages');
-    const msg = document.createElement('div');
-    msg.className = `msg msg-${role}`;
-    msg.innerHTML = `
-      <div class="msg-avatar">${role === 'bot' ? '🐼' : 'Y'}</div>
-      <div class="msg-body">
-        <div class="msg-sender">${role === 'bot' ? 'VisePanda' : 'You'}</div>
-        <div class="msg-text">${escapeHtml(text)}</div>
-      </div>
-    `;
-    container.appendChild(msg);
-    container.scrollTop = container.scrollHeight;
-    return msg;
-  }
-
-  function addTyping() {
-    const container = document.getElementById('chat-messages');
-    const msg = document.createElement('div');
-    msg.className = 'msg msg-bot';
-    msg.id = 'typing-msg';
-    msg.innerHTML = `
-      <div class="msg-avatar">🐼</div>
-      <div class="msg-body">
-        <div class="msg-sender">VisePanda</div>
-        <div class="msg-text typing-content"></div>
-      </div>
-    `;
-    container.appendChild(msg);
-    container.scrollTop = container.scrollHeight;
-    return 'typing-msg';
-  }
-
-  function updateTyping(id, content) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const textEl = el.querySelector('.typing-content');
-    if (textEl) textEl.innerHTML = escapeHtml(content) + '<span class="cursor" style="animation:blink 1s infinite">▌</span>';
-    const container = document.getElementById('chat-messages');
-    container.scrollTop = container.scrollHeight;
-  }
-
-  function removeMessage(id) {
-    const el = document.getElementById(id);
-    if (el) el.remove();
-  }
-
-  function toggleSendButton(enabled) {
-    const btn = document.getElementById('chat-send');
-    if (btn) {
-      btn.disabled = !enabled;
-      btn.textContent = enabled ? 'Send' : '...';
+  function stopStreaming() {
+    if (abortController) {
+      abortController.abort();
+      abortController = null;
     }
-  }
-
-  // ── Chat input auto-resize ──
-  function autoResize(el) {
-    el.style.height = 'auto';
-    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-    // Enable/disable send button
-    const btn = document.getElementById('chat-send');
-    if (btn) btn.disabled = !el.value.trim() || state.isStreaming;
-  }
-
-  // ── Enter to send ──
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      const active = document.activeElement;
-      if (active && active.id === 'chat-input') {
-        e.preventDefault();
-        sendMessage();
-      }
-    }
-  });
-
-  // ── HTML escaping ──
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
   }
 
   // ── Init ──
   function init() {
-    // Check URL hash
-    const hash = window.location.hash.slice(1) || 'home';
-    navigate(hash);
+    // Theme toggle icon
+    const themeBtn = document.querySelector('.theme-toggle');
+    if (themeBtn) themeBtn.textContent = state.theme === 'dark' ? '🌙' : '☀️';
 
-    // Init theme toggle icon
-    const btn = document.querySelector('.theme-toggle');
-    if (btn) btn.textContent = state.theme === 'dark' ? '🌙' : '☀️';
+    // Hash-based nav
+    const hash = window.location.hash.slice(1);
+    if (hash && ['home','chat','cities','tools'].includes(hash)) {
+      navigate(hash);
+    }
 
-    // Home city data
-    loadHomeCities();
+    // Chat input events
+    const chatInput = document.getElementById('chat-input');
+    const chatSend = document.getElementById('chat-send');
+    if (chatInput) {
+      chatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+    }
 
-    console.log('VisePanda v3.0.1 initialized');
+    // Render chat suggestions
+    renderSuggestions();
   }
 
-  // ── Public API ──
+  // ── Expose public API ──
   return {
-    init,
     navigate,
     toggleTheme,
+    focusChat,
     sendMessage,
     autoResize,
+    stopStreaming,
+    init,
   };
 })();
 
-// ── Bootstrap ──
-document.addEventListener('DOMContentLoaded', VP.init);
+// ── Auto-init ──
+document.addEventListener('DOMContentLoaded', () => VP.init());

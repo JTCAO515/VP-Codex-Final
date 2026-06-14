@@ -44,6 +44,11 @@
     <section id="view-home" class="view active">
       <div class="hero">
         <div class="hero-bg"></div>
+        <div class="hero-deco hero-deco-1">🎋</div>
+        <div class="hero-deco hero-deco-2">🏮</div>
+        <div class="hero-deco hero-deco-3">☁️</div>
+        <div class="hero-deco hero-deco-4">🎐</div>
+        <div class="hero-deco hero-deco-5">🌸</div>
         <div class="hero-content">
           <div class="hero-panda">🐼</div>
           <h1 class="hero-title">Your China Travel<br><span class="hero-accent">AI Companion</span></h1>
@@ -56,10 +61,10 @@
         <h2 class="section-title">Explore Cities</h2>
         <p class="section-sub">33 destinations across China, each with curated knowledge</p>
         <div id="city-grid" class="city-grid">
-          <div class="city-card skeleton"><div class="skel-block skel-w-3"></div><div class="skel-line"></div></div>
-          <div class="city-card skeleton"><div class="skel-block skel-w-3"></div><div class="skel-line"></div></div>
-          <div class="city-card skeleton"><div class="skel-block skel-w-3"></div><div class="skel-line"></div></div>
-          <div class="city-card skeleton"><div class="skel-block skel-w-3"></div><div class="skel-line"></div></div>
+          <div class="sk-card skeleton"><div class="sk-block"></div><div class="sk-block"></div><div class="sk-block"></div></div>
+          <div class="sk-card skeleton"><div class="sk-block"></div><div class="sk-block"></div><div class="sk-block"></div></div>
+          <div class="sk-card skeleton"><div class="sk-block"></div><div class="sk-block"></div><div class="sk-block"></div></div>
+          <div class="sk-card skeleton"><div class="sk-block"></div><div class="sk-block"></div><div class="sk-block"></div></div>
         </div>
       </div>
     </section>
@@ -76,6 +81,7 @@
             </div>
           </div>
         </div>
+        <div id="chat-suggestions" class="chat-suggestions"></div>
         <div class="chat-input-bar">
           <textarea id="chat-input" class="chat-input" rows="1" placeholder="Ask about China travel... (e.g. '3 days in Beijing')" oninput="VP.autoResize(this)"></textarea>
           <button id="chat-send" class="chat-send" onclick="VP.sendMessage()" disabled>Send</button>
@@ -89,7 +95,9 @@
         <h2 class="section-title">🏙 All Cities</h2>
         <p class="section-sub">Browse our curated city knowledge base</p>
         <div id="cities-grid" class="city-grid">
-          <div class="city-card skeleton" style="height:200px"><div class="skel-block skel-w-3"></div><div class="skel-line"></div></div>
+          <div class="sk-card skeleton" style="height:200px"><div class="sk-block"></div><div class="sk-block"></div><div class="sk-block"></div></div>
+          <div class="sk-card skeleton" style="height:200px"><div class="sk-block"></div><div class="sk-block"></div><div class="sk-block"></div></div>
+          <div class="sk-card skeleton" style="height:200px"><div class="sk-block"></div><div class="sk-block"></div><div class="sk-block"></div></div>
         </div>
       </div>
     </section>
@@ -100,8 +108,8 @@
         <h2 class="section-title">🧳 Travel Tools</h2>
         <p class="section-sub">Everything you need for your China trip</p>
         <div id="tools-grid" class="tools-grid">
-          <div class="tool-card skeleton" style="height:120px"><div class="skel-block skel-w-3"></div><div class="skel-line"></div></div>
-          <div class="tool-card skeleton" style="height:120px"><div class="skel-block skel-w-3"></div><div class="skel-line"></div></div>
+          <div class="tool-card skeleton" style="height:120px"><div class="sk-block sk-w-3"></div><div class="sk-line"></div></div>
+          <div class="tool-card skeleton" style="height:120px"><div class="sk-block sk-w-3"></div><div class="sk-line"></div></div>
         </div>
       </div>
     </section>
