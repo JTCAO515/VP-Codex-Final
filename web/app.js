@@ -457,6 +457,7 @@ const VP = (function(){
 
   let abortController = null;
   let currentCity = ''; // Track city across multi-turn conversation
+  let faqBadgeId = null; // FAQ match badge tracking
 
   const CITY_NAMES = [
     'beijing','shanghai','chengdu','xian','guilin','yunnan','hangzhou',
@@ -601,6 +602,21 @@ const VP = (function(){
     if (el && el.parentNode) el.parentNode.removeChild(el);
   }
 
+  // ── FAQ Match Badge ──
+  function showFaqBadge(typingEl, icon, title, terms) {
+    if (!typingEl) return null;
+    // Remove previous badge if any
+    const old = typingEl.querySelector('.faq-badge');
+    if (old) old.remove();
+
+    const badge = document.createElement('div');
+    badge.className = 'faq-badge';
+    const termStr = terms && terms.length ? `<span class="faq-terms">${terms.map(t => t.replace(/_/g,' ')).slice(0,3).join(' · ')}</span>` : '';
+    badge.innerHTML = `${icon} <span class="faq-label">${title}</span>${termStr}`;
+    typingEl.querySelector('.msg-body').insertBefore(badge, typingEl.querySelector('.msg-text'));
+    return badge;
+  }
+
   function toggleSendButton(enabled) {
     const btn = document.getElementById('chat-send');
     if (btn) btn.disabled = !enabled;
@@ -687,6 +703,10 @@ const VP = (function(){
             if (parsed.token) {
               botContent += parsed.token;
               updateTyping(typingId, botContent);
+            } else if (parsed.faq) {
+              // FAQ match badge - show above the response
+              const f = parsed.faq;
+              faqBadgeId = showFaqBadge(typingId, f.icon, f.title, f.matched_terms);
             } else if (parsed.error) {
               removeMessage(typingId);
               addMessage('Error: ' + parsed.error, 'bot');

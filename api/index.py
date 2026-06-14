@@ -124,8 +124,106 @@ def _sse_event(data: str, event: str = "message") -> bytes:
 
 
 # ════════════════════════════════════════════════════════════
-# CHAT SSE ENDPOINT
+# FAQ MATCHING ENGINE
 # ════════════════════════════════════════════════════════════
+
+_FAQ_CACHE = None
+
+def _load_faq() -> dict:
+    """Load FAQ knowledge base (cached)."""
+    global _FAQ_CACHE
+    if _FAQ_CACHE is not None:
+        return _FAQ_CACHE
+    data = _load_json(DATA_DIR / "faq.json")
+    _FAQ_CACHE = data or {"categories": []}
+    return _FAQ_CACHE
+
+
+def _tokenize(text: str) -> set:
+    """Lowercase, split on whitespace/punctuation, return set of meaningful tokens."""
+    import re
+    tokens = set()
+    for word in re.split(r"[\s,\-./?()\[\]{}!@#$%^&*;:\"'<>]+", text.lower()):
+        word = word.strip()
+        if len(word) > 1:  # skip single chars and empty
+            tokens.add(word)
+    return tokens
+
+
+def _match_faq(user_text: str) -> dict | None:
+    """Match user query against FAQ knowledge base.
+
+    Returns dict with matched category info, or None if no good match.
+    """
+    if not user_text:
+        return None
+
+    faq = _load_faq()
+    categories = faq.get("categories", [])
+    if not categories:
+        return None
+
+    tokens = _tokenize(user_text)
+    if not tokens:
+        return None
+
+    best = None
+    best_score = 0
+    MIN_SCORE = 1  # At least 2 matching keywords
+
+    for cat in categories:
+        patterns = cat.get("patterns", [])
+        if not patterns:
+            continue
+
+        # Count how many pattern words/phrases appear in the user's text
+        text_lower = user_text.lower()
+        score = 0
+        matched_terms = []
+
+        for p in patterns:
+            p_lower = p.strip().lower()
+            if len(p_lower) <= 2:
+                continue
+            # Check if pattern is in the text
+            if p_lower in text_lower:
+                score += 1
+                matched_terms.append(p_lower)
+
+            # Also check for multi-word patterns as individual words
+            if " " in p_lower:
+                words_in_pattern = p_lower.split()
+                matched_count = sum(1 for w in words_in_pattern if len(w) > 1 and w in tokens)
+                if matched_count >= 2:
+                    score += 0.3 * matched_count
+                    if p_lower not in matched_terms:
+                        matched_terms.extend(words_in_pattern[:2])
+
+        # Bonus for dense matches (high proportion of patterns matched)
+        if score >= 2:
+            density = score / max(len(patterns), 1)
+            score += density * 2
+
+        # Penalize very short queries with too many matches (over-match)
+        if len(tokens) <= 3 and score >= len(patterns) * 0.3:
+            score *= 0.5
+
+        if score > best_score:
+            best_score = score
+            best = {
+                "id": cat.get("id", ""),
+                "title": cat.get("title", ""),
+                "icon": cat.get("icon", "🐼"),
+                "score": round(score, 1),
+                "matched_terms": matched_terms[:6],
+                "expanded_keywords": cat.get("expanded_keywords", []),
+                "prompt_hint": cat.get("prompt_hint", ""),
+            }
+
+    if best and best_score >= MIN_SCORE:
+        return best
+    return None
+
 
 def _handle_chat(environ, start_response):
     """POST /api/chat — SSE streaming chat with DeepSeek V4 Flash."""
@@ -137,12 +235,33 @@ def _handle_chat(environ, start_response):
     if not messages:
         return _json_error(start_response, "messages required", "400 Bad Request")
 
-    # Build system prompt with knowledge context
-    system_prompt = _build_system_prompt(params)
+    # Extract latest user message for FAQ matching
+    latest_user = ""
+    for msg in reversed(messages):
+        if msg.get("role") == "user":
+            latest_user = msg.get("content", "")
+            break
+
+    # Run FAQ matching to expand vague queries
+    faq_match = _match_faq(latest_user)
+
+    # Build system prompt with knowledge context + FAQ expansion
+    system_prompt = _build_system_prompt(params, faq_match=faq_match)
 
     # Stream response via SSE
     def stream():
         import urllib.request
+
+        # First, send FAQ match info if available
+        if faq_match:
+            yield _sse_event(json.dumps({
+                "faq": {
+                    "id": faq_match["id"],
+                    "title": faq_match["title"],
+                    "icon": faq_match["icon"],
+                    "matched_terms": faq_match.get("matched_terms", []),
+                }
+            }))
 
         headers = {
             "Content-Type": "application/json",
@@ -203,8 +322,8 @@ def _handle_chat(environ, start_response):
     return stream()
 
 
-def _build_system_prompt(params: dict) -> str:
-    """Build system prompt with full knowledge base injection."""
+def _build_system_prompt(params: dict, faq_match: dict | None = None) -> str:
+    """Build system prompt with full knowledge base injection + optional FAQ expansion."""
     city = params.get("city", "").lower()
     prompt_parts = [
         "You are VisePanda, an expert AI China travel planner. You have a comprehensive knowledge base of 36 Chinese cities.",
@@ -216,30 +335,49 @@ def _build_system_prompt(params: dict) -> str:
         "- Consider seasonality, weather, and local holidays in your recommendations",
         "- For food recommendations, include specific dish names in both English and Chinese",
         "- Include practical tips: transport options, budget ranges, peak hours to avoid",
-        "",
-        "## ITINERARY FORMAT",
-        "When creating a day-by-day plan, use this exact format:",
-        "",
-        "**Day 1: [Title]**",
-        "- 🕐 Morning: [activity] at [specific location]",
-        "- 🕐 Afternoon: [activity] at [specific location]",
-        "- 🕐 Evening: [activity] at [specific location]",
-        "- 🍽️ Eat: [specific dish] at [restaurant name] (¥[price])",
-        "- 🏨 Stay: [recommended area] - [budget/mid/luxury option]",
-        "- 💡 Tip: [local insider advice]",
-        "",
-        "**Day 2: [Title]**",
-        "...(same format)...",
-        "",
-        "## QUICK RECOMMENDATION FORMAT",
-        "For quick tips, use:",
-        "- 🏙️ **City**: [name] (best season: [season], recommended: [days])",
-        "- 🎯 Vibe: [description]",
-        "- 🍽️ Must eat: [dish] at [place] (¥[price])",
-        "- 💰 Budget tip: [advice]",
-        "- 🏨 Stay: [area] - [price range]",
-        "",
+        "- Be concise and direct. Organize information into clear sections with ### headers (e.g., ### Trip Overview, ### Day-by-Day Plan, ### Food & Dining, ### Budget, ### Tips).",
+        "- Each section should be 2-5 bullet points max. Keep it scannable, not a wall of text.",
     ]
+
+    # Inject FAQ-guided expansion if a match was found
+    if faq_match:
+        prompt_parts.append("")
+        prompt_parts.append(f"## QUESTION INTENT: {faq_match['title']}")
+        prompt_parts.append(f"The user's question relates to '{faq_match['title']}'. Use these expanded keywords to provide deeper, more relevant answers:")
+        keywords = faq_match.get("expanded_keywords", [])
+        if keywords:
+            prompt_parts.append("Relevant topics to cover:")
+            for i, kw in enumerate(keywords[:6], 1):
+                prompt_parts.append(f"  {i}. {kw}")
+        hint = faq_match.get("prompt_hint", "")
+        if hint:
+            prompt_parts.append("")
+            prompt_parts.append("Answering guidance:")
+            prompt_parts.append(hint)
+
+    prompt_parts.append("")
+    prompt_parts.append("## ITINERARY FORMAT")
+    prompt_parts.append("When creating a day-by-day plan, use this exact format:")
+    prompt_parts.append("")
+    prompt_parts.append("**Day 1: [Title]**")
+    prompt_parts.append("- 🕐 Morning: [activity] at [specific location]")
+    prompt_parts.append("- 🕐 Afternoon: [activity] at [specific location]")
+    prompt_parts.append("- 🕐 Evening: [activity] at [specific location]")
+    prompt_parts.append("- 🍽️ Eat: [specific dish] at [restaurant name] (¥[price])")
+    prompt_parts.append("- 🏨 Stay: [recommended area] - [budget/mid/luxury option]")
+    prompt_parts.append("- 💡 Tip: [local insider advice]")
+    prompt_parts.append("")
+    prompt_parts.append("**Day 2: [Title]**")
+    prompt_parts.append("...(same format)...")
+    prompt_parts.append("")
+    prompt_parts.append("## QUICK RECOMMENDATION FORMAT")
+    prompt_parts.append("For quick tips, use:")
+    prompt_parts.append("- 🏙️ **City**: [name] (best season: [season], recommended: [days])")
+    prompt_parts.append("- 🎯 Vibe: [description]")
+    prompt_parts.append("- 🍽️ Must eat: [dish] at [place] (¥[price])")
+    prompt_parts.append("- 💰 Budget tip: [advice]")
+    prompt_parts.append("- 🏨 Stay: [area] - [price range]")
+    prompt_parts.append("")
 
     # Inject city-specific knowledge if provided
     if city:
