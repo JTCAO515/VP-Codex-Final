@@ -7,8 +7,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -23,7 +22,7 @@ import space.jtcao.visepanda.ui.tools.ToolsScreen
 
 @Composable
 fun NavGraph(
-    navController: NavController,
+    navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
     NavHost(

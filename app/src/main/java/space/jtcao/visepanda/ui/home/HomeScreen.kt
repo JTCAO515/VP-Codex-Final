@@ -22,14 +22,16 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -48,7 +50,6 @@ import coil.compose.AsyncImage
 import space.jtcao.visepanda.data.model.City
 import space.jtcao.visepanda.data.repository.CityRepository
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onCityClick: (String) -> Unit,
@@ -57,23 +58,18 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    PullToRefreshBox(
-        isRefreshing = uiState is HomeUiState.Loading,
-        onRefresh = { viewModel.loadCities() },
-        modifier = Modifier.fillMaxSize()
-    ) {
-        when (val state = uiState) {
-            is HomeUiState.Loading -> LoadingContent()
-            is HomeUiState.Success -> HomeContent(
-                topCities = state.cities.take(8),
-                onCityClick = onCityClick,
-                onStartChat = onStartChat
-            )
-            is HomeUiState.Error -> ErrorContent(
-                message = state.message,
-                onRetry = { viewModel.loadCities() }
-            )
-        }
+    when (val state = uiState) {
+        is HomeUiState.Loading -> LoadingContent()
+        is HomeUiState.Success -> HomeContent(
+            topCities = state.cities.take(8),
+            onCityClick = onCityClick,
+            onStartChat = onStartChat,
+            onRefresh = { viewModel.loadCities() }
+        )
+        is HomeUiState.Error -> ErrorContent(
+            message = state.message,
+            onRetry = { viewModel.loadCities() }
+        )
     }
 }
 
@@ -81,7 +77,8 @@ fun HomeScreen(
 private fun HomeContent(
     topCities: List<Pair<String, City>>,
     onCityClick: (String) -> Unit,
-    onStartChat: () -> Unit
+    onStartChat: () -> Unit,
+    onRefresh: () -> Unit
 ) {
     val scrollState = rememberScrollState()
 
@@ -96,18 +93,36 @@ private fun HomeContent(
         Spacer(modifier = Modifier.height(24.dp))
 
         // ── City Grid ──
-        Text(
-            text = "Explore Cities",
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-        Text(
-            text = "${topCities.size}+ destinations across China",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 12.dp)
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(
+                    text = "Explore Cities",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = "${topCities.size}+ destinations across China",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+            IconButton(onClick = onRefresh) {
+                Icon(
+                    Icons.Default.Refresh,
+                    contentDescription = "Refresh",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
@@ -130,7 +145,7 @@ private fun HomeContent(
 
         // View All Cities button
         Button(
-            onClick = { /* Navigate to full city list - will be in Step 6 */ },
+            onClick = { onCityClick("all") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 16.dp)
@@ -144,9 +159,11 @@ private fun HomeContent(
             Text("View All Cities →")
         }
 
-        Spacer(modifier = Modifier.height(80.dp)) // Bottom nav padding
+        Spacer(modifier = Modifier.height(80.dp))
     }
 }
+
+// ── HeroSection (unchanged) ──
 
 @Composable
 private fun HeroSection(onStartChat: () -> Unit) {
@@ -163,7 +180,6 @@ private fun HeroSection(onStartChat: () -> Unit) {
                 )
             )
     ) {
-        // Decorative emojis (simplified from web version)
         Text("🎋", modifier = Modifier
             .align(Alignment.TopStart)
             .padding(start = 32.dp, top = 20.dp)
@@ -193,7 +209,6 @@ private fun HeroSection(onStartChat: () -> Unit) {
                 style = MaterialTheme.typography.displayLarge,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-
             Text(
                 text = "Your China Travel",
                 style = MaterialTheme.typography.displayLarge,
@@ -208,18 +223,14 @@ private fun HeroSection(onStartChat: () -> Unit) {
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Bold
             )
-
             Spacer(modifier = Modifier.height(12.dp))
-
             Text(
                 text = "Plan your China trip like chatting with a local friend.\nPersonalized itineraries, food guides & insider tips.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
-
             Spacer(modifier = Modifier.height(24.dp))
-
             Button(
                 onClick = onStartChat,
                 modifier = Modifier
@@ -241,6 +252,7 @@ private fun HeroSection(onStartChat: () -> Unit) {
     }
 }
 
+// ── CityCard (unchanged except for the fix above) ──
 @Composable
 private fun CityCard(
     name: String,
@@ -259,28 +271,14 @@ private fun CityCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Background image
             if (city.image.isNotEmpty()) {
                 AsyncImage(
                     model = CityRepository().getCityImageUrl(name),
                     contentDescription = name,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-                                ),
-                                startY = 0f,
-                                endY = 800f
-                            )
-                        )
+                    modifier = Modifier.fillMaxSize()
                 )
             }
-
-            // Dark gradient overlay for readability
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -294,23 +292,17 @@ private fun CityCard(
                         )
                     )
             )
-
-            // Content
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(12.dp),
                 verticalArrangement = Arrangement.Bottom
             ) {
-                // Emoji
                 Text(
                     text = getCityEmoji(name),
                     style = MaterialTheme.typography.headlineLarge
                 )
-
                 Spacer(modifier = Modifier.height(4.dp))
-
-                // City name
                 Text(
                     text = name.replaceFirstChar { it.uppercase() },
                     style = MaterialTheme.typography.titleMedium,
@@ -319,8 +311,6 @@ private fun CityCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-
-                // Chinese name
                 if (city.nameCn.isNotEmpty()) {
                     Text(
                         text = city.nameCn,
@@ -329,8 +319,6 @@ private fun CityCard(
                         maxLines = 1
                     )
                 }
-
-                // Meta: season + days
                 if (city.bestSeason.isNotEmpty() || city.days.isNotEmpty()) {
                     Text(
                         text = listOfNotNull(
@@ -343,8 +331,6 @@ private fun CityCard(
                         modifier = Modifier.padding(top = 2.dp)
                     )
                 }
-
-                // Vibe tag
                 if (city.vibe.isNotEmpty()) {
                     Row(
                         modifier = Modifier.padding(top = 4.dp),
@@ -368,6 +354,7 @@ private fun CityCard(
     }
 }
 
+// ── LoadingContent (unchanged) ──
 @Composable
 private fun LoadingContent() {
     Column(
@@ -375,7 +362,6 @@ private fun LoadingContent() {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Hero skeleton
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -383,10 +369,7 @@ private fun LoadingContent() {
                 .clip(RoundedCornerShape(16.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         )
-
         Spacer(modifier = Modifier.height(24.dp))
-
-        // Grid skeleton
         Column(
             modifier = Modifier.padding(horizontal = 4.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -411,6 +394,7 @@ private fun LoadingContent() {
     }
 }
 
+// ── ErrorContent (unchanged) ──
 @Composable
 private fun ErrorContent(
     message: String,

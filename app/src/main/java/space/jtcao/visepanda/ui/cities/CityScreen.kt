@@ -29,7 +29,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -63,7 +62,6 @@ import space.jtcao.visepanda.ui.home.getCityEmoji
 //  CITY LIST SCREEN
 // ═════════════════════════════════════════════════
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CityListScreen(
     onCityClick: (String) -> Unit,
@@ -199,7 +197,6 @@ private fun ErrorState(message: String, onRetry: () -> Unit) {
 //  CITY DETAIL SCREEN
 // ═════════════════════════════════════════════════
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CityDetailScreen(
     cityName: String,

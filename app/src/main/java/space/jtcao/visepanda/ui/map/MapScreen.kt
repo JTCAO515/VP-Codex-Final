@@ -148,7 +148,7 @@ private fun OSMChinaMap(
  * Create a simple colored circle marker for cities.
  */
 private fun createCityMarkerIcon(context: android.content.Context): Drawable? {
-    val size = 24.dp.toInt(context.resources.displayMetrics)
+    val size = (24 * context.resources.displayMetrics.density).toInt()
     val bitmap = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888)
     val canvas = android.graphics.Canvas(bitmap)
     val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {

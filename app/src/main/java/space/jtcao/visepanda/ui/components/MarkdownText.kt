@@ -6,6 +6,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -39,7 +40,7 @@ fun MarkdownText(
                         fontSize = MaterialTheme.typography.titleMedium.fontSize,
                         color = MaterialTheme.colorScheme.onSurface
                     )) {
-                        append(parseInlineMarkdown(content))
+                        appendInlineStyled(content)
                     }
                     if (index < lines.lastIndex) append("\n\n")
                 }
@@ -49,7 +50,7 @@ fun MarkdownText(
                     if (!inList) { inList = true }
                     val content = line.replace(Regex("^-\\s"), "")
                     append("  •  ")
-                    append(parseInlineMarkdown(content))
+                    appendInlineStyled(content)
                     if (index < lines.lastIndex) append("\n")
                 }
 
@@ -58,13 +59,13 @@ fun MarkdownText(
                     val num = line.substringBefore(".")
                     val content = line.replace(Regex("^\\d+\\.\\s"), "")
                     append("  $num. ")
-                    append(parseInlineMarkdown(content))
+                    appendInlineStyled(content)
                     if (index < lines.lastIndex) append("\n")
                 }
 
                 // Horizontal rule: ---
                 line.matches(Regex("^-{3,}$")) -> {
-                    append("─".repeat(20))
+                    append("\u2500".repeat(20))
                     if (index < lines.lastIndex) append("\n")
                 }
 
@@ -76,7 +77,7 @@ fun MarkdownText(
 
                 else -> {
                     if (inList) { inList = false; if (index > 0) append("\n") }
-                    append(parseInlineMarkdown(line))
+                    appendInlineStyled(line)
                     if (index < lines.lastIndex && lines[index + 1].isNotBlank()) append("\n")
                 }
             }
@@ -92,18 +93,17 @@ fun MarkdownText(
 }
 
 /**
- * Parse inline markdown within a single line:
+ * Parse inline markdown within a single line and append to this builder:
  *   **bold** → Bold
  *   *italic* → Italic
  *   `code`  → Monospace
  *   [text](url) → Link (styled as underlined primary)
  */
-private fun buildAnnotatedString.parseInlineMarkdown(text: String): buildAnnotatedString {
-    // Regex to match inline patterns
+private fun AnnotatedString.Builder.appendInlineStyled(text: String) {
     val pattern = Regex("""(\*\*(.+?)\*\*)|(\*(.+?)\*)|(`(.+?)`)|(\[(.+?)\]\((.+?)\))""")
     var lastIndex = 0
 
-    pattern.findAll(text).forEach { match ->
+    for (match in pattern.findAll(text)) {
         // Text before this match
         if (match.range.first > lastIndex) {
             append(text.substring(lastIndex, match.range.first))
@@ -151,6 +151,4 @@ private fun buildAnnotatedString.parseInlineMarkdown(text: String): buildAnnotat
     if (lastIndex < text.length) {
         append(text.substring(lastIndex))
     }
-
-    return this
 }
