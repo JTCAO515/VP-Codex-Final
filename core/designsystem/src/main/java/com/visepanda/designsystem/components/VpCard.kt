@@ -17,8 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import com.visepanda.designsystem.Gold
+import com.visepanda.designsystem.JadeGrey
 import com.visepanda.designsystem.Surface
 import com.visepanda.designsystem.TextPrimary
 import com.visepanda.designsystem.TextSecondary
@@ -42,7 +43,7 @@ fun VpCityCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Box(modifier = Modifier.height(height.dp)) {
-            // Image placeholder - Coil will replace this
+            // Warm gold gradient (light theme)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -51,8 +52,8 @@ fun VpCityCard(
                     .background(
                         Brush.verticalGradient(
                             colors = listOf(
-                                Color(0xFF2A2A2A),
-                                Color(0xFF1A1A1A)
+                                Color(0xFFDCC798),
+                                Color(0xFFC9A96E)
                             )
                         )
                     )
@@ -68,7 +69,7 @@ fun VpCityCard(
                         Brush.verticalGradient(
                             colors = listOf(
                                 Color.Transparent,
-                                Color(0xCC0A0A0A)
+                                Color(0xCCC9A96E)
                             )
                         )
                     )
@@ -83,13 +84,13 @@ fun VpCityCard(
                 Text(
                     text = cityName,
                     style = androidx.compose.material3.MaterialTheme.typography.headlineLarge,
-                    color = TextPrimary
+                    color = Color.White
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = description,
                     style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary,
+                    color = Color.White.copy(alpha = 0.8f),
                     maxLines = 1
                 )
             }
@@ -120,7 +121,7 @@ fun VpTripCard(
                     .matchParentSize()
                     .padding(start = 0.dp)
                     .fillMaxWidth(0.006f)
-                    .background(com.visepanda.designsystem.Gold)
+                    .background(Gold)
             )
             // Content
             Column(
@@ -141,7 +142,7 @@ fun VpTripCard(
                 Text(
                     text = "$city · $days",
                     style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
-                    color = com.visepanda.designsystem.JadeGrey
+                    color = JadeGrey
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
