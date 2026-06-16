@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import com.visepanda.designsystem.Gold
 import com.visepanda.designsystem.JadeGreen
 import com.visepanda.designsystem.JadeGrey
-import com.visepanda.designsystem.SurfaceDefault
+import com.visepanda.designsystem.Surface
 import com.visepanda.designsystem.SurfaceElevated
 import com.visepanda.designsystem.TextPrimary
 import com.visepanda.designsystem.TextSecondary
@@ -32,11 +32,11 @@ fun VpChip(
     val (bg, border, textColor) = when (style) {
         ChipStyle.GOLD_OUTLINE -> when {
             selected -> Triple(Gold, Gold, Color.Black)
-            else -> Triple(SurfaceDefault, Gold, Gold)
+            else -> Triple(Surface, Gold, Gold)
         }
         ChipStyle.JADE_GREEN -> when {
             selected -> Triple(JadeGreen, JadeGreen, Color.White)
-            else -> Triple(SurfaceDefault, JadeGreen, JadeGreen)
+            else -> Triple(Surface, JadeGreen, JadeGreen)
         }
         ChipStyle.JADE_GREY -> when {
             selected -> Triple(JadeGrey, JadeGrey, Color.White)

@@ -19,7 +19,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import com.visepanda.designsystem.SurfaceDefault
+import com.visepanda.designsystem.Surface
 import com.visepanda.designsystem.TextPrimary
 import com.visepanda.designsystem.TextSecondary
 import com.visepanda.designsystem.VisePandaSpacing
@@ -38,7 +38,7 @@ fun VpCityCard(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceDefault),
+        colors = CardDefaults.cardColors(containerColor = Surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Box(modifier = Modifier.height(height.dp)) {
@@ -110,7 +110,7 @@ fun VpTripCard(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceDefault),
+        colors = CardDefaults.cardColors(containerColor = Surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VisePanda · 极简暗色</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; background: #08090a; color: #f7f8f8; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- Status Bar -->
+<div class="flex justify-between items-center px-6 py-3 text-xs text-[#62666d]">
+  <span>9:41</span>
+  <div class="flex gap-2"><span class="w-3.5 h-2 border border-[#62666d] rounded-sm"></span></div>
+</div>
+
+<!-- Hero -->
+<div class="px-6 pt-12 pb-16">
+  <h1 class="text-5xl font-medium leading-[1.0] tracking-[-1.5px] text-[#f7f8f8] mb-3">
+    Your AI China<br>
+    <span class="text-[#8a8f98]">Travel Companion</span>
+  </h1>
+  <p class="text-sm text-[#8a8f98] leading-relaxed max-w-xs mb-10 font-light">
+    Explore China with confidence.
+  </p>
+  <button class="w-full bg-[#5e6ad2] text-white text-sm font-medium py-3.5 rounded-md hover:bg-[#7170ff] transition-all flex items-center justify-between px-5">
+    <span>Plan Your Trip</span>
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg>
+  </button>
+</div>
+
+<!-- Featured Cities -->
+<div class="px-6 mb-10">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-sm font-medium text-[#f7f8f8]">Featured Cities</h2>
+    <span class="text-xs text-[#62666d]">See all →</span>
+  </div>
+  <div class="flex gap-3 overflow-x-auto -mx-6 px-6 pb-2">
+    <div class="min-w-[150px] h-[190px] rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.05)] relative overflow-hidden flex-shrink-0">
+      <div class="absolute bottom-0 left-0 right-0 p-3.5">
+        <h3 class="text-sm font-medium">Beijing</h3>
+        <p class="text-xs text-[#62666d] mt-0.5">History & culture</p>
+      </div>
+    </div>
+    <div class="min-w-[150px] h-[190px] rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.05)] relative overflow-hidden flex-shrink-0">
+      <div class="absolute bottom-0 left-0 right-0 p-3.5">
+        <h3 class="text-sm font-medium">Shanghai</h3>
+        <p class="text-xs text-[#62666d] mt-0.5">Modern & vibrant</p>
+      </div>
+    </div>
+    <div class="min-w-[150px] h-[190px] rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.05)] relative overflow-hidden flex-shrink-0">
+      <div class="absolute bottom-0 left-0 right-0 p-3.5">
+        <h3 class="text-sm font-medium">Chengdu</h3>
+        <p class="text-xs text-[#62666d] mt-0.5">Panda & cuisine</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Inspiration -->
+<div class="px-6 mb-10">
+  <h2 class="text-sm font-medium text-[#f7f8f8] mb-4">Inspiration</h2>
+  <div class="flex gap-3">
+    <div class="flex-1 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-md p-3">
+      <p class="text-xs font-medium">First Time<br>in China</p>
+    </div>
+    <div class="flex-1 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-md p-3">
+      <p class="text-xs font-medium">Food<br>Journey</p>
+    </div>
+  </div>
+</div>
+
+<!-- Essentials -->
+<div class="px-6 mb-8">
+  <h2 class="text-sm font-medium text-[#f7f8f8] mb-4">Essentials</h2>
+  <div class="grid grid-cols-3 gap-2.5">
+    <div class="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-md p-4 text-center">
+      <p class="text-lg mb-1">💳</p>
+      <p class="text-xs text-[#8a8f98]">Payment</p>
+    </div>
+    <div class="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-md p-4 text-center">
+      <p class="text-lg mb-1">🛂</p>
+      <p class="text-xs text-[#8a8f98]">Visa</p>
+    </div>
+    <div class="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-md p-4 text-center">
+      <p class="text-lg mb-1">📶</p>
+      <p class="text-xs text-[#8a8f98]">eSIM</p>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<div class="fixed bottom-0 left-0 right-0 bg-[#0f1011] border-t border-[rgba(255,255,255,0.05)] px-4 py-2">
+  <div class="flex justify-around items-center">
+    <div class="flex flex-col items-center gap-0.5"><svg class="w-5 h-5 text-[#7170ff]" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span class="text-[10px] text-[#7170ff]">Home</span></div>
+    <div class="flex flex-col items-center gap-0.5"><svg class="w-5 h-5 text-[#62666d]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><span class="text-[10px] text-[#62666d]">Explore</span></div>
+    <div class="flex flex-col items-center gap-0.5 relative">
+      <div class="w-9 h-9 bg-[#5e6ad2] rounded-full flex items-center justify-center -mt-3"><svg class="w-[18px] h-[18px] text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
+      <span class="text-[10px] text-[#62666d] -mt-0.5">Chat</span>
+    </div>
+    <div class="flex flex-col items-center gap-0.5"><svg class="w-5 h-5 text-[#62666d]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg><span class="text-[10px] text-[#62666d]">Trips</span></div>
+  </div>
+</div>
+<div class="h-24"></div>
+</body>
+</html>

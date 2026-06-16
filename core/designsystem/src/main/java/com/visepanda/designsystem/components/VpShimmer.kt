@@ -22,7 +22,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.visepanda.designsystem.SurfaceDefault
+import com.visepanda.designsystem.Surface
 import com.visepanda.designsystem.SurfaceElevated
 import com.visepanda.designsystem.VisePandaSpacing
 
@@ -68,7 +68,7 @@ fun VpCityCardShimmer(modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(SurfaceDefault)
+            .background(Surface)
     ) {
         Box(
             modifier = Modifier

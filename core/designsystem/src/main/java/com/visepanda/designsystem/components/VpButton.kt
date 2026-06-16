@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.visepanda.designsystem.Gold
 import com.visepanda.designsystem.GoldLight
-import com.visepanda.designsystem.SurfaceDefault
+import com.visepanda.designsystem.Surface
 import com.visepanda.designsystem.SurfaceElevated
 import com.visepanda.designsystem.TextPrimary
 import com.visepanda.designsystem.TextSecondary

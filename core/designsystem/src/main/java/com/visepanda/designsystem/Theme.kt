@@ -2,29 +2,29 @@ package com.visepanda.designsystem
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
-private val VisePandaDarkColorScheme = darkColorScheme(
+private val VisePandaLightColorScheme = lightColorScheme(
     primary = Gold,
-    onPrimary = SurfaceDark,
-    primaryContainer = GoldDark,
-    onPrimaryContainer = GoldLight,
+    onPrimary = Surface,
+    primaryContainer = GoldLight,
+    onPrimaryContainer = TextPrimary,
     secondary = JadeGrey,
-    onSecondary = SurfaceDefault,
+    onSecondary = Surface,
     tertiary = JadeGreen,
-    onTertiary = SurfaceDefault,
-    background = SurfaceDark,
+    onTertiary = Surface,
+    background = Background,
     onBackground = TextPrimary,
-    surface = SurfaceDefault,
+    surface = Surface,
     onSurface = TextPrimary,
     surfaceVariant = SurfaceElevated,
     onSurfaceVariant = TextSecondary,
     outline = BorderDefault,
     outlineVariant = BorderLight,
     error = ErrorRed,
-    onError = SurfaceDefault,
-    scrim = ScrimDark
+    onError = Surface,
+    scrim = ScrimLight
 )
 
 @Composable
@@ -32,7 +32,7 @@ fun VisePandaTheme(
     content: @Composable () -> Unit
 ) {
     MaterialTheme(
-        colorScheme = VisePandaDarkColorScheme,
+        colorScheme = VisePandaLightColorScheme,
         typography = VisePandaTypography,
         content = content
     )

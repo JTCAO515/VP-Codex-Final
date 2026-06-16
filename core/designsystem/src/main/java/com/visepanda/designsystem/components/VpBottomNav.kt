@@ -19,7 +19,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.visepanda.designsystem.Gold
 import com.visepanda.designsystem.JadeGrey
-import com.visepanda.designsystem.SurfaceDefault
+import com.visepanda.designsystem.Surface
 import com.visepanda.designsystem.TextPrimary
 
 enum class BottomNavTab(val label: String) {
@@ -48,7 +48,7 @@ fun VpBottomNav(
     onTabSelected: (BottomNavTab) -> Unit
 ) {
     NavigationBar(
-        containerColor = SurfaceDefault,
+        containerColor = Surface,
         tonalElevation = 1.dp
     ) {
         navItems.forEach { item ->

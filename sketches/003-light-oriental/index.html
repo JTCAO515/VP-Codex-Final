@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VisePanda · 浅色东方</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; -webkit-font-smoothing: antialiased; background: #F5F0E8; color: #2D2D2D; }
+  .serif { font-family: 'DM Serif Display', serif; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- Status Bar -->
+<div class="flex justify-between items-center px-6 py-3 text-xs text-[#8B8B7A]">
+  <span>9:41</span>
+  <div class="flex gap-2"><span class="w-3.5 h-2 border border-[#8B8B7A] rounded-sm"></span></div>
+</div>
+
+<!-- Hero -->
+<div class="px-6 pt-12 pb-14 relative">
+  <div class="absolute -top-10 -right-10 w-48 h-48 bg-[#C9A96E]/8 rounded-full blur-2xl"></div>
+  <div class="w-8 h-8 rounded-full bg-[#C9A96E] flex items-center justify-center mb-6">
+    <span class="text-[10px] text-white font-bold">V</span>
+  </div>
+  <h1 class="serif text-5xl leading-[1.1] text-[#2D2D2D] mb-3">
+    Your AI China<br>
+    <span class="text-[#C9A96E]">Travel Companion</span>
+  </h1>
+  <p class="text-sm text-[#6B6B5E] leading-relaxed max-w-xs mb-8">
+    From inspiration to itinerary —<br>explore China with confidence.
+  </p>
+  <button class="w-full bg-[#C9A96E] text-white font-medium text-sm py-3.5 rounded-full flex items-center justify-center gap-2 hover:bg-[#B89255] transition-all">
+    <span>Plan Your Trip</span>
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+  </button>
+</div>
+
+<!-- Featured Cities -->
+<div class="px-6 mb-8">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-lg serif text-[#2D2D2D]">Featured Cities</h2>
+    <span class="text-xs text-[#8B8B7A]">See all →</span>
+  </div>
+  <div class="flex gap-4 overflow-x-auto -mx-6 px-6 pb-2">
+    <div class="min-w-[155px] h-[190px] rounded-xl bg-white shadow-sm border border-[#E8E0D0] relative overflow-hidden flex-shrink-0">
+      <div class="absolute bottom-0 left-0 right-0 p-4">
+        <h3 class="text-sm font-medium text-[#2D2D2D]">Beijing</h3>
+        <p class="text-xs text-[#8B8B7A] mt-0.5">History & culture</p>
+      </div>
+    </div>
+    <div class="min-w-[155px] h-[190px] rounded-xl bg-white shadow-sm border border-[#E8E0D0] relative overflow-hidden flex-shrink-0">
+      <div class="absolute bottom-0 left-0 right-0 p-4">
+        <h3 class="text-sm font-medium text-[#2D2D2D]">Shanghai</h3>
+        <p class="text-xs text-[#8B8B7A] mt-0.5">Modern & vibrant</p>
+      </div>
+    </div>
+    <div class="min-w-[155px] h-[190px] rounded-xl bg-white shadow-sm border border-[#E8E0D0] relative overflow-hidden flex-shrink-0">
+      <div class="absolute bottom-0 left-0 right-0 p-4">
+        <h3 class="text-sm font-medium text-[#2D2D2D]">Chengdu</h3>
+        <p class="text-xs text-[#8B8B7A] mt-0.5">Food & panda</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Inspiration -->
+<div class="px-6 mb-8">
+  <h2 class="text-lg serif text-[#2D2D2D] mb-4">Inspiration</h2>
+  <div class="space-y-3">
+    <div class="bg-white rounded-xl p-4 border border-[#E8E0D0] flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full bg-[#C9A96E]/10 flex items-center justify-center text-lg">🏯</div>
+      <div><p class="text-sm font-medium">First Time in China</p><p class="text-xs text-[#8B8B7A] mt-0.5">Essential tips & must-sees</p></div>
+    </div>
+    <div class="bg-white rounded-xl p-4 border border-[#E8E0D0] flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full bg-[#5B7B5A]/10 flex items-center justify-center text-lg">🥟</div>
+      <div><p class="text-sm font-medium">Food Journey</p><p class="text-xs text-[#8B8B7A] mt-0.5">Culinary adventures across China</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- Essentials -->
+<div class="px-6 mb-8">
+  <h2 class="text-lg serif text-[#2D2D2D] mb-4">Essentials</h2>
+  <div class="grid grid-cols-3 gap-3">
+    <div class="bg-white rounded-xl p-3 text-center border border-[#E8E0D0]"><p class="text-xl mb-1">💳</p><p class="text-xs text-[#6B6B5E]">Payment</p></div>
+    <div class="bg-white rounded-xl p-3 text-center border border-[#E8E0D0]"><p class="text-xl mb-1">🛂</p><p class="text-xs text-[#6B6B5E]">Visa</p></div>
+    <div class="bg-white rounded-xl p-3 text-center border border-[#E8E0D0]"><p class="text-xl mb-1">📶</p><p class="text-xs text-[#6B6B5E]">eSIM</p></div>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E8E0D0] px-4 py-2">
+  <div class="flex justify-around items-center">
+    <div class="flex flex-col items-center gap-0.5"><svg class="w-5 h-5 text-[#C9A96E]" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span class="text-[10px] text-[#C9A96E]">Home</span></div>
+    <div class="flex flex-col items-center gap-0.5"><svg class="w-5 h-5 text-[#8B8B7A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><span class="text-[10px] text-[#8B8B7A]">Explore</span></div>
+    <div class="flex flex-col items-center gap-0.5">
+      <div class="w-10 h-10 bg-[#C9A96E] rounded-full flex items-center justify-center -mt-4"><svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
+      <span class="text-[10px] text-[#8B8B7A]">Chat</span>
+    </div>
+    <div class="flex flex-col items-center gap-0.5"><svg class="w-5 h-5 text-[#8B8B7A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg><span class="text-[10px] text-[#8B8B7A]">Trips</span></div>
+  </div>
+</div>
+<div class="h-24"></div>
+</body>
+</html>
