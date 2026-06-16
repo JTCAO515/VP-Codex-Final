@@ -182,7 +182,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         val lastAssistant = lastMessages.lastOrNull { it.role == "assistant" } ?: return
         val text = lastAssistant.content
         // Heuristic: check for day-by-day itinerary pattern
-        if (!text.contains(Regex("(?i)day\s*\d+")) && !text.contains("行程") && !text.contains("路线")) return
+        if (!text.contains(Regex("(?i)day\\s*\\d+")) && !text.contains("行程") && !text.contains("路线")) return
         // Launch save in background
         kotlinx.coroutines.MainScope().launch {
             try {
