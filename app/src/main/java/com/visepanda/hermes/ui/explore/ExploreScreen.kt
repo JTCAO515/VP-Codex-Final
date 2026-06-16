@@ -59,9 +59,23 @@ private val allCities = listOf(
     ExploreCity("Guangzhou", "Canton · Dim Sum", listOf("Food", "Shopping"), "https://www.go2china.space/static/img/city-guangzhou.jpg"),
     ExploreCity("Hangzhou", "West Lake · Tea", listOf("Nature", "Culture"), "https://www.go2china.space/static/img/city-hangzhou.jpg"),
     ExploreCity("Guilin", "Karst Mountains", listOf("Nature", "Scenery"), "https://www.go2china.space/static/img/city-guilin.jpg"),
-    ExploreCity("Zhangjiajie", "Avatar Mountains", listOf("Nature", "Hiking"), null),
-    ExploreCity("Lhasa", "Tibet · Buddhism", listOf("Culture", "History"), null),
-    ExploreCity("Hong Kong", "Global · Finance", listOf("Shopping", "Food"), null)
+    ExploreCity("Zhangjiajie", "Avatar Mountains", listOf("Nature", "Hiking"), "https://www.go2china.space/static/img/city-zhangjiajie.jpg"),
+    ExploreCity("Lhasa", "Tibet · Buddhism", listOf("Culture", "History"), "https://www.go2china.space/static/img/city-lasa.jpg"),
+    ExploreCity("Hong Kong", "Global · Finance", listOf("Shopping", "Food"), "https://www.go2china.space/static/img/city-hongkong.jpg"),
+    ExploreCity("Chongqing", "Mountain City · Hotpot", listOf("Night View", "Food"), "https://www.go2china.space/static/img/city-chongqing.jpg"),
+    ExploreCity("Suzhou", "Classical Gardens", listOf("Culture", "Water Town"), "https://www.go2china.space/static/img/city-suzhou.jpg"),
+    ExploreCity("Nanjing", "Ancient Capital · History", listOf("Culture", "Scenery"), "https://www.go2china.space/static/img/city-nanjing.jpg"),
+    ExploreCity("Sanya", "Tropical Paradise", listOf("Beach", "Resort"), "https://www.go2china.space/static/img/city-sanya.jpg"),
+    ExploreCity("Kunming", "Spring City · Eternal Bloom", listOf("Nature", "Climate"), "https://www.go2china.space/static/img/city-kunming.jpg"),
+    ExploreCity("Lijiang", "Ancient Town · Naxi Culture", listOf("History", "Old Town"), "https://www.go2china.space/static/img/city-lijiang.jpg"),
+    ExploreCity("Harbin", "Ice & Snow Festival", listOf("Winter", "Festival"), "https://www.go2china.space/static/img/city-harbin.jpg"),
+    ExploreCity("Dali", "Erhai Lake · Old Town", listOf("Nature", "Culture"), "https://www.go2china.space/static/img/city-dali.jpg"),
+    ExploreCity("Wuhan", "River City · Hot Dry Noodles", listOf("Food", "History"), "https://www.go2china.space/static/img/city-wuhan.jpg"),
+    ExploreCity("Qingdao", "Coastal Beer City", listOf("Coast", "Beer"), "https://www.go2china.space/static/img/city-qingdao.jpg"),
+    ExploreCity("Dunhuang", "Silk Road · Mogao Caves", listOf("History", "Desert"), "https://www.go2china.space/static/img/city-dunhuang.jpg"),
+    ExploreCity("Luoyang", "Ancient Capital · Peonies", listOf("History", "Culture"), "https://www.go2china.space/static/img/city-luoyang.jpg"),
+    ExploreCity("Xiamen", "Coastal Garden City", listOf("Coast", "Relax"), "https://www.go2china.space/static/img/city-xiamen.jpg"),
+    ExploreCity("Fuzhou", "Hot Springs · History", listOf("Culture", "Nature"), "https://www.go2china.space/static/img/city-fuzhou.jpg")
 )
 
 // ── Explore Screen ──

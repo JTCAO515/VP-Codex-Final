@@ -75,7 +75,8 @@ data class CityData(
 data class InspirationData(
     val icon: String,
     val title: String,
-    val description: String
+    val description: String,
+    val imageUrl: String? = null
 )
 
 data class EssentialData(
@@ -108,9 +109,9 @@ private val featuredCities = listOf(
 )
 
 private val inspirations = listOf(
-    InspirationData("🗺️", "First Time in China", "Essential tips & must-see destinations for your inaugural visit."),
-    InspirationData("🍜", "Foodie's Journey", "From Beijing duck to dim sum — a culinary tour across China."),
-    InspirationData("🏯", "Hidden Gems", "Lesser-known destinations that offer authentic Chinese experiences.")
+    InspirationData("🗺️", "First Time in China", "Essential tips & must-see destinations for your inaugural visit.", "https://www.go2china.space/static/img/inspiration-first-time.jpg"),
+    InspirationData("🍜", "Foodie's Journey", "From Beijing duck to dim sum — a culinary tour across China.", "https://www.go2china.space/static/img/inspiration-foodie.jpg"),
+    InspirationData("🏯", "Hidden Gems", "Lesser-known destinations that offer authentic Chinese experiences.", "https://www.go2china.space/static/img/inspiration-hidden-gems.jpg")
 )
 
 private val essentials = listOf(
@@ -488,29 +489,54 @@ private fun InspirationGrid() {
 
 @Composable
 private fun InspirationCard(item: InspirationData) {
-    VpCard(onClick = { /* Navigate to guide */ }, modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+    VpCard(onClick = { /* Navigate to guide */ }, modifier = Modifier.fillMaxWidth().height(120.dp)) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Background image
+            if (item.imageUrl != null) {
+                AsyncImage(
+                    model = item.imageUrl,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
+            // Overlay gradient
             Box(
                 modifier = Modifier
-                    .size(48.dp).clip(VisePandaShapes.small).background(GoldPale),
-                contentAlignment = Alignment.Center
-            ) { Text(text = item.icon, fontSize = 22.sp) }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    item.title,
-                    style = androidx.compose.material3.MaterialTheme.typography.headlineMedium,
-                    color = TextPrimary
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    item.description,
-                    style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary, maxLines = 2
-                )
+                    .fillMaxSize()
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                Color(0xE62D2D2D),
+                                Color(0x662D2D2D)
+                            )
+                        )
+                    )
+            )
+            // Content
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(20.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp).clip(VisePandaShapes.small).background(GoldLight.copy(alpha = 0.25f)),
+                    contentAlignment = Alignment.Center
+                ) { Text(text = item.icon, fontSize = 22.sp) }
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        item.title,
+                        style = androidx.compose.material3.MaterialTheme.typography.headlineMedium,
+                        color = Color.White
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        item.description,
+                        style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.8f), maxLines = 2
+                    )
+                }
             }
         }
     }
