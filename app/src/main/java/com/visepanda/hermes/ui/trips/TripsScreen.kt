@@ -26,11 +26,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,27 +49,9 @@ import com.visepanda.designsystem.components.VpEnterAnimation
 import com.visepanda.designsystem.components.VpGoldButton
 import com.visepanda.designsystem.components.VpShimmer
 import com.visepanda.designsystem.components.VpTripCard
-import kotlinx.coroutines.delay
-
-// ── Mock Data ──
-
-private val recentTrips = listOf(
-    TripData("Beijing Adventure", "Beijing", "4 days", "Great Wall, Forbidden City, Temple of Heaven..."),
-    TripData("Shanghai Express", "Shanghai", "3 days", "The Bund, Dishui Lake, French Concession..."),
-    TripData("Xi'an Discovery", "Xi'an", "5 days", "Terracotta Warriors, Ancient City Wall..."),
-)
-
-private val savedTrips = listOf(
-    TripData("Chengdu Food Tour", "Chengdu", "3 days", "Hotpot, pandas, Jinli Ancient Street..."),
-    TripData("Guilin & Yangshuo", "Guilin", "4 days", "Li River cruise, karst mountains..."),
-)
-
-private data class TripData(
-    val title: String,
-    val city: String,
-    val days: String,
-    val preview: String
-)
+import com.visepanda.hermes.data.TripItem
+import com.visepanda.hermes.data.TripRepository
+import kotlinx.coroutines.launch
 
 // ── Trips Screen ──
 
@@ -75,13 +59,32 @@ private data class TripData(
 fun TripsScreen(modifier: Modifier = Modifier) {
     var selectedTab by remember { mutableStateOf(0) }
     var isLoading by remember { mutableStateOf(true) }
+    var recentTrips by remember { mutableStateOf<List<TripItem>>(emptyList()) }
+    var savedTrips by remember { mutableStateOf<List<TripItem>>(emptyList()) }
+    var errorMsg by remember { mutableStateOf<String?>(null) }
     val tabs = listOf("Recent", "Saved")
-    val currentTrips = if (selectedTab == 0) recentTrips else savedTrips
+    val context = LocalContext.current
+    val repo = remember { TripRepository(context) }
 
-    LaunchedEffect(Unit) {
-        delay(600)
-        isLoading = false
+    // Load trips from API
+    LaunchedEffect(selectedTab) {
+        isLoading = true
+        errorMsg = null
+        val result = repo.getTrips()
+        result.fold(
+            onSuccess = { (recent, saved) ->
+                recentTrips = recent
+                savedTrips = saved
+                isLoading = false
+            },
+            onFailure = { e ->
+                errorMsg = e.message
+                isLoading = false
+            }
+        )
     }
+
+    val currentTrips = if (selectedTab == 0) recentTrips else savedTrips
 
     Column(
         modifier = modifier
@@ -98,7 +101,10 @@ fun TripsScreen(modifier: Modifier = Modifier) {
 
         // Subtitle
         Text(
-            text = if (currentTrips.isNotEmpty()) "${currentTrips.size} trips planned" else "Plan your next adventure",
+            text = if (errorMsg != null) "Connection error"
+                   else if (currentTrips.isNotEmpty()) "${currentTrips.size} trips planned"
+                   else if (!isLoading) "Plan your next adventure"
+                   else "Loading...",
             style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
             color = TextSecondary,
             modifier = Modifier.padding(start = 24.dp, bottom = 8.dp)
@@ -197,7 +203,7 @@ private fun TripsTabBar(
 // ── Trip List ──
 
 @Composable
-private fun TripList(trips: List<TripData>) {
+private fun TripList(trips: List<TripItem>) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -205,7 +211,7 @@ private fun TripList(trips: List<TripData>) {
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(top = 12.dp, bottom = 24.dp)
     ) {
-        itemsIndexed(trips, key = { _, trip -> trip.title }) { index, trip ->
+        itemsIndexed(trips, key = { _, trip -> trip.id }) { index, trip ->
             VpEnterAnimation(index = index, staggerDelay = 60) {
                 VpTripCard(
                     title = trip.title,

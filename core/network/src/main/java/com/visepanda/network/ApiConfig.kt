@@ -11,6 +11,7 @@ object ApiConfig {
     const val AUTH_REGISTER = "/api/auth/register"
     const val AUTH_LOGIN = "/api/auth/login"
     const val AUTH_ME = "/api/auth/me"
+    const val TRIPS = "/api/trips"
 
     // Timeouts
     const val CONNECT_TIMEOUT = 15L
