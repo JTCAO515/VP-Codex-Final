@@ -224,7 +224,7 @@ fun CityDetailScreen(
             is CityDetailUiState.Loading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 Text("🐼 Loading...", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            is CityDetailUiState.Success -> CityDetailContent(state.detail, state.cityName, Modifier.padding(padding))
+            is CityDetailUiState.Success -> CityDetailContent(state.detail, state.cityName, onStartChat, Modifier.padding(padding))
             is CityDetailUiState.Error -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(state.message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
@@ -240,6 +240,7 @@ fun CityDetailScreen(
 private fun CityDetailContent(
     detail: CityDetail,
     cityName: String,
+    onStartChat: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
