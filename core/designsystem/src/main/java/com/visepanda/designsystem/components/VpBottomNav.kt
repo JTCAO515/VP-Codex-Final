@@ -16,6 +16,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import com.visepanda.designsystem.Gold
 import com.visepanda.designsystem.JadeGrey
 import com.visepanda.designsystem.SurfaceDefault
@@ -48,7 +49,7 @@ fun VpBottomNav(
 ) {
     NavigationBar(
         containerColor = SurfaceDefault,
-        tonalElevation = androidx.compose.ui.unit.dp.times(1)
+        tonalElevation = 1.dp
     ) {
         navItems.forEach { item ->
             NavigationBarItem(

@@ -1,19 +1,21 @@
 package com.visepanda.common
 
 sealed class AppError {
+    abstract val displayMessage: String
+
     data class Network(val cause: Throwable) : AppError() {
-        override val message: String get() = "Network error: ${cause.localizedMessage ?: "Unknown"}"
+        override val displayMessage: String get() = "Network error: ${cause.localizedMessage ?: "Unknown"}"
     }
-    data class Server(val code: Int, val message: String) : AppError()
+    data class Server(val code: Int, val detail: String) : AppError() {
+        override val displayMessage: String get() = detail
+    }
     data class Parse(val cause: Throwable) : AppError() {
-        override val message: String get() = "Data parse error"
+        override val displayMessage: String get() = "Data parse error"
     }
     data object EmptyData : AppError() {
-        override val message: String get() = "No data available"
+        override val displayMessage: String get() = "No data available"
     }
-    data class Unknown(val msg: String) : AppError() {
-        override val message: String get() = msg
+    data class Unknown(val detail: String) : AppError() {
+        override val displayMessage: String get() = detail
     }
-
-    open val message: String = "Unknown error"
 }
