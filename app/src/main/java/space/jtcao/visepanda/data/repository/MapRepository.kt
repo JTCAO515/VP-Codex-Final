@@ -6,6 +6,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import space.jtcao.visepanda.data.api.ApiConfig
 import space.jtcao.visepanda.data.model.MapCenter
 import space.jtcao.visepanda.data.model.MapMarker
+import java.net.URL
 
 /**
  * Repository for map data.

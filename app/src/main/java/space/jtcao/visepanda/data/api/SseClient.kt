@@ -6,7 +6,10 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import space.jtcao.visepanda.data.model.ChatEvent
 import space.jtcao.visepanda.data.model.ChatFaq
 import space.jtcao.visepanda.data.model.ChatImage
@@ -52,7 +55,7 @@ class SseClient {
 
         val request = Request.Builder()
             .url("${ApiConfig.BASE_URL}/api/chat")
-            .post(messagesJson.toRequestBody(MediaType.parse("application/json")))
+            .post(messagesJson.toRequestBody("application/json".toMediaType()))
             .header("Accept", "text/event-stream")
             .header("Cache-Control", "no-cache")
             .build()
@@ -150,7 +153,7 @@ class SseClient {
 
         val request = Request.Builder()
             .url("${ApiConfig.BASE_URL}/api/chat")
-            .post(messagesJson.toRequestBody(MediaType.parse("application/json")))
+            .post(messagesJson.toRequestBody("application/json".toMediaType()))
             .header("Accept", "text/event-stream")
             .build()
 
