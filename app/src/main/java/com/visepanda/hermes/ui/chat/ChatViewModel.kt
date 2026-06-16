@@ -58,9 +58,18 @@ class ChatViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
+                // Correct API format: { "messages": [{ "role": "user", "content": "..." }] }
+                val escaped = text
+                    .replace("\\", "\\\\")
+                    .replace("\"", "\\\"")
+                    .replace("\n", "\\n")
+                    .replace("\r", "\\r")
+                    .replace("\t", "\\t")
+                val requestBody = """{"messages":[{"role":"user","content":"$escaped"}]}"""
+
                 sseClient.connect(
                     url = "https://www.go2china.space/api/chat",
-                    requestBody = """{"message":"$text","language":"en","city":"","mode":"","history":[]}"""
+                    requestBody = requestBody
                 ).collect { event ->
                     when (event) {
                         is SseEvent.Token -> appendToCurrentAi(event.text)
@@ -75,6 +84,7 @@ class ChatViewModel : ViewModel() {
                     }
                 }
             } catch (e: Exception) {
+                // Fallback mock response if SSE fails
                 mockStreamResponse(text)
             }
         }

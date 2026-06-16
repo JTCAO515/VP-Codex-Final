@@ -22,8 +22,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
@@ -50,7 +49,12 @@ import com.visepanda.designsystem.Surface
 import com.visepanda.designsystem.TextPrimary
 import com.visepanda.designsystem.TextSecondary
 import com.visepanda.designsystem.TextTertiary
+import com.visepanda.designsystem.VisePandaElevation
+import com.visepanda.designsystem.VisePandaShapes
 import androidx.lifecycle.viewmodel.compose.viewModel
+
+// Warm shadow colors for chat bubbles
+private val ShadowBubble = Color(0x12C9A96E)
 
 @Composable
 fun ChatScreen(
@@ -128,7 +132,7 @@ private fun ContextBar() {
         )
         Box(
             modifier = Modifier
-                .clip(RoundedCornerShape(9999.dp))
+                .clip(VisePandaShapes.extraLarge)
                 .background(GoldLight.copy(alpha = 0.3f))
                 .padding(horizontal = 12.dp, vertical = 4.dp)
         ) {
@@ -163,9 +167,9 @@ private fun Chip(text: String, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .width(180.dp)
-            .clip(RoundedCornerShape(9999.dp))
+            .clip(VisePandaShapes.extraLarge)
             .background(Color.White)
-            .border(1.dp, Gold, RoundedCornerShape(9999.dp))
+            .border(1.dp, Gold, VisePandaShapes.extraLarge as RoundedCornerShape)
             .clickable { onClick() }
             .padding(horizontal = 16.dp, vertical = 10.dp)
     ) {
@@ -187,6 +191,12 @@ private fun UserBubble(text: String) {
         Box(
             modifier = Modifier
                 .widthIn(max = 280.dp)
+                .shadow(
+                    elevation = 3.dp,
+                    shape = RoundedCornerShape(topStart = 16.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp),
+                    ambientColor = ShadowBubble,
+                    spotColor = ShadowBubble
+                )
                 .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp))
                 .background(Gold)
                 .padding(14.dp)
@@ -202,11 +212,17 @@ private fun AiBubble(text: String) {
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Start
     ) {
-        Card(
-            modifier = Modifier.widthIn(max = 300.dp),
-            shape = RoundedCornerShape(topStart = 4.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 16.dp),
-            colors = CardDefaults.cardColors(containerColor = Surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        Box(
+            modifier = Modifier
+                .widthIn(max = 300.dp)
+                .shadow(
+                    elevation = 3.dp,
+                    shape = RoundedCornerShape(topStart = 4.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 16.dp),
+                    ambientColor = ShadowBubble,
+                    spotColor = ShadowBubble
+                )
+                .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 16.dp))
+                .background(Surface)
         ) {
             Box {
                 // Gold left border accent
@@ -214,7 +230,7 @@ private fun AiBubble(text: String) {
                     modifier = Modifier
                         .matchParentSize()
                         .padding(end = 0.dp)
-                        .fillMaxWidth(0.008f)
+                        .fillMaxWidth(0.012f)
                         .background(Gold)
                 )
                 Text(
@@ -236,7 +252,7 @@ private fun LoadingBubble() {
     ) {
         Box(
             modifier = Modifier
-                .clip(RoundedCornerShape(16.dp))
+                .clip(VisePandaShapes.medium)
                 .background(Surface)
                 .padding(14.dp)
         ) {
@@ -263,7 +279,7 @@ private fun InputBar(
             modifier = Modifier
                 .weight(1f)
                 .height(44.dp)
-                .clip(RoundedCornerShape(22.dp))
+                .clip(VisePandaShapes.extraLarge)
                 .background(Background)
                 .padding(horizontal = 16.dp),
             contentAlignment = Alignment.CenterStart
@@ -286,7 +302,7 @@ private fun InputBar(
         Box(
             modifier = Modifier
                 .size(44.dp)
-                .clip(RoundedCornerShape(22.dp))
+                .clip(VisePandaShapes.extraLarge)
                 .background(if (enabled && input.isNotBlank()) Gold else BorderDefault)
                 .clickable(enabled = enabled && input.isNotBlank()) {
                     onSend(input.trim())

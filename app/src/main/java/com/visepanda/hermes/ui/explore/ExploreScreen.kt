@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,10 +15,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,35 +32,36 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.visepanda.designsystem.Background
-import com.visepanda.designsystem.BorderDefault
 import com.visepanda.designsystem.Gold
-import com.visepanda.designsystem.GoldLight
-import com.visepanda.designsystem.JadeGrey
 import com.visepanda.designsystem.Surface
 import com.visepanda.designsystem.TextPrimary
 import com.visepanda.designsystem.TextSecondary
-import com.visepanda.designsystem.TextTertiary
+import com.visepanda.designsystem.VisePandaShapes
 import com.visepanda.designsystem.components.VpCityCard
+import com.visepanda.designsystem.components.VpCityCardShimmer
+import com.visepanda.designsystem.components.VpEnterAnimation
+import kotlinx.coroutines.delay
 
-// ── Sample Cities ──
+// ── City data with backend images ──
 
-private val allCities = listOf(
-    ExploreCity("Beijing", "Capital · History", listOf("Great Wall", "Forbidden City")),
-    ExploreCity("Shanghai", "Modern · Nightlife", listOf("Bund", "Dishui Lake")),
-    ExploreCity("Xi'an", "Terracotta Warriors", listOf("History", "Food")),
-    ExploreCity("Chengdu", "Pandas · Sichuan", listOf("Pandas", "Hotpot")),
-    ExploreCity("Guangzhou", "Canton · Dim Sum", listOf("Food", "Shopping")),
-    ExploreCity("Hangzhou", "West Lake · Tea", listOf("Nature", "Culture")),
-    ExploreCity("Guilin", "Karst Mountains", listOf("Nature", "Scenery")),
-    ExploreCity("Zhangjiajie", "Avatar Mountains", listOf("Nature", "Hiking")),
-    ExploreCity("Lhasa", "Tibet · Buddhism", listOf("Culture", "History")),
-    ExploreCity("Hong Kong", "Global · Finance", listOf("Shopping", "Food"))
-)
-
-private data class ExploreCity(
+data class ExploreCity(
     val name: String,
     val subtitle: String,
-    val tags: List<String>
+    val tags: List<String>,
+    val imageUrl: String? = null
+)
+
+private val allCities = listOf(
+    ExploreCity("Beijing", "Capital · History", listOf("Great Wall", "Forbidden City"), "https://www.go2china.space/static/img/city-beijing.jpg"),
+    ExploreCity("Shanghai", "Modern · Nightlife", listOf("Bund", "Dishui Lake"), "https://www.go2china.space/static/img/city-shanghai.jpg"),
+    ExploreCity("Xi'an", "Terracotta Warriors", listOf("History", "Food"), "https://www.go2china.space/static/img/city-xian.jpg"),
+    ExploreCity("Chengdu", "Pandas · Sichuan", listOf("Pandas", "Hotpot"), "https://www.go2china.space/static/img/city-chengdu.jpg"),
+    ExploreCity("Guangzhou", "Canton · Dim Sum", listOf("Food", "Shopping"), "https://www.go2china.space/static/img/city-guangzhou.jpg"),
+    ExploreCity("Hangzhou", "West Lake · Tea", listOf("Nature", "Culture"), "https://www.go2china.space/static/img/city-hangzhou.jpg"),
+    ExploreCity("Guilin", "Karst Mountains", listOf("Nature", "Scenery"), "https://www.go2china.space/static/img/city-guilin.jpg"),
+    ExploreCity("Zhangjiajie", "Avatar Mountains", listOf("Nature", "Hiking"), null),
+    ExploreCity("Lhasa", "Tibet · Buddhism", listOf("Culture", "History"), null),
+    ExploreCity("Hong Kong", "Global · Finance", listOf("Shopping", "Food"), null)
 )
 
 // ── Explore Screen ──
@@ -66,13 +69,20 @@ private data class ExploreCity(
 @Composable
 fun ExploreScreen(modifier: Modifier = Modifier) {
     var isMapView by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(true) }
+
+    // Simulate loading
+    LaunchedEffect(Unit) {
+        delay(400)
+        isLoading = false
+    }
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(Background)
     ) {
-        // ── Top: Title + Toggle ──
+        // ── Header ──
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -80,13 +90,19 @@ fun ExploreScreen(modifier: Modifier = Modifier) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Explore China",
-                style = androidx.compose.material3.MaterialTheme.typography.displayMedium,
-                color = TextPrimary
-            )
+            Column {
+                Text(
+                    text = "Explore China",
+                    style = androidx.compose.material3.MaterialTheme.typography.displayMedium,
+                    color = TextPrimary
+                )
+                Text(
+                    text = "${allCities.size} destinations",
+                    style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
+                    color = TextSecondary
+                )
+            }
 
-            // Cards / Map toggle
             ViewToggle(
                 isMap = isMapView,
                 onToggle = { isMapView = !isMapView }
@@ -96,8 +112,29 @@ fun ExploreScreen(modifier: Modifier = Modifier) {
         // ── Content ──
         if (isMapView) {
             MapPlaceholder()
+        } else if (isLoading) {
+            ExploreShimmer()
         } else {
             CityGrid()
+        }
+    }
+}
+
+// ── Explore Shimmer ──
+
+@Composable
+private fun ExploreShimmer() {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(bottom = 24.dp)
+    ) {
+        itemsIndexed(listOf(1, 2, 3, 4)) { _, _ ->
+            VpCityCardShimmer()
         }
     }
 }
@@ -111,15 +148,14 @@ private fun ViewToggle(
 ) {
     Row(
         modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
+            .clip(VisePandaShapes.small)
             .background(Surface)
             .clickable { onToggle() },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Cards option
         Box(
             modifier = Modifier
-                .clip(RoundedCornerShape(8.dp))
+                .clip(VisePandaShapes.small)
                 .background(if (!isMap) Gold else Color.Transparent)
                 .padding(horizontal = 14.dp, vertical = 8.dp),
             contentAlignment = Alignment.Center
@@ -131,10 +167,9 @@ private fun ViewToggle(
             )
         }
 
-        // Map option
         Box(
             modifier = Modifier
-                .clip(RoundedCornerShape(8.dp))
+                .clip(VisePandaShapes.small)
                 .background(if (isMap) Gold else Color.Transparent)
                 .padding(horizontal = 14.dp, vertical = 8.dp),
             contentAlignment = Alignment.Center
@@ -159,18 +194,20 @@ private fun CityGrid() {
             .padding(horizontal = 24.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 24.dp)
+        contentPadding = PaddingValues(bottom = 24.dp)
     ) {
-        items(allCities) { city ->
-            VpCityCard(
-                imageUrl = null,
-                cityName = city.name,
-                description = city.subtitle,
-                tags = city.tags,
-                onClick = { /* Navigate to city detail */ },
-                modifier = Modifier.fillMaxWidth(),
-                height = 190
-            )
+        itemsIndexed(allCities) { index, city ->
+            VpEnterAnimation(index = index, staggerDelay = 50) {
+                VpCityCard(
+                    imageUrl = city.imageUrl,
+                    cityName = city.name,
+                    description = city.subtitle,
+                    tags = city.tags,
+                    onClick = { /* Navigate to city detail */ },
+                    modifier = Modifier.fillMaxWidth(),
+                    height = 190
+                )
+            }
         }
     }
 }
@@ -188,22 +225,18 @@ private fun MapPlaceholder() {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Map illustration area
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(400.dp)
-                    .clip(RoundedCornerShape(16.dp))
+                    .clip(VisePandaShapes.large)
                     .background(Surface),
                 contentAlignment = Alignment.Center
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        text = "🗺️",
-                        fontSize = 48.sp
-                    )
+                    Text(text = "🗺️", fontSize = 48.sp)
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = "Interactive Map",

@@ -1,6 +1,7 @@
 package com.visepanda.hermes.ui.trips
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,13 +15,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,7 +35,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.visepanda.designsystem.Background
-import com.visepanda.designsystem.BorderDefault
 import com.visepanda.designsystem.Gold
 import com.visepanda.designsystem.GoldLight
 import com.visepanda.designsystem.JadeGrey
@@ -41,8 +42,12 @@ import com.visepanda.designsystem.Surface
 import com.visepanda.designsystem.TextPrimary
 import com.visepanda.designsystem.TextSecondary
 import com.visepanda.designsystem.TextTertiary
+import com.visepanda.designsystem.VisePandaShapes
+import com.visepanda.designsystem.components.VpEnterAnimation
 import com.visepanda.designsystem.components.VpGoldButton
+import com.visepanda.designsystem.components.VpShimmer
 import com.visepanda.designsystem.components.VpTripCard
+import kotlinx.coroutines.delay
 
 // ── Mock Data ──
 
@@ -69,15 +74,21 @@ private data class TripData(
 @Composable
 fun TripsScreen(modifier: Modifier = Modifier) {
     var selectedTab by remember { mutableStateOf(0) }
+    var isLoading by remember { mutableStateOf(true) }
     val tabs = listOf("Recent", "Saved")
     val currentTrips = if (selectedTab == 0) recentTrips else savedTrips
+
+    LaunchedEffect(Unit) {
+        delay(600)
+        isLoading = false
+    }
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(Background)
     ) {
-        // ── Header ──
+        // Header
         Text(
             text = "My Trips",
             style = androidx.compose.material3.MaterialTheme.typography.displayMedium,
@@ -85,18 +96,55 @@ fun TripsScreen(modifier: Modifier = Modifier) {
             modifier = Modifier.padding(start = 24.dp, top = 16.dp, bottom = 8.dp)
         )
 
+        // Subtitle
+        Text(
+            text = if (currentTrips.isNotEmpty()) "${currentTrips.size} trips planned" else "Plan your next adventure",
+            style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
+            color = TextSecondary,
+            modifier = Modifier.padding(start = 24.dp, bottom = 8.dp)
+        )
+
         // ── Tabs ──
         TripsTabBar(
             tabs = tabs,
             selectedIndex = selectedTab,
-            onTabSelected = { selectedTab = it }
+            onTabSelected = {
+                selectedTab = it
+                isLoading = true
+            }
         )
 
-        // ── List or Empty State ──
-        if (currentTrips.isEmpty()) {
-            EmptyState(onStartPlanning = { /* Navigate to explore or chat */ })
+        // ── Content ──
+        if (isLoading) {
+            TripsShimmer()
+        } else if (currentTrips.isEmpty()) {
+            EnhancedEmptyState(onStartPlanning = { /* Navigate to explore or chat */ })
         } else {
             TripList(trips = currentTrips)
+        }
+    }
+}
+
+// ── Shimmer Loading ──
+
+@Composable
+private fun TripsShimmer() {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(top = 12.dp, bottom = 24.dp)
+    ) {
+        itemsIndexed(listOf(1, 2, 3)) { _, _ ->
+            Column(modifier = Modifier.fillMaxWidth()) {
+                VpShimmer(widthFraction = 0.5f, height = 20)
+                Spacer(modifier = Modifier.height(8.dp))
+                VpShimmer(widthFraction = 0.3f, height = 14)
+                Spacer(modifier = Modifier.height(8.dp))
+                VpShimmer(widthFraction = 0.8f, height = 14)
+                Spacer(modifier = Modifier.height(16.dp))
+            }
         }
     }
 }
@@ -113,12 +161,13 @@ private fun TripsTabBar(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(12.dp))
+            .clip(VisePandaShapes.medium)
             .background(Surface),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         tabs.forEachIndexed { index, label ->
             val isSelected = index == selectedIndex
+            @Suppress("UNUSED_EXPRESSION")
             val bgColor by animateColorAsState(
                 targetValue = if (isSelected) Gold else Color.Transparent,
                 label = "tabBg"
@@ -127,7 +176,7 @@ private fun TripsTabBar(
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(VisePandaShapes.medium)
                     .background(bgColor)
                     .clickable { onTabSelected(index) }
                     .padding(vertical = 10.dp),
@@ -156,22 +205,24 @@ private fun TripList(trips: List<TripData>) {
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(top = 12.dp, bottom = 24.dp)
     ) {
-        items(trips, key = { it.title }) { trip ->
-            VpTripCard(
-                title = trip.title,
-                city = trip.city,
-                days = trip.days,
-                preview = trip.preview,
-                onClick = { /* Open trip detail */ }
-            )
+        itemsIndexed(trips, key = { _, trip -> trip.title }) { index, trip ->
+            VpEnterAnimation(index = index, staggerDelay = 60) {
+                VpTripCard(
+                    title = trip.title,
+                    city = trip.city,
+                    days = trip.days,
+                    preview = trip.preview,
+                    onClick = { /* Open trip detail */ }
+                )
+            }
         }
     }
 }
 
-// ── Empty State ──
+// ── Enhanced Empty State ──
 
 @Composable
-private fun EmptyState(
+private fun EnhancedEmptyState(
     onStartPlanning: () -> Unit
 ) {
     Column(
@@ -181,18 +232,27 @@ private fun EmptyState(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Illustration
+        // Illustrated icon area
         Box(
             modifier = Modifier
-                .size(120.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .background(GoldLight.copy(alpha = 0.2f)),
+                .size(140.dp)
+                .clip(CircleShape)
+                .background(GoldLight.copy(alpha = 0.15f)),
             contentAlignment = Alignment.Center
         ) {
-            Text(text = "🗺️", fontSize = 48.sp)
+            // Inner decoration ring
+            Box(
+                modifier = Modifier
+                    .size(110.dp)
+                    .clip(CircleShape)
+                    .background(GoldLight.copy(alpha = 0.25f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "✈️", fontSize = 48.sp)
+            }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(28.dp))
 
         Text(
             text = "No trips planned yet",
@@ -204,18 +264,41 @@ private fun EmptyState(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Start planning your China adventure.\nYour itineraries will appear here.",
+            text = "Your China adventure awaits.\nExplore destinations, get AI recommendations,\nand build your perfect itinerary.",
             style = androidx.compose.material3.MaterialTheme.typography.bodyLarge,
             color = TextSecondary,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            lineHeight = 22.sp
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(36.dp))
 
         VpGoldButton(
             text = "Start Planning",
             onClick = onStartPlanning,
             modifier = Modifier.fillMaxWidth()
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Hint chips
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            listOf("💡 Ask AI", "🗺️ Explore", "🏨 Book").forEach { hint ->
+                Box(
+                    modifier = Modifier
+                        .clip(VisePandaShapes.extraLarge)
+                        .background(Surface)
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = hint,
+                        fontSize = 13.sp,
+                        color = TextTertiary
+                    )
+                }
+            }
+        }
     }
 }
