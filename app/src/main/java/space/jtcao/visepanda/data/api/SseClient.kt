@@ -4,192 +4,184 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
-import okhttp3.internal.closeQuietly
+import okhttp3.*
 import space.jtcao.visepanda.data.model.ChatEvent
+import space.jtcao.visepanda.data.model.ChatFaq
+import space.jtcao.visepanda.data.model.ChatImage
 import space.jtcao.visepanda.data.model.ChatMessage
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 /**
- * Custom SSE (Server-Sent Events) client for the VisePanda chat API.
+ * SSE Chat client for VisePanda backend.
  *
- * Android has no built-in SSE support, so we use OkHttp's streaming response
- * and parse the SSE format manually.
+ * **Actual protocol (2026)**
+ * The backend always emits `event: message` with a JSON payload that
+ * encodes the payload type inside:
+ *   data: {"token": "text"}
+ *   data: {"split": true}
+ *   data: {"image": {"key":"..","url":"..","label":".."}}
+ *   data: {"faq": {"id":"..","title":"..","icon":".."}}
+ *   data: {"error": "msg"}
+ *   data: {"done": true}
  *
- * SSE format:
- *   event: token
- *   data: "some text"
- *
- *   event: image
- *   data: {"key":"..","url":"..","label":".."}
- *
- *   event: done
- *   data:
- *
+ * Outgoing messages are a JSON array of {role, content} objects.
  */
-class SseClient(
-    private val client: OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(ApiConfig.TIMEOUT_SECONDS, TimeUnit.SECONDS)
-        .readTimeout(ApiConfig.SSE_READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-        .writeTimeout(ApiConfig.TIMEOUT_SECONDS, TimeUnit.SECONDS)
+class SseClient {
+
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(120, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
         .build()
-) {
+
     private val json = Json { ignoreUnknownKeys = true }
 
-    /**
-     * Stream chat responses from the VisePanda API.
-     *
-     * @param messages The conversation history (previous messages)
-     * @param city Optional city context (null = general chat)
-     * @return Flow of [ChatEvent] — tokens, images, FAQs, done signal
-     */
-    fun streamChat(
-        messages: List<ChatMessage>,
-        city: String?
-    ): Flow<ChatEvent> = callbackFlow {
-        val bodyJson = buildJsonBody(messages, city)
-        val requestBody = bodyJson.toString().toRequestBody("application/json".toMediaType())
+    fun streamChat(messages: List<ChatMessage>, city: String? = null): Flow<ChatEvent> = callbackFlow {
+        // Build request body from messages
+        val messagesJson = buildString {
+            append("[")
+            messages.forEachIndexed { i, msg ->
+                if (i > 0) append(",")
+                append("""{"role":"${msg.role}","content":"${escapeJson(msg.content)}"}""")
+            }
+            append("]")
+        }
+
         val request = Request.Builder()
             .url("${ApiConfig.BASE_URL}/api/chat")
-            .post(requestBody)
-            .header("User-Agent", "VisePanda-Android/1.0")
+            .post(messagesJson.toRequestBody(MediaType.parse("application/json")))
+            .header("Accept", "text/event-stream")
+            .header("Cache-Control", "no-cache")
             .build()
 
-        var currentCall: Call? = null
+        val call = client.newCall(request)
 
-        client.newCall(request).enqueue(object : Callback {
+        call.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                trySend(ChatEvent.Error(e.message ?: "Connection failed"))
+                close()
+            }
+
             override fun onResponse(call: Call, response: Response) {
-                currentCall = call
                 val source = response.body?.source() ?: run {
                     trySend(ChatEvent.Error("Empty response body"))
-                    channel.close()
+                    close()
                     return
                 }
-
-                var currentEvent = "message"
 
                 try {
                     while (!source.exhausted()) {
                         val line = source.readUtf8Line() ?: break
-                        when {
-                            line.startsWith("event: ") -> {
-                                currentEvent = line.removePrefix("event: ").trim()
-                            }
-                            line.startsWith("data: ") -> {
-                                val data = line.removePrefix("data: ").trim()
-                                val event = parseEvent(currentEvent, data)
-                                if (event != null) {
-                                    trySend(event)
-                                }
-                            }
-                            line.isEmpty() -> {
-                                // Empty line = event boundary, reset
-                                currentEvent = "message"
-                            }
+                        if (line.startsWith("data:")) {
+                            val data = line.removePrefix("data:").trim()
+                            if (data.isEmpty()) continue
+                            parseData(data)
                         }
                     }
                 } catch (e: Exception) {
-                    trySend(ChatEvent.Error(e.message ?: "Stream read error"))
+                    trySend(ChatEvent.Error(e.message ?: "Parse error"))
                 } finally {
-                    trySend(ChatEvent.Done)
-                    channel.close()
-                    response.closeQuietly()
+                    close()
                 }
             }
 
-            override fun onFailure(call: Call, e: IOException) {
-                trySend(ChatEvent.Error(e.message ?: "Network error"))
-                channel.close()
+            private fun parseData(data: String) {
+                try {
+                    val element = json.parseToJsonElement(data).jsonObject
+
+                    when {
+                        element.containsKey("token") -> {
+                            val text = element["token"]?.jsonPrimitive?.content ?: ""
+                            trySend(ChatEvent.Token(text))
+                        }
+                        element.containsKey("split") -> {
+                            trySend(ChatEvent.Split())
+                        }
+                        element.containsKey("image") -> {
+                            val img = element["image"]?.jsonObject
+                            if (img != null) {
+                                trySend(ChatEvent.Image(
+                                    key = img["key"]?.jsonPrimitive?.content ?: "",
+                                    url = img["url"]?.jsonPrimitive?.content ?: "",
+                                    label = img["label"]?.jsonPrimitive?.content ?: ""
+                                ))
+                            }
+                        }
+                        element.containsKey("faq") -> {
+                            val faq = element["faq"]?.jsonObject
+                            if (faq != null) {
+                                trySend(ChatEvent.Faq(
+                                    id = faq["id"]?.jsonPrimitive?.content ?: "",
+                                    title = faq["title"]?.jsonPrimitive?.content ?: "",
+                                    icon = faq["icon"]?.jsonPrimitive?.content ?: ""
+                                ))
+                            }
+                        }
+                        element.containsKey("error") -> {
+                            val msg = element["error"]?.jsonPrimitive?.content ?: data
+                            trySend(ChatEvent.Error(msg))
+                        }
+                        element.containsKey("done") -> {
+                            trySend(ChatEvent.Done)
+                        }
+                    }
+                } catch (_: Exception) {
+                    // Not valid JSON — ignore
+                }
             }
         })
 
-        awaitClose {
-            currentCall?.cancel()
-        }
+        awaitClose { call.cancel() }
     }
 
-    /**
-     * Non-streaming fallback — fires the request and returns the full response text.
-     * Used as a simpler alternative when SSE is not required.
-     */
-    fun chatSync(messages: List<ChatMessage>, city: String?): String {
-        val bodyJson = buildJsonBody(messages, city)
-        val requestBody = bodyJson.toString().toRequestBody("application/json".toMediaType())
+    /** Synchronous fallback for simple queries. */
+    suspend fun chatSync(messages: List<ChatMessage>, city: String? = null): String {
+        val messagesJson = buildString {
+            append("[")
+            messages.forEachIndexed { i, msg ->
+                if (i > 0) append(",")
+                append("""{"role":"${msg.role}","content":"${escapeJson(msg.content)}"}""")
+            }
+            append("]")
+        }
+
         val request = Request.Builder()
             .url("${ApiConfig.BASE_URL}/api/chat")
-            .post(requestBody)
-            .header("User-Agent", "VisePanda-Android/1.0")
+            .post(messagesJson.toRequestBody(MediaType.parse("application/json")))
+            .header("Accept", "text/event-stream")
             .build()
 
         val response = client.newCall(request).execute()
-        return response.body?.string() ?: ""
-    }
+        val body = response.body?.string() ?: return ""
 
-    // ── Private helpers ──
-
-    private fun buildJsonBody(messages: List<ChatMessage>, city: String?): JsonObject {
-        val messagesArray = messages.joinToString(",") { msg ->
-            """{"role":"${msg.role}","content":"${escapeJson(msg.content)}"}"""
-        }
-        val cityPart = if (city != null) ""","city":"$city"""" else ""
-        val jsonStr = """{"messages":[$messagesArray]$cityPart}"""
-        return json.parseToJsonElement(jsonStr).jsonObject
-    }
-
-    private fun escapeJson(s: String): String {
-        return s.replace("\\", "\\\\")
-            .replace("\"", "\\\"")
-            .replace("\n", "\\n")
-            .replace("\r", "\\r")
-            .replace("\t", "\\t")
-    }
-
-    private fun parseEvent(eventType: String, data: String): ChatEvent? {
-        if (data.isEmpty()) return null
-
-        return when (eventType) {
-            "token" -> ChatEvent.Token(data.removeSurrounding("\""))
-            "split" -> ChatEvent.Split(true)
-            "image" -> try {
-                val obj = json.parseToJsonElement(data).jsonObject
-                ChatEvent.Image(
-                    key = obj["key"]?.jsonPrimitive?.content ?: "",
-                    url = obj["url"]?.jsonPrimitive?.content ?: "",
-                    label = obj["label"]?.jsonPrimitive?.content ?: ""
-                )
-            } catch (e: Exception) {
-                null
-            }
-            "faq" -> try {
-                val obj = json.parseToJsonElement(data).jsonObject
-                ChatEvent.Faq(
-                    id = obj["id"]?.jsonPrimitive?.content ?: "",
-                    title = obj["title"]?.jsonPrimitive?.content ?: "",
-                    icon = obj["icon"]?.jsonPrimitive?.content ?: ""
-                )
-            } catch (e: Exception) {
-                null
-            }
-            "done" -> ChatEvent.Done
-            "error" -> ChatEvent.Error(
+        // Extract tokens from SSE stream
+        val sb = StringBuilder()
+        body.lines().forEach { line ->
+            if (line.startsWith("data:")) {
+                val data = line.removePrefix("data:").trim()
                 try {
-                    json.parseToJsonElement(data).jsonObject["message"]?.jsonPrimitive?.content ?: data
-                } catch (e: Exception) {
-                    data
-                }
-            )
-            else -> null
+                    val element = json.parseToJsonElement(data).jsonObject
+                    val token = element["token"]?.jsonPrimitive?.content
+                    if (token != null) sb.append(token)
+                } catch (_: Exception) {}
+            }
+        }
+        return sb.toString()
+    }
+
+    private fun escapeJson(s: String): String = buildString {
+        for (c in s) {
+            when (c) {
+                '"' -> append("\\\"")
+                '\\' -> append("\\\\")
+                '\n' -> append("\\n")
+                '\r' -> append("\\r")
+                '\t' -> append("\\t")
+                else -> append(c)
+            }
         }
     }
 }

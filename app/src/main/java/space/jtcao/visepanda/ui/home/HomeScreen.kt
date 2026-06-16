@@ -53,6 +53,7 @@ import space.jtcao.visepanda.data.repository.CityRepository
 @Composable
 fun HomeScreen(
     onCityClick: (String) -> Unit,
+    onViewAllCities: () -> Unit,
     onStartChat: () -> Unit,
     viewModel: HomeViewModel = viewModel()
 ) {
@@ -145,7 +146,7 @@ private fun HomeContent(
 
         // View All Cities button
         Button(
-            onClick = { onCityClick("all") },
+            onClick = { onViewAllCities() },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 16.dp)

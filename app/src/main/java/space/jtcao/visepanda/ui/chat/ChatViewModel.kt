@@ -1,6 +1,7 @@
 package space.jtcao.visepanda.ui.chat
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +14,7 @@ import space.jtcao.visepanda.data.model.ChatFaq
 import space.jtcao.visepanda.data.model.ChatImage
 import space.jtcao.visepanda.data.model.ChatMessage
 import space.jtcao.visepanda.data.repository.ChatRepository
+import space.jtcao.visepanda.data.repository.TripRepository
 
 /**
  * UI state for the Chat screen.
@@ -34,9 +36,10 @@ data class ChatUiState(
  * - Collects SSE stream events (Token/Split/Image/Faq/Done)
  * - Manages streaming vs. idle state
  */
-class ChatViewModel : ViewModel() {
+class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = ChatRepository()
+    private val tripRepo = TripRepository(application)
 
     private val _uiState = MutableStateFlow(ChatUiState())
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
@@ -135,6 +138,7 @@ class ChatViewModel : ViewModel() {
                 flushAccumulated(isSplit = false)
                 streamJob = null
                 _uiState.value = _uiState.value.copy(isStreaming = false)
+                autoSaveTrip()
             }
             is ChatEvent.Error -> {
                 _uiState.value = _uiState.value.copy(
@@ -169,5 +173,25 @@ class ChatViewModel : ViewModel() {
         flushAccumulated(isSplit = false)
         streamJob = null
         _uiState.value = _uiState.value.copy(isStreaming = false)
+    }
+
+    /** Auto-save trip when the assistant response looks like an itinerary. */
+    private fun autoSaveTrip() {
+        val lastMessages = _uiState.value.messages
+        if (lastMessages.isEmpty()) return
+        val lastAssistant = lastMessages.lastOrNull { it.role == "assistant" } ?: return
+        val text = lastAssistant.content
+        // Heuristic: check for day-by-day itinerary pattern
+        if (!text.contains(Regex("(?i)day\s*\d+")) && !text.contains("行程") && !text.contains("路线")) return
+        // Launch save in background
+        kotlinx.coroutines.MainScope().launch {
+            try {
+                tripRepo.saveTrip(
+                    name = text.take(50).replace("
+", " ").trim(),
+                    itinerary = text
+                )
+            } catch (_: Exception) { /* Best-effort save */ }
+        }
     }
 }

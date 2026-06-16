@@ -2,6 +2,7 @@ package space.jtcao.visepanda.data.repository
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import space.jtcao.visepanda.data.api.ApiConfig
@@ -41,6 +42,7 @@ class CityRepository {
                 bestSeason = obj["best_season"]?.jsonPrimitive?.content ?: "",
                 days = obj["days"]?.jsonPrimitive?.content ?: "",
                 vibe = obj["vibe"]?.jsonPrimitive?.content ?: "",
+                highlights = obj["highlights"]?.jsonArray?.mapNotNull { it.jsonPrimitive?.content } ?: emptyList(),
                 budgetTip = obj["budget_tip"]?.jsonPrimitive?.content ?: "",
                 image = obj["image"]?.jsonPrimitive?.content ?: ""
             )

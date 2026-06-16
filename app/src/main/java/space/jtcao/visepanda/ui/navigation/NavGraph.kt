@@ -36,6 +36,9 @@ fun NavGraph(
                 onCityClick = { cityName ->
                     navController.navigate(Routes.cityDetail(cityName))
                 },
+                onViewAllCities = {
+                    navController.navigate(Routes.CITIES)
+                },
                 onStartChat = {
                     navController.navigate(Routes.CHAT)
                 }
@@ -64,7 +67,10 @@ fun NavGraph(
 
         // ── Trips ──
         composable(Routes.TRIPS) {
-            TripsScreen()
+            TripsScreen(
+                onAddTrip = { navController.navigate(Routes.CHAT) },
+                onStartChat = { navController.navigate(Routes.CHAT) }
+            )
         }
 
         // ── Cities ──
@@ -81,7 +87,10 @@ fun NavGraph(
         ) { backStackEntry ->
             CityDetailScreen(
                 cityName = backStackEntry.arguments?.getString("cityName") ?: "",
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onStartChat = { city ->
+                    navController.navigate(Routes.chatCity(city))
+                }
             )
         }
 

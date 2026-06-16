@@ -199,6 +199,7 @@ private fun ErrorState(message: String, onRetry: () -> Unit) {
 fun CityDetailScreen(
     cityName: String,
     onBack: () -> Unit,
+    onStartChat: (String) -> Unit = {},
     viewModel: CityDetailViewModel = viewModel()
 ) {
     LaunchedEffect(cityName) { viewModel.load(cityName) }
@@ -348,7 +349,7 @@ private fun CityDetailContent(
         // ── CTA Button ──
         Spacer(Modifier.height(24.dp))
         Button(
-            onClick = { /* Navigate to chat with this city */ },
+            onClick = { onStartChat(cityName) },
             modifier = Modifier.fillMaxWidth().height(50.dp),
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)

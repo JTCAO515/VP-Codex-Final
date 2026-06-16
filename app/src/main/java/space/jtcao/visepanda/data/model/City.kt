@@ -36,6 +36,7 @@ data class CityDetailResponse(
  */
 @Serializable
 data class CityDetail(
+    @SerialName("name_en") val nameEn: String = "",
     @SerialName("name_cn") val nameCn: String = "",
     @SerialName("province") val province: String = "",
     @SerialName("best_season") val bestSeason: String = "",
