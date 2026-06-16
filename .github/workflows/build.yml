@@ -25,14 +25,8 @@ jobs:
       - name: Grant execute permissions
         run: chmod +x gradlew
 
-      - name: Build Release APK
-        run: ./gradlew assembleRelease
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: vp-hermes-release
-          path: app/build/outputs/apk/release/app-release.apk
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
