@@ -42,11 +42,11 @@ import com.visepanda.designsystem.components.VpGoldButton
 // ── Mock Data ──
 
 private val featuredCities = listOf(
-    CityData("Beijing", "Capital of China", listOf("Culture", "History")),
-    CityData("Shanghai", "Pearl of the Orient", listOf("Modern", "Nightlife")),
-    CityData("Xi'an", "Ancient Capital", listOf("History", "Food")),
-    CityData("Chengdu", "Home of Pandas", listOf("Nature", "Food")),
-    CityData("Guangzhou", "Canton Cuisine", listOf("Food", "Shopping"))
+    CityData("Beijing", "Capital of China", listOf("Culture", "History"), "https://www.go2china.space/static/img/city-beijing.jpg"),
+    CityData("Shanghai", "Pearl of the Orient", listOf("Modern", "Nightlife"), "https://www.go2china.space/static/img/city-shanghai.jpg"),
+    CityData("Xi'an", "Ancient Capital", listOf("History", "Food"), "https://www.go2china.space/static/img/city-xian.jpg"),
+    CityData("Chengdu", "Home of Pandas", listOf("Nature", "Food"), "https://www.go2china.space/static/img/city-chengdu.jpg"),
+    CityData("Guangzhou", "Canton Cuisine", listOf("Food", "Shopping"), "https://www.go2china.space/static/img/city-guangzhou.jpg")
 )
 
 private val inspirations = listOf(
@@ -66,7 +66,8 @@ private val essentials = listOf(
 private data class CityData(
     val name: String,
     val description: String,
-    val tags: List<String>
+    val tags: List<String>,
+    val imageUrl: String? = null
 )
 
 private data class InspirationData(
@@ -208,7 +209,7 @@ private fun FeaturedCitiesRow() {
     ) {
         items(featuredCities) { city ->
             VpCityCard(
-                imageUrl = null,
+                imageUrl = city.imageUrl,
                 cityName = city.name,
                 description = city.description,
                 tags = city.tags,

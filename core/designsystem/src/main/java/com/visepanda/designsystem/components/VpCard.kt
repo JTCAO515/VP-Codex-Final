@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -17,7 +18,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.visepanda.designsystem.Gold
 import com.visepanda.designsystem.JadeGrey
 import com.visepanda.designsystem.Surface
@@ -43,23 +46,35 @@ fun VpCityCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Box(modifier = Modifier.height(height.dp)) {
-            // Warm gold gradient (light theme)
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(height.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                Color(0xFFDCC798),
-                                Color(0xFFC9A96E)
+            // City image (loaded from URL) or gradient fallback
+            if (!imageUrl.isNullOrBlank()) {
+                AsyncImage(
+                    model = imageUrl,
+                    contentDescription = cityName,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(12.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                // Fallback gradient
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(height.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color(0xFFDCC798),
+                                    Color(0xFFC9A96E)
+                                )
                             )
                         )
-                    )
-            )
+                )
+            }
 
-            // Gradient overlay at bottom
+            // Dark overlay for readability on both images and gradients
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -69,7 +84,7 @@ fun VpCityCard(
                         Brush.verticalGradient(
                             colors = listOf(
                                 Color.Transparent,
-                                Color(0xCCC9A96E)
+                                Color(0xBB2D2D2D)
                             )
                         )
                     )
