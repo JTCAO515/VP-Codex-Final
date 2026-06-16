@@ -52,11 +52,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import space.jtcao.visepanda.data.model.ChatFaq
 import space.jtcao.visepanda.data.model.ChatImage
 import space.jtcao.visepanda.data.model.ChatMessage
@@ -332,11 +334,26 @@ private fun MessageBubble(message: ChatMessage) {
                         containerColor = MaterialTheme.colorScheme.surfaceVariant
                     )
                 ) {
-                    Text(
-                        text = "🖼️ ${image.label}",
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(8.dp)
-                    )
+                    Column {
+                        if (image.url.isNotBlank()) {
+                            AsyncImage(
+                                model = image.url,
+                                contentDescription = image.label,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(180.dp)
+                                    .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+                            )
+                        }
+                        if (image.label.isNotBlank()) {
+                            Text(
+                                text = "🖼️ ${image.label}",
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
+                    }
                 }
             }
 
@@ -405,11 +422,26 @@ private fun StreamBubble(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant
                     )
                 ) {
-                    Text(
-                        text = "🖼️ ${image.label}",
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(8.dp)
-                    )
+                    Column {
+                        if (image.url.isNotBlank()) {
+                            AsyncImage(
+                                model = image.url,
+                                contentDescription = image.label,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(180.dp)
+                                    .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+                            )
+                        }
+                        if (image.label.isNotBlank()) {
+                            Text(
+                                text = "🖼️ ${image.label}",
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
+                    }
                 }
             }
 

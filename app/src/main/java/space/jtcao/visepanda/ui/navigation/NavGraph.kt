@@ -1,11 +1,6 @@
 package space.jtcao.visepanda.ui.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -64,7 +59,13 @@ fun NavGraph(
 
         // ── Trips ──
         composable(Routes.TRIPS) {
-            TripsScreen()
+            TripsScreen(
+                onStartChat = {
+                    navController.navigate(Routes.CHAT) {
+                        popUpTo(Routes.HOME) { inclusive = false }
+                    }
+                }
+            )
         }
 
         // ── Cities ──
@@ -79,9 +80,15 @@ fun NavGraph(
             route = Routes.CITY_DETAIL,
             arguments = listOf(navArgument("cityName") { type = NavType.StringType })
         ) { backStackEntry ->
+            val cityName = backStackEntry.arguments?.getString("cityName") ?: ""
             CityDetailScreen(
-                cityName = backStackEntry.arguments?.getString("cityName") ?: "",
-                onBack = { navController.popBackStack() }
+                cityName = cityName,
+                onBack = { navController.popBackStack() },
+                onStartChat = { city ->
+                    navController.navigate(Routes.chatCity(city)) {
+                        popUpTo(Routes.HOME) { inclusive = false }
+                    }
+                }
             )
         }
 

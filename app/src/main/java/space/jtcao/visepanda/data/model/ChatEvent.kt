@@ -1,5 +1,7 @@
 package space.jtcao.visepanda.data.model
 
+import kotlinx.serialization.Serializable
+
 /**
  * Server-Sent Events from the VisePanda chat API.
  *
@@ -42,6 +44,7 @@ sealed class ChatEvent {
 /**
  * A chat message in the conversation (for both request and display).
  */
+@Serializable
 data class ChatMessage(
     val role: String,    // "user" | "assistant"
     val content: String,
@@ -50,12 +53,14 @@ data class ChatMessage(
     val timestamp: Long = System.currentTimeMillis()
 )
 
+@Serializable
 data class ChatImage(
     val key: String,
     val url: String,
     val label: String
 )
 
+@Serializable
 data class ChatFaq(
     val id: String,
     val title: String,

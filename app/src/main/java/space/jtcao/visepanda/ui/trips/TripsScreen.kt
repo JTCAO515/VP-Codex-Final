@@ -35,14 +35,17 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun TripsScreen(viewModel: TripsViewModel = viewModel()) {
+fun TripsScreen(
+    onStartChat: () -> Unit = {},
+    viewModel: TripsViewModel = viewModel()
+) {
     val uiState by viewModel.uiState.collectAsState()
 
     when (val state = uiState) {
         is TripsUiState.Loading -> LoadingTrips()
         is TripsUiState.Success -> {
             if (state.trips.isEmpty()) {
-                EmptyTrips()
+                EmptyTrips(onStartChat = onStartChat)
             } else {
                 TripList(
                     trips = state.trips,
@@ -172,7 +175,7 @@ private fun TripCard(
 }
 
 @Composable
-private fun EmptyTrips() {
+private fun EmptyTrips(onStartChat: () -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -199,7 +202,7 @@ private fun EmptyTrips() {
         )
         Spacer(Modifier.height(16.dp))
         Button(
-            onClick = { /* navigate to chat */ },
+            onClick = onStartChat,
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary

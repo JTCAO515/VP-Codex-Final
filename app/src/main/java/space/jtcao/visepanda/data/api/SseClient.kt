@@ -5,9 +5,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaType
@@ -139,20 +141,19 @@ class SseClient(
     // ── Private helpers ──
 
     private fun buildJsonBody(messages: List<ChatMessage>, city: String?): JsonObject {
-        val messagesArray = messages.joinToString(",") { msg ->
-            """{"role":"${msg.role}","content":"${escapeJson(msg.content)}"}"""
+        return buildJsonObject {
+            put("messages", buildJsonArray {
+                messages.forEach { msg ->
+                    add(buildJsonObject {
+                        put("role", msg.role)
+                        put("content", msg.content)
+                    })
+                }
+            })
+            if (city != null) {
+                put("city", city)
+            }
         }
-        val cityPart = if (city != null) ""","city":"$city"""" else ""
-        val jsonStr = """{"messages":[$messagesArray]$cityPart}"""
-        return json.parseToJsonElement(jsonStr).jsonObject
-    }
-
-    private fun escapeJson(s: String): String {
-        return s.replace("\\", "\\\\")
-            .replace("\"", "\\\"")
-            .replace("\n", "\\n")
-            .replace("\r", "\\r")
-            .replace("\t", "\\t")
     }
 
     private fun parseEvent(eventType: String, data: String): ChatEvent? {
