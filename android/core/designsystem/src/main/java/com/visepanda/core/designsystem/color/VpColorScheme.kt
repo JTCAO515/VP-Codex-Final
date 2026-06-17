@@ -1,9 +1,7 @@
 package com.visepanda.core.designsystem.color
 
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.runtime.Immutable
 
-@Immutable
 val VisePandaColorScheme = darkColorScheme(
     primary = GoldPrimary,
     onPrimary = SurfaceDarkest,

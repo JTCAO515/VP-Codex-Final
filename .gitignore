@@ -15,3 +15,8 @@ dist/
 *.swp
 *.swo
 *~
+
+# Android
+android/.gradle/
+android/**/build/
+android/local.properties

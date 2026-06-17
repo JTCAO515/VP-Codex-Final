@@ -27,6 +27,7 @@ dependencies {
     implementation(libs.retrofit.gson)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
+    implementation(libs.okhttp.sse)
     implementation(libs.coroutines.core)
     implementation(libs.core.ktx)
 }
