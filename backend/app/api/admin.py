@@ -12,6 +12,14 @@ from app.core.deps import get_current_admin
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 
+@router.get("/me", response_model=UserAdminResponse)
+def admin_me(
+    admin: User = Depends(get_current_admin),
+):
+    """返回当前管理员信息。"""
+    return admin
+
+
 @router.get("/stats", response_model=AdminStats)
 def get_stats(
     admin: User = Depends(get_current_admin),
