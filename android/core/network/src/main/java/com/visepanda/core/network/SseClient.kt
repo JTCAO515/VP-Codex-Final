@@ -3,6 +3,7 @@ package com.visepanda.core.network
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -16,7 +17,7 @@ class SseClient(private val okHttpClient: OkHttpClient = ApiClient.okHttpClient)
     fun connect(url: String, body: String): Flow<SseEvent> = callbackFlow {
         val request = Request.Builder()
             .url(url)
-            .post(okhttp3.RequestBody.create(okhttp3.MediaType.parse("application/json"), body))
+            .post(okhttp3.RequestBody.create("application/json".toMediaTypeOrNull(), body))
             .build()
 
         val listener = object : EventSourceListener() {
