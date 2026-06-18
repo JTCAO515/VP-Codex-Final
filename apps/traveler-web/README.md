@@ -18,18 +18,16 @@
 
 ```bash
 pnpm install
-pnpm --filter api start:dev
 pnpm --filter traveler-web dev
 ```
 
 默认端口：
 
-- `api`: `http://localhost:3000`
 - `traveler-web`: `http://localhost:3100`
 
 ## 说明
 
-- 默认会使用 `apps/api` 提供的内存态内容与账号能力
-- 当 `VP_ENABLE_CONTENT_SEED=1` 或在非测试环境运行时，内容域会自动注入一批游客端演示内容
+- `traveler-web` 通过同源 API Route 代理到统一 API
+- 生产环境请在 Vercel 配置 `API_BASE_URL` 指向统一 API 的公网地址
 - 游客浏览内容与使用 AI 规划不需要先登录
 - 保存 Trip 或访问 `/trips` 时会进入登录/注册流程

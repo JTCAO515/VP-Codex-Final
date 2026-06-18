@@ -28,7 +28,4 @@ infra/docker/.data/
 .superpowers/
 .uploads/
 
-# non-web deliverables
-apps/traveler-android/
 *.apk
-.github/workflows/android.yml

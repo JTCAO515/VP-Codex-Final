@@ -3,8 +3,7 @@ name: web
 on:
   pull_request:
     paths:
-      - "apps/ops-web/**"
-      - "apps/admin-web/**"
+      - "apps/traveler-web/**"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
@@ -13,8 +12,7 @@ on:
     branches:
       - main
     paths:
-      - "apps/ops-web/**"
-      - "apps/admin-web/**"
+      - "apps/traveler-web/**"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
@@ -28,12 +26,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        app:
-          - ops-web
-          - admin-web
 
     steps:
       - name: Checkout
@@ -51,9 +43,8 @@ jobs:
       - name: Install deps
         run: pnpm install --frozen-lockfile
 
-      - name: Build ${{ matrix.app }}
+      - name: Build traveler-web
         env:
           NODE_ENV: production
           CI: "true"
-        run: pnpm --filter ${{ matrix.app }} build
-
+        run: pnpm --filter traveler-web build
