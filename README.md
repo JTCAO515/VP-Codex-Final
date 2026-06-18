@@ -28,3 +28,7 @@ pnpm --filter admin-web dev
 - `api`: `http://localhost:3000`
 - `ops-web`: `http://localhost:3101`
 - `admin-web`: `http://localhost:3102`
+
+## Vercel 部署
+
+详见：`docs/runbooks/vercel.md`
