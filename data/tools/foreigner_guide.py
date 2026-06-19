@@ -1,58 +1,58 @@
-"""外国人游中国实用指南"""
+"""Practical guide for foreigners travelling in China"""
 FOREIGNER_GUIDE = {
     "vpn": {
-        "title": "VPN & 网络访问",
+        "title": "VPN & Internet Access (VPN & 网络访问)",
         "content": [
-            "在中国大陆访问Google/Gmail/Instagram/Facebook/X/YouTube需要VPN",
-            "建议在出国前安装好VPN客户端（中国应用商店没有）",
-            "推荐：ExpressVPN, NordVPN, Astrill（在中国能稳定使用）",
-            "备用方案：ShadowSocks/V2Ray（需自己配置服务器）",
-            "⚠️ 不要用政府/学校/酒店的免费VPN，不安全也不稳定",
+            "You need a VPN to access Google/Gmail/Instagram/Facebook/X/YouTube in mainland China",
+            "Install the VPN client before you arrive — China's app stores don't have them",
+            "Recommended: ExpressVPN, NordVPN, Astrill (stable in China)",
+            "Alternative: ShadowSocks / V2Ray (requires your own server)",
+            "⚠️ Don't use free VPNs from government/school/hotel WiFi — unsafe and unstable",
         ]
     },
     "sim_card": {
-        "title": "SIM卡 & 上网",
+        "title": "SIM Card & Internet (SIM卡 & 上网)",
         "content": [
-            "机场到达大厅有中国移动/联通/电信柜台",
-            "临时卡：¥100-300，含10-30GB数据",
-            "eSIM：Airalo/Holafly可在出发前购买并激活",
-            "国际漫游：部分运营商的国际漫游计划在中国可用",
-            "酒店/咖啡馆通常有免费WiFi（但可能需要手机号验证）",
+            "China Mobile / China Unicom / China Telecom counters are in every arrival hall",
+            "Temporary SIM: ¥100–300 with 10–30 GB data",
+            "eSIM: Airalo / Holafly — buy and activate before departure",
+            "International roaming: some carriers' roaming plans work in China",
+            "Hotels and cafés usually have free WiFi (may need phone-number verification)",
         ]
     },
     "payment": {
-        "title": "支付",
+        "title": "Payment (支付)",
         "content": [
-            "微信支付/支付宝无处不在，强烈建议绑定",
-            "国际信用卡：Visa/Mastercard可绑定微信/支付宝（2023年后支持）",
-            "银联卡：可直接在ATM取现（¥20-30手续费）",
-            "现金：随身带¥500-1000，小摊/出租车可能需要",
-            "⚠️ 不能只靠现金生活，也不能只靠信用卡生活",
+            "WeChat Pay (微信支付) and Alipay (支付宝) are everywhere — strongly recommended to set them up",
+            "International credit cards: Visa/Mastercard can be linked to WeChat/Alipay (supported since 2023)",
+            "UnionPay card: withdraw cash directly from ATMs (¥20–30 fee)",
+            "Cash: carry ¥500–1,000 — street stalls and taxis may need it",
+            "⚠️ You can't rely solely on cash OR cards — you need both",
         ]
     },
     "apps": {
-        "title": "必备App",
+        "title": "Essential Apps (必备App)",
         "content": [
-            "微信(WeChat) — 聊天/支付/社交",
-            "支付宝(Alipay) — 支付/出行/生活服务",
-            "滴滴出行(DiDi) — 打车（可选英文版）",
-            "美团(Meituan) — 外卖/酒店/电影",
-            "高德地图/百度地图 — 导航（比Google Maps准确）",
-            "小红书(Xiaohongshu) — 旅行攻略",
-            "携程(Trip.com) — 酒店/机票/火车票（有英文版）",
-            "12306 — 高铁购票（有英文版但不好用）",
+            "WeChat (微信) — chat / payment / social",
+            "Alipay (支付宝) — payment / transport / lifestyle services",
+            "DiDi (滴滴出行) — ride-hailing (English version available)",
+            "Meituan (美团) — food delivery / hotels / movies",
+            "Amap / Baidu Maps (高德地图/百度地图) — navigation (more accurate than Google Maps in China)",
+            "Xiaohongshu / RED (小红书) — travel guides & recommendations",
+            "Trip.com (携程) — hotels / flights / train tickets (English version available)",
+            "12306 — high-speed train tickets (English version available but not great)",
         ]
     },
     "cultural_tips": {
-        "title": "文化贴士",
+        "title": "Cultural Tips (文化贴士)",
         "content": [
-            "排队：中国人现在很注重排队，插队会被人说",
-            "Tipping：中国没有小费文化，不用给",
-            "拍照：景点可以随便拍，但军事/政府区域不要",
-            "噪音：晚上10点后注意音量",
-            "厕所：很多公共厕所没有纸，随身带纸巾",
-            "热水：中国人喝热水，酒店房间有烧水壶",
-            "餐厅：热门餐厅可大众点评排位",
+            "Queuing: Chinese people take queuing seriously now — cutting in will get you called out",
+            "Tipping: not customary in China — don't tip",
+            "Photography: fine at tourist sites, but avoid military/government areas",
+            "Noise: keep volume down after 10 pm",
+            "Restrooms: many public toilets have no toilet paper — carry tissues",
+            "Hot water: Chinese drink hot water; every hotel room has a kettle",
+            "Restaurants: popular places use Dianping (大众点评) for queue management",
         ]
     }
 }

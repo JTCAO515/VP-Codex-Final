@@ -1,66 +1,75 @@
-"""旅行决策工具集：决策树 + 文案生成 + 游记"""
+"""Travel decision tools: decision tree + social captions + travel stories"""
 import random
 
 DECISION_QUESTIONS = [
-    {"q": "你更喜欢哪种旅行节奏？", "options": {"a": "悠闲慢游", "b": "紧凑打卡"}},
-    {"q": "最看重什么？", "options": {"a": "美食", "b": "历史", "c": "自然", "d": "都市"}},
-    {"q": "预算大概？", "options": {"a": "穷游 ¥2000内", "b": "中等 ¥5000", "c": "豪华 ¥1万+"}},
-    {"q": "几个人去？", "options": {"a": "独行", "b": "情侣", "c": "家庭/朋友"}},
-    {"q": "什么时候去？", "options": {"a": "最近就去", "b": "计划中"}},
+    {"q": "What travel pace do you prefer? (你更喜欢哪种旅行节奏？)", "options": {"a": "Leisurely slow travel (悠闲慢游)", "b": "Compact / check-list style (紧凑打卡)"}},
+    {"q": "What matters most? (最看重什么？)", "options": {"a": "Food (美食)", "b": "History (历史)", "c": "Nature (自然)", "d": "City life (都市)"}},
+    {"q": "Rough budget? (预算大概？)", "options": {"a": "Budget — under ¥2,000 (穷游 ¥2000内)", "b": "Mid-range — ¥5,000 (中等 ¥5000)", "c": "Luxury — ¥10,000+ (豪华 ¥1万+)"}},
+    {"q": "How many of you? (几个人去？)", "options": {"a": "Solo (独行)", "b": "Couple (情侣)", "c": "Family / Friends (家庭/朋友)"}},
+    {"q": "When are you going? (什么时候去？)", "options": {"a": "Soon (最近就去)", "b": "Planning ahead (计划中)"}},
 ]
 
 def recommend_destination(answers: dict) -> str:
-    """根据5个答案推荐目的地"""
+    """Recommend a destination based on 5 answers"""
     prefs = []
     if answers.get("q2") == "a":
-        prefs.extend(["成都", "广州", "长沙", "重庆"])
+        prefs.extend(["Chengdu (成都)", "Guangzhou (广州)", "Changsha (长沙)", "Chongqing (重庆)"])
     elif answers.get("q2") == "b":
-        prefs.extend(["北京", "西安", "南京", "洛阳"])
+        prefs.extend(["Beijing (北京)", "Xi'an (西安)", "Nanjing (南京)", "Luoyang (洛阳)"])
     elif answers.get("q2") == "c":
-        prefs.extend(["云南", "桂林", "张家界", "九寨沟"])
+        prefs.extend(["Yunnan (云南)", "Guilin (桂林)", "Zhangjiajie (张家界)", "Jiuzhaigou (九寨沟)"])
     else:
-        prefs.extend(["上海", "深圳", "杭州", "成都"])
-    
+        prefs.extend(["Shanghai (上海)", "Shenzhen (深圳)", "Hangzhou (杭州)", "Chengdu (成都)"])
+
     if answers.get("q1") == "a":
-        prefs = [c for c in prefs if c not in ["上海", "深圳", "重庆"]]
+        prefs = [c for c in prefs if c not in ["Shanghai (上海)", "Shenzhen (深圳)", "Chongqing (重庆)"]]
     if answers.get("q3") == "a":
-        prefs = [c for c in prefs if c not in ["上海", "深圳", "杭州"]]
+        prefs = [c for c in prefs if c not in ["Shanghai (上海)", "Shenzhen (深圳)", "Hangzhou (杭州)"]]
     if answers.get("q4") == "b":
-        prefs = [c for c in prefs if c in ["成都", "大理", "丽江", "厦门", "杭州"]]
-    
-    return random.choice(prefs) if prefs else random.choice(["成都", "西安", "云南", "桂林"])
+        prefs = [c for c in prefs if c in ["Chengdu (成都)", "Dali (大理)", "Lijiang (丽江)", "Xiamen (厦门)", "Hangzhou (杭州)"]]
+
+    return random.choice(prefs) if prefs else random.choice(["Chengdu (成都)", "Xi'an (西安)", "Yunnan (云南)", "Guilin (桂林)"])
 
 SOCIAL_TEMPLATES = {
     "instagram": [
-        "📸 {city}的{place}，{adj}到词穷。{emoji}\n\n#travel #china #{city_tag}",
-        "{city}的{adj}，都在这一口{food}里了。{emoji}\n\n#foodie #{city_tag}",
+        "📸 {place} in {city} — {adj} beyond words. {emoji}\n\n#travel #china #{city_tag}",
+        "The {adj} of {city}? All in this one bite of {food}. {emoji}\n\n#foodie #{city_tag}",
     ],
     "wechat": [
-        "在{city}的第{days}天，{feeling}。\n{tip}\n📍{place}",
-        "来{city}一定要{action}！{reason}🥹\n#旅行日记",
+        "Day {days} in {city} — {feeling}.\n{tip}\n📍{place}",
+        "In {city} you MUST {action}! {reason} 🥹\n#traveldiary",
     ],
     "xiaohongshu": [
-        "{city}三天两晚攻略❗{highlights}\n{emoji} 人均仅{price}元\n✨ 详细路线看👇",
+        "✨ {city} — 3 days 2 nights guide❗️{highlights}\n💰 Only {price} RMB per person\n👇 Full route below",
     ]
 }
 
 def generate_caption(platform: str, city: str, place: str = "",
                       food: str = "", days: int = 3, price: int = 2000) -> str:
-    """生成朋友圈/社交文案"""
+    """Generate social media caption"""
     import random
-    adj_map = {"成都": "巴适", "重庆": "魔幻", "西安": "震撼", "北京": "大气",
-               "上海": "摩登", "云南": "治愈", "桂林": "绝美", "广州": "好食"}
-    adj = adj_map.get(city, "好看")
-    feeling = random.choice(["慢下来才发现好多美好", "又解锁一个新城市", "快乐就这么简单"])
-    tip = random.choice(["推荐早上来没人", "本地人带路才找到的", "一定要提前预约"])
-    action = random.choice(["吃一顿地道早餐", "去这个机位拍照", "感受当地人的生活"])
-    reason = random.choice(["太绝了", "谁懂啊", "真的好爱"])
-    highlights = random.choice(["景点+美食全攻略", "小众路线推荐", "拍照机位分享"])
+    adj_map = {"Chengdu (成都)": "cozy (巴适)", "Chongqing (重庆)": "surreal (魔幻)", "Xi'an (西安)": "epic (震撼)",
+               "Beijing (北京)": "grand (大气)", "Shanghai (上海)": "chic (摩登)", "Yunnan (云南)": "healing (治愈)",
+               "Guilin (桂林)": "stunning (绝美)", "Guangzhou (广州)": "delicious (好食)"}
+    adj = adj_map.get(city, "beautiful (好看)")
+    feeling = random.choice(["You only realise how beautiful life is when you slow down (慢下来才发现好多美好)",
+                             "Another new city unlocked! (又解锁一个新城市)",
+                             "Happiness is really this simple (快乐就这么简单)"])
+    tip = random.choice(["Go early in the morning — fewer people (推荐早上来没人)",
+                         "Found this with a local's help (本地人带路才找到的)",
+                         "Must book in advance! (一定要提前预约)"])
+    action = random.choice(["eat an authentic local breakfast (吃一顿地道早餐)",
+                            "take photos at this spot (去这个机位拍照)",
+                            "experience life like a local (感受当地人的生活)"])
+    reason = random.choice(["absolutely incredible (太绝了)", "who gets it 🥹 (谁懂啊)", "I'm truly in love (真的好爱)"])
+    highlights = random.choice(["Attractions + food guide (景点+美食全攻略)",
+                                "Off-the-beaten-path recommendations (小众路线推荐)",
+                                "Photo spot guide (拍照机位分享)"])
     emoji = random.choice(["✨", "🥹", "🔥", "💯", "😭"])
-    city_tag = city.lower()
-    
+    city_tag = city.lower().split()[0] if "(" in city else city.lower()
+
     tmpl = random.choice(SOCIAL_TEMPLATES.get(platform, SOCIAL_TEMPLATES["wechat"]))
-    return tmpl.format(city=city, place=place, adj=adj, emoji=emoji, 
-                       city_tag=city_tag, days=days, food=food or "当地美食",
+    return tmpl.format(city=city, place=place, adj=adj, emoji=emoji,
+                       city_tag=city_tag, days=days, food=food or "local food (当地美食)",
                        feeling=feeling, tip=tip, action=action, reason=reason,
                        highlights=highlights, price=price)

@@ -69,19 +69,19 @@ Avoid Chinese public holidays (May Day, October Golden Week) — attractions get
 
 **Getting Around**  
 - 🚇 Subway: Covers all major attractions. ¥3-10/ride. Use Alipay QR code.
-- 🚕 Taxi: ¥13起步价 (flagfall), ¥2.3/km. DiDi app works with international cards.
+- 🚕 Taxi: ¥13 starting fare (起步价/flagfall), ¥2.3/km. DiDi app works with international cards.
 
----SPLIT---
+---
 
 **Day 1: Imperial Beijing** 🏛️
 
 **Morning (8:00-12:00)**  
-- **Forbidden City** ([故宫]($10 entry, ¥60) — book 7+ days ahead!)  
+- **Forbidden City (故宫)** (entry ¥60 — book 7+ days ahead!)  
   Take Metro Line 1 to Tiananmen East. 2-3 hours.  
-- Walk through to **Jingshan Park** ([景山]($2) — best panoramic view)
+- Walk through to **Jingshan Park (景山公园)** (¥2 — best panoramic view)
 
 **Afternoon (13:00-17:00)**  
-- **Temple of Heaven** ([天坛]($5)) — Metro Line 5 to Tiantandongmen  
+- **Temple of Heaven (天坛)** (¥15) — Metro Line 5 to Tiantandongmen  
   Beautiful park, watch locals practicing tai chi
 
 **Evening**  
@@ -93,7 +93,7 @@ Avoid Chinese public holidays (May Day, October Golden Week) — attractions get
 **Day 2: The Great Wall** 🏔️
 
 **Full day**  
-- **Mutianyu Great Wall** ([慕田峪]($7 entry, cable car $15)) — 2h drive north  
+- **Mutianyu Great Wall (慕田峪长城)** (¥45 entry, cable car $15) — 2h drive north  
   Less crowded than Badaling. Toboggan ride down! 🛝  
 - Pack water and snacks — prices on the wall are 3x normal
 
@@ -103,11 +103,11 @@ Avoid Chinese public holidays (May Day, October Golden Week) — attractions get
 
 **Morning**  
 - **798 Art District** — contemporary galleries, cool cafes  
-- **Lunch** at a local hutong: try zhajiangmian ([炸酱面]($3-5))
+- **Lunch** at a local hutong: try zhajiangmian (炸酱面, ¥3-5)
 
 **Afternoon**  
-- **Summer Palace** ([颐和园]($5)) — Metro Line 4 to Beigongmen  
-  Kunming Lake boat ride ($2). 2-3 hours.
+- **Summer Palace (颐和园)** (¥30) — Metro Line 4 to Beigongmen  
+  Kunming Lake boat ride (¥15). 2-3 hours.
 
 **Evening**  
 - 🍽️ **Hotpot**: [Haidilao]($40-60/person) — legendary service, use the WeChat queue
