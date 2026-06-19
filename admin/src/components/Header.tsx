@@ -38,18 +38,30 @@ export default function Header() {
       }}
     >
       {/* Left: Brand */}
-      <span
-        onClick={() => navigate('/')}
-        style={{
-          color: '#C9A96E',
-          fontSize: '1rem',
-          fontWeight: 600,
-          cursor: 'pointer',
-          userSelect: 'none',
-        }}
-      >
-        🐼 VisePanda
-      </span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <span
+          onClick={() => navigate('/')}
+          style={{
+            color: '#C9A96E',
+            fontSize: '1rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            userSelect: 'none',
+          }}
+        >
+          🐼 VisePanda
+        </span>
+        <span style={{
+          color: '#6C6A64',
+          fontSize: '0.75rem',
+          fontFamily: 'monospace',
+          padding: '2px 6px',
+          border: '1px solid #3A3A3A',
+          borderRadius: 4,
+        }}>
+          v0.2.7
+        </span>
+      </div>
 
       {/* Right: Login / User */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
