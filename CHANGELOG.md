@@ -11,6 +11,9 @@
   - `api/tools.py` — 工具箱
   - `api/config.py` — 地图+客户端配置
   - `api/index.py` — 精简至84行，纯路由入口
+- **🎨 UI Polish** — 页面切换淡入动画
+- 浮动返回顶部按钮（滚动400px后显示）
+- 统一 Toast 通知系统（保存/删除/复制行程时弹出）
 
 ## v3.1.0 — 2026-06-19
 - **⚙️ Admin Panel** — New standalone admin page (`/admin`), user management with stats dashboard. Role-based access (admin/ops only). Users table, delete user, real-time stats.

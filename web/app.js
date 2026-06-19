@@ -1033,7 +1033,24 @@ const VP = (function(){
     };
     trips.unshift(trip);
     saveLocalTrips(trips);
+    showToast('✅ Trip saved!');
     return trip;
+  }
+
+  function showToast(msg, duration) {
+    const el = document.getElementById('toast') || (function(){
+      const e = document.createElement('div');
+      e.id = 'toast'; e.className = 'toast';
+      document.body.appendChild(e);
+      return e;
+    })();
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), duration || 2000);
+  }
+
+  function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function deleteTrip(id) {
@@ -1047,6 +1064,7 @@ const VP = (function(){
     // Remove from local too
     const trips = getLocalTrips().filter(t => t.id !== id);
     saveLocalTrips(trips);
+    showToast('🗑️ Trip deleted');
     renderTrips();
   }
 
@@ -1137,17 +1155,7 @@ const VP = (function(){
       + 'Planned with VisePanda 🐼';
 
     navigator.clipboard.writeText(text).then(() => {
-      // Show toast
-      const toast = document.getElementById('toast') || (function(){
-        const el = document.createElement('div');
-        el.id = 'toast';
-        el.className = 'toast';
-        document.body.appendChild(el);
-        return el;
-      })();
-      toast.textContent = '✅ Trip copied to clipboard!';
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 2000);
+      showToast('📋 Trip copied to clipboard!');
     }).catch(() => {
       alert('Trip copied!\n\n' + text.slice(0, 200) + '...');
     });
@@ -1398,6 +1406,14 @@ const VP = (function(){
       if (badge) badge.textContent = 'v' + ver;
       if (footerVer) footerVer.textContent = 'VisePanda v' + ver;
     }).catch(() => {});
+
+    // Scroll-to-top button visibility
+    const stBtn = document.getElementById('scroll-top-btn');
+    if (stBtn) {
+      window.addEventListener('scroll', function() {
+        stBtn.classList.toggle('visible', window.scrollY > 400);
+      }, { passive: true });
+    }
 
     // Hash-based nav
     const hash = window.location.hash.slice(1);
@@ -2043,6 +2059,7 @@ const VP = (function(){
     mapOpenChat,
     chatOverlayBack,
     init,
+    scrollToTop,
     auth,
   };
 })();
