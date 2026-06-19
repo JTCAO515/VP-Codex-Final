@@ -42,7 +42,7 @@
       <button class="nav-btn" data-view="tools" onclick="VP.navigate('tools')">🧰 Tools</button>
     </nav>
     <div class="header-right">
-      <span id="version-badge" class="version-badge">v5.0.4</span>
+      <span id="version-badge" class="version-badge">v5.0.5</span>
       <div id="auth-area" class="auth-area">
         <button id="auth-btn" class="auth-btn" onclick="VP.auth.showModal()" style="display:none">Sign In</button>
         <div id="user-menu" class="user-menu" style="display:none">
@@ -79,7 +79,7 @@
         <div class="hero-deco hero-deco-3">☁️</div>
         <div class="hero-deco hero-deco-4">🎐</div>
         <div class="hero-deco hero-deco-5">🌸</div>
-        <div class="hero-content">
+        <div class="hero-content hero-content-portrait">
           <div class="hero-copy">
             <p class="editorial-lead">A new editorial layer for planning China with pace, place, and local context.</p>
             <p class="hero-kicker">Editorial Atlas</p>
@@ -105,7 +105,7 @@
               </article>
             </div>
           </div>
-          <aside class="hero-note-card" aria-label="Atlas brief">
+          <aside class="hero-note-card hero-note-card-compact" aria-label="Atlas brief">
             <p class="hero-note-label">Field note</p>
             <h2 class="hero-note-title">Move from inspiration to itinerary without losing editorial clarity.</h2>
             <p class="hero-note-body">Start with mood-setting city discovery, continue into planning chat, and keep every saved route framed like a travel desk spread.</p>
@@ -148,7 +148,7 @@
       </section>
 
       <section id="planner-entry" class="section planner-entry">
-        <div class="planner-entry-card">
+        <div class="planner-entry-card planner-entry-card-compact">
           <div>
             <p class="trust-kicker">Planner entry</p>
             <h2 class="section-title">Start with chat, continue across cities, trips, and tools</h2>
@@ -161,7 +161,7 @@
 
     <!-- ─── CHAT ─── -->
     <section id="view-chat" class="view">
-      <div class="chat-container">
+      <div class="chat-container chat-mobile-shell">
         <div id="chat-messages" class="chat-messages">
           <div class="msg msg-bot">
             <div class="msg-avatar">🐼</div>
@@ -172,12 +172,12 @@
           </div>
         </div>
         <div id="chat-suggestions" class="chat-suggestions"></div>
-        <aside id="chat-action-rail" class="chat-action-rail" aria-label="Chat actions">
+        <aside id="chat-action-rail" class="chat-action-rail chat-action-rail-mobile" aria-label="Chat actions">
           <button class="rail-btn" onclick="VP.saveCurrentTrip()">Save trip</button>
           <button class="rail-btn" onclick="VP.navigate('map')">Open map</button>
           <button class="rail-btn" onclick="VP.navigate('tools')">Visa &amp; tools</button>
         </aside>
-        <div class="chat-input-bar">
+        <div class="chat-input-bar chat-input-bar-safe">
           <textarea id="chat-input" class="chat-input" rows="1" placeholder="Ask about China travel... (e.g. '3 days in Beijing')" oninput="VP.autoResize(this)"></textarea>
           <button id="chat-send" class="chat-send" onclick="VP.sendMessage()" disabled>Send</button>
           <button id="chat-stop" class="chat-stop" onclick="VP.stopStreaming()" style="display:none">⏹ Stop</button>
@@ -187,7 +187,7 @@
 
     <!-- ─── TRIPS ─── -->
     <section id="view-trips" class="view">
-      <div class="section trips-atlas">
+      <div class="section trips-atlas trips-atlas-mobile">
         <div class="trips-atlas-head">
           <div>
             <p class="trust-kicker">Trips desk</p>
@@ -254,7 +254,7 @@
           </div>
           <p class="editorial-lead">Scan destinations through a tighter editorial filter, then dive into each city dossier with the existing detail flow.</p>
         </div>
-        <div id="cities-filter-rail" class="cities-filter-rail" aria-label="City filters">
+        <div id="cities-filter-rail" class="cities-filter-rail" aria-label="City filters" data-scrollable="true">
           <button class="cities-filter-chip active" type="button" data-filter="all" aria-pressed="true">All</button>
           <button class="cities-filter-chip" type="button" data-filter="history" aria-pressed="false">History</button>
           <button class="cities-filter-chip" type="button" data-filter="food" aria-pressed="false">Food</button>
@@ -275,7 +275,7 @@
 
     <!-- ─── TOOLS ─── -->
     <section id="view-tools" class="view">
-      <div class="section">
+      <div class="section tools-section tools-section-mobile">
         <h2 class="section-title">🧰 Travel Toolkit</h2>
         <p class="section-sub">Visa, packing, pricing, phrases, and emergency references</p>
         <div id="tools-grid" class="tools-grid"></div>
@@ -472,7 +472,7 @@
 
   <!-- ═══ FOOTER ═══ -->
   <footer id="footer">
-    <p><span id="footer-version">VisePanda v5.0.4</span> · AI China Travel Planner · 🐼 · <span class="footer-clear" onclick="VP.clearChatHistory()" style="cursor:pointer;text-decoration:underline;opacity:.5">Clear chat</span></p>
+    <p><span id="footer-version">VisePanda v5.0.5</span> · AI China Travel Planner · 🐼 · <span class="footer-clear" onclick="VP.clearChatHistory()" style="cursor:pointer;text-decoration:underline;opacity:.5">Clear chat</span></p>
   </footer>
 </div>
 

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   VisePanda v5.0.4 — Panda × China Design System
+   VisePanda v5.0.5 — Panda × China Design System
    ═══════════════════════════════════════════════════════════ */
 
 /* ─── CSS Reset ─── */
@@ -51,6 +51,9 @@ textarea{resize:none;font:inherit}
   --font-mono:'JetBrains Mono',ui-monospace,monospace;
 
   --header-h:56px;
+  --bottom-nav-h:56px;
+  --bottom-nav-safe:calc(var(--bottom-nav-h) + env(safe-area-inset-bottom,0px));
+  --mobile-edge:16px;
   --max-w:1100px;
 }
 
@@ -703,6 +706,9 @@ body{
   display:flex;gap:8px;padding:12px 0;
   border-top:1px solid var(--border-subtle);
 }
+.chat-input-bar-safe{
+  transition:background .2s ease,border-color .2s ease,box-shadow .2s ease;
+}
 .chat-input{
   flex:1;
   padding:10px 14px;
@@ -1275,6 +1281,7 @@ body{
   .trips-groups{grid-template-columns:1fr}
   .trips-grid{grid-template-columns:1fr}
   .trips-group-section{padding:14px}
+  .tools-section-mobile .tools-grid{grid-template-columns:1fr}
 }
 
 /* ─── Estimate Grid ─── */
@@ -1339,31 +1346,224 @@ body{
   /* ── Bottom Nav Layout ── */
   .header-nav{display:none}
   .bottom-nav{display:flex}
-  #main{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px))}
-  #footer{padding-bottom:calc(70px + env(safe-area-inset-bottom,0px))}
+  #main{padding-bottom:var(--bottom-nav-safe)}
+  #footer{padding:12px 12px calc(20px + var(--bottom-nav-safe))}
 
-  .hero-title{font-size:32px}
-  .hero-sub{font-size:13px}
-  .hero{padding:36px 12px 28px;min-height:unset}
-  .hero-panda{font-size:36px}
-  .hero-cta{padding:10px 24px;font-size:14px;min-height:44px}
-  .hero-actions{flex-direction:column}
-  .hero-secondary{width:100%;min-height:44px}
+  .section,
+  .trips-atlas-mobile,
+  .tools-section-mobile{padding-left:14px;padding-right:14px}
+  .view-home .section + .section{margin-top:18px}
+  .section-title{font-size:20px}
+  .section-sub{margin-bottom:14px}
+
+  .hero{
+    padding:20px 12px 14px;
+    min-height:unset;
+    align-items:flex-start;
+  }
+  .hero-content-portrait{gap:12px;align-items:stretch}
+  .hero-copy{
+    padding:18px 16px 16px;
+    border-radius:20px;
+  }
+  .editorial-lead{
+    margin-bottom:10px;
+    font-size:12px;
+    line-height:1.55;
+    max-width:none;
+  }
+  .hero-kicker{margin-bottom:6px}
+  .hero-title{
+    font-size:31px;
+    line-height:1.02;
+    letter-spacing:-1px;
+    margin-bottom:8px;
+    max-width:8.5ch;
+  }
+  .hero-sub{
+    font-size:13px;
+    line-height:1.55;
+    margin-bottom:16px;
+  }
+  .hero-panda{font-size:32px;margin-bottom:8px}
+  .hero-actions{
+    flex-direction:column;
+    align-items:stretch;
+    gap:10px;
+  }
+  .hero-cta,
+  .hero-secondary{
+    width:100%;
+    min-height:46px;
+    justify-content:center;
+    padding-inline:18px;
+  }
+  .hero-metrics{
+    grid-template-columns:1fr;
+    gap:8px;
+    margin-top:16px;
+  }
+  .hero-metric{padding:12px 14px;gap:4px}
+  .hero-metric-value{font-size:24px}
+  .hero-metric-label{letter-spacing:.1em}
+  .hero-note-card-compact{
+    gap:10px;
+    padding:16px;
+    border-radius:20px;
+  }
+  .hero-note-title{font-size:22px}
+  .hero-note-body{line-height:1.55}
+  .hero-note-list span{padding:6px 9px}
+  .trust-layer,
+  .editorial-city-rail,
+  .planner-entry,
+  .trips-atlas,
+  .cities-atlas{padding-top:0}
+  .planner-entry-card-compact{
+    padding:18px 16px;
+    gap:14px;
+    border-radius:20px;
+  }
+  .planner-entry-card-compact .planner-entry-cta{width:100%}
+
   .brand-text{display:none}
   .city-grid{grid-template-columns:1fr}
   .tools-grid{grid-template-columns:1fr}
   .city-card{min-height:170px}
-  .chat-container{height:calc(100dvh - var(--header-h) - 70px);padding:4px}
+  .chat-mobile-shell{
+    max-width:none;
+    height:calc(100dvh - var(--header-h) - var(--bottom-nav-safe));
+    min-height:calc(100dvh - var(--header-h) - var(--bottom-nav-safe));
+    padding:10px 12px 10px;
+    gap:8px;
+  }
+  .chat-messages{
+    padding:4px 0 2px;
+    max-height:none;
+    background:none;
+    border:none;
+  }
   .msg{max-width:95%}
-  .chat-chip{font-size:11px;padding:4px 8px}
-  .chat-action-rail{padding-bottom:8px}
-  .chat-input{font-size:16px;min-height:44px;padding:12px 14px} /* 16px prevents iOS zoom */
-  .chat-send,.chat-stop{font-size:13px;padding:8px 14px;height:44px;min-width:60px}
-  .chat-input-bar{padding:8px 0 4px}
-  #footer{padding:12px}
-  .planner-entry-card{padding:16px}
-  .planner-entry-cta{width:100%}
-  .cities-filter-chip{flex:1 1 calc(50% - 10px);justify-content:center}
+  .chat-suggestions{
+    overflow-x:auto;
+    flex-wrap:nowrap;
+    padding:2px 2px 4px;
+    margin:0 -2px;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  .chat-suggestions::-webkit-scrollbar{display:none}
+  .chat-chip{
+    flex:0 0 auto;
+    font-size:11px;
+    padding:6px 10px;
+  }
+  .chat-action-rail-mobile{
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    gap:10px;
+    padding:2px 2px 6px;
+    margin:0 -2px;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  .chat-action-rail-mobile::-webkit-scrollbar{display:none}
+  .chat-action-rail-mobile .rail-btn{
+    flex:0 0 auto;
+    min-height:44px;
+    padding:10px 14px;
+    white-space:nowrap;
+  }
+  .chat-input-bar-safe{
+    position:sticky;
+    bottom:0;
+    z-index:3;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    align-items:end;
+    gap:8px;
+    margin-top:auto;
+    padding:10px;
+    padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));
+    border:1px solid var(--border-default);
+    border-radius:20px;
+    background:rgba(14,11,20,.94);
+    box-shadow:0 -8px 28px rgba(0,0,0,.28);
+  }
+  [data-theme="light"] .chat-input-bar-safe{
+    background:rgba(245,243,240,.96);
+  }
+  .chat-input{
+    font-size:16px;
+    min-height:48px;
+    padding:12px 14px;
+    border-radius:16px;
+  } /* 16px prevents iOS zoom */
+  .chat-input-bar-safe .chat-send,
+  .chat-input-bar-safe .chat-stop{
+    font-size:13px;
+    padding:8px 14px;
+    height:48px;
+    min-width:72px;
+  }
+  .trips-atlas-mobile{
+    padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));
+  }
+  .trips-atlas-mobile .trips-groups{gap:12px}
+  .trips-atlas-mobile .trips-group-section{
+    padding:14px 14px 16px;
+    border-radius:20px;
+  }
+  .trips-atlas-mobile .trip-card{
+    padding:14px;
+    border-radius:18px;
+  }
+  .trips-atlas-mobile .trip-card-actions{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+  }
+  .trips-atlas-mobile .trip-action-btn{
+    min-height:44px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .trips-atlas-mobile .trip-action-btn.delete{
+    margin-left:0;
+    grid-column:1/-1;
+  }
+  .cities-filter-rail{
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    margin:0 -14px 14px;
+    padding:0 14px 4px;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  .cities-filter-rail::-webkit-scrollbar{display:none}
+  .cities-filter-chip{
+    flex:0 0 auto;
+    justify-content:center;
+    white-space:nowrap;
+  }
+  .cities-atlas-note{
+    margin-bottom:16px;
+    padding:14px;
+    border-radius:18px;
+  }
+  .tools-section-mobile{
+    padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));
+  }
+  .tools-section-mobile .tools-grid{
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+  .tools-section-mobile .tool-card{
+    min-height:auto;
+    padding:16px 16px 18px;
+    border-radius:18px;
+  }
   .rail-btn{min-height:44px}
   .admin-hero{padding:18px}
   .admin-hero h1{font-size:24px}
@@ -1378,7 +1578,11 @@ body{
   .hero{padding:24px 10px 24px;min-height:unset}
   .city-grid{gap:8px}
   .city-card{padding:14px;min-height:150px}
-  .chat-container{height:calc(100dvh - var(--header-h) - 65px)}
+  .chat-mobile-shell{
+    height:calc(100dvh - var(--header-h) - var(--bottom-nav-safe));
+    min-height:calc(100dvh - var(--header-h) - var(--bottom-nav-safe));
+    padding-inline:10px;
+  }
   .msg{max-width:98%}
 }
 
@@ -1391,7 +1595,7 @@ body{
    BOTTOM NAV (Mobile)
    ═══════════════════════════════════════════════════════════ */
 
-.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:calc(56px + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);background:rgba(14,11,20,.92);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid var(--border-subtle);z-index:150;justify-content:space-around;align-items:center;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:var(--bottom-nav-safe);padding-bottom:env(safe-area-inset-bottom,0px);background:rgba(14,11,20,.92);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid var(--border-subtle);z-index:150;justify-content:space-around;align-items:center;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
 [data-theme="light"] .bottom-nav{background:rgba(245,243,240,.92)}
 
 .bn-btn{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 10px;border-radius:var(--radius-md);font-size:10px;font-weight:500;color:var(--text-muted);transition:all .15s;min-width:48px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
@@ -1429,7 +1633,7 @@ body{
 /* Mobile overrides for view padding with bottom nav */
 @media(max-width:640px){
   .view.active{animation:slideInRight .2s ease}
-  .view{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px))}
+  .view{padding-bottom:var(--bottom-nav-safe)}
 }
 
 /* ── 100dvh with fallback for older browsers ── */

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   VisePanda v5.0.4 — Frontend Application
+   VisePanda v5.0.5 — Frontend Application
    ═══════════════════════════════════════════════════════════ */
 
 const VP = (function(){
@@ -425,6 +425,9 @@ const VP = (function(){
       const isActive = btn.dataset.filter === activeFilter;
       btn.classList.toggle('active', isActive);
       btn.setAttribute('aria-pressed', String(isActive));
+      if (isActive) {
+        btn.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+      }
     });
   }
 
@@ -1819,7 +1822,7 @@ const VP = (function(){
 
     // Fetch client config to hydrate version and Google Sign-In settings
     fetch('/api/config').then(r => r.json()).then(config => {
-      const ver = config.version || '5.0.4';
+      const ver = config.version || '5.0.5';
       const badge = document.getElementById('version-badge');
       const footerVer = document.getElementById('footer-version');
       const gsi = document.getElementById('g_id_onload');

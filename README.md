@@ -1,4 +1,4 @@
-# VisePanda · v5.0.4
+# VisePanda · v5.0.5
 
 > AI China Travel Platform — Panda Chinese Style · AI Chat Planning · 36-City Knowledge Base
 
@@ -8,7 +8,7 @@
 
 **Not a generic AI assistant — a China-specialized AI travel planner.**
 
-## Latest Version v5.0.4
+## Latest Version v5.0.5
 
 | Module | Status |
 |--------|--------|
@@ -20,6 +20,7 @@
 | 💬 Chat Atlas action rail | ✅ 已落地 |
 | 📋 Trips recent / saved 分组结构 | ✅ 已落地并补充 atlas note |
 | 🏙 Cities filter rail / editorial lead | ✅ 已落地 |
+| 📱 竖屏移动端体验优化（首页 / Chat / Cities / Trips / Tools / bottom nav） | ✅ 已落地 |
 | 🛠️ Admin Atlas overview hero | ✅ 已落地 |
 | 🧪 Regression commands (`python3 -m unittest discover -s tests -v` / `node --test`) | ✅ 已纳入回归流程 |
 

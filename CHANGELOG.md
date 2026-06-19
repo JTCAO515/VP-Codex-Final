@@ -1,5 +1,24 @@
 # Changelog
 
+## v5.0.5 — 2026-06-19
+
+### Added
+- 新增移动端竖屏结构钩子：`hero-content-portrait`、`hero-note-card-compact`、`planner-entry-card-compact`
+- 新增 Chat 安全区结构：`chat-mobile-shell`、`chat-action-rail-mobile`、`chat-input-bar-safe`
+- 新增竖屏优化相关声明：`data-scrollable="true"` 的 `cities-filter-rail`、`trips-atlas-mobile`、`tools-section-mobile`
+- 前端结构测试新增对 `v5.0.5` 与手机端结构钩子的校验
+
+### Changed
+- 首页首屏压缩为更适合竖屏的单列节奏，CTA、metrics、note card 改为更稳定的手机布局
+- Chat 输入区、action rail 与底部导航完成 safe-area 避让优化
+- Cities filter rail 改为更适合拇指操作的横向滑动过滤条
+- Trips / Tools 完成更适合单手浏览的卡片与留白调整
+- 统一后端 `APP_VERSION`、前端壳层显示与文档版本到 `v5.0.5`
+
+### Regression
+- 执行 `python3 -m unittest discover -s tests -v`，后端 14 项测试通过
+- 执行 `node --test web/tests/*.test.js`，前端 14 项结构测试通过
+
 ## v5.0.4 — 2026-06-19
 
 ### Added

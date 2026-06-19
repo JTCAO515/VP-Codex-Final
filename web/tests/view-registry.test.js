@@ -24,14 +24,31 @@ test('home page includes atlas sections', () => {
   assert.match(html, /id="planner-entry"/);
 });
 
+test('home 首屏包含竖屏压缩所需结构钩子', () => {
+  assert.match(html, /class="hero-content hero-content-portrait"/);
+  assert.match(html, /class="hero-note-card hero-note-card-compact"/);
+  assert.match(html, /class="planner-entry-card planner-entry-card-compact"/);
+});
+
 test('chat 视图包含 atlas action rail', () => {
   assert.match(html, /id="chat-action-rail"/);
+});
+
+test('chat 视图包含输入区与 action rail 的移动端安全区结构', () => {
+  assert.match(html, /class="chat-container chat-mobile-shell"/);
+  assert.match(html, /id="chat-action-rail" class="chat-action-rail chat-action-rail-mobile"/);
+  assert.match(html, /class="chat-input-bar chat-input-bar-safe"/);
 });
 
 test('trips 视图包含 recent \/ saved 分组容器', () => {
   assert.match(html, /class="trips-atlas-note"/);
   assert.match(html, /id="trips-recent"/);
   assert.match(html, /id="trips-saved"/);
+});
+
+test('trips 与 tools 视图包含单手浏览的移动端壳层', () => {
+  assert.match(html, /class="section trips-atlas trips-atlas-mobile"/);
+  assert.match(html, /class="section tools-section tools-section-mobile"/);
 });
 
 test('cities 视图包含 editorial filter rail', () => {
@@ -41,8 +58,12 @@ test('cities 视图包含 editorial filter rail', () => {
   assert.match(html, /data-filter="food"/);
 });
 
-test('visible version is updated to v5.0.4', () => {
-  assert.match(html, /v5\.0\.4/);
+test('cities filter rail 声明横向滑动结构', () => {
+  assert.match(html, /id="cities-filter-rail" class="cities-filter-rail" aria-label="City filters" data-scrollable="true"/);
+});
+
+test('visible version is updated to v5.0.5', () => {
+  assert.match(html, /v5\.0\.5/);
 });
 
 test('admin 页面包含 atlas 风格 hero 概览头', () => {
