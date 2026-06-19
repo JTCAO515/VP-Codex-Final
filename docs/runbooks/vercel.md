@@ -2,6 +2,10 @@
 
 本仓库是一个 pnpm workspace 的 monorepo，包含两个 Next.js 后台与一个 NestJS API。
 
+GitHub 仓库：
+
+- `https://github.com/JTCAO515/VP-Trae-Admin`
+
 ## 1. 部署对象
 
 - `apps/admin-web`：管理后台（建议绑定域名 `vpadmin.go2china.space`）

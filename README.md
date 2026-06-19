@@ -2,6 +2,10 @@
 
 这个仓库只承载管理系统相关工程，用于部署后台域名 `vpadmin.go2china.space`。
 
+GitHub 仓库：
+
+- `https://github.com/JTCAO515/VP-Trae-Admin`
+
 包含：
 
 - `apps/ops-web`：内容运营后台
