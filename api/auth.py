@@ -337,6 +337,17 @@ def handle_login(environ, start_response):
     })
 
 
+def handle_logout(environ, start_response):
+    """POST /api/auth/logout — invalidate current token."""
+    token = _extract_token(environ)
+    if token:
+        conn = _get_db()
+        conn.execute("DELETE FROM sessions WHERE token = ?", (token,))
+        conn.commit()
+        conn.close()
+    return _json(start_response, {"message": "Logged out"})
+
+
 def handle_me(environ, start_response):
     """GET /api/auth/me — require Authorization: Bearer <token> → user info."""
     ensure_init()
@@ -1085,6 +1096,9 @@ def handle_auth_route(environ, start_response, path: str, method: str) -> list[b
 
     if path == "/api/auth/me" and method == "GET":
         return handle_me(environ, start_response)
+
+    if path == "/api/auth/logout" and method == "POST":
+        return handle_logout(environ, start_response)
 
     # ── Google OAuth ──
     if path == "/api/auth/google/login" and method == "POST":

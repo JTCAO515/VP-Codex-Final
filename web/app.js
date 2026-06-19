@@ -1782,6 +1782,11 @@ const VP = (function(){
 
     // Logout
     logout: function() {
+      // Invalidate token on server (fire-and-forget)
+      fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {'Authorization': 'Bearer ' + (_authToken || localStorage.getItem('vp_token'))}
+      }).catch(function(){});
       _authToken = null;
       _authUser = null;
       localStorage.removeItem('vp_token');
