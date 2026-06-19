@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   VisePanda v5.0.2 — Panda × China Design System
+   VisePanda v5.0.3 — Panda × China Design System
    ═══════════════════════════════════════════════════════════ */
 
 /* ─── CSS Reset ─── */
@@ -198,6 +198,14 @@ body{
   pointer-events:none;
 }
 .hero-content{position:relative;z-index:1;max-width:640px;margin:0 auto}
+.hero-kicker{
+  margin-bottom:10px;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  color:var(--accent-gold);
+}
 
 /* Hero decorative elements */
 .hero-deco{position:absolute;pointer-events:none;z-index:0;opacity:.6}
@@ -222,6 +230,12 @@ body{
   font-size:16px;color:var(--text-secondary);line-height:1.6;
   margin-bottom:28px;
 }
+.hero-actions{
+  display:flex;
+  gap:12px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
 .hero-cta{
   display:inline-block;
   padding:12px 32px;
@@ -231,16 +245,71 @@ body{
   transition:all .2s;
 }
 .hero-cta:hover{background:var(--accent-red-hover);transform:translateY(-2px);box-shadow:0 6px 20px rgba(188,58,44,.3)}
+.hero-secondary{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:12px 24px;
+  border:1px solid var(--border-strong);
+  border-radius:var(--radius-lg);
+  background:var(--bg-surface);
+  color:var(--text-primary);
+  transition:all .2s;
+}
+.hero-secondary:hover{
+  background:var(--bg-hover);
+  border-color:var(--accent-gold-soft);
+  transform:translateY(-2px);
+}
 
 /* ─── Sections ─── */
 .section{
   max-width:var(--max-w);margin:0 auto;padding:0 20px;
 }
+.view-home .section + .section{margin-top:28px}
 .section-title{
   font-size:22px;font-weight:600;margin-bottom:4px;
 }
 .section-sub{
   font-size:14px;color:var(--text-muted);margin-bottom:20px;
+}
+.trust-layer,
+.planner-entry{
+  padding-top:8px;
+}
+.trust-kicker{
+  margin-bottom:8px;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--accent-gold);
+}
+.trust-pillars{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.trust-pill{
+  padding:8px 12px;
+  border-radius:var(--radius-full);
+  border:1px solid var(--border-default);
+  background:var(--bg-surface);
+  color:var(--text-secondary);
+  font-size:12px;
+}
+.planner-entry-card{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  padding:20px;
+  border:1px solid var(--border-default);
+  border-radius:var(--radius-xl);
+  background:linear-gradient(135deg,var(--bg-surface),var(--bg-elevated));
+}
+.planner-entry-cta{
+  flex-shrink:0;
 }
 
 /* ─── Stagger Grid Entrance ─── */
@@ -451,6 +520,28 @@ body{
   border-color:var(--accent-red-soft);
   color:var(--accent-red);
   background:var(--accent-red-soft);
+}
+
+.chat-action-rail{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  padding:4px 0 12px;
+}
+.rail-btn{
+  padding:10px 12px;
+  border:1px solid var(--border-default);
+  border-radius:var(--radius-lg);
+  background:var(--bg-surface);
+  color:var(--text-secondary);
+  font-size:12px;
+  font-weight:600;
+  transition:all .15s;
+}
+.rail-btn:hover{
+  border-color:var(--accent-gold-soft);
+  background:var(--bg-hover);
+  color:var(--text-primary);
 }
 
 /* ─── Chat Input ─── */
@@ -852,6 +943,31 @@ body{
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
 /* ═══ TRIPS ═══ */
+.trips-atlas{
+  padding-top:20px;
+}
+.trips-groups{
+  display:grid;
+  gap:16px;
+}
+.trips-group-section{
+  padding:16px;
+  border:1px solid var(--border-default);
+  border-radius:var(--radius-xl);
+  background:linear-gradient(135deg,var(--bg-surface),var(--bg-elevated));
+}
+.trips-group-title{
+  margin-bottom:12px;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--accent-gold);
+}
+.trips-group{
+  display:grid;
+  gap:12px;
+}
 .trips-grid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
@@ -896,9 +1012,38 @@ body{
 .trip-action-btn.delete{color:var(--accent-red);border-color:var(--accent-red-soft);margin-left:auto}
 .trip-action-btn.delete:hover{background:var(--accent-red-soft)}
 
+.admin-hero{
+  margin-bottom:20px;
+  padding:24px;
+  border:1px solid var(--border-default);
+  border-radius:var(--radius-xl);
+  background:
+    radial-gradient(circle at top right,var(--accent-red-soft),transparent 38%),
+    linear-gradient(135deg,var(--bg-surface),var(--bg-elevated));
+}
+.admin-kicker{
+  margin-bottom:8px;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  color:var(--accent-gold);
+}
+.admin-hero h1{
+  font-size:30px;
+  line-height:1.1;
+  letter-spacing:-.03em;
+  margin-bottom:8px;
+}
+.admin-hero p{
+  max-width:560px;
+  color:var(--text-secondary);
+}
+
 /* Responsive trips */
 @media(max-width:768px){
   .trips-grid{grid-template-columns:1fr}
+  .trips-group-section{padding:14px}
 }
 
 /* ─── Estimate Grid ─── */
@@ -950,6 +1095,7 @@ body{
   .tools-grid{grid-template-columns:repeat(2,1fr)}
   .chat-container{height:calc(100dvh - var(--header-h) - 70px);padding:8px}
   .hero-deco{display:none}
+  .planner-entry-card{flex-direction:column;align-items:flex-start}
   .modal-panel{max-width:95%;max-height:90vh;border-radius:var(--radius-lg)}
   .detail-header{padding:16px 16px 12px}
   .detail-section{padding:12px 16px}
@@ -969,6 +1115,8 @@ body{
   .hero{padding:32px 12px 28px;min-height:260px}
   .hero-panda{font-size:36px}
   .hero-cta{padding:10px 24px;font-size:14px;min-height:44px}
+  .hero-actions{flex-direction:column}
+  .hero-secondary{width:100%;min-height:44px}
   .brand-text{display:none}
   .city-grid{grid-template-columns:1fr}
   .tools-grid{grid-template-columns:1fr}
@@ -976,10 +1124,16 @@ body{
   .chat-container{height:calc(100dvh - var(--header-h) - 70px);padding:4px}
   .msg{max-width:95%}
   .chat-chip{font-size:11px;padding:4px 8px}
+  .chat-action-rail{padding-bottom:8px}
   .chat-input{font-size:16px;min-height:44px;padding:12px 14px} /* 16px prevents iOS zoom */
   .chat-send,.chat-stop{font-size:13px;padding:8px 14px;height:44px;min-width:60px}
   .chat-input-bar{padding:8px 0 4px}
   #footer{padding:12px}
+  .planner-entry-card{padding:16px}
+  .planner-entry-cta{width:100%}
+  .rail-btn{min-height:44px}
+  .admin-hero{padding:18px}
+  .admin-hero h1{font-size:24px}
   /* Larger touch targets */
   .nav-btn,.bn-btn{min-height:44px}
   .theme-toggle{width:44px;height:44px}

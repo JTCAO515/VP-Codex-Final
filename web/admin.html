@@ -8,28 +8,28 @@
 <style>
   :root { --header-h: 56px; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg0); color: var(--text); font-family: 'Inter','Noto Sans SC',system-ui,sans-serif; min-height: 100vh; }
-  a { color: var(--accent); text-decoration: none; }
+  body { background: var(--bg-primary); color: var(--text-primary); font-family: 'Inter','Noto Sans SC',system-ui,sans-serif; min-height: 100vh; }
+  a { color: var(--accent-gold); text-decoration: none; }
   a:hover { text-decoration: underline; }
 
-  .admin-header { height: var(--header-h); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; background: var(--primary); border-bottom: 1px solid var(--line); }
+  .admin-header { height: var(--header-h); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; background: rgba(14,11,20,.7); border-bottom: 1px solid var(--border-default); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
   .admin-brand { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 600; }
   .admin-brand span { font-size: 20px; }
-  .admin-back { font-size: 13px; color: var(--text-dim); padding: 6px 12px; border: 1px solid var(--line); border-radius: 6px; }
+  .admin-back { font-size: 13px; color: var(--text-dim); padding: 6px 12px; border: 1px solid var(--border-default); border-radius: 6px; }
 
   .admin-container { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
 
   .admin-stats { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
-  .stat-card { flex: 1; min-width: 140px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
-  .stat-card .stat-value { font-size: 28px; font-weight: 700; color: var(--accent); }
+  .stat-card { flex: 1; min-width: 140px; background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 10px; padding: 16px; }
+  .stat-card .stat-value { font-size: 28px; font-weight: 700; color: var(--accent-gold); }
   .stat-card .stat-label { font-size: 12px; color: var(--text-dim); margin-top: 4px; text-transform: uppercase; letter-spacing: .5px; }
 
-  .admin-section { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
-  .admin-section h2 { padding: 16px 20px; font-size: 15px; font-weight: 600; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 8px; }
+  .admin-section { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 10px; overflow: hidden; }
+  .admin-section h2 { padding: 16px 20px; font-size: 15px; font-weight: 600; border-bottom: 1px solid var(--border-default); display: flex; align-items: center; gap: 8px; }
 
   .user-table { width: 100%; border-collapse: collapse; }
-  .user-table th { text-align: left; padding: 10px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim); background: var(--bg0); border-bottom: 1px solid var(--line); white-space: nowrap; }
-  .user-table td { padding: 12px 16px; font-size: 13px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  .user-table th { text-align: left; padding: 10px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim); background: var(--bg-primary); border-bottom: 1px solid var(--border-default); white-space: nowrap; }
+  .user-table td { padding: 12px 16px; font-size: 13px; border-bottom: 1px solid var(--border-default); vertical-align: middle; }
   .user-table tr:last-child td { border-bottom: none; }
   .user-table tr:hover { background: rgba(255,255,255,.02); }
 
@@ -46,7 +46,7 @@
   .btn-del:hover { background: rgba(248,113,113,.1); }
   .btn-del:disabled { opacity: .4; cursor: not-allowed; }
 
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--primary); border: 1px solid var(--line); padding: 10px 20px; border-radius: 8px; font-size: 13px; z-index: 100; box-shadow: 0 4px 20px rgba(0,0,0,.4); transition: opacity .3s; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--bg-secondary); border: 1px solid var(--border-default); padding: 10px 20px; border-radius: 8px; font-size: 13px; z-index: 100; box-shadow: 0 4px 20px rgba(0,0,0,.4); transition: opacity .3s; }
   .toast.hidden { opacity: 0; pointer-events: none; }
   .toast.success { border-color: rgba(74,222,128,.4); }
   .toast.error { border-color: rgba(248,113,113,.4); }
@@ -73,6 +73,11 @@
 </header>
 
 <main class="admin-container" id="admin-app">
+  <section class="admin-hero">
+    <div class="admin-kicker">Operations Atlas</div>
+    <h1>Platform overview</h1>
+    <p>Monitor operators, active accounts, and the latest platform access patterns from a single editorial summary header.</p>
+  </section>
   <div class="admin-stats" id="stats-row"></div>
   <div class="admin-section">
     <h2>👥 Users</h2>

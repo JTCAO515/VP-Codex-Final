@@ -1,7 +1,7 @@
-# VisePanda (VP-Hermes-Web) v5.0.2 — Handoff Document
+# VisePanda (VP-Hermes-Web) v5.0.3 — Handoff Document
 
 > **Last Updated:** 2026-06-19
-> **Status:** ✅ Active — English-native translation completed, stable deployment
+> **Status:** ✅ Active — foundation contracts已落地，Editorial Atlas 首页/主页面结构已推进到 v5.0.3
 > **Repo:** `https://github.com/JTCAO515/VP-Hermes-Web.git` (HTTPS, PAT auth)
 > **Live URL:** https://www.go2china.space (Vercel auto-deploy on push)
 > **Vercel Project:** `vise-panda-2` (custom domain `www.go2china.space`)
@@ -59,7 +59,7 @@ Target user: Non-Chinese tourists planning trips to China (English interface, Ch
 | Backend | Python WSGI (stdlib only) | Zero pip deps, fast cold start on Vercel |
 | Frontend | Vanilla JS SPA | No framework overhead, direct DOM control |
 | LLM | DeepSeek V4 Flash | Cost-effective, fast streaming, China travel expertise |
-| Auth | Supabase Postgres + Google OAuth | Serverless auth, no extra infra |
+| Auth | SQLite-backed email/password + Google OAuth + JWT | 当前活跃链路集中在 `api/auth.py`，便于本地/测试环境回归 |
 | Maps | AMap (Gaode) + Leaflet fallback | AMap for China (better data), Leaflet when no key |
 | Session | localStorage + JWT tokens | Simple persistence, no full DB needed |
 | Images | Static JPEGs from Wikimedia | Zero API cost, fast loading, CC-licensed |
@@ -70,11 +70,12 @@ Target user: Non-Chinese tourists planning trips to China (English interface, Ch
 
 ## 3. Current State
 
-### ✅ Completed (v5.0.2)
+### ✅ Completed (v5.0.3)
 
 | Phase | Feature | Version |
 |-------|---------|:-------:|
 | 🏗️ Core | WSGI backend, SPA frontend, routing | v3.0.1 |
+| 🧪 Foundation | Python `unittest` + Node `--test` contract/structure regression | v5.0.1 → v5.0.3 |
 | 💬 Chat | SSE streaming, DeepSeek, multi-bubble rendering | v3.0.1 → v3.0.6 |
 | 🗺️ Maps | Leaflet dark maps, POI markers, AMap integration | v3.0.1 → v3.0.4 |
 | 🔍 FAQ | 10-category matching engine, query expansion | v3.0.2 |
@@ -89,6 +90,8 @@ Target user: Non-Chinese tourists planning trips to China (English interface, Ch
 | 🇬🇧 English-native | All UI/text in English, CN proper nouns parenthesised | v4.1.0 → v4.1.2 |
 | 🏛️ Admin | User list, chat logs, stats dashboard, user detail | v4.0.4 |
 | 🛂 Visa tools | Visa policy lookup, visa letter generation | v4.0.3 |
+| 🏠 Editorial Atlas Home | Hero / Trust Layer / City Rail / Planner Entry 结构 | v5.0.3 |
+| 🧭 Main-page Atlas Structure | Chat action rail / Trips recent+saved / Tools view / Admin hero | v5.0.3 |
 | 🚀 Deploy | Vercel WSGI auto-deploy from GitHub | v3.0.1 |
 
 ### 🟡 Known Quirks / Gotchas
@@ -100,8 +103,9 @@ Target user: Non-Chinese tourists planning trips to China (English interface, Ch
 | 3 | **MAP_DATA POIs only for 8 cities** — Shenzhen onward have coordinates but no POI list | Low | Map markers still work |
 | 4 | **Vercel cold start** — First request after idle takes ~3-5s | Acceptable | Warm-up via cron possible |
 | 5 | **Admin login** — Admin can't login via Google OAuth (must use email/password registered separately) | Very Low | Documented in admin workflow |
-| 6 | **Weather API** — api/weather.py exists but not wired into any UI feature | Very Low | Not used |
-| 7 | **i18n.js** has both `en` and `zh` sections; only `en` is actively used | Very Low | `zh` kept as fallback for potential bilingual mode |
+| 6 | **Weather API** — `api/weather.py` 存在但仍未接入任何 UI 能力 | Very Low | 保留为后续功能候选，当前未启用 |
+| 7 | **Weather API** — api/weather.py exists but not wired into any UI feature | Very Low | Not used |
+| 8 | **i18n.js** has both `en` and `zh` sections; only `en` is actively used | Very Low | `zh` kept as fallback for potential bilingual mode |
 
 ---
 
@@ -152,7 +156,7 @@ VP-Hermes-Web/
 │   ├── tools.json                Travel toolkit data
 │   ├── visa_policies.json        Visa policy rules
 │   ├── city_images.json          Image metadata
-│   ├── users.db                  SQLite (superseded by Supabase Postgres)
+│   ├── users.db                  SQLite data file (legacy sample path; active DB path also supports `AUTH_DB_PATH`)
 │   └── knowledge/                Curated Python knowledge modules
 │       ├── cities.py             36 city data (English)
 │       ├── food.py               Food descriptions (English+CN)
@@ -250,8 +254,6 @@ VP-Hermes-Web/
 | `LLM_BASE_URL` | API base (default: `https://api.deepseek.com/v1`) | Vercel env |
 | `AMAP_KEY` | Gaode (AMap) JS API key | Vercel env |
 | `AMAP_SECURITY_CODE` | Gaode security JS code | Vercel env |
-| `SUPABASE_URL` | Supabase project URL | Vercel env |
-| `SUPABASE_SERVICE_KEY` | Supabase service role key | Vercel env |
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID | Vercel env |
 | `SESSION_SECRET` | JWT signing secret | Vercel env |
 | `PORT` | Dev server port (default: 8080) | Local |
@@ -286,12 +288,12 @@ User Input → detectCity() + setPandaMood() → addMessage(user)
 ### Auth Flow
 
 ```
-Login via Google OAuth → POST /api/auth/google {credential}
+Login via Google OAuth / Email+Password → POST /api/auth/google or /api/auth/login
   → Backend verifies with Google, creates/retrieves user
   → Returns JWT token + user profile
   → Frontend stores in localStorage('vp_token')
 → All /api/auth/* requests include Authorization: Bearer <token>
-→ Token validated on each request via JWT verify
+→ Token validated on each request; user/trip/chat data persist in SQLite via api/auth.py
 → Expired token → 401 → redirect to login
 ```
 
@@ -317,10 +319,10 @@ App (VP IIFE — web/app.js)
 │   ├── Auth: Sign In button / User menu (avatar + logout)
 │   └── Theme toggle (🌙/☀️)
 ├── Views
-│   ├── view-home: Hero + city cards grid (top 8, with images)
-│   ├── view-chat: Full chat container + multi-bubble rendering
+│   ├── view-home: Atlas Hero + Trust Layer + City Rail + Planner Entry
+│   ├── view-chat: Full chat container + multi-bubble rendering + action rail
 │   ├── view-map: Full China overview (AMap or Leaflet)
-│   ├── view-trips: Saved itineraries list + timeline editor
+│   ├── view-trips: Recent / Saved grouped itineraries + timeline editor
 │   ├── view-cities: All 36 city cards grid
 │   └── view-tools: Travel toolkit cards (packing/visa/pricing/phrases/emergency)
 ├── Overlays
@@ -369,7 +371,7 @@ Chat response tokens trigger mood-based avatar changes:
 | Backend | Python 3.11 (stdlib only) | — |
 | Frontend | Vanilla JS + CSS3 + HTML5 | — |
 | LLM | DeepSeek V4 Flash | `deepseek-chat` |
-| Auth | Supabase Postgres + JWT | — |
+| Auth | SQLite + JWT + Google OAuth | — |
 | Maps | AMap JS API v2 / Leaflet + CartoDB dark | — |
 | Icons | Google Material Icons + Emoji | — |
 | Fonts | Inter + Noto Sans SC (Google Fonts) | — |
@@ -419,7 +421,6 @@ Frontend CDN deps: Leaflet.js, Google Sign-In (GSI), Google Fonts.
 | Live site | https://www.go2china.space |
 | GitHub repo | https://github.com/JTCAO515/VP-Hermes-Web |
 | Vercel dashboard | https://vercel.com/jtcao515/vise-panda-2 |
-| Supabase project | Dashboard (store in env vars) |
 | DeepSeek Console | https://platform.deepseek.com |
 | Product PRD | `./PRD_PRODUCT_ANALYSIS.md` |
 | User System PRD | `./docs/PRD_USER_SYSTEM.md` |

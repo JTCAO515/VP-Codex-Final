@@ -14,3 +14,25 @@ test('chat 历史查看器使用独立容器 id', () => {
   const matches = html.match(/id="chat-viewer-messages"/g) || [];
   assert.equal(matches.length, 1);
 });
+
+test('home page includes atlas sections', () => {
+  assert.match(html, /id="hero-actions"/);
+  assert.match(html, /id="trust-layer"/);
+  assert.match(html, /id="editorial-city-rail"/);
+  assert.match(html, /id="planner-entry"/);
+});
+
+test('chat 视图包含 atlas action rail', () => {
+  assert.match(html, /id="chat-action-rail"/);
+});
+
+test('trips 视图包含 recent \/ saved 分组容器', () => {
+  assert.match(html, /id="trips-recent"/);
+  assert.match(html, /id="trips-saved"/);
+});
+
+test('admin 页面包含 atlas 风格 hero 概览头', () => {
+  const adminHtml = fs.readFileSync(path.join(__dirname, '..', 'admin.html'), 'utf8');
+  assert.match(adminHtml, /class="admin-hero"/);
+  assert.match(adminHtml, /class="admin-kicker"/);
+});

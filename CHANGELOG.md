@@ -1,5 +1,20 @@
 # Changelog
 
+## v5.0.3 — 2026-06-19
+
+### Changed
+- 同步 `README.md`、`HANDOFF.md`、`CHANGELOG.md`，将当前实现状态更新为 foundation 契约测试基座 + `Editorial Atlas` 首页/主页面结构推进到 `v5.0.3`
+- 文档口径明确当前活跃持久化链路为 `api/auth.py` 中的 SQLite（auth / session / trips / chat history）
+- 文档补充 Atlas 结构落地点：`Home` 的 Hero / Trust Layer / City Rail / Planner Entry，`Chat` 的 action rail，`Trips` 的 recent/saved 分组，`Tools` 主导航接入，以及 `Admin` overview hero
+
+### Docs
+- README 改写为当前前端主结构与回归入口说明，避免继续沿用旧版模块清单
+- HANDOFF 收口为当前真实架构说明，并同步到统一后的 `v5.0.3` 版本口径
+
+### Regression
+- 按 Task 10 执行 `python3 -m unittest discover -s tests -v`，14 项后端契约测试通过
+- 按当前前端测试集执行 `node --test web/tests/*.test.js`，8 项前端结构测试通过
+
 ## v5.0.2 — 2026-06-19
 
 ### Added

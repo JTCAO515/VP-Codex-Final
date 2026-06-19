@@ -1,4 +1,4 @@
-# VisePanda · v5.0.2
+# VisePanda · v5.0.3
 
 > AI China Travel Platform — Panda Chinese Style · AI Chat Planning · 36-City Knowledge Base
 
@@ -8,48 +8,42 @@
 
 **Not a generic AI assistant — a China-specialized AI travel planner.**
 
-## Latest Version v5.0.2
+## Latest Version v5.0.3
 
 | Module | Status |
 |--------|--------|
-| 🐼 Panda Chinese Style Frontend (Dark/Light) | ✅ v3.0.1 |
-| 💬 SSE Streaming Chat (DeepSeek V4 Flash) | ✅ v3.0.1 |
-| 📚 36-City Knowledge Base (Attractions/Food/Hotels/Tips/Pricing) | ✅ v3.0.1 |
-| 🗺️ Map Tab (Full China Overview + City Markers) | ✅ v3.0.3 |
-| 🔍 FAQ Smart Matching (10 categories, query expansion) | ✅ v3.0.2 |
-| 🧰 Travel Toolkit (Packing/Price/Visa/Phrases/Emergency) | ✅ v3.0.1 |
-| 🏷️ Dynamic Version Badge | ✅ v3.0.2 |
-| 🇬🇧 English-Native System Prompt | ✅ v3.0.4 |
-| 🗺️ AMap (Gaode) Dual Engine | ✅ v3.0.4 |
-| 📱 Mobile App-Style UX (bottom nav, chat overlay, safe area) | ✅ v3.0.5 |
-| 👥 Admin Panel (User Management) | ✅ v3.1.0 |
-| 🔒 Security Hardening (input validation, XSS, UTF-8 safety) | ✅ v3.0.8 |
-| 🧩 Multi-Bubble Responses (split sections into separate bubbles) | ✅ v3.0.6 |
-| 🖼️ Rich Media Support (inline city images between bubbles) | ✅ v3.0.7 |
-| 🎯 Precision Output (structured, data-citing answers) | ✅ v3.0.6 |
-| 🌏 27-City Photo Gallery (Wikimedia Commons images) | ✅ v3.0.7 |
-| 🏗️ WSGI Zero-Dependency Backend (stdlib only) | ✅ v3.0.1 |
-| 🚀 Vercel Deployment | ✅ v3.0.1 |
+| 🏗️ Foundation contracts (auth/admin/trips/config) | ✅ 已落地到 `tests/` + `web/tests/` |
+| 🔐 Auth/Admin consistency (`vp_token` / `display_name` / `status`) | ✅ 已收口 |
+| 📋 Trips full-content model (`preview` + `content`) | ✅ 已落地 |
+| 🧰 Tools main-nav integration | ✅ 已接入主站 |
+| 🏠 Editorial Atlas 首页骨架 (`hero-actions` / `trust-layer` / `editorial-city-rail` / `planner-entry`) | ✅ 已落地 |
+| 💬 Chat Atlas action rail | ✅ 已落地 |
+| 📋 Trips recent / saved 分组结构 | ✅ 已落地 |
+| 🛠️ Admin Atlas overview hero | ✅ 已落地 |
+| 🧪 Regression commands (`python3 -m unittest discover -s tests -v` / `node --test`) | ✅ 已纳入回归流程 |
 
 ## Tech Stack
 
 - **Backend**: Python WSGI (pure stdlib, zero pip dependencies)
-- **Frontend**: Pure HTML + CSS + JS (SPA, Panda × Chinese design)
+- **Frontend**: Pure HTML + CSS + JS (Vanilla SPA, Panda × Chinese design + Editorial Atlas information structure)
 - **LLM**: DeepSeek V4 Flash (OpenAI-compatible SSE streaming)
 - **Map**: AMap (Gaode) — Leaflet fallback when AMap key not configured
 - **Deployment**: Vercel Serverless (@vercel/python)
-- **Data**: 36-city knowledge base JSON
+- **Storage**: SQLite for auth / session / trips / chat history via `api/auth.py`
+- **Data**: 36-city knowledge base JSON + toolkit / visa / FAQ datasets
 - **Design**: Panda × Chinese aesthetic, dark/light dual themes
 
-## Frontend Tabs
+## Current Frontend Structure
 
 | Tab | Feature |
 |-----|---------|
-| 🏠 Home | City cards grid, hero section |
-| 💬 Chat | SSE streaming AI chat, personalized itineraries |
+| 🏠 Home | Editorial Atlas Hero + Trust Layer + City Rail + Planner Entry |
+| 💬 Chat | SSE streaming AI chat + Atlas action rail |
 | 🗺️ Map | Full China overview with 36 city markers |
-| 📋 Trips | Trip history, save/load/share |
+| 📋 Trips | Recent / Saved archive grouped structure |
 | 🏙 Cities | 36 city detail cards with food/hotel/tips data |
+| 🧰 Tools | Packing / pricing / visa / phrases / emergency toolkit |
+| 👥 Admin | Ops/Admin overview hero + user management table |
 
 ## Quick Start (Local Test)
 
@@ -88,7 +82,10 @@ curl http://127.0.0.1:8765/api/health
 ├── web/
 │   ├── index.html        SPA entry point
 │   ├── app.css           Panda Chinese style system
-│   └── app.js            Frontend logic (chat/nav/map/trips)
+│   ├── app.js            Frontend logic (chat/nav/map/trips/tools/auth)
+│   └── tests/            Node structure tests for Atlas/foundation
+├── tests/
+│   └── *.py              Python unittest contract coverage
 ├── data/
 │   ├── cities.json       36-city knowledge base
 │   ├── food.json         Food data
@@ -109,6 +106,12 @@ curl http://127.0.0.1:8765/api/health
 ## Version History
 
 See [CHANGELOG.md](CHANGELOG.md) for full version history.
+
+## Current Implementation Notes
+
+- Foundation phase has already landed in code: auth/admin/trips/config contract tests live under `/workspace/VP-Hermes-Web/tests`.
+- Main-page Atlas rollout is at the structural layer: homepage, chat, trips, tools, and admin all have the new containers and entry points.
+- Current persistence is SQLite-backed in `/workspace/VP-Hermes-Web/api/auth.py`; this repo is no longer documented as relying on Supabase for the active auth/trip/chat path.
 
 ## Iteration Roadmap
 

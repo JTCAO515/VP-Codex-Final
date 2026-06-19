@@ -42,7 +42,7 @@
       <button class="nav-btn" data-view="tools" onclick="VP.navigate('tools')">🧰 Tools</button>
     </nav>
     <div class="header-right">
-      <span id="version-badge" class="version-badge">v5.0.2</span>
+      <span id="version-badge" class="version-badge">v5.0.3</span>
       <div id="auth-area" class="auth-area">
         <button id="auth-btn" class="auth-btn" onclick="VP.auth.showModal()" style="display:none">Sign In</button>
         <div id="user-menu" class="user-menu" style="display:none">
@@ -80,14 +80,31 @@
         <div class="hero-deco hero-deco-4">🎐</div>
         <div class="hero-deco hero-deco-5">🌸</div>
         <div class="hero-content">
+          <p class="hero-kicker">Editorial Atlas</p>
           <div class="hero-panda">🐼</div>
           <h1 class="hero-title">Your China Travel<br><span class="hero-accent">AI Companion</span></h1>
           <p class="hero-sub">Plan your China trip like chatting with a local friend.<br>Get personalized itineraries, food guides &amp; insider tips.</p>
-          <button class="hero-cta" onclick="VP.navigate('chat')">Start Planning →</button>
+          <div id="hero-actions" class="hero-actions">
+            <button class="hero-cta" onclick="VP.navigate('chat')">Start Planning →</button>
+            <button class="hero-secondary" onclick="VP.navigate('cities')">Explore Cities</button>
+          </div>
         </div>
       </div>
 
-      <div class="section">
+      <section id="trust-layer" class="section trust-layer">
+        <div class="trust-layer-copy">
+          <p class="trust-kicker">Atlas signals</p>
+          <h2 class="section-title">Curated planning, grounded in local context</h2>
+          <p class="section-sub">Destination knowledge, itinerary logic, visa tools, and maps work together without changing your current navigation flow.</p>
+        </div>
+        <div class="trust-pillars" aria-label="Editorial Atlas highlights">
+          <span class="trust-pill">33 curated destinations</span>
+          <span class="trust-pill">Trip planning chat</span>
+          <span class="trust-pill">Map and toolkit ready</span>
+        </div>
+      </section>
+
+      <section id="editorial-city-rail" class="section editorial-city-rail">
         <h2 class="section-title">Explore Cities</h2>
         <p class="section-sub">33 destinations across China, each with curated knowledge</p>
         <div id="city-grid" class="city-grid">
@@ -96,7 +113,18 @@
           <div class="sk-card skeleton"><div class="sk-block"></div><div class="sk-block"></div><div class="sk-block"></div></div>
           <div class="sk-card skeleton"><div class="sk-block"></div><div class="sk-block"></div><div class="sk-block"></div></div>
         </div>
-      </div>
+      </section>
+
+      <section id="planner-entry" class="section planner-entry">
+        <div class="planner-entry-card">
+          <div>
+            <p class="trust-kicker">Planner entry</p>
+            <h2 class="section-title">Start with chat, continue across cities, trips, and tools</h2>
+            <p class="section-sub">Use the current planner flow to turn inspiration into an itinerary without leaving the homepage context.</p>
+          </div>
+          <button class="hero-cta planner-entry-cta" onclick="VP.navigate('chat')">Open Planner</button>
+        </div>
+      </section>
     </section>
 
     <!-- ─── CHAT ─── -->
@@ -112,6 +140,11 @@
           </div>
         </div>
         <div id="chat-suggestions" class="chat-suggestions"></div>
+        <aside id="chat-action-rail" class="chat-action-rail" aria-label="Chat actions">
+          <button class="rail-btn" onclick="VP.saveCurrentTrip()">Save trip</button>
+          <button class="rail-btn" onclick="VP.navigate('map')">Open map</button>
+          <button class="rail-btn" onclick="VP.navigate('tools')">Visa &amp; tools</button>
+        </aside>
         <div class="chat-input-bar">
           <textarea id="chat-input" class="chat-input" rows="1" placeholder="Ask about China travel... (e.g. '3 days in Beijing')" oninput="VP.autoResize(this)"></textarea>
           <button id="chat-send" class="chat-send" onclick="VP.sendMessage()" disabled>Send</button>
@@ -122,11 +155,22 @@
 
     <!-- ─── TRIPS ─── -->
     <section id="view-trips" class="view">
-      <div class="section">
+      <div class="section trips-atlas">
         <h2 class="section-title">📋 Saved Trips</h2>
         <p class="section-sub">Your saved itineraries — click to reload or share</p>
-        <div id="trips-grid" class="trips-grid">
-          <div class="trip-empty">No saved trips yet. Chat with VisePanda to plan a trip, then save it! 🌏</div>
+        <div class="trips-groups">
+          <section class="trips-group-section">
+            <div class="trips-group-title">Recent</div>
+            <div id="trips-recent" class="trips-group trips-grid">
+              <div class="trip-empty">No recent trips yet. Chat with VisePanda to plan a trip! 🌏</div>
+            </div>
+          </section>
+          <section class="trips-group-section">
+            <div class="trips-group-title">Saved archive</div>
+            <div id="trips-saved" class="trips-group trips-grid">
+              <div class="trip-empty">Saved trips will appear here as your library grows.</div>
+            </div>
+          </section>
         </div>
       </div>
     </section>
@@ -370,7 +414,7 @@
 
   <!-- ═══ FOOTER ═══ -->
   <footer id="footer">
-    <p><span id="footer-version">VisePanda v5.0.2</span> · AI China Travel Planner · 🐼 · <span class="footer-clear" onclick="VP.clearChatHistory()" style="cursor:pointer;text-decoration:underline;opacity:.5">Clear chat</span></p>
+    <p><span id="footer-version">VisePanda v5.0.3</span> · AI China Travel Planner · 🐼 · <span class="footer-clear" onclick="VP.clearChatHistory()" style="cursor:pointer;text-decoration:underline;opacity:.5">Clear chat</span></p>
   </footer>
 </div>
 

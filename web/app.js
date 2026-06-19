@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   VisePanda v5.0.2 — Frontend Application
+   VisePanda v5.0.3 — Frontend Application
    ═══════════════════════════════════════════════════════════ */
 
 const VP = (function(){
@@ -1155,35 +1155,64 @@ const VP = (function(){
     renderTrips();
   }
 
+  function saveCurrentTrip() {
+    const latestAssistant = [...state.messages].reverse().find(msg => msg.role === 'assistant' && msg.content);
+    if (!latestAssistant) {
+      showToast('Plan a trip in chat first, then save it here.');
+      return null;
+    }
+    const latestUser = [...state.messages].reverse().find(msg => msg.role === 'user' && msg.content);
+    const city = latestUser?.content?.match(/(?:to|in)\s+([A-Za-z][A-Za-z\s-]{1,40})/i)?.[1]?.trim() || '';
+    const trip = saveTrip(city, latestAssistant.content);
+    if (state.currentView === 'trips') renderTrips();
+    return trip;
+  }
+
   async function renderTrips() {
-    const grid = document.getElementById('trips-grid');
-    if (!grid) return;
+    const recent = document.getElementById('trips-recent');
+    const saved = document.getElementById('trips-saved');
+    const legacyGrid = document.getElementById('trips-grid');
+    const target = recent || saved || legacyGrid;
+    if (!target) return;
     const trips = await getTrips();
 
+    function renderTripCards(items, emptyMessage) {
+      if (!items.length) {
+        return '<div class="trip-empty">' + emptyMessage + '</div>';
+      }
+      return items.map(t => {
+        const date = new Date(t.created);
+        const dateStr = date.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+        const snippet = t.content.replace(/<[^>]+>/g, '').slice(0, 120).replace(/\n/g, ' ');
+        const cityEmoji = t.city ? getCityEmoji(t.city) : '🌏';
+        return '<div class="trip-card">'
+          + '<div class="trip-card-top">'
+          + '<span class="trip-city-icon">' + cityEmoji + '</span>'
+          + '<div class="trip-card-info">'
+          + '<div class="trip-card-title">' + escHtml(t.title) + '</div>'
+          + '<div class="trip-card-meta">' + (t.city ? escHtml(t.city) + ' · ' : '') + t.days + ' days · ' + dateStr + '</div>'
+          + '</div></div>'
+          + '<div class="trip-card-desc">' + escHtml(snippet) + '…</div>'
+          + '<div class="trip-card-actions">'
+          + '<button class="trip-action-btn load" onclick="VP.loadTrip(\'' + t.id + '\')">📂 Load</button>'
+          + '<button class="trip-action-btn share" onclick="VP.shareTrip(\'' + t.id + '\')">📋 Copy</button>'
+          + '<button class="trip-action-btn delete" onclick="VP.deleteTrip(\'' + t.id + '\')">🗑️</button>'
+          + '</div></div>';
+      }).join('');
+    }
+
     if (!trips.length) {
-      grid.innerHTML = '<div class="trip-empty">No saved trips yet. Chat with VisePanda to plan a trip, then save it! 🌏</div>';
+      if (recent) recent.innerHTML = renderTripCards([], 'No recent trips yet. Chat with VisePanda to plan a trip! 🌏');
+      if (saved) saved.innerHTML = renderTripCards([], 'Saved trips will appear here as your library grows.');
+      if (legacyGrid) legacyGrid.innerHTML = renderTripCards([], 'No saved trips yet. Chat with VisePanda to plan a trip, then save it! 🌏');
       return;
     }
 
-    grid.innerHTML = trips.map(t => {
-      const date = new Date(t.created);
-      const dateStr = date.toLocaleDateString('en-US', {month:'short', day:'numeric'});
-      const snippet = t.content.replace(/<[^>]+>/g, '').slice(0, 120).replace(/\n/g, ' ');
-      const cityEmoji = t.city ? getCityEmoji(t.city) : '🌏';
-      return '<div class="trip-card">'
-        + '<div class="trip-card-top">'
-        + '<span class="trip-city-icon">' + cityEmoji + '</span>'
-        + '<div class="trip-card-info">'
-        + '<div class="trip-card-title">' + escHtml(t.title) + '</div>'
-        + '<div class="trip-card-meta">' + (t.city ? escHtml(t.city) + ' · ' : '') + t.days + ' days · ' + dateStr + '</div>'
-        + '</div></div>'
-        + '<div class="trip-card-desc">' + escHtml(snippet) + '…</div>'
-        + '<div class="trip-card-actions">'
-        + '<button class="trip-action-btn load" onclick="VP.loadTrip(\'' + t.id + '\')">📂 Load</button>'
-        + '<button class="trip-action-btn share" onclick="VP.shareTrip(\'' + t.id + '\')">📋 Copy</button>'
-        + '<button class="trip-action-btn delete" onclick="VP.deleteTrip(\'' + t.id + '\')">🗑️</button>'
-        + '</div></div>';
-    }).join('');
+    const recentTrips = trips.slice(0, 3);
+    const savedTrips = trips.slice(3);
+    if (recent) recent.innerHTML = renderTripCards(recentTrips, 'No recent trips yet. Chat with VisePanda to plan a trip! 🌏');
+    if (saved) saved.innerHTML = renderTripCards(savedTrips, 'Everything you save next will appear in this archive.');
+    if (legacyGrid) legacyGrid.innerHTML = renderTripCards(trips, 'No saved trips yet. Chat with VisePanda to plan a trip, then save it! 🌏');
   }
 
   async function loadTrip(id) {
@@ -2410,6 +2439,7 @@ const VP = (function(){
     loadTrip,
     shareTrip,
     deleteTrip,
+    saveCurrentTrip,
     copyTimeline,
     compareCities,
     showVisaModal,
