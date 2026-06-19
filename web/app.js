@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   VisePanda v4.0.4 — Frontend Application
+   VisePanda v4.0.5 — Frontend Application
    ═══════════════════════════════════════════════════════════ */
 
 const VP = (function(){
@@ -408,6 +408,11 @@ const VP = (function(){
         <div style="font-size:14px;font-weight:600;margin-bottom:2px;text-transform:capitalize">${name}</div>
         <div style="font-size:12px;color:var(--text-muted)">${desc}</div>
       `;
+      // Visa tool opens the visa modal
+      if (name === 'visa') {
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', showVisaModal);
+      }
       grid.appendChild(card);
     });
   }
@@ -1199,7 +1204,7 @@ const VP = (function(){
       state.messages.forEach(msg => {
         const el = document.createElement('div');
         el.className = 'msg msg-' + (msg.role === 'user' ? 'user' : 'bot');
-        el.innerHTML = '<div class="msg-avatar">' + (msg.role === 'assistant' ? '🐼' : '👤') + '</div>'
+        el.innerHTML = '<div class="msg-avatar">' + (msg.role === 'assistant' ? getPandaAvatar() : '👤') + '</div>'
           + '<div class="msg-body">'
           + '<div class="msg-sender">' + (msg.role === 'assistant' ? 'VisePanda' : 'You') + '</div>'
           + '<div class="msg-text">' + (msg.role === 'user' ? escHtml(msg.content).replace(/\n/g,'<br>') : renderMD(msg.content)) + '</div>'
@@ -1349,6 +1354,150 @@ const VP = (function(){
     }
 
     return null;
+  }
+
+  // ── Visa Kit ──
+  function showVisaModal() {
+    // Remove existing
+    const old = document.getElementById('visa-overlay');
+    if (old) old.remove();
+
+    // Fetch supported countries
+    fetch('/api/visa/countries').then(r => r.json()).then(data => {
+      const countries = data.countries || [];
+
+      let countryOptions = '<option value="">Select nationality...</option>';
+      countries.forEach(c => {
+        countryOptions += `<option value="${c.code}">${c.country} (${c.nationality})</option>`;
+      });
+
+      // Get the latest trip for auto-fill
+      getTrips().then(trips => {
+        const latest = trips[0] || {};
+
+        const html = `
+        <div class="visa-overlay" id="visa-overlay">
+          <div class="visa-modal">
+            <div class="visa-header">
+              <span class="visa-title">🛂 Visa Kit</span>
+              <button class="visa-close" onclick="document.getElementById('visa-overlay').remove()">✕</button>
+            </div>
+            <div class="visa-body">
+              <div class="visa-section">
+                <label class="visa-label">Your Nationality</label>
+                <select class="visa-select" id="visa-nationality">${countryOptions}</select>
+              </div>
+              <div class="visa-section">
+                <label class="visa-label">Trip (auto-filled from latest)</label>
+                <input class="visa-input" id="visa-title" value="${escHtml(latest.title||'')}" placeholder="Trip name">
+                <div class="visa-row">
+                  <input class="visa-input visa-input-half" id="visa-city" value="${escHtml(latest.city||'')}" placeholder="City">
+                  <input class="visa-input visa-input-half" id="visa-days" value="${latest.days||''}" placeholder="Days">
+                </div>
+              </div>
+              <div class="visa-actions">
+                <button class="visa-btn visa-btn-primary" id="visa-check-btn" onclick="VP.checkVisa()">🔍 Check Visa Requirements</button>
+                <button class="visa-btn visa-btn-secondary" id="visa-gen-btn" onclick="VP.generateVisaDoc()" style="display:none">📄 Generate Itinerary Document</button>
+              </div>
+              <div class="visa-result" id="visa-result" style="display:none"></div>
+            </div>
+          </div>
+        </div>`;
+
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        document.body.appendChild(div.firstElementChild);
+      });
+    }).catch(() => {});
+  }
+
+  // Check visa requirements
+  function checkVisa() {
+    const nat = document.getElementById('visa-nationality').value;
+    const result = document.getElementById('visa-result');
+    if (!nat) { result.innerHTML = '<p class="visa-error">Please select your nationality</p>'; result.style.display='block'; return; }
+
+    result.innerHTML = '<p class="visa-loading">Checking...</p>';
+    result.style.display = 'block';
+    document.getElementById('visa-check-btn').disabled = true;
+
+    fetch('/api/visa/info?nationality=' + encodeURIComponent(nat))
+      .then(r => r.json())
+      .then(data => {
+        document.getElementById('visa-check-btn').disabled = false;
+        if (!data.found) {
+          result.innerHTML = '<div class="visa-alert"><span class="visa-alert-icon">⚠️</span><p>' + escHtml(data.message || 'Visa info not available') + '</p></div>';
+          document.getElementById('visa-gen-btn').style.display = 'none';
+          return;
+        }
+        const v = data.visa;
+        let html = '<div class="visa-card">';
+        html += '<div class="visa-card-row"><span class="visa-label">Visa Required</span><span class="visa-value ' + (v.visa_required ? 'visa-req-yes' : 'visa-req-no') + '">' + (v.visa_required ? 'Yes' : 'No (visa-free)') + '</span></div>';
+        html += '<div class="visa-card-row"><span class="visa-label">Visa Type</span><span class="visa-value">' + escHtml(v.visa_type) + '</span></div>';
+        html += '<div class="visa-card-row"><span class="visa-label">Processing</span><span class="visa-value">' + escHtml(v.processing_time) + '</span></div>';
+        html += '<div class="visa-card-row"><span class="visa-label">Validity</span><span class="visa-value">' + escHtml(v.validity) + '</span></div>';
+        html += '<div class="visa-card-row"><span class="visa-label">Max Stay</span><span class="visa-value">' + escHtml(v.max_stay) + '</span></div>';
+        html += '<div class="visa-card-row"><span class="visa-label">Fee</span><span class="visa-value">' + escHtml(v.fee) + '</span></div>';
+        html += '</div>';
+
+        if (v.documents_required && v.documents_required.length > 0) {
+          html += '<div class="visa-docs"><div class="visa-docs-title">📋 Required Documents</div>';
+          v.documents_required.forEach(d => { html += '<div class="visa-doc-item">• ' + escHtml(d) + '</div>'; });
+          html += '</div>';
+        }
+
+        if (v.special_notes) {
+          html += '<div class="visa-notes"><span class="visa-notes-icon">💡</span>' + escHtml(v.special_notes) + '</div>';
+        }
+
+        result.innerHTML = html;
+        document.getElementById('visa-gen-btn').style.display = 'inline-block';
+      })
+      .catch(() => {
+        document.getElementById('visa-check-btn').disabled = false;
+        result.innerHTML = '<p class="visa-error">Failed to check. Try again.</p>';
+      });
+  }
+
+  // Generate visa itinerary document
+  function generateVisaDoc() {
+    const nat = document.getElementById('visa-nationality').value;
+    const title = document.getElementById('visa-title').value;
+    const city = document.getElementById('visa-city').value;
+    const days = document.getElementById('visa-days').value;
+    const result = document.getElementById('visa-result');
+
+    // Try to get trip content from latest trip
+    getTrips().then(trips => {
+      const latest = trips.find(t => t.id === trips[0]?.id) || {};
+      const content = latest.content || '';
+
+      result.innerHTML = '<p class="visa-loading">Generating document...</p>';
+
+      fetch('/api/visa/generate', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          nationality: nat,
+          title: title,
+          city: city,
+          days: days,
+          content: content,
+        })
+      }).then(r => r.json()).then(data => {
+        if (data.error) {
+          result.innerHTML = '<p class="visa-error">' + escHtml(data.error) + '</p>';
+          return;
+        }
+        const doc = data.document || '';
+        result.innerHTML = '<div class="visa-doc-preview"><pre>' + escHtml(doc.substring(0, 2000)) + '</pre></div>'
+          + '<div class="visa-doc-actions">'
+          + '<button class="visa-btn visa-btn-primary" onclick="navigator.clipboard.writeText(' + JSON.stringify(doc) + ').then(function(){this.textContent=\'✅ Copied!\'}.bind(this))">📋 Copy Full Document</button>'
+          + '</div>';
+      }).catch(() => {
+        result.innerHTML = '<p class="visa-error">Failed to generate. Try again.</p>';
+      });
+    });
   }
 
   function autoSaveTrip(city, content) {
@@ -2252,6 +2401,9 @@ const VP = (function(){
     deleteTrip,
     copyTimeline,
     compareCities,
+    showVisaModal,
+    checkVisa,
+    generateVisaDoc,
     mapCloseDetail,
     mapOpenChat,
     chatOverlayBack,

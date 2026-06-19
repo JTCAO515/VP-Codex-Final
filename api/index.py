@@ -59,6 +59,17 @@ def app(environ, start_response):
         from api.cities import handle_validate
         return handle_validate(environ, start_response)
 
+    # ── Visa API ──
+    if path == "/api/visa/countries" and method == "GET":
+        from api.visa import handle_visa_countries
+        return handle_visa_countries(start_response)
+    if path == "/api/visa/info" and method == "GET":
+        from api.visa import handle_visa_info
+        return handle_visa_info(environ, start_response)
+    if path == "/api/visa/generate" and method == "POST":
+        from api.visa import handle_visa_generate
+        return handle_visa_generate(environ, start_response)
+
     # ── Map API ──
     if path == "/api/map" and method == "GET":
         from api.config import handle_map

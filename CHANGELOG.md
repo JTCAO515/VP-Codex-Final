@@ -1,5 +1,13 @@
 # Changelog
 
+## v4.0.5 — 2026-06-19
+
+### Added
+- B5: 签证材料包 MVP — `data/visa_policies.json`（美/英/澳/加/申根 5 国政策）
+- B5: `api/visa.py` — `GET /api/visa/info` 查要求 + `POST /api/visa/generate` 生成行程单
+- B5: 前端签证弹窗（工具箱🛂入口），选择国籍→查要求→生成标准行程单→复制
+- B5: 行程自动填充最新 trip，不支持国家显示警告
+
 ## v4.0.4 — 2026-06-19
 
 ### Added

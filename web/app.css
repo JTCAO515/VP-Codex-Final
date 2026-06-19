@@ -1143,3 +1143,45 @@ body{
 .panda-mood-badge{position:absolute;bottom:-4px;right:-6px;font-size:10px;line-height:1;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .3s ease;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3));animation:pandaMoodPop .3s cubic-bezier(.34,1.56,.64,1)}
 [data-mood="default"] .panda-mood-badge{transform:scale(0);opacity:0}
 @keyframes pandaMoodPop{0%{transform:scale(0) rotate(-15deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
+
+/* ═══ Visa Kit ═══ */
+.visa-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center;animation:fadeIn .2s}
+.visa-modal{background:var(--bg-primary);border-radius:16px;border:1px solid var(--border-strong);max-width:580px;width:90%;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.visa-header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border)}
+.visa-title{font-size:15px;font-weight:600;color:var(--text-primary)}
+.visa-close{background:none;border:none;font-size:18px;color:var(--text-muted);cursor:pointer;padding:4px 8px;border-radius:6px}
+.visa-close:hover{background:var(--hover-bg)}
+.visa-body{padding:16px 20px;overflow-y:auto;flex:1}
+.visa-section{margin-bottom:14px}
+.visa-label{font-size:11px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.visa-select{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text-primary);font-size:13px}
+.visa-input{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text-primary);font-size:13px;box-sizing:border-box;margin-bottom:6px}
+.visa-row{display:flex;gap:8px}
+.visa-input-half{flex:1}
+.visa-actions{gap:8px;margin-bottom:14px}
+.visa-btn{padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:opacity .15s;display:inline-block;margin-right:6px;margin-bottom:6px}
+.visa-btn-primary{background:var(--accent);color:#fff}
+.visa-btn-secondary{background:var(--bg);color:var(--text-primary);border:1px solid var(--border)}
+.visa-btn:hover{opacity:.9}
+.visa-btn:disabled{opacity:.5;cursor:default}
+.visa-result{margin-top:4px}
+.visa-loading{text-align:center;padding:20px;color:var(--text-muted);font-size:13px}
+.visa-error{color:#e74c3c;font-size:13px;padding:12px;background:rgba(231,76,60,.08);border-radius:8px}
+.visa-alert{display:flex;gap:10px;padding:14px;background:rgba(241,196,15,.1);border-radius:10px;border:1px solid rgba(241,196,15,.25)}
+.visa-alert-icon{font-size:18px;flex-shrink:0}
+.visa-alert p{font-size:13px;color:var(--text-primary);margin:0}
+.visa-card{background:var(--bg);border-radius:10px;border:1px solid var(--border);padding:12px;margin-bottom:12px}
+.visa-card-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)}
+.visa-card-row:last-child{border-bottom:none}
+.visa-card-row .visa-label{text-transform:none;letter-spacing:0;font-size:12px}
+.visa-value{font-size:12px;color:var(--text-primary);text-align:right}
+.visa-req-yes{color:#e67e22;font-weight:600}
+.visa-req-no{color:#27ae60;font-weight:600}
+.visa-docs{background:var(--bg);border-radius:10px;border:1px solid var(--border);padding:12px;margin-bottom:12px}
+.visa-docs-title{font-size:12px;font-weight:600;color:var(--text-primary);margin-bottom:6px}
+.visa-doc-item{font-size:12px;color:var(--text-secondary);padding:3px 0}
+.visa-notes{display:flex;gap:8px;padding:12px;background:rgba(52,152,219,.08);border-radius:10px;border:1px solid rgba(52,152,219,.2);font-size:12px;color:var(--text-primary);margin-bottom:12px}
+.visa-notes-icon{flex-shrink:0;font-size:14px}
+.visa-doc-preview{background:var(--bg);border-radius:8px;border:1px solid var(--border);padding:12px;max-height:300px;overflow-y:auto;margin-bottom:10px}
+.visa-doc-preview pre{font-size:11px;line-height:1.5;white-space:pre-wrap;color:var(--text-primary);margin:0;font-family:monospace}
+.visa-doc-actions{text-align:center;margin-bottom:6px}
