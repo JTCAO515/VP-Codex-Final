@@ -1,5 +1,22 @@
 # Changelog
 
+## v5.0.8 — 2026-06-19
+
+### Added
+- Expandable English-first toolkit detail sheets for packing, pricing, visa, phrases, and emergency guidance
+- An English-only compatibility version of `static/i18n.js` so the legacy path can no longer fall back to Chinese UI copy
+- Frontend structure checks for the new tool detail overlay and `v5.0.8`
+
+### Changed
+- The tools page now opens real detail sheets instead of acting like a mostly static index
+- Visa and emergency toolkit content shown to users now reads in natural English
+- README/HANDOFF were updated to English-first project documentation
+- Unified backend `APP_VERSION`, visible frontend version, and release docs to `v5.0.8`
+
+### Regression
+- Ran `python3 -m unittest discover -s tests -v` — 14 backend tests passed
+- Ran `node --test web/tests/*.test.js` — 19 frontend structure tests passed
+
 ## v5.0.7 — 2026-06-19
 
 ### Added

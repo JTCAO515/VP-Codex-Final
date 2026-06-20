@@ -1,7 +1,7 @@
-# VisePanda (VP-Hermes-Web) v5.0.7 — Handoff Document
+# VisePanda (VP-Hermes-Web) v5.0.8 — Handoff Document
 
 > **Last Updated:** 2026-06-19
-> **Status:** ✅ Active — foundation contracts已落地，Editorial Atlas 主界面已深化，移动端已细化，并完成英文原生网站内容收口到 v5.0.7
+> **Status:** ✅ Active — foundation contracts are in place, the Editorial Atlas interface has been refined, mobile UX has been tightened, and the English-native website pass is now extended through the toolkit layer in v5.0.8
 > **Repo:** `https://github.com/JTCAO515/VP-Hermes-Web.git` (HTTPS, PAT auth)
 > **Live URL:** https://www.go2china.space (Vercel auto-deploy on push)
 > **Vercel Project:** `vise-panda-2` (custom domain `www.go2china.space`)
@@ -59,7 +59,7 @@ Target user: Non-Chinese tourists planning trips to China (English interface, Ch
 | Backend | Python WSGI (stdlib only) | Zero pip deps, fast cold start on Vercel |
 | Frontend | Vanilla JS SPA | No framework overhead, direct DOM control |
 | LLM | DeepSeek V4 Flash | Cost-effective, fast streaming, China travel expertise |
-| Auth | SQLite-backed email/password + Google OAuth + JWT | 当前活跃链路集中在 `api/auth.py`，便于本地/测试环境回归 |
+| Auth | SQLite-backed email/password + Google OAuth + JWT | The active auth/session/trips path is concentrated in `api/auth.py`, which keeps local and test regression simple |
 | Maps | AMap (Gaode) + Leaflet fallback | AMap for China (better data), Leaflet when no key |
 | Session | localStorage + JWT tokens | Simple persistence, no full DB needed |
 | Images | Static JPEGs from Wikimedia | Zero API cost, fast loading, CC-licensed |
@@ -70,7 +70,7 @@ Target user: Non-Chinese tourists planning trips to China (English interface, Ch
 
 ## 3. Current State
 
-### ✅ Completed (v5.0.7)
+### ✅ Completed (v5.0.8)
 
 | Phase | Feature | Version |
 |-------|---------|:-------:|
@@ -90,12 +90,13 @@ Target user: Non-Chinese tourists planning trips to China (English interface, Ch
 | 🇬🇧 English-native | All UI/text in English, CN proper nouns parenthesised | v4.1.0 → v4.1.2 |
 | 🏛️ Admin | User list, chat logs, stats dashboard, user detail | v4.0.4 |
 | 🛂 Visa tools | Visa policy lookup, visa letter generation | v4.0.3 |
-| 🏠 Editorial Atlas Home | Hero / Trust Layer / City Rail / Planner Entry 结构 + hero metrics / editorial lead | v5.0.4 |
+| 🏠 Editorial Atlas Home | Hero / Trust Layer / City Rail / Planner Entry structure + hero metrics / editorial lead | v5.0.4 |
 | 🧭 Main-page Atlas Structure | Chat action rail / Trips recent+saved / Tools view / Admin hero | v5.0.3 |
 | 🏙 Editorial Browsing | Cities filter rail / editorial lead / Trips atlas note | v5.0.4 |
-| 📱 Portrait Mobile UX | Hero 压缩节奏 / Chat safe-area shell / 横滑 filter rail / 单手卡片浏览 | v5.0.5 |
+| 📱 Portrait Mobile UX | Compressed hero rhythm / Chat safe-area shell / swipeable filter rail / one-hand card browsing | v5.0.5 |
 | 🤳 Mobile Detail Pass | Chat quick scroll / Trips thumb-first actions / Tools mobile gallery / Cities card caption | v5.0.6 |
 | 🇬🇧 English-native Website | UI copy + city / food / hotel runtime data localized into natural English with `English（中文）` proper nouns | v5.0.7 |
+| 🧰 Toolkit Detail Sheets | Expandable English-first toolkit sheets + English-only compatibility i18n layer | v5.0.8 |
 | 🚀 Deploy | Vercel WSGI auto-deploy from GitHub | v3.0.1 |
 
 ### 🟡 Known Quirks / Gotchas
@@ -107,9 +108,9 @@ Target user: Non-Chinese tourists planning trips to China (English interface, Ch
 | 3 | **MAP_DATA POIs only for 8 cities** — Shenzhen onward have coordinates but no POI list | Low | Map markers still work |
 | 4 | **Vercel cold start** — First request after idle takes ~3-5s | Acceptable | Warm-up via cron possible |
 | 5 | **Admin login** — Admin can't login via Google OAuth (must use email/password registered separately) | Very Low | Documented in admin workflow |
-| 6 | **Weather API** — `api/weather.py` 存在但仍未接入任何 UI 能力 | Very Low | 保留为后续功能候选，当前未启用 |
+| 6 | **Weather API** — `api/weather.py` exists but is still not wired into any UI feature | Very Low | Keep it as a future option; it is not active today |
 | 7 | **Weather API** — api/weather.py exists but not wired into any UI feature | Very Low | Not used |
-| 8 | **i18n.js** has both `en` and `zh` sections; only `en` is actively used | Very Low | `zh` kept as fallback for potential bilingual mode |
+| 8 | **Legacy static modules** — `static/*` files are mostly compatibility artifacts, not the active SPA shell | Very Low | Safe to keep for now; revisit only if a cleanup pass is needed |
 
 ---
 

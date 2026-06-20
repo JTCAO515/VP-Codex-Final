@@ -42,7 +42,7 @@
       <button class="nav-btn" data-view="tools" onclick="VP.navigate('tools')">🧰 Tools</button>
     </nav>
     <div class="header-right">
-      <span id="version-badge" class="version-badge">v5.0.7</span>
+      <span id="version-badge" class="version-badge">v5.0.8</span>
       <div id="auth-area" class="auth-area">
         <button id="auth-btn" class="auth-btn" onclick="VP.auth.showModal()" style="display:none">Sign In</button>
         <div id="user-menu" class="user-menu" style="display:none">
@@ -289,11 +289,11 @@
     <section id="view-tools" class="view">
       <div class="section tools-section tools-section-mobile">
         <h2 class="section-title">🧰 Travel Toolkit</h2>
-        <p class="section-sub">Visa, packing, pricing, phrases, and emergency references</p>
+        <p class="section-sub">Open practical travel kits for packing, budgeting, visas, useful phrases, and emergencies.</p>
         <div class="tools-mobile-gallery">
           <div class="tools-mobile-gallery-copy">
             <span class="tools-mobile-gallery-label">Pocket utilities</span>
-            <p class="tools-mobile-gallery-note">A lighter gallery rhythm for fast reach, quick glance, and single-thumb decisions on the move.</p>
+            <p class="tools-mobile-gallery-note">A proper toolkit surface with expandable detail sheets, built for quick mobile browsing and deeper planning on desktop.</p>
           </div>
           <div id="tools-grid" class="tools-grid"></div>
         </div>
@@ -307,6 +307,9 @@
   </div>
   <div id="trip-detail-overlay" class="modal-overlay" onclick="if(event.target===this)VP.closeTripDetail()">
     <div id="trip-detail-panel" class="modal-panel"></div>
+  </div>
+  <div id="tool-detail-overlay" class="modal-overlay" onclick="if(event.target===this)VP.closeToolDetail()">
+    <div id="tool-detail-panel" class="modal-panel tool-detail-panel"></div>
   </div>
 
   <!-- ═══ MOBILE BOTTOM NAV ═══ -->
@@ -490,7 +493,7 @@
 
   <!-- ═══ FOOTER ═══ -->
   <footer id="footer">
-    <p><span id="footer-version">VisePanda v5.0.7</span> · AI China Travel Planner · 🐼 · <span class="footer-clear" onclick="VP.clearChatHistory()" style="cursor:pointer;text-decoration:underline;opacity:.5">Clear chat</span></p>
+    <p><span id="footer-version">VisePanda v5.0.8</span> · AI China Travel Planner · 🐼 · <span class="footer-clear" onclick="VP.clearChatHistory()" style="cursor:pointer;text-decoration:underline;opacity:.5">Clear chat</span></p>
   </footer>
 </div>
 

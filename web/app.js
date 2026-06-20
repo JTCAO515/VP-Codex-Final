@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   VisePanda v5.0.7 — Frontend Application
+   VisePanda v5.0.8 — Frontend Application
    ═══════════════════════════════════════════════════════════ */
 
 const VP = (function(){
@@ -317,6 +317,10 @@ const VP = (function(){
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
 
+  function escAttr(s) {
+    return escHtml(String(s || ''));
+  }
+
   function formatDisplayText(primary, chinese) {
     const first = typeof primary === 'string' ? primary.trim() : '';
     const second = typeof chinese === 'string' ? chinese.trim() : '';
@@ -475,6 +479,207 @@ const VP = (function(){
   }
 
   // ── Load Tools ──
+  const TOOL_PRICE_LABELS = {
+    '故宫': 'Forbidden City（故宫）',
+    '长城': 'Great Wall（长城）',
+    '天坛': 'Temple of Heaven（天坛）',
+    '颐和园': 'Summer Palace（颐和园）',
+    '兵马俑': 'Terracotta Army（兵马俑）',
+    '大熊猫基地': 'Giant Panda Base（大熊猫基地）',
+    '都江堰': 'Dujiangyan（都江堰）',
+    '西湖': 'West Lake（西湖）',
+    '灵隐寺': 'Lingyin Temple（灵隐寺）',
+    '鼓浪屿': 'Gulangyu（鼓浪屿）',
+    '黄鹤楼': 'Yellow Crane Tower（黄鹤楼）',
+    '嵩山少林': 'Shaolin Temple（嵩山少林）',
+    '张家界': 'Zhangjiajie（张家界）',
+    '黄山': 'Yellow Mountain（黄山）',
+    '九寨沟': 'Jiuzhaigou（九寨沟）',
+    '莫高窟': 'Mogao Caves（莫高窟）',
+    '青海湖': 'Qinghai Lake（青海湖）',
+    '布达拉宫': 'Potala Palace（布达拉宫）',
+    '玉龙雪山': 'Jade Dragon Snow Mountain（玉龙雪山）',
+    '高铁_每100km': 'High-speed rail / 100 km',
+    '飞机_国内': 'Domestic flight',
+    '地铁_次': 'Metro ride',
+    '打车_起步': 'Taxi base fare',
+    '打车_perkm': 'Taxi / km',
+    '青旅_晚': 'Hostel / night',
+    '快捷_晚': 'Budget hotel / night',
+    '精品_晚': 'Boutique hotel / night',
+    '五星_晚': 'Luxury hotel / night',
+    '早餐': 'Breakfast',
+    '午餐': 'Lunch',
+    '晚餐_普通': 'Dinner (casual)',
+    '晚餐_豪华': 'Dinner (upscale)',
+    '小吃_次': 'Street snack',
+    '饮料_杯': 'Drink'
+  };
+  const TOOL_PRICE_GROUPS = {
+    'Iconic sights': ['故宫','长城','天坛','颐和园','兵马俑','大熊猫基地','都江堰','西湖','灵隐寺','鼓浪屿','黄鹤楼','嵩山少林','张家界','黄山','九寨沟','莫高窟','青海湖','布达拉宫','玉龙雪山'],
+    'Transport': ['高铁_每100km','飞机_国内','地铁_次','打车_起步','打车_perkm'],
+    'Stays': ['青旅_晚','快捷_晚','精品_晚','五星_晚'],
+    'Daily food': ['早餐','午餐','晚餐_普通','晚餐_豪华','小吃_次','饮料_杯'],
+  };
+  const TOOL_CITY_LABELS = {
+    '北京': 'Beijing', '上海': 'Shanghai', '广州': 'Guangzhou', '成都': 'Chengdu',
+    '沈阳': 'Shenyang', '武汉': 'Wuhan', '重庆': 'Chongqing', '厦门': 'Xiamen'
+  };
+
+  function stripChinesePrefix(text) {
+    if (!text || typeof text !== 'string') return '';
+    const match = text.match(/^(.*)\(([^()]+)\)\s*$/);
+    if (match) {
+      const prefix = (match[1] || '').trim();
+      const english = (match[2] || '').trim();
+      const emoji = (prefix.match(/^[^\w(]+/u) || [''])[0];
+      return `${emoji}${english}`.trim();
+    }
+    return text.trim();
+  }
+
+  function renderToolBadge(text, tone = '') {
+    const cls = tone ? `tool-detail-badge ${tone}` : 'tool-detail-badge';
+    return `<span class="${cls}">${escHtml(text)}</span>`;
+  }
+
+  function renderToolChecklistSection(section) {
+    const title = stripChinesePrefix(section.title || 'Checklist');
+    const items = (section.items || []).map(item => {
+      const english = item[1] || item[0] || '';
+      const required = !!item[2];
+      return `<div class="tool-check-item">${renderToolBadge(required ? 'Essential' : 'Nice to have', required ? 'required' : 'optional')}<span>${escHtml(english)}</span></div>`;
+    }).join('');
+    return `<section class="tool-detail-section"><h3>${escHtml(title)}</h3><div class="tool-checklist">${items}</div></section>`;
+  }
+
+  function renderToolPricingSection(data) {
+    return Object.entries(TOOL_PRICE_GROUPS).map(([group, keys]) => {
+      const rows = keys.filter(key => Object.prototype.hasOwnProperty.call(data, key)).map(key => {
+        const value = data[key];
+        return `<div class="tool-price-row"><span>${escHtml(TOOL_PRICE_LABELS[key] || key)}</span><strong>¥${escHtml(String(value))}</strong></div>`;
+      }).join('');
+      return `<section class="tool-detail-section"><h3>${escHtml(group)}</h3><div class="tool-price-grid">${rows}</div></section>`;
+    }).join('');
+  }
+
+  function renderToolVisaSection(data) {
+    const cards = ['visa_free_transit_144h','visa_free_hainan','tourist_visa_l','visa_free_hong_kong'].map(key => {
+      const item = data[key];
+      if (!item) return '';
+      const conditions = (item.conditions || []).map(line => `<li>${escHtml(line)}</li>`).join('');
+      const steps = (Array.isArray(item.how_to_apply) ? item.how_to_apply : [item.how_to_apply]).filter(Boolean).map(line => `<li>${escHtml(line)}</li>`).join('');
+      return `<article class="tool-visa-card">
+        <div class="tool-visa-card-head">
+          <h3>${escHtml(item.name || key)}</h3>
+          ${item.duration ? renderToolBadge(item.duration, 'gold') : ''}
+        </div>
+        ${item.eligible ? `<p class="tool-copy">${escHtml(item.eligible)}</p>` : ''}
+        ${item.cities ? `<p class="tool-copy"><strong>Where it works:</strong> ${escHtml(item.cities)}</p>` : ''}
+        ${conditions ? `<div class="tool-detail-subsection"><div class="tool-subtitle">Conditions</div><ul>${conditions}</ul></div>` : ''}
+        ${steps ? `<div class="tool-detail-subsection"><div class="tool-subtitle">How to apply</div><ul>${steps}</ul></div>` : ''}
+        ${item.note ? `<p class="tool-copy"><strong>Note:</strong> ${escHtml(item.note)}</p>` : ''}
+        ${item.tip ? `<p class="tool-copy"><strong>Tip:</strong> ${escHtml(item.tip)}</p>` : ''}
+      </article>`;
+    }).join('');
+    const recs = (data.apr_recommendations || []).map(line => `<li>${escHtml(line)}</li>`).join('');
+    const notes = (data.important_notes || []).map(line => `<li>${escHtml(line)}</li>`).join('');
+    return cards
+      + `<section class="tool-detail-section"><h3>Quick recommendations</h3><ul>${recs}</ul></section>`
+      + `<section class="tool-detail-section"><h3>Important notes</h3><ul>${notes}</ul></section>`;
+  }
+
+  function renderToolPhrasesSection(data) {
+    return Object.values(data || {}).map(section => {
+      const phrases = (section.phrases || []).map(([zh, pinyin, en]) => `
+        <div class="tool-phrase-item">
+          <div class="tool-phrase-en">${escHtml(en || '')}</div>
+          <div class="tool-phrase-ref">${escHtml(zh || '')}${pinyin ? ` · ${escHtml(pinyin)}` : ''}</div>
+        </div>
+      `).join('');
+      return `<section class="tool-detail-section">
+        <h3>${escHtml(section.title_en || stripChinesePrefix(section.title_zh || 'Phrase Set'))}</h3>
+        <div class="tool-phrase-list">${phrases}</div>
+      </section>`;
+    }).join('');
+  }
+
+  function renderToolEmergencySection(data) {
+    const phoneRows = Object.entries(data.phone || {}).map(([key, item]) => `
+      <div class="tool-phone-card">
+        <span class="tool-phone-number">${escHtml(item.number || '')}</span>
+        <div class="tool-phone-copy">
+          <strong>${escHtml(key.replace(/_/g, ' '))}</strong>
+          <span>${escHtml(item.description || '')}</span>
+        </div>
+      </div>
+    `).join('');
+    const emergencyCards = Object.values(data.common_emergencies || {}).map(item => `
+      <article class="tool-detail-card">
+        <h3>${escHtml(item.title || '')}</h3>
+        <ol>${(item.steps || []).map(step => `<li>${escHtml(step)}</li>`).join('')}</ol>
+        ${item.tip ? `<p class="tool-copy"><strong>Tip:</strong> ${escHtml(item.tip)}</p>` : ''}
+      </article>
+    `).join('');
+    const embassies = Object.values(data.embassies || {}).map(item => `
+      <article class="tool-detail-card embassy-card">
+        <h3>${escHtml(stripChinesePrefix(item.country || 'Embassy'))}</h3>
+        <p class="tool-copy"><strong>Main line:</strong> ${escHtml(item.phone || '')}</p>
+        <p class="tool-copy"><strong>Emergency:</strong> ${escHtml(item.emergency || '')}</p>
+        <p class="tool-copy"><strong>Coverage:</strong> ${escHtml((item.cities || []).map(city => TOOL_CITY_LABELS[city] || city).join(', '))}</p>
+        ${item.website ? `<p class="tool-copy"><a href="${escAttr(item.website)}" target="_blank" rel="noreferrer">Official website</a></p>` : ''}
+      </article>
+    `).join('');
+    return `<section class="tool-detail-section"><h3>Emergency hotlines</h3><div class="tool-phone-grid">${phoneRows}</div></section>`
+      + `<section class="tool-detail-section"><h3>Common situations</h3><div class="tool-detail-card-grid">${emergencyCards}</div></section>`
+      + `<section class="tool-detail-section"><h3>Embassies & consulates</h3><div class="tool-detail-card-grid">${embassies}</div></section>`;
+  }
+
+  function renderToolDetailBody(name, tool) {
+    const data = tool.data || {};
+    if (name === 'packing') return Object.values(data).map(renderToolChecklistSection).join('');
+    if (name === 'pricing') return renderToolPricingSection(data);
+    if (name === 'visa') return renderToolVisaSection(data);
+    if (name === 'phrases') return renderToolPhrasesSection(data);
+    if (name === 'emergency') return renderToolEmergencySection(data);
+    return `<section class="tool-detail-section"><pre>${escHtml(JSON.stringify(data, null, 2))}</pre></section>`;
+  }
+
+  async function openToolDetail(name) {
+    const overlay = document.getElementById('tool-detail-overlay');
+    const panel = document.getElementById('tool-detail-panel');
+    if (!overlay || !panel) return;
+    panel.innerHTML = '<div class="modal-loading">Loading toolkit...</div>';
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    const data = await apiGet(`/api/tools/${name}`);
+    if (!data || !data.tool) {
+      panel.innerHTML = '<div class="modal-error">Failed to load toolkit data</div>';
+      return;
+    }
+    const tool = data.tool;
+    panel.innerHTML = `
+      <div class="tool-detail-shell">
+        <div class="tool-detail-header">
+          <div>
+            <div class="tool-detail-kicker">Travel toolkit</div>
+            <h2 class="tool-detail-title">${escHtml(tool.name || humanizeCityKey(name))}</h2>
+            <p class="tool-detail-sub">${escHtml(tool.desc || '')}</p>
+          </div>
+          <button class="modal-close" onclick="VP.closeToolDetail()">✕</button>
+        </div>
+        <div class="tool-detail-body">${renderToolDetailBody(name, tool)}</div>
+      </div>
+    `;
+  }
+
+  function closeToolDetail() {
+    const overlay = document.getElementById('tool-detail-overlay');
+    if (!overlay) return;
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
   async function loadTools() {
     const grid = document.getElementById('tools-grid');
     if (!grid) return;
@@ -487,17 +692,23 @@ const VP = (function(){
     Object.entries(data.tools).forEach(([name, desc]) => {
       const card = document.createElement('div');
       card.className = 'tool-card';
+      card.setAttribute('role', 'button');
+      card.tabIndex = 0;
       card.innerHTML = `
         <div class="tool-card-kicker">${kickers[name] || 'Quick utility'}</div>
         <div class="tool-card-icon">${emojis[name] || '🧰'}</div>
-        <div class="tool-card-title">${name}</div>
+        <div class="tool-card-title">${humanizeCityKey(name)}</div>
         <div class="tool-card-desc">${desc}</div>
+        <div class="tool-card-link">Open toolkit →</div>
       `;
-      // Visa tool opens the visa modal
-      if (name === 'visa') {
-        card.style.cursor = 'pointer';
-        card.addEventListener('click', showVisaModal);
-      }
+      card.style.cursor = 'pointer';
+      card.addEventListener('click', () => openToolDetail(name));
+      card.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          openToolDetail(name);
+        }
+      });
       grid.appendChild(card);
     });
   }
@@ -1644,6 +1855,7 @@ const VP = (function(){
   document.addEventListener('keydown', (e) => {
     // Escape to close modal
     if (e.key === 'Escape') closeCityDetail();
+    if (e.key === 'Escape') closeToolDetail();
     // Ctrl+Shift+C to clear chat
     if (e.key === 'C' && e.ctrlKey && e.shiftKey) {
       e.preventDefault();
@@ -1868,7 +2080,7 @@ const VP = (function(){
 
     // Fetch client config to hydrate version and Google Sign-In settings
     fetch('/api/config').then(r => r.json()).then(config => {
-      const ver = config.version || '5.0.7';
+      const ver = config.version || '5.0.8';
       const badge = document.getElementById('version-badge');
       const footerVer = document.getElementById('footer-version');
       const gsi = document.getElementById('g_id_onload');
@@ -2540,6 +2752,8 @@ const VP = (function(){
     copyTimeline,
     compareCities,
     showVisaModal,
+    openToolDetail,
+    closeToolDetail,
     checkVisa,
     generateVisaDoc,
     mapCloseDetail,

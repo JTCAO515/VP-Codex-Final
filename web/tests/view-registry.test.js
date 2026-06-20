@@ -92,9 +92,17 @@ test('tools 视图包含移动端 gallery 壳层与辅助说明', () => {
   assert.match(css, /\.tools-mobile-gallery\b/);
 });
 
-test('visible version is updated to v5.0.7', () => {
-  assert.match(html, /v5\.0\.7/);
-  assert.match(appJs, /5\.0\.7/);
+test('tools 视图包含可展开的 detail overlay 结构', () => {
+  assert.match(html, /id="tool-detail-overlay"/);
+  assert.match(html, /id="tool-detail-panel"/);
+  assert.match(appJs, /openToolDetail/);
+  assert.match(appJs, /closeToolDetail/);
+  assert.match(css, /\.tool-detail-panel\b/);
+});
+
+test('visible version is updated to v5.0.8', () => {
+  assert.match(html, /v5\.0\.8/);
+  assert.match(appJs, /5\.0\.8/);
 });
 
 test('admin 页面包含 atlas 风格 hero 概览头', () => {

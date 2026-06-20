@@ -455,61 +455,61 @@
     "desc": "Visa types, requirements, application process",
     "data": {
       "visa_free_transit_144h": {
-        "name": "144小时过境免签",
-        "eligible": "53个国家公民（含美/英/法/德/澳/日/韩等）",
-        "cities": "北京/上海/广州/深圳/成都/重庆/西安/昆明/杭州等20+城市",
-        "duration": "144小时（6天）",
+        "name": "144-hour Visa-Free Transit",
+        "eligible": "Citizens of 53 eligible countries, including the US, UK, France, Germany, Australia, Japan, and South Korea",
+        "cities": "Available in 20+ gateway cities, including Beijing, Shanghai, Guangzhou, Shenzhen, Chengdu, Chongqing, Xi'an, Kunming, and Hangzhou",
+        "duration": "144 hours (6 days)",
         "conditions": [
-          "持有前往第三国的联程机票/车票",
-          "在指定城市区域内活动（不可出该省/直辖市）",
-          "需从该城市的特定口岸入境",
-          "必须从入境口岸所在省/直辖市的同一口岸出境"
+          "You must hold a confirmed onward ticket to a third country or region",
+          "You may only stay within the approved city or provincial area",
+          "You must arrive through an eligible entry port for that city",
+          "You must leave through a port in the same approved region"
         ],
-        "how_to_apply": "到达口岸后填写《临时入境申请表》，边检审批"
+        "how_to_apply": "Apply on arrival by filling out the temporary entry form at immigration"
       },
       "visa_free_hainan": {
-        "name": "海南免签",
-        "eligible": "59个国家公民",
-        "duration": "30天",
+        "name": "Hainan 30-Day Visa-Free Entry",
+        "eligible": "Citizens of 59 eligible countries",
+        "duration": "30 days",
         "conditions": [
-          "仅限在海南省行政区域内活动",
-          "可从海南所有对外开放口岸入境"
+          "Travel is limited to Hainan Province only",
+          "You can enter through any of Hainan's open international ports"
         ],
-        "note": "适合专程去海南度假的旅客"
+        "note": "Best for travelers planning a dedicated beach or resort trip to Hainan"
       },
       "tourist_visa_l": {
-        "name": "L字旅游签证",
-        "eligible": "所有国家",
-        "duration": "30-90天（单次/多次）",
+        "name": "Tourist Visa (L Visa)",
+        "eligible": "Available to all nationalities",
+        "duration": "30-90 days, depending on single or multiple entry approval",
         "how_to_apply": [
-          "在中国驻外使领馆申请",
-          "需提供护照原件、照片、往返机票、酒店预订",
-          "部分国家可通过旅行社代办（省心）",
-          "费用约¥700-1000（因国家而异）"
+          "Apply through a Chinese embassy or consulate in your country",
+          "Prepare your passport, photo, round-trip flights, and hotel bookings",
+          "In some countries, approved travel agencies can file the application for you",
+          "Typical cost is around ¥700-1000, depending on nationality and location"
         ],
-        "processing_time": "4-7个工作日",
-        "tip": "建议提前1-2个月申请，旅游旺季可能更久"
+        "processing_time": "4-7 business days",
+        "tip": "Apply 1-2 months early if possible, especially before peak travel seasons"
       },
       "visa_free_hong_kong": {
-        "name": "香港/澳门入境",
-        "eligible": "大部分国家免签7-90天不等",
-        "note": "香港和澳门的签证政策与中国大陆不同，通常更宽松",
-        "tip": "从香港/澳门入境大陆仍需办理中国签证（除非符合144h过境条件）"
+        "name": "Hong Kong / Macau Entry Rules",
+        "eligible": "Most nationalities receive 7-90 days of visa-free access",
+        "note": "Hong Kong and Macau follow separate immigration policies from mainland China, and the rules are usually more relaxed",
+        "tip": "Entering mainland China from Hong Kong or Macau still requires a mainland visa unless you qualify for 144-hour transit"
       },
       "apr_recommendations": [
-        "⭐ 短期旅行(1-6天) → 144小时过境免签（省钱省时间）",
-        "⭐ 专程度假 → 海南免签30天（海滩+免税购物）",
-        "⭐ 探亲/深度游(7-30天) → L字旅游签证（申请需要时间）",
-        "⭐ 同时游香港/澳门+大陆 → 先飞香港(免签)→再进大陆(144h免签)→香港出境"
+        "⭐ Short trip (1-6 days) → 144-hour visa-free transit is usually the fastest, cheapest option",
+        "⭐ Hainan-only beach vacation → Use the 30-day Hainan visa-free policy",
+        "⭐ Longer trip (7-30 days) → Apply for a Tourist L Visa in advance",
+        "⭐ Hong Kong / Macau + mainland combo → Fly into Hong Kong first, then enter the mainland under the right transit or visa setup"
       ],
       "important_notes": [
-        "签证政策可能随时调整，出行前务必确认最新信息",
-        "所有外国人在中国大陆必须随身携带护照原件",
-        "住宿：酒店必须登记外国人信息（所有涉外酒店均可）",
-        "高铁/飞机：外国人可以买票，建议提前网上购票（12306英文版）",
-        "货币：微信/支付宝可绑定Visa/Mastercard，但需在入境后操作",
-        "通讯：建议购买中国联通/移动的临时SIM卡（机场可买）",
-        "VPN：访问Google/Instagram/Facebook需要VPN，提前安装好"
+        "Visa policies can change quickly, so always verify the latest rules before departure",
+        "Foreign travelers in mainland China should carry the original passport at all times",
+        "Hotels must register foreign guests, so choose hotels that can legally host overseas visitors",
+        "Foreign travelers can book high-speed rail and domestic flights, and the 12306 English site is usually the easiest place to start",
+        "WeChat Pay and Alipay can be linked to Visa or Mastercard, but setup usually works best after arrival",
+        "A temporary SIM from China Unicom or China Mobile is often the easiest connectivity option",
+        "Google, Instagram, and Facebook require a VPN in mainland China, so install and test one before you leave"
       ]
     }
   },
@@ -902,66 +902,66 @@
       "phone": {
         "police": {
           "number": "110",
-          "description": "Police (报警) — theft, assault, robbery"
+          "description": "Police — theft, assault, robbery, or immediate public safety issues"
         },
         "fire": {
           "number": "119",
-          "description": "Fire Department (火警)"
+          "description": "Fire department"
         },
         "ambulance": {
           "number": "120",
-          "description": "Ambulance / Medical Emergency (急救)"
+          "description": "Ambulance / medical emergency"
         },
         "traffic": {
           "number": "122",
-          "description": "Traffic Accident (交通事故)"
+          "description": "Traffic accident hotline"
         },
         "directory": {
           "number": "114",
-          "description": "Directory Assistance (查号台)"
+          "description": "Directory assistance"
         }
       },
       "common_emergencies": {
         "lost_passport": {
-          "title": "护照丢失 (Lost Passport)",
+          "title": "Lost Passport",
           "steps": [
-            "1. 立即去最近的派出所报案，拿到《护照遗失报案回执》",
-            "2. 去你国家的大使馆/领事馆申请旅行证 (Emergency Travel Document)",
-            "3. 去出入境管理局办理签证补办手续",
-            "4. 如果时间紧急，旅行证可以代替护照用于离境"
+            "1. Go to the nearest police station right away and get a written loss report",
+            "2. Contact your embassy or consulate to apply for an Emergency Travel Document",
+            "3. Ask the local exit-entry bureau about replacing or updating your visa status",
+            "4. If you need to leave urgently, an emergency travel document may be enough for departure"
           ],
-          "tip": "建议随身带护照复印件或存在手机里，补办时有用"
+          "tip": "Keep a passport photocopy or phone scan with you — it helps a lot if the original is lost"
         },
         "medical_emergency": {
-          "title": "医疗急救 (Medical Emergency)",
+          "title": "Medical Emergency",
           "steps": [
-            "1. 拨打120叫救护车 (免费急救电话)",
-            "2. 告诉接线员你的位置和症状（可以说简单英文）",
-            "3. 大的三甲医院都有国际部/涉外门诊",
-            "4. 带护照去急诊挂号，先治疗后付费",
-            "5. 联系你的旅行保险公司"
+            "1. Call 120 for an ambulance",
+            "2. Tell the operator where you are and what symptoms you have",
+            "3. Large hospitals often have international or foreign-patient clinics",
+            "4. Bring your passport to the emergency desk — treatment usually comes first, billing after",
+            "5. Contact your travel insurance provider as soon as possible"
           ],
-          "tip": "北京协和医院国际部、上海华山医院、广州中山一院都有英文服务"
+          "tip": "Large hospitals in Beijing, Shanghai, and Guangzhou usually offer better English-language support"
         },
         "arrested": {
-          "title": "被拘留/被捕 (Arrested/Detained)",
+          "title": "Arrested / Detained",
           "steps": [
-            "1. 你有权联系你的大使馆 — 要求通知使馆",
-            "2. 不要签署你不明白的中文文件",
-            "3. 要求翻译 — 法律规定必须提供翻译",
-            "4. 联系你的旅行保险和法律援助"
+            "1. Ask the police to notify your embassy or consulate immediately",
+            "2. Do not sign Chinese documents you do not understand",
+            "3. Ask for an interpreter — one should be provided for legal proceedings",
+            "4. Contact your travel insurer and any available legal support"
           ],
-          "tip": "中国签证规定：所有外国人在中国必须遵守中国法律，不知道法律不是借口"
+          "tip": "Foreign travelers are fully subject to Chinese law, so document every step and ask for interpretation support"
         },
         "natural_disaster": {
-          "title": "自然灾害 (Natural Disaster)",
+          "title": "Natural Disaster",
           "steps": [
-            "1. 听从当地政府和景区工作人员的指示",
-            "2. 关注中国地震台网或当地天气预警",
-            "3. 联系你的大使馆登记你所在位置",
-            "4. 保持手机电量，使用离线地图"
+            "1. Follow instructions from local authorities and venue staff",
+            "2. Monitor official weather or earthquake alerts",
+            "3. Tell your embassy or consulate where you are",
+            "4. Keep your phone charged and use offline maps when possible"
           ],
-          "tip": "日本/台湾游客来大陆最常遇到台风/地震，提前关注天气预报"
+          "tip": "Typhoons, flooding, and earthquakes are the most realistic risks depending on region and season, so check forecasts early"
         }
       },
       "embassies": {
