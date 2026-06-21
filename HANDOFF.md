@@ -94,7 +94,7 @@ api/auth.py / api/chat.py / api/cities.py / api/tools.py / api/visa.py
 
 本文件只保留架构判断，不展开更细工程责任；详尽工程说明预留到：
 
-- `docs/2026-06-20-engineering-handoff-notes.md`
+- [工程接手附录](docs/2026-06-20-engineering-handoff-notes.md)
 
 ## 5. 已达成效果
 
@@ -126,7 +126,7 @@ api/auth.py / api/chat.py / api/cities.py / api/tools.py / api/visa.py
 
 对应文档：
 
-- `docs/2026-06-20-commercial-upgrade-plan.md`
+- [商用升级路线](docs/2026-06-20-commercial-upgrade-plan.md)
 
 ## 7. 过往关键迭代
 
@@ -189,7 +189,7 @@ api/auth.py / api/chat.py / api/cities.py / api/tools.py / api/visa.py
 
 对应路线文档：
 
-- `docs/2026-06-20-commercial-upgrade-plan.md`
+- [商用升级路线](docs/2026-06-20-commercial-upgrade-plan.md)
 
 结论不是“现在立刻迁移”，而是“现在继续保留，后续按商用需要分阶段拆出”。
 
@@ -198,7 +198,7 @@ api/auth.py / api/chat.py / api/cities.py / api/tools.py / api/visa.py
 ### 10.1 第一天先做什么
 
 1. 先读 `HANDOFF.md`
-2. 再读 `docs/2026-06-20-engineering-handoff-notes.md`
+2. 再读 [docs/2026-06-20-engineering-handoff-notes.md](docs/2026-06-20-engineering-handoff-notes.md)
 3. 再看 `README.md`
 4. 再看 `CHANGELOG.md`
 5. 最后跑测试和本地服务
@@ -228,13 +228,13 @@ httpd.serve_forever()
 
 | 文档 | 用途 |
 |------|------|
-| `README.md` | 项目总览与快速启动 |
-| `CHANGELOG.md` | 版本与迭代历史 |
-| `HANDOFF.md` | 当前总交接文档 |
-| `docs/2026-06-20-engineering-handoff-notes.md` | 详尽工程接手附录 |
-| `docs/2026-06-20-commercial-upgrade-plan.md` | 商用升级路线 |
-| `docs/superpowers/specs/2026-06-20-production-stability-pass-design.md` | `v5.0.9` 稳定性专项设计 |
-| `docs/superpowers/plans/2026-06-20-production-stability-pass.md` | `v5.0.9` 实施计划 |
+| [README.md](README.md) | 项目总览与快速启动 |
+| [CHANGELOG.md](CHANGELOG.md) | 版本与迭代历史 |
+| [HANDOFF.md](HANDOFF.md) | 当前总交接文档 |
+| [docs/2026-06-20-engineering-handoff-notes.md](docs/2026-06-20-engineering-handoff-notes.md) | 详尽工程接手附录 |
+| [docs/2026-06-20-commercial-upgrade-plan.md](docs/2026-06-20-commercial-upgrade-plan.md) | 商用升级路线 |
+| [docs/superpowers/specs/2026-06-20-production-stability-pass-design.md](docs/superpowers/specs/2026-06-20-production-stability-pass-design.md) | `v5.0.9` 稳定性专项设计 |
+| [docs/superpowers/plans/2026-06-20-production-stability-pass.md](docs/superpowers/plans/2026-06-20-production-stability-pass.md) | `v5.0.9` 实施计划 |
 
 ## 12. 最终结论
 

@@ -116,6 +116,7 @@ See [CHANGELOG.md](CHANGELOG.md) for full version history.
 ## Planning Docs
 
 - [Commercial Upgrade Plan](docs/2026-06-20-commercial-upgrade-plan.md)
+- [Engineering Handoff Notes](docs/2026-06-20-engineering-handoff-notes.md)
 
 ## Current Implementation Notes
 
