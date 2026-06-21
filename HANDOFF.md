@@ -199,9 +199,12 @@ api/auth.py / api/chat.py / api/cities.py / api/tools.py / api/visa.py
 
 1. 先读 `HANDOFF.md`
 2. 再读 [docs/2026-06-20-engineering-handoff-notes.md](docs/2026-06-20-engineering-handoff-notes.md)
-3. 再看 `README.md`
-4. 再看 `CHANGELOG.md`
-5. 最后跑测试和本地服务
+3. 再读 [docs/2026-06-20-first-week-takeover-checklist.md](docs/2026-06-20-first-week-takeover-checklist.md)
+4. 再读 [docs/2026-06-20-high-risk-files-guide.md](docs/2026-06-20-high-risk-files-guide.md)
+5. 最后参考 [docs/2026-06-20-production-regression-manual.md](docs/2026-06-20-production-regression-manual.md)
+6. 再看 `README.md`
+7. 再看 `CHANGELOG.md`
+8. 最后跑测试和本地服务
 
 ### 10.2 建议先跑的命令
 
@@ -232,6 +235,9 @@ httpd.serve_forever()
 | [CHANGELOG.md](CHANGELOG.md) | 版本与迭代历史 |
 | [HANDOFF.md](HANDOFF.md) | 当前总交接文档 |
 | [docs/2026-06-20-engineering-handoff-notes.md](docs/2026-06-20-engineering-handoff-notes.md) | 详尽工程接手附录 |
+| [docs/2026-06-20-first-week-takeover-checklist.md](docs/2026-06-20-first-week-takeover-checklist.md) | 新接手开发者首周进入清单 |
+| [docs/2026-06-20-high-risk-files-guide.md](docs/2026-06-20-high-risk-files-guide.md) | 高风险文件修改指南 |
+| [docs/2026-06-20-production-regression-manual.md](docs/2026-06-20-production-regression-manual.md) | 发布前后回归手册 |
 | [docs/2026-06-20-commercial-upgrade-plan.md](docs/2026-06-20-commercial-upgrade-plan.md) | 商用升级路线 |
 | [docs/superpowers/specs/2026-06-20-production-stability-pass-design.md](docs/superpowers/specs/2026-06-20-production-stability-pass-design.md) | `v5.0.9` 稳定性专项设计 |
 | [docs/superpowers/plans/2026-06-20-production-stability-pass.md](docs/superpowers/plans/2026-06-20-production-stability-pass.md) | `v5.0.9` 实施计划 |

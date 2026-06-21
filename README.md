@@ -117,6 +117,9 @@ See [CHANGELOG.md](CHANGELOG.md) for full version history.
 
 - [Commercial Upgrade Plan](docs/2026-06-20-commercial-upgrade-plan.md)
 - [Engineering Handoff Notes](docs/2026-06-20-engineering-handoff-notes.md)
+- [First-Week Takeover Checklist](docs/2026-06-20-first-week-takeover-checklist.md)
+- [High-Risk Files Guide](docs/2026-06-20-high-risk-files-guide.md)
+- [Production Regression Manual](docs/2026-06-20-production-regression-manual.md)
 
 ## Current Implementation Notes
 
