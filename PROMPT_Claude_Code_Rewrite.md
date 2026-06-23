@@ -7,8 +7,24 @@
 ## 项目背景
 
 VisePanda 是一个面向外国游客的一站式中国旅行管家。
-仓库：~/projects/VP-Claude-Web
-部署：Vercel → https://go2china.space
+
+**连接信息：**
+- 仓库：https://github.com/JTCAO515/VP-Claude-Web
+- 本地路径：~/projects/VP-Claude-Web
+- 默认分支：main
+- 部署域名：https://go2china.space
+- Vercel 项目名：vise-panda-2
+- GitHub Token：从 ~/.git-credentials 读取，见下方命令
+- Git 账号：JTCAO515
+- Git 邮箱：jt.cao@outlook.com
+
+Git 操作（用 HTTPS + Token 认证）：
+```bash
+# Token 从 ~/.git-credentials 自动读取
+PAT=$(grep -o 'https://[^:]*:[^@]*@github.com' ~/.git-credentials | head -1 | sed 's|.*:\([^@]*\)@github.com|\1|')
+git remote set-url origin "https://JTCAO515:${PAT}@github.com/JTCAO515/VP-Claude-Web.git"
+git push origin main
+```
 
 先读以下文档理解产品和数据：
 - PRD_PRODUCT_ANALYSIS.md — 产品定位
