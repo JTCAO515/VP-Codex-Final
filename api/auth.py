@@ -1,468 +1,303 @@
-"""Authentication: email/password register/login, email verification, Google OAuth, JWT sessions."""
+"""Authentication endpoints — email/password, email verify, Google OAuth, profile.
+
+All routes share state via storage.users + JWT cookies (vp_session).
+"""
 from __future__ import annotations
 
-import json
-import re
-import secrets
-import sqlite3
+import sys
 import time
-import urllib.parse
-import uuid
-from pathlib import Path
 
-from .common import (bearer_token, error_response, get_header, hash_password, http_request,
-                     json_response, jwt_sign, jwt_verify, ok_response, parse_json_body,
-                     parse_query, verify_password)
-from .config import (APP_BASE_URL, AUTH_DB_PATH, AUTH_EXPOSE_EMAIL_CODE, EMAIL_FROM,
-                     GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI,
-                     RESEND_API_KEY, has_google_oauth, has_resend)
+from . import config, email_resend, google_oauth, storage
+from .common import (
+    build_cookie,
+    clear_cookie,
+    error_response,
+    hash_password,
+    jwt_sign,
+    jwt_verify,
+    no_content,
+    ok_response,
+    parse_cookies,
+    parse_json_body,
+    parse_query,
+    random_code,
+    random_id,
+    redirect,
+    session_token,
+    sha256_hex,
+    verify_password,
+)
 
-EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-
-# ---------- DB ----------
-
-def _connect() -> sqlite3.Connection:
-    Path(AUTH_DB_PATH).parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(AUTH_DB_PATH)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
-    return conn
-
-
-def _init():
-    conn = _connect()
-    try:
-        conn.executescript(
-            """
-            CREATE TABLE IF NOT EXISTS users (
-              id TEXT PRIMARY KEY,
-              email TEXT UNIQUE NOT NULL,
-              name TEXT,
-              avatar_url TEXT,
-              password_hash TEXT,
-              google_id TEXT UNIQUE,
-              email_verified INTEGER NOT NULL DEFAULT 0,
-              created_at INTEGER NOT NULL,
-              updated_at INTEGER NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS email_codes (
-              email TEXT PRIMARY KEY,
-              code TEXT NOT NULL,
-              expires_at INTEGER NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS oauth_states (
-              state TEXT PRIMARY KEY,
-              created_at INTEGER NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS trips (
-              id TEXT PRIMARY KEY,
-              user_id TEXT NOT NULL,
-              title TEXT,
-              data TEXT,
-              created_at INTEGER NOT NULL
-            );
-            """
-        )
-        conn.commit()
-    finally:
-        conn.close()
+# A short-lived in-memory cache for OAuth `state` tokens. This is "best effort" —
+# on Vercel cold starts each instance has its own dict, but the state lives only
+# 5 minutes anyway. State is also written into a cookie as a backup.
+_OAUTH_STATES: dict[str, float] = {}
+_OAUTH_STATE_TTL = 300.0  # seconds
 
 
-_init()
-
-
-def _row_to_user(row: sqlite3.Row | None) -> dict | None:
-    if row is None:
-        return None
+def _public_user(u: dict) -> dict:
     return {
-        "id": row["id"],
-        "email": row["email"],
-        "name": row["name"],
-        "avatar_url": row["avatar_url"],
-        "google_id": row["google_id"],
-        "email_verified": bool(row["email_verified"]),
-        "created_at": row["created_at"],
-        "updated_at": row["updated_at"],
+        "id": u.get("id"),
+        "email": u.get("email"),
+        "name": u.get("name"),
+        "avatar_url": u.get("avatar_url"),
+        "email_verified": bool(u.get("email_verified")),
+        "created_at": u.get("created_at"),
     }
 
 
-def _find_user_by_email(email: str) -> dict | None:
-    conn = _connect()
-    try:
-        row = conn.execute("SELECT * FROM users WHERE email = ?", (email.lower(),)).fetchone()
-        return _row_to_user(row)
-    finally:
-        conn.close()
+def _issue_cookie_header(user: dict) -> list[tuple[str, str]]:
+    token = jwt_sign({"uid": user["id"], "email": user.get("email")})
+    return [("Set-Cookie", build_cookie(config.SESSION_COOKIE, token))]
 
 
-def _find_user_by_id(uid: str) -> dict | None:
-    conn = _connect()
-    try:
-        row = conn.execute("SELECT * FROM users WHERE id = ?", (uid,)).fetchone()
-        return _row_to_user(row)
-    finally:
-        conn.close()
-
-
-def _find_user_password_hash(email: str) -> str | None:
-    conn = _connect()
-    try:
-        row = conn.execute("SELECT password_hash FROM users WHERE email = ?", (email.lower(),)).fetchone()
-        return row["password_hash"] if row else None
-    finally:
-        conn.close()
-
-
-def _create_user(*, email: str, password_hash: str | None, name: str | None,
-                 google_id: str | None = None, avatar_url: str | None = None,
-                 email_verified: bool = False) -> dict:
-    uid = uuid.uuid4().hex
-    now = int(time.time())
-    conn = _connect()
-    try:
-        conn.execute(
-            "INSERT INTO users (id, email, name, avatar_url, password_hash, google_id, email_verified, created_at, updated_at) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            (uid, email.lower(), name, avatar_url, password_hash, google_id, 1 if email_verified else 0, now, now),
-        )
-        conn.commit()
-    finally:
-        conn.close()
-    return _find_user_by_id(uid)  # type: ignore[return-value]
-
-
-def _update_user(uid: str, fields: dict) -> dict | None:
-    if not fields:
-        return _find_user_by_id(uid)
-    fields = dict(fields)
-    fields["updated_at"] = int(time.time())
-    cols = ", ".join(f"{k} = ?" for k in fields)
-    values = list(fields.values()) + [uid]
-    conn = _connect()
-    try:
-        conn.execute(f"UPDATE users SET {cols} WHERE id = ?", values)
-        conn.commit()
-    finally:
-        conn.close()
-    return _find_user_by_id(uid)
-
-
-# ---------- Email verification ----------
-
-def _store_code(email: str, code: str, ttl: int = 15 * 60):
-    conn = _connect()
-    try:
-        conn.execute(
-            "INSERT OR REPLACE INTO email_codes (email, code, expires_at) VALUES (?, ?, ?)",
-            (email.lower(), code, int(time.time()) + ttl),
-        )
-        conn.commit()
-    finally:
-        conn.close()
-
-
-def _consume_code(email: str, code: str) -> bool:
-    conn = _connect()
-    try:
-        row = conn.execute("SELECT code, expires_at FROM email_codes WHERE email = ?", (email.lower(),)).fetchone()
-        if not row or row["expires_at"] < int(time.time()) or row["code"] != code.strip():
-            return False
-        conn.execute("DELETE FROM email_codes WHERE email = ?", (email.lower(),))
-        conn.commit()
-        return True
-    finally:
-        conn.close()
-
-
-def _send_verification_email(email: str, code: str) -> bool:
-    if not has_resend():
-        return False
-    code_status, body, _ = http_request(
-        "https://api.resend.com/emails",
-        method="POST",
-        headers={"Authorization": f"Bearer {RESEND_API_KEY}"},
-        data={
-            "from": EMAIL_FROM,
-            "to": [email],
-            "subject": "Your VisePanda verification code",
-            "html": f"<p>Welcome to VisePanda. Your code is <b>{code}</b>. It expires in 15 minutes.</p>",
-        },
-        timeout=10,
-    )
-    return 200 <= code_status < 300
-
-
-# ---------- Public payload ----------
-
-def _public_user(user: dict) -> dict:
-    return {
-        "id": user["id"],
-        "email": user["email"],
-        "name": user["name"],
-        "avatar_url": user["avatar_url"],
-        "email_verified": user["email_verified"],
-        "google_linked": bool(user.get("google_id")),
-    }
-
-
-def current_user(environ) -> dict | None:
-    token = bearer_token(environ)
-    if not token:
+def require_session(environ) -> dict | None:
+    """Return the live user dict for the current request, or None."""
+    tok = session_token(environ)
+    if not tok:
         return None
-    payload = jwt_verify(token)
+    payload = jwt_verify(tok)
     if not payload:
         return None
-    return _find_user_by_id(payload.get("sub", ""))
+    return storage.users.find_by_id(payload.get("uid", ""))
 
 
-# ---------- HTTP handlers ----------
+# ============================================================
+# /api/auth/register
+# ============================================================
 
 def _register(environ, start_response):
     body = parse_json_body(environ)
     email = (body.get("email") or "").strip().lower()
     password = body.get("password") or ""
     name = (body.get("name") or "").strip() or None
-    if not EMAIL_RE.match(email):
+    if not email or "@" not in email:
         return error_response(start_response, "Invalid email", code="invalid_email")
     if len(password) < 8:
-        return error_response(start_response, "Password must be at least 8 characters", code="weak_password")
-    if _find_user_by_email(email):
-        return error_response(start_response, "An account already exists for that email", "409 Conflict", code="exists")
-    user = _create_user(email=email, password_hash=hash_password(password), name=name)
-    code = f"{secrets.randbelow(900000) + 100000}"
-    _store_code(email, code)
-    sent = _send_verification_email(email, code)
-    payload = {"user": _public_user(user), "verification_sent": sent}
-    if AUTH_EXPOSE_EMAIL_CODE or not has_resend():
-        payload["dev_code"] = code
-    return ok_response(start_response, payload)
+        return error_response(start_response, "Password must be at least 8 characters",
+                              code="weak_password")
+    if storage.users.find_by_email(email):
+        return error_response(start_response, "An account with that email already exists",
+                              code="email_taken", status="409 Conflict")
+    code = random_code(6)
+    verify_hash = sha256_hex(code)
+    expires = int(time.time()) + 10 * 60
+    record = {
+        "id": random_id(),
+        "email": email,
+        "password_hash": hash_password(password),
+        "name": name,
+        "email_verified": False,
+        "verify_code_hash": verify_hash,
+        "verify_expires": expires,
+    }
+    user = storage.users.create(record)
+    if not user:
+        return error_response(start_response, "Could not create account",
+                              status="503 Service Unavailable",
+                              code="storage_unavailable")
+    if config.has_email():
+        sent = email_resend.send_verify(email, code)
+        if not sent:
+            print(f"[auth] Resend send failed for {email}; user must request resend.",
+                  file=sys.stderr)
+        return ok_response(
+            start_response,
+            data={"user": _public_user(user), "verify_required": True},
+            extra_headers=[("Set-Cookie", build_cookie(config.SESSION_COOKIE,
+                                                      jwt_sign({"uid": user["id"]})))],
+        )
+    # No email provider: auto-verify and sign in.
+    user = storage.users.update(user["id"], {"email_verified": True,
+                                              "verify_code_hash": None,
+                                              "verify_expires": None}) or user
+    print(f"[auth] RESEND_API_KEY empty; auto-verified {email}", file=sys.stderr)
+    return ok_response(
+        start_response,
+        data={"user": _public_user(user), "verify_required": False},
+        extra_headers=_issue_cookie_header(user),
+    )
 
+
+# ============================================================
+# /api/auth/login
+# ============================================================
 
 def _login(environ, start_response):
     body = parse_json_body(environ)
     email = (body.get("email") or "").strip().lower()
     password = body.get("password") or ""
-    user = _find_user_by_email(email)
-    stored_hash = _find_user_password_hash(email) if user else None
-    if not user or not stored_hash or not verify_password(password, stored_hash):
-        return error_response(start_response, "Invalid credentials", "401 Unauthorized", code="invalid_credentials")
-    token = jwt_sign({"sub": user["id"], "email": user["email"]})
-    return ok_response(start_response, {"token": token, "user": _public_user(user)})
+    if not email or not password:
+        return error_response(start_response, "Email and password required",
+                              code="missing_fields")
+    user = storage.users.find_by_email(email)
+    if not user or not user.get("password_hash"):
+        return error_response(start_response, "Incorrect email or password",
+                              code="bad_credentials", status="401 Unauthorized")
+    if not verify_password(password, user["password_hash"]):
+        return error_response(start_response, "Incorrect email or password",
+                              code="bad_credentials", status="401 Unauthorized")
+    return ok_response(
+        start_response,
+        data={"user": _public_user(user)},
+        extra_headers=_issue_cookie_header(user),
+    )
 
 
-def _verify_email(environ, start_response):
+# ============================================================
+# /api/auth/verify
+# ============================================================
+
+def _verify(environ, start_response):
     body = parse_json_body(environ)
     email = (body.get("email") or "").strip().lower()
     code = (body.get("code") or "").strip()
     if not email or not code:
-        return error_response(start_response, "Email and code required")
-    if not _consume_code(email, code):
-        return error_response(start_response, "Invalid or expired code", code="invalid_code")
-    user = _find_user_by_email(email)
+        return error_response(start_response, "Email and code required",
+                              code="missing_fields")
+    user = storage.users.find_by_email(email)
     if not user:
-        return error_response(start_response, "User not found", "404 Not Found")
-    user = _update_user(user["id"], {"email_verified": 1})
-    return ok_response(start_response, {"user": _public_user(user)})
+        return error_response(start_response, "Account not found", status="404 Not Found",
+                              code="not_found")
+    if user.get("email_verified"):
+        return ok_response(start_response, {"user": _public_user(user)},
+                           extra_headers=_issue_cookie_header(user))
+    expected_hash = user.get("verify_code_hash")
+    if not expected_hash:
+        return error_response(start_response, "No active code; request a new one",
+                              code="no_pending_code")
+    expires = user.get("verify_expires") or 0
+    if int(time.time()) > int(expires):
+        return error_response(start_response, "Code expired; request a new one",
+                              code="code_expired")
+    if sha256_hex(code) != expected_hash:
+        return error_response(start_response, "Incorrect code", code="bad_code",
+                              status="401 Unauthorized")
+    user = storage.users.update(user["id"], {
+        "email_verified": True,
+        "verify_code_hash": None,
+        "verify_expires": None,
+    }) or user
+    return ok_response(start_response, {"user": _public_user(user)},
+                       extra_headers=_issue_cookie_header(user))
 
 
-def _resend_verification(environ, start_response):
+def _verify_resend(environ, start_response):
     body = parse_json_body(environ)
     email = (body.get("email") or "").strip().lower()
-    if not _find_user_by_email(email):
-        return error_response(start_response, "User not found", "404 Not Found")
-    code = f"{secrets.randbelow(900000) + 100000}"
-    _store_code(email, code)
-    sent = _send_verification_email(email, code)
-    payload = {"sent": sent}
-    if AUTH_EXPOSE_EMAIL_CODE or not has_resend():
-        payload["dev_code"] = code
-    return ok_response(start_response, payload)
-
-
-def _profile(environ, start_response):
-    user = current_user(environ)
+    user = storage.users.find_by_email(email)
     if not user:
-        return error_response(start_response, "Not authenticated", "401 Unauthorized")
-    return ok_response(start_response, {"user": _public_user(user)})
+        return no_content(start_response)  # don't leak existence
+    if user.get("email_verified"):
+        return no_content(start_response)
+    if not config.has_email():
+        return error_response(start_response, "Email provider not configured",
+                              code="email_unavailable",
+                              status="503 Service Unavailable")
+    code = random_code(6)
+    storage.users.update(user["id"], {
+        "verify_code_hash": sha256_hex(code),
+        "verify_expires": int(time.time()) + 10 * 60,
+    })
+    email_resend.send_verify(email, code)
+    return no_content(start_response)
 
 
-def _update_profile(environ, start_response):
-    user = current_user(environ)
-    if not user:
-        return error_response(start_response, "Not authenticated", "401 Unauthorized")
-    body = parse_json_body(environ)
-    updates = {}
-    if "name" in body:
-        updates["name"] = (body.get("name") or "").strip() or None
-    if "avatar_url" in body:
-        updates["avatar_url"] = (body.get("avatar_url") or "").strip() or None
-    user = _update_user(user["id"], updates)
-    return ok_response(start_response, {"user": _public_user(user)})
-
-
-def _logout(environ, start_response):
-    # Stateless JWT — client just discards the token.
-    return ok_response(start_response)
-
-
-# ---------- Google OAuth ----------
+# ============================================================
+# /api/auth/google + /api/auth/callback
+# ============================================================
 
 def _google_start(environ, start_response):
-    if not has_google_oauth():
-        return error_response(start_response, "Google OAuth not configured", "503 Service Unavailable")
-    state = secrets.token_urlsafe(24)
-    conn = _connect()
-    try:
-        conn.execute("INSERT OR REPLACE INTO oauth_states (state, created_at) VALUES (?, ?)", (state, int(time.time())))
-        conn.commit()
-    finally:
-        conn.close()
-    qs = urllib.parse.urlencode({
-        "client_id": GOOGLE_CLIENT_ID,
-        "redirect_uri": GOOGLE_REDIRECT_URI,
-        "response_type": "code",
-        "scope": "openid email profile",
-        "state": state,
-        "access_type": "online",
-        "prompt": "select_account",
-    })
-    url = f"https://accounts.google.com/o/oauth2/v2/auth?{qs}"
-    accept = get_header(environ, "Accept")
-    if "application/json" in accept:
-        return ok_response(start_response, {"url": url})
-    start_response("302 Found", [("Location", url)])
-    return [b""]
+    if not config.has_google():
+        return error_response(start_response, "Google OAuth not configured",
+                              code="google_unavailable", status="503 Service Unavailable")
+    state = random_id()
+    _OAUTH_STATES[state] = time.time() + _OAUTH_STATE_TTL
+    now = time.time()
+    for k in list(_OAUTH_STATES):
+        if _OAUTH_STATES[k] < now:
+            _OAUTH_STATES.pop(k, None)
+    return redirect(start_response, google_oauth.consent_url(state),
+                    extra_headers=[("Set-Cookie",
+                                    build_cookie("vp_oauth_state", state, max_age=600))])
 
 
 def _google_callback(environ, start_response):
-    if not has_google_oauth():
-        return error_response(start_response, "Google OAuth not configured", "503 Service Unavailable")
     params = parse_query(environ)
-    code = params.get("code", "")
-    state = params.get("state", "")
-    if not code or not state:
-        return error_response(start_response, "Missing code/state")
-    conn = _connect()
-    try:
-        row = conn.execute("SELECT created_at FROM oauth_states WHERE state = ?", (state,)).fetchone()
-        if not row:
-            return error_response(start_response, "Invalid state", "400 Bad Request")
-        conn.execute("DELETE FROM oauth_states WHERE state = ?", (state,))
-        conn.commit()
-    finally:
-        conn.close()
-    token_code, token_body, _ = http_request(
-        "https://oauth2.googleapis.com/token",
-        method="POST",
-        headers={"Content-Type": "application/x-www-form-urlencoded"},
-        data=urllib.parse.urlencode({
-            "code": code,
-            "client_id": GOOGLE_CLIENT_ID,
-            "client_secret": GOOGLE_CLIENT_SECRET,
-            "redirect_uri": GOOGLE_REDIRECT_URI,
-            "grant_type": "authorization_code",
-        }).encode(),
-    )
-    if token_code != 200:
-        return error_response(start_response, "Google token exchange failed", "502 Bad Gateway")
-    try:
-        token_data = json.loads(token_body.decode("utf-8"))
-    except ValueError:
-        return error_response(start_response, "Bad token response", "502 Bad Gateway")
-    access_token = token_data.get("access_token")
-    if not access_token:
-        return error_response(start_response, "Missing access_token", "502 Bad Gateway")
-    info_code, info_body, _ = http_request(
-        "https://openidconnect.googleapis.com/v1/userinfo",
-        headers={"Authorization": f"Bearer {access_token}"},
-    )
-    if info_code != 200:
-        return error_response(start_response, "Google userinfo failed", "502 Bad Gateway")
-    try:
-        info = json.loads(info_body.decode("utf-8"))
-    except ValueError:
-        return error_response(start_response, "Bad userinfo response", "502 Bad Gateway")
-    email = (info.get("email") or "").lower()
-    google_id = info.get("sub") or ""
-    name = info.get("name")
-    avatar_url = info.get("picture")
-    if not email or not google_id:
-        return error_response(start_response, "Google account missing email or id")
-    user = _find_user_by_email(email)
-    if user:
-        if not user.get("google_id"):
-            user = _update_user(user["id"], {
-                "google_id": google_id,
-                "email_verified": 1,
-                "avatar_url": user.get("avatar_url") or avatar_url,
-            })
-    else:
-        user = _create_user(email=email, password_hash=None, name=name, google_id=google_id,
-                            avatar_url=avatar_url, email_verified=True)
-    jwt = jwt_sign({"sub": user["id"], "email": user["email"]})
-    # Redirect back to the app with token in fragment so it stays client-side.
-    redirect = f"{APP_BASE_URL}/#token={urllib.parse.quote(jwt)}"
-    start_response("302 Found", [("Location", redirect)])
+    code = params.get("code") or ""
+    state = params.get("state") or ""
+    cookie_state = parse_cookies(environ).get("vp_oauth_state")
+    expires = _OAUTH_STATES.pop(state, 0)
+    state_ok = (state and (state == cookie_state or expires > time.time()))
+    if not state_ok or not code:
+        return error_response(start_response, "OAuth state validation failed",
+                              code="oauth_state", status="400 Bad Request")
+    profile = google_oauth.exchange_code(code)
+    if not profile:
+        return error_response(start_response, "Google sign-in failed",
+                              code="oauth_failed", status="502 Bad Gateway")
+    google_id = profile["id"]
+    email = (profile.get("email") or "").strip().lower()
+    user = storage.users.find_by_google_id(google_id)
+    if not user and email:
+        user = storage.users.find_by_email(email)
+        if user:
+            user = storage.users.update(user["id"], {"google_id": google_id}) or user
+    if not user:
+        user = storage.users.create({
+            "id": random_id(),
+            "email": email or f"{google_id}@google.local",
+            "google_id": google_id,
+            "name": profile.get("name"),
+            "avatar_url": profile.get("picture"),
+            "email_verified": True,
+        })
+        if not user:
+            return error_response(start_response, "Could not create account",
+                                  status="503 Service Unavailable",
+                                  code="storage_unavailable")
+    headers = [
+        ("Location", "/"),
+        ("Content-Length", "0"),
+        ("Set-Cookie", build_cookie(config.SESSION_COOKIE,
+                                    jwt_sign({"uid": user["id"], "email": user.get("email")}))),
+        ("Set-Cookie", clear_cookie("vp_oauth_state")),
+    ]
+    start_response("302 Found", headers)
     return [b""]
 
 
-# ---------- Trips (per-user) ----------
+# ============================================================
+# /api/auth/profile, logout, delete-account
+# ============================================================
 
-def _trips_list(environ, start_response):
-    user = current_user(environ)
+def _profile(environ, start_response):
+    user = require_session(environ)
     if not user:
-        return error_response(start_response, "Not authenticated", "401 Unauthorized")
-    conn = _connect()
-    try:
-        rows = conn.execute(
-            "SELECT id, title, data, created_at FROM trips WHERE user_id = ? ORDER BY created_at DESC",
-            (user["id"],),
-        ).fetchall()
-    finally:
-        conn.close()
-    trips = [{
-        "id": r["id"],
-        "title": r["title"],
-        "created_at": r["created_at"],
-        "data": json.loads(r["data"]) if r["data"] else {},
-    } for r in rows]
-    return ok_response(start_response, {"trips": trips})
+        return error_response(start_response, "Not signed in",
+                              status="401 Unauthorized", code="auth_required")
+    return ok_response(start_response, {"user": _public_user(user)},
+                       extra_headers=_issue_cookie_header(user))
 
 
-def _trips_create(environ, start_response):
-    user = current_user(environ)
+def _logout(environ, start_response):
+    return no_content(start_response,
+                      extra_headers=[("Set-Cookie", clear_cookie(config.SESSION_COOKIE))])
+
+
+def _delete_account(environ, start_response):
+    user = require_session(environ)
     if not user:
-        return error_response(start_response, "Not authenticated", "401 Unauthorized")
-    body = parse_json_body(environ)
-    title = (body.get("title") or "Untitled trip").strip()
-    data = body.get("data") or {}
-    tid = uuid.uuid4().hex
-    conn = _connect()
-    try:
-        conn.execute(
-            "INSERT INTO trips (id, user_id, title, data, created_at) VALUES (?, ?, ?, ?, ?)",
-            (tid, user["id"], title, json.dumps(data), int(time.time())),
-        )
-        conn.commit()
-    finally:
-        conn.close()
-    return ok_response(start_response, {"id": tid, "title": title})
+        return error_response(start_response, "Not signed in",
+                              status="401 Unauthorized", code="auth_required")
+    storage.users.delete(user["id"])
+    return no_content(start_response,
+                      extra_headers=[("Set-Cookie", clear_cookie(config.SESSION_COOKIE))])
 
 
-def _trips_delete(environ, start_response, trip_id: str):
-    user = current_user(environ)
-    if not user:
-        return error_response(start_response, "Not authenticated", "401 Unauthorized")
-    conn = _connect()
-    try:
-        conn.execute("DELETE FROM trips WHERE id = ? AND user_id = ?", (trip_id, user["id"]))
-        conn.commit()
-    finally:
-        conn.close()
-    return ok_response(start_response)
-
-
-# ---------- Router entry ----------
+# ============================================================
+# Dispatcher
+# ============================================================
 
 def handle(environ, start_response, path: str):
     method = environ.get("REQUEST_METHOD", "GET").upper()
@@ -470,26 +305,18 @@ def handle(environ, start_response, path: str):
         return _register(environ, start_response)
     if path == "/api/auth/login" and method == "POST":
         return _login(environ, start_response)
-    if path == "/api/auth/verify-email" and method == "POST":
-        return _verify_email(environ, start_response)
-    if path == "/api/auth/resend-verification" and method == "POST":
-        return _resend_verification(environ, start_response)
+    if path == "/api/auth/verify" and method == "POST":
+        return _verify(environ, start_response)
+    if path == "/api/auth/verify/resend" and method == "POST":
+        return _verify_resend(environ, start_response)
+    if path == "/api/auth/google" and method == "GET":
+        return _google_start(environ, start_response)
+    if path == "/api/auth/callback" and method == "GET":
+        return _google_callback(environ, start_response)
     if path == "/api/auth/profile" and method == "GET":
         return _profile(environ, start_response)
-    if path == "/api/auth/profile" and method == "POST":
-        return _update_profile(environ, start_response)
     if path == "/api/auth/logout" and method == "POST":
         return _logout(environ, start_response)
-    if path == "/api/auth/google/start":
-        return _google_start(environ, start_response)
-    if path == "/api/auth/google/callback":
-        return _google_callback(environ, start_response)
-    if path == "/api/auth/me" and method == "GET":
-        return _profile(environ, start_response)
-    if path == "/api/trips" and method == "GET":
-        return _trips_list(environ, start_response)
-    if path == "/api/trips" and method == "POST":
-        return _trips_create(environ, start_response)
-    if path.startswith("/api/trips/") and method == "DELETE":
-        return _trips_delete(environ, start_response, path.rsplit("/", 1)[-1])
-    return error_response(start_response, "Auth route not found", "404 Not Found")
+    if path == "/api/auth/account" and method == "DELETE":
+        return _delete_account(environ, start_response)
+    return error_response(start_response, "Endpoint not found", "404 Not Found")
