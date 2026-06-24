@@ -1,7 +1,7 @@
 // VisePanda v7 service worker — shell + translations cache.
 // ⚠️ Bump the cache version on EVERY shell asset change. Otherwise old
 //   visitors stay on the stale build until they clear site data.
-const CACHE = 'vp-v7-2';
+const CACHE = 'vp-v7-3';
 const SHELL = [
   '/', '/manifest.json', '/favicon.svg',
   '/web/assets/paper-noise.svg',
@@ -52,8 +52,8 @@ self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   // Same-origin only.
   if (url.origin !== self.location.origin) return;
-  // Cache-first for known shell + translations.
-  if (SHELL.includes(url.pathname) || TRANSLATIONS.includes(url.pathname)) {
+  // Translations (rarely change) — cache-first.
+  if (TRANSLATIONS.includes(url.pathname)) {
     e.respondWith(
       caches.match(e.request).then(
         (cached) =>
@@ -64,6 +64,23 @@ self.addEventListener('fetch', (e) => {
             return resp;
           })
       )
+    );
+    return;
+  }
+  // Shell (CSS/JS/HTML) — stale-while-revalidate so users get fresh code
+  // on every deploy without manual cache busting.
+  if (SHELL.includes(url.pathname)) {
+    e.respondWith(
+      caches.match(e.request).then((cached) => {
+        const network = fetch(e.request).then((resp) => {
+          if (resp && resp.ok) {
+            const copy = resp.clone();
+            caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
+          }
+          return resp;
+        }).catch(() => cached);
+        return cached || network;
+      })
     );
     return;
   }
