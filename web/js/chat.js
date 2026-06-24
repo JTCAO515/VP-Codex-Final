@@ -165,7 +165,10 @@ function renderCompose() {
     autosize(ta);
     send(v);
   });
-  ta.focus();
+  // Auto-focus is gated behind state.messages.length so the empty-state
+  // hero is never scrolled past on mobile cold load. Once a conversation
+  // exists, focusing the compose is the right default.
+  if (state.messages.length > 0) ta.focus();
 }
 
 function autosize(ta) {
