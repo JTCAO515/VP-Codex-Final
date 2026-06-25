@@ -1,88 +1,94 @@
 :root {
+  /* v8 — Claude-style sidebar palette */
   /* Surfaces */
-  --paper-white: #f5f0e8;
-  --paper-warm:  #ede5d4;
-  --paper-deep:  #e2d8c3;
+  --bg:             #e9e7e2;   /* app outer bg */
+  --sidebar-bg:     #faf9f6;
+  --canvas:         #ffffff;
+  --canvas-soft:    #f5f2ed;   /* AI bubble */
+  --canvas-warm:    #efe9e1;   /* active nav row, chip bg */
+  --canvas-tint:    #f1ede7;   /* inactive day pill */
 
   /* Ink */
-  --ink-black:   #2c2c2c;
-  --ink-soft:    #5a5550;
-  --stone-gray:  #a8a195;
-  --stone-mist:  #cfc8bb;
+  --ink-1:          #332f29;   /* primary text + user bubble */
+  --ink-2:          #4a443c;   /* card title */
+  --ink-3:          #5a544b;   /* secondary */
+  --ink-4:          #6b655c;   /* meta */
+  --ink-5:          #7d776d;   /* tertiary */
+  --ink-mute:       #9a948b;
+  --ink-soft:       #a39d93;   /* labels */
+  --ink-faint:      #b0aaa0;
+  --ink-ghost:      #b4aea4;   /* placeholder */
 
-  /* Brand */
-  --qinghua-blue: #1e6f9f;
-  --qinghua-deep: #16567d;
-  --qinghua-mist: #d5e3ed;
+  /* Borders */
+  --line-1:         #ddd8d0;
+  --line-2:         #e6e2db;   /* sidebar divider */
+  --line-3:         #eae5de;   /* card border */
+  --line-4:         #efece6;   /* very faint */
+  --line-soft:      #f2efe9;
 
-  /* Earned */
-  --cinnabar:     #c63d2f;
-  --dai-green:    #5a6d54;
-  --dai-tint:     #e7ece4;
-  --pale-gold:    #c9a961;
+  /* Brand — terracotta */
+  --brand:          #cf6a4a;
+  --brand-tint:     #fbeeea;   /* SOS card bg */
+  --brand-ink:      #ffffff;
+
+  /* Success (sage) */
+  --success:        #5a8a5a;
+  --success-tint:   #e2f0e2;
 
   /* Type */
-  --font-sans:     'Inter', system-ui, -apple-system, sans-serif;
-  --font-serif:    'Newsreader', 'Georgia', serif;
-  --font-sc-serif: 'Noto Serif SC', 'STSong', serif;
-  --font-sc-sans:  'Noto Sans SC', system-ui, sans-serif;
-  --font-mono:     'IBM Plex Mono', 'Menlo', monospace;
+  --font-display:   'Caveat', 'Brush Script MT', cursive;
+  --font-body:      system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  --font-mono:      ui-monospace, 'SF Mono', Menlo, monospace;
 
-  --text-xs:   12px;
-  --text-sm:   14px;
-  --text-base: 16px;
-  --text-md:   18px;
-  --text-lg:   22px;
-  --text-xl:   28px;
-  --text-2xl:  36px;
-  --text-3xl:  52px;
-  --text-hero: clamp(96px, 22vw, 168px);
+  --text-xs:        10px;
+  --text-sm:        11px;
+  --text-base:      12.5px;
+  --text-md:        13px;
+  --text-lg:        14px;
+  --text-xl:        16px;
+  --text-2xl:       18px;
+  --text-3xl:       22px;
+  --text-4xl:       26px;
+  --display-wm:     19px;
+  --display-hero:   30px;
 
-  /* Spacing — 4px scale */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
-  --space-7: 48px;
-  --space-8: 64px;
-  --space-9: 96px;
+  /* Spacing — 2/4 scale */
+  --s-1: 2px; --s-2: 4px; --s-3: 6px; --s-4: 8px;
+  --s-5: 10px; --s-6: 12px; --s-7: 14px; --s-8: 16px;
+  --s-9: 18px; --s-10: 22px; --s-11: 24px;  --s-12: 28px;
+  --s-13: 32px; --s-14: 40px; --s-15: 60px;
 
   /* Geometry */
-  --radius-card:   2px;
-  --radius-button: 4px;
-  --radius-chip:   4px;
-  --radius-fab:    50%;
-  --hairline:      0.5px solid var(--stone-gray);
-  --hairline-soft: 0.5px solid var(--stone-mist);
+  --r-nav:          8px;
+  --r-card:         10px;
+  --r-card-lg:      12px;
+  --r-card-xl:      13px;
+  --r-btn:          8px;
+  --r-input:        22px;
+  --r-pill:         15px;
+  --r-chip:         18px;
+  --r-bubble-ai:    4px 16px 16px 16px;
+  --r-bubble-user:  16px 16px 4px 16px;
+  --r-app:          4px;
 
   /* Effects */
-  --shadow-card:  0 1px 0 rgba(44,44,44,0.04);
-  --shadow-fab:   0 4px 12px rgba(30,111,159,0.25);
-  --shadow-sheet: 0 -8px 24px rgba(44,44,44,0.08);
+  --shadow-card:    0 3px 14px rgba(0,0,0,0.10);
+  --shadow-input:   0 2px 8px rgba(0,0,0,0.06);
+  --shadow-pop:     0 4px 16px rgba(0,0,0,0.13);
+  --shadow-pin:     0 2px 6px rgba(0,0,0,0.25);
 
   /* Layout */
-  --header-h:  56px;
-  --fab-size:  56px;
-  --max-read:  640px;
-  --safe-top:    env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-left:   env(safe-area-inset-left, 0px);
-  --safe-right:  env(safe-area-inset-right, 0px);
+  --sidebar-w:      218px;
+  --content-max:    820px;
+  --safe-top:       env(safe-area-inset-top, 0px);
+  --safe-bottom:    env(safe-area-inset-bottom, 0px);
 
   /* Motion */
-  --ease:        cubic-bezier(0.2, 0.6, 0.2, 1);
-  --ease-stamp:  cubic-bezier(0.34, 1.56, 0.64, 1);  /* slight overshoot for chops */
-  --dur-fast:    120ms;
-  --dur-base:    200ms;
-  --dur-slow:    320ms;
+  --ease:           cubic-bezier(0.2, 0.6, 0.2, 1);
+  --dur-fast:       120ms;
+  --dur-base:       200ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :root {
-    --dur-fast: 0ms;
-    --dur-base: 0ms;
-  }
   * { animation: none !important; transition: none !important; }
 }

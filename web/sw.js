@@ -1,30 +1,26 @@
-// VisePanda v7 service worker — shell + translations cache.
-// ⚠️ Bump the cache version on EVERY shell asset change. Otherwise old
-//   visitors stay on the stale build until they clear site data.
-const CACHE = 'vp-v7-3';
+// VisePanda v8 service worker — shell + translations.
+const CACHE = 'vp-v8-1';
 const SHELL = [
   '/', '/manifest.json', '/favicon.svg',
-  '/web/assets/paper-noise.svg',
   '/web/css/tokens.css',
   '/web/css/reset.css',
   '/web/css/base.css',
-  '/web/css/components.css',
-  '/web/css/chat.css',
-  '/web/css/dashboard.css',
-  '/web/css/translate.css',
+  '/web/css/sidebar.css',
+  '/web/css/ask.css',
+  '/web/css/plan.css',
+  '/web/css/cities.css',
+  '/web/css/tools.css',
+  '/web/css/trips.css',
   '/web/css/auth.css',
   '/web/js/app.js',
   '/web/js/api.js',
-  '/web/js/chat.js',
-  '/web/js/dashboard.js',
-  '/web/js/translate.js',
-  '/web/js/voice.js',
+  '/web/js/sidebar.js',
+  '/web/js/ask.js',
+  '/web/js/plan.js',
+  '/web/js/cities.js',
+  '/web/js/tools.js',
+  '/web/js/trips.js',
   '/web/js/auth.js',
-  '/web/js/itinerary.js',
-  '/web/js/favorites.js',
-  '/web/js/components/chop.js',
-  '/web/js/components/bilingual-term.js',
-  '/web/js/components/card.js',
 ];
 const TRANSLATIONS = [
   '/api/translations/phrases',
@@ -50,25 +46,19 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET') return;
-  // Same-origin only.
   if (url.origin !== self.location.origin) return;
-  // Translations (rarely change) — cache-first.
   if (TRANSLATIONS.includes(url.pathname)) {
     e.respondWith(
       caches.match(e.request).then(
-        (cached) =>
-          cached ||
-          fetch(e.request).then((resp) => {
-            const copy = resp.clone();
-            caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
-            return resp;
-          })
+        (cached) => cached || fetch(e.request).then((resp) => {
+          const copy = resp.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
+          return resp;
+        })
       )
     );
     return;
   }
-  // Shell (CSS/JS/HTML) — stale-while-revalidate so users get fresh code
-  // on every deploy without manual cache busting.
   if (SHELL.includes(url.pathname)) {
     e.respondWith(
       caches.match(e.request).then((cached) => {
@@ -84,5 +74,4 @@ self.addEventListener('fetch', (e) => {
     );
     return;
   }
-  // Network-only for everything else (esp. /api/*).
 });

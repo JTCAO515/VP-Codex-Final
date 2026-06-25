@@ -65,6 +65,9 @@ def _route_api(environ, start_response, path: str):
     if path.startswith("/api/chat-history"):
         from api import chat_history
         return chat_history.handle(environ, start_response, path)
+    if path.startswith("/api/trips"):
+        from api import trips
+        return trips.handle(environ, start_response, path)
     return error_response(start_response, "Endpoint not found", "404 Not Found")
 
 

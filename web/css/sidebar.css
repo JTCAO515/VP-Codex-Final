@@ -1,0 +1,181 @@
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--line-2);
+  display: flex;
+  flex-direction: column;
+  padding: var(--s-8) var(--s-6);
+  flex-shrink: 0;
+  padding-top: calc(var(--s-8) + var(--safe-top));
+  padding-bottom: calc(var(--s-8) + var(--safe-bottom));
+}
+
+.sidebar .wordmark {
+  display: flex; align-items: center; gap: var(--s-4);
+  padding: 2px var(--s-4);
+  margin-bottom: var(--s-9);
+}
+.sidebar .wordmark .dot {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--ink-1);
+}
+.sidebar .wordmark .name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--display-wm);
+  color: var(--ink-1);
+  letter-spacing: 0.01em;
+}
+
+.sb-newchat {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  border: 1.5px solid var(--line-1);
+  color: var(--ink-3);
+  font-weight: 600;
+  font-size: var(--text-base);
+  padding: var(--s-5);
+  border-radius: 9px;
+  margin-bottom: var(--s-9);
+  background: transparent;
+  width: 100%;
+  transition: background-color var(--dur-fast) var(--ease);
+}
+.sb-newchat:hover { background: var(--canvas-warm); }
+
+.sb-nav {
+  display: flex; flex-direction: column; gap: 3px;
+}
+.sb-nav-row {
+  display: flex; align-items: center; gap: var(--s-5);
+  padding: 9px var(--s-5);
+  border-radius: var(--r-nav);
+  font-weight: 500;
+  font-size: var(--text-md);
+  color: var(--ink-5);
+  width: 100%;
+  text-align: left;
+  transition: background-color var(--dur-fast) var(--ease);
+  cursor: pointer;
+}
+.sb-nav-row:hover { background: var(--canvas-warm); }
+.sb-nav-row.active {
+  background: var(--canvas-warm);
+  color: var(--ink-2);
+  font-weight: 600;
+}
+.sb-nav-row .icon {
+  flex-shrink: 0;
+  width: 20px; height: 20px;
+  display: grid; place-items: center;
+  color: var(--ink-ghost);
+}
+.sb-nav-row.active .icon { color: var(--brand); }
+
+.sb-section-label {
+  font-weight: 600;
+  font-size: var(--text-xs);
+  color: var(--ink-faint);
+  letter-spacing: 0.06em;
+  margin: var(--s-10) var(--s-4) var(--s-5);
+}
+
+.sb-recent {
+  display: flex; flex-direction: column; gap: var(--s-2);
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.sb-recent-item {
+  padding: var(--s-4) var(--s-5);
+  border-radius: 7px;
+  display: flex; flex-direction: column; gap: 4px;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease);
+  text-align: left;
+  width: 100%;
+  background: transparent;
+}
+.sb-recent-item:hover { background: var(--canvas-warm); }
+.sb-recent-item.active { background: var(--canvas-warm); }
+.sb-recent-item .title {
+  font-size: var(--text-base);
+  color: var(--ink-2);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sb-recent-item .meta {
+  font-size: var(--text-sm);
+  color: var(--ink-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sb-recent-empty {
+  padding: var(--s-5) var(--s-6);
+  color: var(--ink-faint);
+  font-size: var(--text-sm);
+  font-style: italic;
+}
+
+.sb-trip-card {
+  margin-top: auto;
+  border: 1px solid var(--line-3);
+  border-radius: var(--r-card);
+  padding: var(--s-6);
+  background: var(--canvas);
+  margin-bottom: var(--s-7);
+}
+.sb-trip-card .label {
+  font-weight: 600;
+  font-size: var(--text-xs);
+  color: var(--ink-faint);
+  letter-spacing: 0.06em;
+  margin-bottom: var(--s-4);
+}
+.sb-trip-card .name {
+  font-size: var(--text-md);
+  color: var(--ink-2);
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.sb-trip-card .dates {
+  font-size: var(--text-sm);
+  color: var(--ink-soft);
+}
+
+.sb-account {
+  border-top: 1px solid var(--line-2);
+  padding-top: var(--s-7);
+  display: flex; align-items: center; gap: var(--s-5);
+  cursor: pointer;
+  border-radius: var(--r-nav);
+  padding: var(--s-7) var(--s-4) 0;
+  width: 100%;
+  text-align: left;
+}
+.sb-account .avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--line-1);
+  display: grid; place-items: center;
+  color: var(--ink-3);
+  font-weight: 600;
+  font-size: var(--text-base);
+  flex-shrink: 0;
+}
+.sb-account-meta {
+  flex: 1;
+  font-size: var(--text-base);
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sb-account .lang {
+  font-size: var(--text-sm);
+  color: var(--ink-ghost);
+  flex-shrink: 0;
+}

@@ -1,0 +1,177 @@
+.view-trips {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.trips-toolbar {
+  padding: var(--s-9) var(--s-11) var(--s-7);
+  display: flex; align-items: center; gap: var(--s-8);
+  border-bottom: 1px solid var(--line-4);
+}
+.trips-toolbar .title {
+  font-weight: 700;
+  font-size: var(--text-2xl);
+  color: var(--ink-2);
+}
+.trips-segment {
+  display: flex;
+  background: var(--canvas-tint);
+  border-radius: 9px;
+  padding: 3px;
+}
+.trips-segment button {
+  font-weight: 500;
+  font-size: var(--text-base);
+  color: var(--ink-5);
+  padding: 7px 15px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+.trips-segment button.active {
+  background: var(--ink-1);
+  color: #fff;
+  font-weight: 600;
+}
+.trips-new {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 7px;
+  font-weight: 600;
+  font-size: var(--text-base);
+  color: #fff;
+  background: var(--brand);
+  padding: 9px 15px;
+  border-radius: var(--r-btn);
+  border: none;
+  cursor: pointer;
+}
+.trips-new:hover { background: #b95938; }
+
+.trips-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--s-10) var(--s-11);
+}
+.trips-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-9);
+}
+@media (max-width: 900px) {
+  .trips-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .trips-grid { grid-template-columns: 1fr; }
+}
+
+.trip-card {
+  border: 1px solid var(--line-3);
+  border-radius: var(--r-card-xl);
+  overflow: hidden;
+  background: var(--canvas);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease);
+  text-align: left;
+}
+.trip-card:hover { border-color: var(--brand); }
+.trip-card .img {
+  height: 115px;
+  background: repeating-linear-gradient(45deg,#ece9e4,#ece9e4 9px,#e3dfd8 9px,#e3dfd8 18px);
+  position: relative;
+}
+.trip-card .img .badge {
+  position: absolute; top: 11px; left: 12px;
+  font-weight: 600;
+  font-size: 10.5px;
+  color: var(--ink-3);
+  background: rgba(255,255,255,0.85);
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+.trip-card .body { padding: var(--s-7); }
+.trip-card .name {
+  font-weight: 700;
+  font-size: var(--text-md);
+  color: var(--ink-2);
+  margin-bottom: var(--s-3);
+}
+.trip-card .route {
+  font-size: var(--text-base);
+  color: var(--ink-soft);
+  margin-bottom: var(--s-7);
+}
+.trip-card .status {
+  font-weight: 500;
+  font-size: var(--text-sm);
+  color: var(--ink-5);
+  margin-bottom: var(--s-3);
+}
+.trip-card .progress-track {
+  height: 5px;
+  border-radius: 3px;
+  background: var(--canvas-warm);
+  overflow: hidden;
+}
+.trip-card .progress-bar {
+  height: 100%;
+  background: var(--brand);
+  transition: width var(--dur-base) var(--ease);
+}
+.trip-card .progress-bar.done { background: var(--success); }
+.trip-card .footer {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: var(--s-7);
+}
+.trip-card .open-link {
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--brand);
+}
+
+.trip-new-card {
+  border: 1.5px dashed #cfc9bf;
+  border-radius: var(--r-card-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-6);
+  color: var(--ink-soft);
+  min-height: 240px;
+  cursor: pointer;
+  background: transparent;
+  text-align: center;
+  transition: border-color var(--dur-fast) var(--ease);
+}
+.trip-new-card:hover { border-color: var(--brand); }
+.trip-new-card .plus {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 1.5px dashed #cfc9bf;
+  display: grid; place-items: center;
+  font-weight: 300;
+  font-size: var(--text-3xl);
+}
+.trip-new-card .title {
+  font-weight: 600;
+  font-size: var(--text-md);
+  color: var(--ink-5);
+}
+.trip-new-card .sub {
+  display: flex; align-items: center; gap: 6px;
+  font-weight: 500;
+  font-size: var(--text-sm);
+  color: var(--brand);
+}
+.trip-new-card .sub .spark {
+  width: 12px; height: 12px; border-radius: 3px; background: var(--brand);
+}
+
+.trips-empty {
+  padding: var(--s-14);
+  text-align: center;
+  color: var(--ink-soft);
+}
