@@ -1,16 +1,66 @@
 # VisePanda
 
-> Your China travel butler — English-native, mobile-first, AI-powered.
+> **一站式 AI 管家，专为外国人来中国入境游打造。**
+> English-native, mobile-first, AI-powered.
 > 视野 · shìyě · the field of view.
 
-VisePanda helps foreign visitors navigate China: ask anything in **Chat**,
-translate instantly with one-tap voice in **Translate**, and browse a
-city-anchored **Dashboard** of hotels, deals, weather, and tools.
-
 - **Live:** https://claude.go2china.space
-- **Design:** rooted in Chinese craft — paper-white surfaces, qinghua blue,
-  cinnabar seal-chops — never Chinoiserie pastiche.
-- **Spec:** [`docs/superpowers/specs/2026-06-24-visepanda-v7-design.md`](docs/superpowers/specs/2026-06-24-visepanda-v7-design.md)
+- **Handoff doc** (full project history, working agreements, open gaps): [`docs/HANDOFF.md`](docs/HANDOFF.md)
+- **Vercel key setup guide** (non-technical, Chinese): [`docs/VERCEL_KEYS_GUIDE.md`](docs/VERCEL_KEYS_GUIDE.md)
+
+## 产品定位
+
+VisePanda 解决的是**外国游客入境中国后的"信息断层"**：不懂中文、不会用本地 App
+（微信/支付宝/美团/携程的中文界面、注册门槛、本地手机号要求），导致问路、订房、
+点餐、订票这些在自己国家很简单的事，在中国变得困难。
+
+VisePanda 不是又一个旅游攻略 App，而是定位为**贯穿入境全程的 AI 管家**——从
+落地前的签证/支付准备，到落地后的翻译救急、行程规划、酒店餐厅预订，全部用
+英文交互，背后接中国本地真实可用的服务（DeepSeek 问答、Qwen3 语音翻译、
+高德地图、携程/美团预订深链），而不是自己造一套脱离实际的"国际化旅游平台"。
+
+**一句话产品主张**：*"你不需要学中文 App，也不需要问当地人——问 VisePanda 就够了。"*
+
+### 当前五大模块（v8.x IA）
+
+| Tab | 解决什么问题 |
+| --- | --- |
+| **Ask** | 落地页 + AI 问答主屏。任何关于中国旅行的问题，DeepSeek 直接回答；遇到具体决策（订酒店/查景点）一键转到对应 tab。 |
+| **Trips**（含 Plan） | 行程规划与管理。AI 生成结构化每日行程，地图可视化路线，"+Add to Trip"把零散决策收进一个具体的行程里。 |
+| **Cities** | 城市浏览入口。选定城市后按 酒店 / 餐厅 / 景点 三分类浏览，每项带评分和预订/详情深链。 |
+| **Tools** | 落地后最高频的救急工具集：实时语音/文字翻译、货币换算、支付设置引导、签证信息、地铁图、eSIM/VPN、应急联系方式。 |
+| **(Account)** | 邮箱/Google 登录，跨设备同步行程、收藏、对话历史；未登录也能完整体验核心功能。 |
+
+### 产品路线图
+
+**已完成（v7 → v8.3，详见 [`CHANGELOG.md`](CHANGELOG.md)）**
+- ✅ AI 问答（DeepSeek）+ 实时语音翻译（Qwen3 TTS/ASR）
+- ✅ 城市/酒店/餐厅/景点精选数据 + 评分（高德 POI，替代无公开 API 的大众点评）
+- ✅ 行程规划 + AI 生成 + 地图可视化（高德地图）
+- ✅ 酒店/火车/机票预订深链（携程 H5 URL 工具）+ 团购深链（美团联盟）
+- ✅ 完整账号系统（邮箱密码 + Google OAuth + 邮箱验证）
+- ✅ 五 tab 信息架构（Ask/Trips/Cities/Tools），所有外部依赖均可优雅降级
+
+**下一阶段（短期，让现有功能"真正可用"）**
+1. 把 DeepSeek / Supabase / Resend 三个基础 key 填上线 —— 这是从"能跑 demo"到
+   "能真实使用"的分水岭，目前没填的话核心体验都是降级版
+2. 申请携程联盟/美团联盟真实账号，验证 H5 深链参数格式
+3. 跑通注册→验证邮箱→登录全流程，确认 Supabase 表结构
+
+**中期（深化管家体验）**
+4. Ask 页 "Add to Trip" 真正落地——把 AI 回复结构化存进具体行程，而不是一个提示弹窗
+5. 扩大精选数据的城市覆盖（目前以北京/上海/成都为主）
+6. 行程生成质量调优（地理位置聚类、避免同一天行程跨城市跳动）
+7. 视觉系统迭代——当前正在评估新国风背景插画 + 主题色（楼阁/梅花/石桥风格）
+
+**长期（看产品验证情况）**
+8. 评估是否要求强制 Supabase（去掉本地 JSON fallback 的技术债）
+9. 补自动化测试，尤其是涉及预订/支付决策的 `partners.py`
+10. 如果用户量验证了"管家"模式，考虑落地页/签证流程/紧急求助的更深整合
+
+> 这个项目几乎每个大版本都是**整体重写**而非增量迭代——产品负责人会拿外部设计稿
+> （Claude Design 线框图）要求"照着这个改"。接手者应预期下一次设计稿可能又是
+> 一次整体重写，不必对现有代码结构有过强依恋。详见 [`docs/HANDOFF.md`](docs/HANDOFF.md)。
 
 ## Architecture
 
@@ -202,11 +252,14 @@ All JSON responses are `{ ok: true, ...data }` or
 ## Project layout
 
 ```
-api/                  WSGI handlers + integrations (stdlib only)
-data/translations/    Curated EN/中 phrase library (preserved from v6)
-docs/superpowers/     Spec + implementation plan
-web/                  Static SPA — vanilla JS + CSS
-vercel.json           Routes /api/* → api/index.py, /web/* → static
+api/                       WSGI handlers + integrations (stdlib only)
+data/translations/         Curated EN/中 phrase library (preserved from v6)
+docs/HANDOFF.md            Full project handoff — history, intent, roadmap, gaps
+docs/VERCEL_KEYS_GUIDE.md  Non-technical env var setup guide (Chinese)
+docs/superpowers/          Historical spec/plan docs (v7 design — superseded by
+                           the v8 sidebar IA; kept for archaeology, not current truth)
+web/                       Static SPA — vanilla JS + CSS
+vercel.json                Routes /api/* → api/index.py, /web/* → static
 ```
 
 ## License
