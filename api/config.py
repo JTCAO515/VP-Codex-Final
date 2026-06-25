@@ -9,7 +9,7 @@ import os
 import secrets
 from pathlib import Path
 
-VERSION = "7.0.0"
+VERSION = "8.1.0"
 APP_NAME = "VisePanda"
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
@@ -56,6 +56,13 @@ GOOGLE_REDIRECT_URI = _env(
     "GOOGLE_REDIRECT_URI", f"{APP_BASE_URL}/api/auth/callback"
 )
 
+# ---------- Maps: Amap (高德地图) JS API ----------
+# Both values are intentionally exposed to the browser — this is Amap's
+# documented client-side integration model (domain-restricted JS key +
+# its paired security code). Neither is a server secret.
+AMAP_JS_KEY = _env("AMAP_JS_KEY")
+AMAP_SECURITY_CODE = _env("AMAP_SECURITY_CODE")
+
 # ---------- JWT / Session ----------
 _jwt_env = _env("JWT_SECRET")
 if _jwt_env:
@@ -90,12 +97,18 @@ def has_google() -> bool:
     return bool(GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET)
 
 
+def has_map() -> bool:
+    return bool(AMAP_JS_KEY)
+
+
 def is_production() -> bool:
     return APP_ENV == "production"
 
 
 def public_features() -> dict:
-    """Booleans exposed to the frontend at /api/config/public."""
+    """Booleans + values exposed to the frontend at /api/config/public.
+    amap_key/amap_security are safe to expose (see note above AMAP_JS_KEY).
+    """
     return {
         "version": VERSION,
         "has_deepseek": has_deepseek(),
@@ -103,5 +116,8 @@ def public_features() -> dict:
         "has_supabase": has_supabase(),
         "has_email": has_email(),
         "has_google": has_google(),
+        "has_map": has_map(),
+        "amap_key": AMAP_JS_KEY,
+        "amap_security": AMAP_SECURITY_CODE,
         "app_env": APP_ENV,
     }

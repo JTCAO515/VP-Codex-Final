@@ -16,6 +16,9 @@ window.vp.features = {
   has_supabase: false,
   has_email: false,
   has_google: false,
+  has_map: false,
+  amap_key: '',
+  amap_security: '',
 };
 window.vp.user = null;
 
@@ -36,7 +39,6 @@ async function boot() {
     onNav: handleNav,
   });
 
-  // Initial route — Ask landing.
   setView('ask');
 
   window.addEventListener('vp:auth-required', () => auth.openSignIn());
@@ -69,9 +71,23 @@ function setView(name, opts = {}) {
       },
     });
   } else if (name === 'plan') {
-    plan.mount({ container: main });
+    plan.mount({ container: main, tripId: opts.tripId || null });
   } else if (name === 'cities') {
-    cities.mount({ container: main });
+    cities.mount({
+      container: main,
+      onAddToPlan: (city) => {
+        // Jump to Plan (scratch mode) with this city seeded as a destination.
+        try {
+          const meta = JSON.parse(localStorage.getItem('vp.plan.meta') || '{}');
+          const dests = meta.destinations || [];
+          if (!dests.find((d) => d.id === city.id)) {
+            dests.push({ id: city.id, name: city.name, cn: city.cn });
+          }
+          localStorage.setItem('vp.plan.meta', JSON.stringify({ ...meta, destinations: dests }));
+        } catch (_) {}
+        setView('plan', {});
+      },
+    });
   } else if (name === 'tools') {
     tools.mount({
       container: main,
@@ -80,7 +96,7 @@ function setView(name, opts = {}) {
   } else if (name === 'trips') {
     trips.mount({
       container: main,
-      onPlanNew: () => setView('plan'),
+      onOpenTrip: (tripId) => setView('plan', { tripId }),
     });
   }
 }

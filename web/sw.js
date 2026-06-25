@@ -1,5 +1,5 @@
 // VisePanda v8 service worker — shell + translations.
-const CACHE = 'vp-v8-1';
+const CACHE = 'vp-v8-2';
 const SHELL = [
   '/', '/manifest.json', '/favicon.svg',
   '/web/css/tokens.css',
@@ -21,6 +21,11 @@ const SHELL = [
   '/web/js/tools.js',
   '/web/js/trips.js',
   '/web/js/auth.js',
+  '/web/js/voice.js',
+  '/web/js/map.js',
+  '/web/js/components/sheet.js',
+  '/web/js/components/citypicker.js',
+  '/web/js/components/translate-panel.js',
 ];
 const TRANSLATIONS = [
   '/api/translations/phrases',

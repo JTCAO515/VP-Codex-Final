@@ -2,6 +2,54 @@
 
 All notable changes to VisePanda.
 
+## v8.1.0 — 2026-06-25
+
+Fills in the v8 sidebar redesign's placeholder interactions.
+
+### Fixed
+- **Auth sheet was never visible.** `<dialog>` without `.showModal()` stays
+  `display:none` per the UA stylesheet regardless of class toggles — this
+  silently broke sign-in since v7. Changed to a plain `<div>`.
+
+### Added
+- **Google Sign-In** documented end-to-end (Cloud Console setup steps in
+  README); backend was already wired, now confirmed reachable from a visible
+  sign-in sheet.
+- **City picker drawer** (`components/citypicker.js`) replaces `prompt()`
+  for adding Plan destinations — searchable, multi-select, checkmarked rows.
+- **Trip-bound planning.** Trips now own their own itinerary (`day_count` +
+  `days[]`). Plan can operate in scratch mode (`/api/itinerary`, no trip
+  selected) or bound to a trip (`/api/trips/<id>`). Creating a trip uses a
+  sheet (name + optional start date + day-count stepper) instead of
+  `prompt()`; opening a trip card jumps to Plan bound to it.
+- **Dates simplified.** Plan's toolbar no longer asks for a date range —
+  just a day-count stepper. Specific calendar dates live on the Trip
+  (set once, at creation).
+- **Amap (高德地图) integration** (`web/js/map.js`) — lazy-loads the Amap JS
+  SDK and renders real markers when `AMAP_JS_KEY`/`AMAP_SECURITY_CODE` are
+  set; falls back to the original striped placeholder + numbered pins
+  otherwise.
+- **Generate wired to DeepSeek.** Plan's "Generate"/"Optimize" button now
+  calls `POST /api/itinerary/generate`, which prompts DeepSeek for a
+  structured JSON itinerary (falls back to a one-stop-per-day stub without
+  a key).
+- **Cities detail sheet** — clicking a card now opens hotels/deals for that
+  city plus "Add to Plan", instead of an `alert()`.
+- **Translate & scan restored** as a Tools panel (`components/translate-panel.js`
+  + `voice.js`), wired to the existing `/api/translate`, `/api/tts`,
+  `/api/stt` endpoints with a "show driver" fullscreen mode.
+- **Generic sheet component** (`components/sheet.js`) — single reusable
+  overlay used by the city picker, city detail, trip creation, and translate
+  panel; tears down on close so call sites never collide.
+
+### Changed
+- `api/trips.py` rewritten: trips now carry `start_date`, `day_count`, and
+  inline `days[]`; added `GET /api/trips/<id>`.
+- `api/itinerary.py` gained `POST /api/itinerary/generate`.
+- `api/config.py` gained `AMAP_JS_KEY`, `AMAP_SECURITY_CODE`, `has_map()`,
+  both exposed via `/api/config/public` (safe per Amap's client-side model).
+- Service worker cache bumped to `vp-v8-2` with the new component files.
+
 ## v7.0.0 — 2026-06-24
 
 Complete rewrite. Single push, single coherent design.

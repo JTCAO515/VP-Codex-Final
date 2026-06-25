@@ -1,18 +1,23 @@
 // Trips view — upcoming / past / drafts toggle + grid of trip cards
 // + "Start a new trip" card. Backed by /api/trips.
+//
+// Creating a trip opens a sheet (name + start date + day count stepper)
+// instead of a prompt(). Opening an existing trip navigates to Plan bound
+// to that trip's id.
 
 import { api } from './api.js';
+import { openSheet, closeSheet, sheetHeader } from './components/sheet.js';
 
 let state = {
   root: null,
   trips: [],
   bucket: 'upcoming',
-  onPlanNew: null,
+  onOpenTrip: null,
 };
 
-export function mount({ container, onPlanNew }) {
+export function mount({ container, onOpenTrip }) {
   state.root = container;
-  state.onPlanNew = onPlanNew;
+  state.onOpenTrip = onOpenTrip;
   container.classList.add('view-trips');
   load();
 }
@@ -26,10 +31,9 @@ async function load() {
 }
 
 function filtered() {
-  // Loose mapping: drafts = status:draft; past = status:past; else upcoming.
   if (state.bucket === 'drafts') return state.trips.filter((t) => t.status === 'draft');
   if (state.bucket === 'past')   return state.trips.filter((t) => t.status === 'past');
-  return state.trips.filter((t) => t.status !== 'past' && t.status !== 'draft' || t.status === 'planning' || t.status === 'ready');
+  return state.trips.filter((t) => t.status !== 'past' && t.status !== 'draft');
 }
 
 function render() {
@@ -51,7 +55,7 @@ function render() {
   state.root.querySelectorAll('.trips-segment button').forEach((b) => {
     b.addEventListener('click', () => { state.bucket = b.dataset.b; render(); });
   });
-  state.root.querySelector('.trips-new').addEventListener('click', createTrip);
+  state.root.querySelector('.trips-new').addEventListener('click', openCreateSheet);
 
   const grid = state.root.querySelector('.trips-grid');
   const items = filtered();
@@ -65,11 +69,11 @@ function render() {
     card.className = 'trip-card';
     card.innerHTML = `
       <div class="img">
-        <span class="badge">${esc(`${(t.cities || []).length ? (t.cities || []).length + ' cities' : 'New trip'}`)}${t.dates ? ' · ' + esc(t.dates) : ''}</span>
+        <span class="badge">${esc(`${(t.cities || []).length ? (t.cities || []).length + ' cities' : 'New trip'} · ${t.day_count || 0}d`)}</span>
       </div>
       <div class="body">
         <div class="name">${esc(t.name)}</div>
-        <div class="route">${esc(t.dates || '')}${cities ? ' · ' + esc(cities) : ''}</div>
+        <div class="route">${esc(t.start_date || 'No dates yet')}${cities ? ' · ' + esc(cities) : ''}</div>
         <div class="status">${esc(statusLabel(t))} · ${t.progress || 0}%</div>
         <div class="progress-track"><div class="progress-bar ${t.progress >= 100 ? 'done' : ''}" style="width:${Math.max(0, Math.min(100, t.progress || 0))}%"></div></div>
         <div class="footer">
@@ -78,11 +82,12 @@ function render() {
         </div>
       </div>
     `;
-    card.addEventListener('click', () => openTrip(t));
+    card.addEventListener('click', () => {
+      if (state.onOpenTrip) state.onOpenTrip(t.id);
+    });
     grid.appendChild(card);
   }
 
-  // Always show "Start a new trip" tile at the end of upcoming/drafts
   if (state.bucket !== 'past') {
     const add = document.createElement('button');
     add.type = 'button';
@@ -92,7 +97,7 @@ function render() {
       <span class="title">Start a new trip</span>
       <span class="sub"><span class="spark"></span>or generate with Panda</span>
     `;
-    add.addEventListener('click', createTrip);
+    add.addEventListener('click', openCreateSheet);
     grid.appendChild(add);
   }
 }
@@ -104,34 +109,66 @@ function statusLabel(t) {
   return 'Planning';
 }
 
-async function createTrip() {
+function openCreateSheet() {
   if (!window.vp.user) {
     window.dispatchEvent(new CustomEvent('vp:auth-required'));
     return;
   }
-  const name = prompt('Trip name?', 'My China trip');
-  if (!name) return;
-  try {
-    const data = await api.post('/api/trips', {
-      name,
-      dates: '',
-      cities: [],
-      status: 'planning',
-      progress: 0,
-    });
-    state.trips.unshift(data.trip);
-    render();
-    if (state.onPlanNew) state.onPlanNew(data.trip);
-  } catch (_) {
-    alert('Could not create trip.');
-  }
-}
+  let dayCount = 3;
+  const content = document.createElement('div');
+  content.className = 'sheet-content';
+  content.appendChild(sheetHeader('Start a new trip'));
+  content.innerHTML += `
+    <form id="create-trip-form">
+      <label style="display:flex;flex-direction:column;gap:4px;font-size:var(--text-base);color:var(--ink-5);margin-bottom:14px">
+        Trip name
+        <input type="text" name="name" placeholder="My China trip" required
+               style="background:var(--sidebar-bg);border:1px solid var(--line-1);border-radius:8px;padding:10px 12px;font:inherit;color:var(--ink-1)">
+      </label>
+      <label style="display:flex;flex-direction:column;gap:4px;font-size:var(--text-base);color:var(--ink-5);margin-bottom:6px">
+        Start date (optional)
+        <input type="date" name="start_date"
+               style="background:var(--sidebar-bg);border:1px solid var(--line-1);border-radius:8px;padding:10px 12px;font:inherit;color:var(--ink-1)">
+      </label>
+      <div class="label" style="font-weight:600;font-size:10.5px;color:var(--ink-soft);letter-spacing:.05em;margin-top:14px">DURATION</div>
+      <div class="day-count-stepper">
+        <button type="button" data-d="-1">−</button>
+        <span class="count" id="day-count-display">3</span>
+        <button type="button" data-d="1">+</button>
+      </div>
+      <div class="sheet-footer-actions">
+        <button class="btn-outline" type="button" data-act="cancel">Cancel</button>
+        <button class="btn-primary" type="submit">Create trip</button>
+      </div>
+    </form>
+  `;
+  openSheet(content);
 
-function openTrip(t) {
-  // For now jump to Plan with the trip context. (Plan view loads its own
-  // itinerary from /api/itinerary; full per-trip itineraries are a later
-  // enhancement.)
-  if (state.onPlanNew) state.onPlanNew(t);
+  const display = content.querySelector('#day-count-display');
+  content.querySelectorAll('.day-count-stepper button').forEach((b) => {
+    b.addEventListener('click', () => {
+      dayCount = Math.max(1, Math.min(30, dayCount + (+b.dataset.d)));
+      display.textContent = dayCount;
+    });
+  });
+  content.querySelector('[data-act="cancel"]').addEventListener('click', () => closeSheet());
+  content.querySelector('#create-trip-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const name = String(fd.get('name') || '').trim() || 'Untitled trip';
+    const start_date = String(fd.get('start_date') || '');
+    try {
+      const data = await api.post('/api/trips', {
+        name, start_date, day_count: dayCount, cities: [], status: 'planning', progress: 0,
+      });
+      closeSheet();
+      state.trips.unshift(data.trip);
+      render();
+      if (state.onOpenTrip) state.onOpenTrip(data.trip.id);
+    } catch (_) {
+      alert('Could not create trip.');
+    }
+  });
 }
 
 function esc(s) {

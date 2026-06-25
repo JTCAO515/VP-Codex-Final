@@ -119,7 +119,7 @@ function accountHTML() {
         ${u.email_verified ? '' : '<div class="auth-error" style="margin-top:8px">Email not yet verified.</div>'}
       </div>
       <button class="btn-outline" id="sign-out">Sign out</button>
-      <button class="link-btn" id="delete-account" style="color: var(--cinnabar)">Delete account</button>
+      <button class="link-btn" id="delete-account" style="color: var(--brand)">Delete account</button>
     </div>
   `;
 }

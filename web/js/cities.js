@@ -1,16 +1,20 @@
 // Cities — browse curated cities. Search + filters + sort. Hero featured card + grid.
+// Clicking a card opens a detail sheet with hotels/deals + "Add to Plan".
 
 import { api } from './api.js';
+import { openSheet, closeSheet, sheetHeader } from './components/sheet.js';
 
 let state = {
   root: null,
   cities: [],
   query: '',
   featured: null,
+  onAddToPlan: null,
 };
 
-export function mount({ container }) {
+export function mount({ container, onAddToPlan }) {
   state.root = container;
+  state.onAddToPlan = onAddToPlan;
   container.classList.add('view-cities');
   load();
 }
@@ -73,6 +77,9 @@ function render() {
     state.query = e.target.value;
     render();
   });
+  if (state.featured) {
+    state.root.querySelector('.cities-featured').addEventListener('click', () => openDetail(state.featured));
+  }
 
   const grid = state.root.querySelector('.cities-grid');
   for (const c of filtered) {
@@ -93,12 +100,57 @@ function render() {
         <div class="tags">${tags.map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</div>
       </div>
     `;
-    card.addEventListener('click', () => {
-      // For now, just toast the city. Future: open detail view or jump to Plan with city added.
-      alert(`${c.name} (${c.cn}) — full detail view coming soon.\n\nFor now you can add it to a Plan from the Plan tab.`);
-    });
+    card.addEventListener('click', () => openDetail(c));
     grid.appendChild(card);
   }
+}
+
+async function openDetail(city) {
+  const content = document.createElement('div');
+  content.className = 'sheet-content';
+  content.appendChild(sheetHeader(city.name));
+  content.innerHTML += `
+    <div class="detail-hero"><span class="name">${esc(city.name)}</span></div>
+    <p style="font-size:var(--text-base);color:var(--ink-5);line-height:1.5">${esc(city.tagline || '')}</p>
+    <p style="font-size:var(--text-sm);color:var(--ink-soft);margin-top:6px">Best months: ${esc(city.best_months || '—')}</p>
+    <div class="detail-section-label">FOREIGNER-FRIENDLY HOTELS</div>
+    <div class="detail-list" id="city-hotels"><div class="skeleton" style="height:50px"></div></div>
+    <div class="detail-section-label">DEALS NEARBY</div>
+    <div class="detail-list" id="city-deals"><div class="skeleton" style="height:50px"></div></div>
+    <div class="sheet-footer-actions">
+      <button class="btn-outline" type="button" data-act="close">Close</button>
+      <button class="btn-primary" type="button" data-act="add-to-plan">+ Add to Plan</button>
+    </div>
+  `;
+  openSheet(content, { wide: true });
+  content.querySelector('[data-act="close"]').addEventListener('click', () => closeSheet());
+  content.querySelector('[data-act="add-to-plan"]').addEventListener('click', () => {
+    closeSheet();
+    if (state.onAddToPlan) state.onAddToPlan(city);
+  });
+
+  const [hotels, deals] = await Promise.all([
+    api.get('/api/hotels?city=' + city.id).catch(() => ({ hotels: [] })),
+    api.get('/api/deals?city=' + city.id).catch(() => ({ deals: [] })),
+  ]);
+  const hotelsRoot = content.querySelector('#city-hotels');
+  hotelsRoot.innerHTML = (hotels.hotels || []).length
+    ? hotels.hotels.map((h) => `
+        <div class="detail-card">
+          <div class="name">${esc(h.name)}</div>
+          <div class="meta">${esc(h.neighborhood)} · ★ ${h.rating} · ${esc(h.price_band)}</div>
+        </div>
+      `).join('')
+    : `<div class="meta" style="padding:8px 0">No curated hotels yet.</div>`;
+  const dealsRoot = content.querySelector('#city-deals');
+  dealsRoot.innerHTML = (deals.deals || []).length
+    ? deals.deals.map((d) => `
+        <div class="detail-card">
+          <div class="name">${esc(d.title)}</div>
+          <div class="meta">${esc(d.vendor)} · ${esc(d.discount)}</div>
+        </div>
+      `).join('')
+    : `<div class="meta" style="padding:8px 0">No curated deals yet.</div>`;
 }
 
 function esc(s) {

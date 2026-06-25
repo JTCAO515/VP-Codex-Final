@@ -1,78 +1,102 @@
-// Plan view — itinerary builder with destinations / dates / travelers / pace,
-// day tabs, timeline of stops, and a placeholder map with AI suggestion strip.
+// Plan view — itinerary builder. Two modes:
+//   - Bound to a trip (tripId given): persists via /api/trips/<id>, dates
+//     live on the trip (start_date), Plan only controls day_count.
+//   - Scratch (no tripId): persists via /api/itinerary + localStorage meta,
+//     for quick exploration before committing to a trip.
 //
-// Backed by /api/itinerary (legacy contract from v7). Per the new design we
-// also surface destinations + dates + pace; those persist in localStorage
-// since the v7 schema is just { days: [...] }.
+// Destinations are picked via the city-picker sheet (no more prompt()).
+// Days are a simple stepper (count only) — specific calendar dates belong
+// to the Trip, set from the Trips tab.
+// Map renders via Amap when configured (web/js/map.js), else a striped
+// placeholder with numbered pins, matching the original wireframe.
 
 import { api } from './api.js';
 import * as sidebar from './sidebar.js';
+import { pickCities } from './components/citypicker.js';
+import { renderMap } from './map.js';
 
 const PACE = ['Relaxed', 'Balanced', 'Packed'];
+const META_KEY = 'vp.plan.meta';
 
 let state = {
   root: null,
-  destinations: [],   // [{ id, name, cn }]
-  date_from: '',
-  date_to: '',
+  tripId: null,
+  destinations: [],
+  day_count: 3,
   travelers: 2,
   pace: 'Relaxed',
-  days: [],           // [{ day_index, label, date, city, stops:[{time,name,desc,tags}] }]
+  days: [],
   active_day: 0,
   citiesCache: [],
+  generating: false,
 };
 
-const META_KEY = 'vp.plan.meta';
-
-export function mount({ container }) {
+export function mount({ container, tripId = null }) {
   state.root = container;
   container.classList.add('view-plan');
-  loadMeta();
-  loadCities();
-  loadItinerary().then(() => {
-    publishTripContext();
-    render();
-  });
+  state.tripId = tripId;
+  init();
 }
 
-function loadMeta() {
+async function init() {
+  await loadCitiesCache();
+  if (state.tripId) {
+    await loadTrip(state.tripId);
+  } else {
+    loadScratchMeta();
+    await loadScratchItinerary();
+  }
+  publishTripContext();
+  render();
+}
+
+async function loadCitiesCache() {
+  try {
+    const data = await api.get('/api/cities');
+    state.citiesCache = data.cities || [];
+  } catch (_) { state.citiesCache = []; }
+}
+
+async function loadTrip(tripId) {
+  try {
+    const data = await api.get('/api/trips/' + tripId);
+    const t = data.trip;
+    state.destinations = t.cities || [];
+    state.day_count = t.day_count || 3;
+    state.days = (t.days && t.days.length) ? t.days : seedDays();
+    state._trip = t;
+  } catch (_) {
+    state.tripId = null;
+    loadScratchMeta();
+    await loadScratchItinerary();
+  }
+}
+
+function loadScratchMeta() {
   try {
     const raw = JSON.parse(localStorage.getItem(META_KEY) || '{}');
     state.destinations = raw.destinations || [];
-    state.date_from = raw.date_from || '';
-    state.date_to = raw.date_to || '';
+    state.day_count = raw.day_count || 3;
     state.travelers = raw.travelers || 2;
     state.pace = raw.pace || 'Relaxed';
   } catch (_) {}
+  if (state.destinations.length === 0 && state.citiesCache.length) {
+    state.destinations = state.citiesCache.slice(0, 3).map((c) => ({ id: c.id, name: c.name, cn: c.cn }));
+    saveScratchMeta();
+  }
 }
-function saveMeta() {
+function saveScratchMeta() {
   try {
     localStorage.setItem(META_KEY, JSON.stringify({
       destinations: state.destinations,
-      date_from: state.date_from,
-      date_to: state.date_to,
+      day_count: state.day_count,
       travelers: state.travelers,
       pace: state.pace,
     }));
   } catch (_) {}
 }
 
-async function loadCities() {
-  try {
-    const data = await api.get('/api/cities');
-    state.citiesCache = data.cities || [];
-    if (state.destinations.length === 0 && state.citiesCache.length) {
-      // Seed with the first 3 demo cities so the toolbar isn't empty.
-      state.destinations = state.citiesCache.slice(0, 3).map((c) => ({
-        id: c.id, name: c.name, cn: c.cn,
-      }));
-      saveMeta();
-      render();
-    }
-  } catch (_) {}
-}
-
-async function loadItinerary() {
+async function loadScratchItinerary() {
   try {
     const data = await api.get('/api/itinerary');
     state.days = (data.days && data.days.length) ? data.days : seedDays();
@@ -82,12 +106,11 @@ async function loadItinerary() {
 }
 
 function seedDays() {
-  return [1, 2, 3].map((i) => ({
-    day_index: i,
-    label: 'Day ' + i,
-    date: '',
-    city: state.destinations[i - 1]?.name || state.destinations[0]?.name || '',
-    stops: i === 1 ? [
+  return Array.from({ length: state.day_count }, (_, i) => ({
+    day_index: i + 1,
+    label: 'Day ' + (i + 1),
+    city: state.destinations[i % Math.max(state.destinations.length, 1)]?.name || '',
+    stops: i === 0 ? [
       { time: '08:30', name: 'Forbidden City', desc: 'Walk through the imperial palace complex.', tags: ['Landmark', '2h'] },
       { time: '11:30', name: 'Jingshan Park lunch', desc: 'Climb for a view, then a hutong cafe.', tags: ['Food', '$$'] },
     ] : [],
@@ -95,15 +118,11 @@ function seedDays() {
 }
 
 function publishTripContext() {
-  const name = state.destinations.map((d) => d.name).join(' → ') || 'Untitled trip';
-  const dates = (state.date_from && state.date_to)
-    ? `${state.date_from} – ${state.date_to}`
-    : (state.date_from || 'No dates yet');
-  sidebar.setTripContext({
-    name,
-    dates,
-    city_count: state.destinations.length || undefined,
-  });
+  const name = state._trip?.name || state.destinations.map((d) => d.name).join(' → ') || 'Untitled trip';
+  const dates = state._trip?.start_date
+    ? `From ${state._trip.start_date} · ${state.day_count} days`
+    : `${state.day_count} days · no start date yet`;
+  sidebar.setTripContext({ name, dates, city_count: state.destinations.length || undefined });
 }
 
 function render() {
@@ -129,7 +148,7 @@ function renderToolbar() {
     chip.innerHTML = `${esc(d.name)} <span class="x">×</span>`;
     chip.querySelector('.x').addEventListener('click', () => {
       state.destinations = state.destinations.filter((x) => x.id !== d.id);
-      saveMeta(); publishTripContext(); render();
+      persistMeta(); publishTripContext(); render();
     });
     destBox.appendChild(chip);
   }
@@ -137,21 +156,41 @@ function renderToolbar() {
   add.type = 'button';
   add.className = 'add-dest';
   add.textContent = '+ add…';
-  add.addEventListener('click', () => promptAddCity());
+  add.addEventListener('click', async () => {
+    const picked = await pickCities(state.destinations.map((d) => d.id));
+    if (picked) {
+      state.destinations = picked;
+      persistMeta(); publishTripContext(); render();
+    }
+  });
   destBox.appendChild(add);
   dest.appendChild(destBox);
   bar.appendChild(dest);
 
-  // Dates (simple text fields)
-  const dates = document.createElement('div');
-  dates.className = 'plan-field dates';
-  dates.innerHTML = `<div class="label">DATES</div>`;
-  const datesBox = document.createElement('div');
-  datesBox.className = 'box';
-  datesBox.style.padding = '4px 8px';
-  datesBox.innerHTML = `<input type="date" id="pf-from" style="border:none;background:transparent;font:inherit;width:50%"> – <input type="date" id="pf-to" style="border:none;background:transparent;font:inherit;width:50%">`;
-  dates.appendChild(datesBox);
-  bar.appendChild(dates);
+  // Days stepper (replaces date range — dates live on the Trip)
+  const days = document.createElement('div');
+  days.className = 'plan-field dates';
+  days.innerHTML = `<div class="label">DAYS</div>`;
+  const daysBox = document.createElement('div');
+  daysBox.className = 'box';
+  daysBox.style.justifyContent = 'space-between';
+  daysBox.innerHTML = `
+    <button type="button" class="day-step-btn" data-d="-1" style="border:none;background:none;font-size:16px;color:var(--ink-3);cursor:pointer">−</button>
+    <span style="font-weight:600">${state.day_count} ${state.day_count === 1 ? 'day' : 'days'}</span>
+    <button type="button" class="day-step-btn" data-d="1" style="border:none;background:none;font-size:16px;color:var(--ink-3);cursor:pointer">+</button>
+  `;
+  daysBox.querySelectorAll('.day-step-btn').forEach((b) => {
+    b.addEventListener('click', () => {
+      const delta = +b.dataset.d;
+      const next = Math.max(1, Math.min(30, state.day_count + delta));
+      if (next === state.day_count) return;
+      state.day_count = next;
+      adjustDaysArray();
+      persistMeta(); publishTripContext(); render();
+    });
+  });
+  days.appendChild(daysBox);
+  bar.appendChild(days);
 
   // Travelers
   const trav = document.createElement('div');
@@ -184,50 +223,41 @@ function renderToolbar() {
   pace.appendChild(paceBox);
   bar.appendChild(pace);
 
-  // Generate button
+  // Generate
   const gen = document.createElement('button');
   gen.type = 'button';
   gen.className = 'plan-generate';
-  gen.innerHTML = `<span class="spark"></span>Generate`;
+  gen.disabled = state.generating;
+  gen.innerHTML = state.generating
+    ? `<span class="spark"></span>Generating…`
+    : `<span class="spark"></span>Generate`;
   gen.addEventListener('click', generate);
   bar.appendChild(gen);
 
-  // Wire field changes
   setTimeout(() => {
-    const from = bar.querySelector('#pf-from');
-    const to = bar.querySelector('#pf-to');
     const t = bar.querySelector('#pf-trav');
     const p = bar.querySelector('#pf-pace');
-    if (from) { from.value = state.date_from; from.addEventListener('change', (e) => { state.date_from = e.target.value; saveMeta(); publishTripContext(); }); }
-    if (to) { to.value = state.date_to; to.addEventListener('change', (e) => { state.date_to = e.target.value; saveMeta(); publishTripContext(); }); }
-    if (t) t.addEventListener('change', (e) => { state.travelers = +e.target.value || 1; saveMeta(); });
-    if (p) p.addEventListener('change', (e) => { state.pace = e.target.value; saveMeta(); });
+    if (t) t.addEventListener('change', (e) => { state.travelers = +e.target.value || 1; persistMeta(); });
+    if (p) p.addEventListener('change', (e) => { state.pace = e.target.value; persistMeta(); });
   }, 0);
 
   return bar;
 }
 
-function promptAddCity() {
-  const taken = new Set(state.destinations.map((d) => d.id));
-  const choices = state.citiesCache.filter((c) => !taken.has(c.id));
-  if (!choices.length) { alert('No more cities to add.'); return; }
-  const lines = choices.map((c, i) => `${i + 1}. ${c.name} (${c.cn})`).join('\n');
-  const pick = prompt('Pick a city by number:\n' + lines);
-  const idx = parseInt(pick, 10) - 1;
-  if (idx >= 0 && idx < choices.length) {
-    const c = choices[idx];
-    state.destinations.push({ id: c.id, name: c.name, cn: c.cn });
-    saveMeta();
-    publishTripContext();
-    render();
+function adjustDaysArray() {
+  while (state.days.length < state.day_count) {
+    state.days.push({ day_index: state.days.length + 1, label: 'Day ' + (state.days.length + 1), stops: [] });
   }
+  if (state.days.length > state.day_count) {
+    state.days = state.days.slice(0, state.day_count);
+  }
+  if (state.active_day >= state.days.length) state.active_day = state.days.length - 1;
 }
 
 function renderBody() {
   const body = document.createElement('section');
   body.className = 'plan-body';
 
-  // Itinerary column
   const itin = document.createElement('div');
   itin.className = 'plan-itinerary';
 
@@ -246,13 +276,10 @@ function renderBody() {
   addDay.className = 'plan-day-add';
   addDay.textContent = '+';
   addDay.addEventListener('click', () => {
-    state.days.push({
-      day_index: state.days.length + 1,
-      label: 'Day ' + (state.days.length + 1),
-      stops: [],
-    });
+    state.day_count = Math.min(30, state.day_count + 1);
+    adjustDaysArray();
     state.active_day = state.days.length - 1;
-    saveItinerary(); render();
+    persistMeta(); render();
   });
   tabs.appendChild(addDay);
   const opt = document.createElement('button');
@@ -273,12 +300,11 @@ function renderBody() {
     content.appendChild(title);
     const sub = document.createElement('div');
     sub.className = 'plan-day-sub';
-    sub.textContent = [day.date, `${(day.stops || []).length} stops`].filter(Boolean).join(' · ');
+    sub.textContent = `${(day.stops || []).length} stops`;
     content.appendChild(sub);
 
-    for (const stop of (day.stops || [])) {
-      content.appendChild(renderStop(stop));
-    }
+    for (const stop of (day.stops || [])) content.appendChild(renderStop(stop));
+
     const add = document.createElement('button');
     add.type = 'button';
     add.className = 'plan-stop-add';
@@ -289,43 +315,18 @@ function renderBody() {
       const time = prompt('What time? (e.g. 14:00)', '14:00') || '14:00';
       day.stops = day.stops || [];
       day.stops.push({ time, name, desc: '', tags: [] });
-      saveItinerary(); render();
+      persistDays(); render();
     });
     content.appendChild(add);
   }
   itin.appendChild(content);
   body.appendChild(itin);
 
-  // Map placeholder
-  const map = document.createElement('div');
-  map.className = 'plan-map';
-  map.innerHTML = `
-    <span class="map-tag">map · ${esc(day?.label || 'day')}</span>
-  `;
-  const pins = (day?.stops || []).slice(0, 4);
-  pins.forEach((s, i) => {
-    const pin = document.createElement('div');
-    pin.className = 'pin' + (i >= 2 ? ' muted' : '');
-    pin.style.top = (90 + i * 70) + 'px';
-    pin.style.left = (100 + (i % 2) * 120) + 'px';
-    pin.textContent = i + 1;
-    map.appendChild(pin);
-  });
-  const suggest = document.createElement('div');
-  suggest.className = 'plan-suggest';
-  suggest.innerHTML = `
-    <div class="panda-mini"></div>
-    <div style="flex:1">
-      <h4>Panda suggests</h4>
-      <p>Save 30 minutes by visiting Jingshan Park before the Forbidden City — same metro stop, less crowded mornings.</p>
-      <div class="acts">
-        <button class="add" type="button">Add</button>
-        <button class="why" type="button">Why?</button>
-      </div>
-    </div>
-  `;
-  map.appendChild(suggest);
-  body.appendChild(map);
+  // Map column
+  const mapWrap = document.createElement('div');
+  mapWrap.className = 'plan-map';
+  body.appendChild(mapWrap);
+  mountMap(mapWrap, day);
 
   return body;
 }
@@ -350,15 +351,106 @@ function renderStop(stop) {
   return wrap;
 }
 
-async function generate() {
-  // Calls /api/chat with a prompt that asks DeepSeek to draft an itinerary.
-  // We don't actually parse the response into days right now (would need
-  // structured output) — we just toast that the request was sent.
-  alert('Generate is a stub for now. Use Ask to brainstorm; manually add stops here. (We\'ll wire DeepSeek → structured itinerary in a later step.)');
+async function mountMap(container, day) {
+  const cityName = day?.city || state.destinations[0]?.name;
+  const cityObj = state.citiesCache.find((c) => c.name === cityName) || state.citiesCache[0];
+  const hasMap = window.vp.features?.has_map;
+
+  if (!hasMap || !cityObj) {
+    renderFallbackMap(container, day, cityObj);
+    return;
+  }
+  const points = (day?.stops || []).slice(0, 6).map((s, i) => ({
+    lng: cityObj.lon + (i % 2 === 0 ? 1 : -1) * 0.008 * Math.ceil((i + 1) / 2),
+    lat: cityObj.lat + (i % 3 === 0 ? 1 : -1) * 0.006 * Math.ceil((i + 1) / 2),
+    label: s.name,
+  }));
+  container.innerHTML = `<span class="map-tag">amap · ${esc(day?.label || 'day')}</span>`;
+  const mapDiv = document.createElement('div');
+  mapDiv.style.cssText = 'position:absolute;inset:0;';
+  container.appendChild(mapDiv);
+  const map = await renderMap(mapDiv, { center: { lng: cityObj.lon, lat: cityObj.lat }, points });
+  if (!map) renderFallbackMap(container, day, cityObj); // SDK failed to load despite key present
+  appendSuggestStrip(container);
 }
 
-async function saveItinerary() {
-  try { await api.put('/api/itinerary', { days: state.days }); } catch (_) {}
+function renderFallbackMap(container, day, cityObj) {
+  container.innerHTML = `<span class="map-tag">map · ${esc(day?.label || 'day')}</span>`;
+  const pins = (day?.stops || []).slice(0, 4);
+  pins.forEach((s, i) => {
+    const pin = document.createElement('div');
+    pin.className = 'pin' + (i >= 2 ? ' muted' : '');
+    pin.style.top = (90 + i * 70) + 'px';
+    pin.style.left = (100 + (i % 2) * 120) + 'px';
+    pin.textContent = i + 1;
+    container.appendChild(pin);
+  });
+  appendSuggestStrip(container);
+}
+
+function appendSuggestStrip(container) {
+  const suggest = document.createElement('div');
+  suggest.className = 'plan-suggest';
+  suggest.innerHTML = `
+    <div class="panda-mini"></div>
+    <div style="flex:1">
+      <h4>Panda suggests</h4>
+      <p>Save 30 minutes by visiting Jingshan Park before the Forbidden City — same metro stop, less crowded mornings.</p>
+      <div class="acts">
+        <button class="add" type="button">Add</button>
+        <button class="why" type="button">Why?</button>
+      </div>
+    </div>
+  `;
+  container.appendChild(suggest);
+}
+
+async function generate() {
+  if (!state.destinations.length) {
+    alert('Add at least one destination first.');
+    return;
+  }
+  state.generating = true;
+  render();
+  try {
+    const res = await api.post('/api/itinerary/generate', {
+      cities: state.destinations,
+      day_count: state.day_count,
+      pace: state.pace,
+      travelers: state.travelers,
+    });
+    state.days = res.days || state.days;
+    state.day_count = state.days.length;
+    state.active_day = 0;
+    await persistDays();
+  } catch (_) {
+    alert('Could not generate an itinerary. Try again.');
+  } finally {
+    state.generating = false;
+    render();
+  }
+}
+
+function persistMeta() {
+  if (state.tripId) {
+    api.put('/api/trips/' + state.tripId, {
+      cities: state.destinations, day_count: state.day_count,
+    }).catch(() => {});
+  } else {
+    saveScratchMeta();
+  }
+}
+
+async function persistDays() {
+  if (state.tripId) {
+    try {
+      await api.put('/api/trips/' + state.tripId, {
+        cities: state.destinations, day_count: state.day_count, days: state.days,
+      });
+    } catch (_) {}
+  } else {
+    try { await api.put('/api/itinerary', { days: state.days }); } catch (_) {}
+  }
 }
 
 function esc(s) {

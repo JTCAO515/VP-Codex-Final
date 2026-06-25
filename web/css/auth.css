@@ -166,3 +166,123 @@
   color: var(--ink-5);
   margin-bottom: 4px;
 }
+
+/* Generic sheet (city picker, city detail, trip create, translate panel) */
+.generic-sheet {
+  max-height: 88dvh;
+}
+.generic-sheet.wide {
+  max-width: 640px;
+}
+@media (min-width: 720px) {
+  .generic-sheet { width: min(480px, 92vw); }
+  .generic-sheet.wide { width: min(640px, 92vw); }
+}
+.sheet-search {
+  display: flex; align-items: center; gap: var(--s-4);
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-btn);
+  padding: 9px 13px;
+  background: var(--canvas);
+  margin-bottom: var(--s-6);
+}
+.sheet-search input {
+  flex: 1; border: none; background: transparent; font: inherit;
+  font-size: var(--text-base); color: var(--ink-1);
+}
+.picker-list {
+  display: flex; flex-direction: column; gap: var(--s-3);
+  max-height: 50vh;
+  overflow-y: auto;
+}
+.picker-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--s-5) var(--s-6);
+  border: 1px solid var(--line-3);
+  border-radius: var(--r-card);
+  cursor: pointer;
+  background: var(--canvas);
+  text-align: left;
+  width: 100%;
+}
+.picker-row:hover { border-color: var(--brand); }
+.picker-row.selected {
+  border-color: var(--brand);
+  background: var(--brand-tint);
+}
+.picker-row .name {
+  font-weight: 600; font-size: var(--text-md); color: var(--ink-2);
+}
+.picker-row .cn {
+  font-size: var(--text-sm); color: var(--ink-soft); margin-left: 6px;
+}
+.picker-row .check {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line-1);
+  display: grid; place-items: center;
+  font-size: 11px;
+  color: transparent;
+  flex-shrink: 0;
+}
+.picker-row.selected .check {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: #fff;
+}
+.sheet-footer-actions {
+  display: flex; gap: var(--s-5);
+  margin-top: var(--s-7);
+}
+.sheet-footer-actions .btn-primary,
+.sheet-footer-actions .btn-outline { flex: 1; }
+
+.detail-hero {
+  height: 130px;
+  border-radius: var(--r-card-lg);
+  background: repeating-linear-gradient(45deg,#e7e3dd,#e7e3dd 11px,#ddd9d1 11px,#ddd9d1 22px);
+  margin-bottom: var(--s-7);
+  position: relative;
+}
+.detail-hero .name {
+  position: absolute; left: 16px; bottom: 14px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-4xl);
+  color: var(--ink-1);
+}
+.detail-section-label {
+  font-weight: 600; font-size: var(--text-sm);
+  color: var(--ink-soft); letter-spacing: 0.05em;
+  margin: var(--s-7) 0 var(--s-5);
+}
+.detail-list {
+  display: flex; flex-direction: column; gap: var(--s-4);
+}
+.detail-card {
+  border: 1px solid var(--line-3);
+  border-radius: var(--r-card);
+  padding: var(--s-5);
+}
+.detail-card .name { font-weight: 600; font-size: var(--text-md); color: var(--ink-2); }
+.detail-card .meta { font-size: var(--text-sm); color: var(--ink-soft); margin-top: 2px; }
+
+.day-count-stepper {
+  display: flex; align-items: center; gap: var(--s-6);
+  justify-content: center;
+  margin: var(--s-7) 0;
+}
+.day-count-stepper button {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--line-1);
+  background: var(--canvas);
+  font-size: var(--text-xl);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.day-count-stepper button:hover { border-color: var(--brand); color: var(--brand); }
+.day-count-stepper .count {
+  font-weight: 700; font-size: var(--text-3xl); color: var(--ink-1);
+  min-width: 2.2em; text-align: center;
+}

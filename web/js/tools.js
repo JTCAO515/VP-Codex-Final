@@ -2,6 +2,7 @@
 // extra "essentials" the wireframe shows (currency, translate, visa) on top.
 
 import { api } from './api.js';
+import { openTranslatePanel } from './components/translate-panel.js';
 
 const ESSENTIALS = [
   { id: 'currency',  name: 'Currency converter', desc: 'Live CNY ↔ USD/EUR/GBP and offline cheat sheets.', ico: '¥' },
@@ -76,7 +77,7 @@ function paint(id, items) {
 
 async function openTool(t) {
   if (t.id === 'translate') {
-    alert('Translate & scan — voice/text translation. (Wired to Qwen3 backend; UI panel coming back in a polish round.)');
+    openTranslatePanel();
     return;
   }
   try {

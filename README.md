@@ -62,23 +62,51 @@ gracefully when its key is absent.
 | `SUPABASE_ANON_KEY`     | public anon key (reserved for future client use)  |
 | `RESEND_API_KEY`        | sending verification emails                       |
 | `RESEND_FROM`           | Default `VisePanda <hello@go2china.space>`        |
-| `GOOGLE_CLIENT_ID`      | OAuth client id                                   |
+| `GOOGLE_CLIENT_ID`      | OAuth client id — from Google Cloud Console        |
 | `GOOGLE_CLIENT_SECRET`  | OAuth secret                                      |
 | `GOOGLE_REDIRECT_URI`   | Default `${APP_BASE_URL}/api/auth/callback`       |
+| `AMAP_JS_KEY`           | 高德地图 (Amap) JS API key — used in Plan's map column |
+| `AMAP_SECURITY_CODE`    | Amap's paired security code (safe to expose client-side per Amap's docs) |
 | `JWT_SECRET`            | 32+ char random hex; auto-generated if missing    |
 | `APP_BASE_URL`          | Default `https://claude.go2china.space`           |
 | `APP_ENV`               | `production` or `development`                     |
+
+All of the above are placeholders in this repo (empty strings) — fill them
+in via the Vercel dashboard under Project → Settings → Environment Variables,
+then redeploy. None are required for the app to boot or to demo end-to-end.
 
 **Fallback matrix:**
 
 | Missing key            | Behavior                                          |
 | ---------------------- | ------------------------------------------------- |
-| `DEEPSEEK_API_KEY`     | Chat returns templated reply; Translate stub      |
+| `DEEPSEEK_API_KEY`     | Chat returns templated reply; itinerary Generate falls back to a 1-stop-per-day stub; Translate stub |
 | `DASHSCOPE_API_KEY`    | TTS/STT fall back to Web Speech API in browser    |
 | `SUPABASE_*`           | Dev: local JSON file; prod: auth endpoints 503    |
 | `RESEND_API_KEY`       | Account auto-verified on register                 |
 | `GOOGLE_CLIENT_*`      | "Continue with Google" button hidden              |
+| `AMAP_JS_KEY`          | Plan's map column shows the striped placeholder + numbered pins instead of a live map |
 | `JWT_SECRET`           | Per-process random secret (sessions reset on boot)|
+
+### Setting up Google Sign-In
+
+1. In [Google Cloud Console](https://console.cloud.google.com/apis/credentials),
+   create an OAuth 2.0 Client ID (type: Web application).
+2. Authorized redirect URI: `https://claude.go2china.space/api/auth/callback`
+   (or your `APP_BASE_URL` + `/api/auth/callback`).
+3. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in Vercel.
+4. Redeploy — the "Continue with Google" button appears automatically once
+   `has_google` flips true in `/api/config/public`.
+
+### Setting up Amap (高德地图) for the Plan map
+
+1. Register at [console.amap.com](https://console.amap.com/) and create a
+   **Web端 (JS API)** application key.
+2. Amap's JS API requires a paired "安全密钥" (security code) for v2.0+ —
+   copy both into `AMAP_JS_KEY` and `AMAP_SECURITY_CODE` in Vercel.
+3. Redeploy. Plan's map column lazy-loads the Amap SDK only when a key is
+   present (see `web/js/map.js`); with no key it shows the original striped
+   placeholder with numbered pins, so the UI never breaks while waiting on
+   a key.
 
 ## Supabase setup
 
@@ -119,8 +147,14 @@ GET  /api/tools
 GET  /api/tools?id=<id>
 GET  /api/maps?city=<id>
 GET  /api/weather?lat=&lon=
-GET  /api/itinerary
+GET  /api/itinerary              scratch itinerary (no trip bound)
 PUT  /api/itinerary              { days: [...] }
+POST /api/itinerary/generate     { cities, day_count, pace?, travelers? } → DeepSeek-drafted days
+GET  /api/trips                  → { trips: [...] }
+GET  /api/trips/<id>
+POST /api/trips                  { name, start_date?, day_count?, cities?, status? }
+PUT  /api/trips/<id>             { ...any of: name, start_date, day_count, cities, status, progress, days }
+DELETE /api/trips/<id>
 GET  /api/favorites?kind=<kind>
 POST /api/favorites              { kind, ref_id, payload? }
 DELETE /api/favorites/<id>
