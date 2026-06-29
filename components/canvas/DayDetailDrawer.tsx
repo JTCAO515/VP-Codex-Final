@@ -1,12 +1,22 @@
 import type { TripDay } from "@/lib/types/trip";
 
-export function DayDetailDrawer({ day }: { day: TripDay }) {
+interface DayDetailDrawerProps {
+  day: TripDay;
+  onClose: () => void;
+}
+
+export function DayDetailDrawer({ day, onClose }: DayDetailDrawerProps) {
   return (
     <aside className="day-drawer" aria-label={`Day ${day.day} itinerary details`}>
       <div className="day-drawer__head">
-        <p>Day {day.day}</p>
-        <h2>{day.city}</h2>
-        <span>{day.pace} pace</span>
+        <div>
+          <p>Day {day.day}</p>
+          <h2>{day.city}</h2>
+          <span>{day.pace} pace</span>
+        </div>
+        <button aria-label="Close day details" onClick={onClose} type="button">
+          Close
+        </button>
       </div>
       <div className="day-drawer__blocks">
         {day.blocks.map((block) => (

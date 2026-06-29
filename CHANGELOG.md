@@ -1,5 +1,13 @@
 # VisePanda Changelog
 
+## v0.1.5 - 2026-06-29
+
+- Removed day itinerary details from the main Trip Canvas surface.
+- Kept each day card to a one-sentence daily summary with a details action.
+- Changed the day detail view into a closed-by-default side drawer.
+- Fixed the desktop landscape workspace to one viewport with internal scrolling areas.
+- Removed the standalone Practical Reminder rail and merged butler reminders into the top task cards.
+
 ## v0.1.4 - 2026-06-29
 
 - Replaced the temporary `VP` header mark with the panda icon from the supplied brand manual.

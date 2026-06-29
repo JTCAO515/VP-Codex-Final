@@ -1,6 +1,5 @@
 "use client";
 
-import { ButlerRail } from "@/components/canvas/ButlerRail";
 import { CanvasTaskStrip } from "@/components/canvas/CanvasTaskStrip";
 import { DayDetailDrawer } from "@/components/canvas/DayDetailDrawer";
 import { DayCard } from "@/components/canvas/DayCard";
@@ -9,9 +8,9 @@ import { useMemo, useState } from "react";
 import type { TripState } from "@/lib/types/trip";
 
 export function TripCanvas({ trip }: { trip: TripState }) {
-  const [selectedDayNumber, setSelectedDayNumber] = useState(trip.days[0]?.day ?? 1);
+  const [selectedDayNumber, setSelectedDayNumber] = useState<number | null>(null);
   const selectedDay = useMemo(
-    () => trip.days.find((day) => day.day === selectedDayNumber) ?? trip.days[0],
+    () => trip.days.find((day) => day.day === selectedDayNumber),
     [selectedDayNumber, trip.days],
   );
 
@@ -21,7 +20,7 @@ export function TripCanvas({ trip }: { trip: TripState }) {
         <h1>Live Trip Canvas</h1>
         <span aria-hidden="true">VP</span>
       </div>
-      <CanvasTaskStrip />
+      <CanvasTaskStrip alerts={trip.alerts} />
       <TripSummary trip={trip} />
       <div className="trip-canvas__body">
         <div className="trip-canvas__days">
@@ -34,11 +33,12 @@ export function TripCanvas({ trip }: { trip: TripState }) {
             />
           ))}
         </div>
-        <div className="trip-canvas__side">
-          {selectedDay ? <DayDetailDrawer day={selectedDay} /> : null}
-          <ButlerRail alerts={trip.alerts} />
-        </div>
       </div>
+      {selectedDay ? (
+        <div className="day-drawer-shell" role="presentation">
+          <DayDetailDrawer day={selectedDay} onClose={() => setSelectedDayNumber(null)} />
+        </div>
+      ) : null}
     </section>
   );
 }

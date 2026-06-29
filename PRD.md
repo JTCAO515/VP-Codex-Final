@@ -23,14 +23,15 @@ VisePanda 是一个面向外国人来中国旅行的英文原生 AI 管家。用
 - VisePanda 在右侧聊天区回答，并在左侧实时生成 day-by-day 行程。
 - 用户继续说：“Make it less tiring and keep hotels convenient.”
 - VisePanda 更新画布，将行程变得更轻松，并调整住宿区域建议。
-- Butler Rails 同步提醒签证、支付、交通、语言、风险等实际问题。
+- 顶部五张任务/提醒卡同步提醒签证、支付、预订、交通、语言、风险等实际问题。
 
 ## 3. 功能清单（MVP）
 
 | 功能 | 优先级 | 描述 | 验收标准 |
 |------|--------|------|----------|
 | AI Butler 工作台 | P0 | 默认进入 Chat / Butler 页面，桌面左侧为画布，右侧为聊天。 | 用户打开 `/chat` 后可以看到 live trip canvas 和 Ask VisePanda 聊天区。 |
-| Live Trip Canvas | P0 | 展示 trip summary、day-by-day itinerary、Butler Rails。 | 用户可以看到 Day 1、城市、时间段、餐饮、住宿、交通、提醒。 |
+| Live Trip Canvas | P0 | 展示 trip summary、顶部任务/提醒卡、day summary cards。 | 用户可以看到 Day 1、城市、节奏和一句当日总结；主界面不直接展开每日详情，也不出现独立 Practical Reminder 区块。 |
+| Day Detail Drawer | P0 | 用户点击某一天后，从侧边抽屉查看该日完整行程。 | 默认不显示每日详情；点击 View details 后显示时间段、餐饮、住宿、交通、备注，并可关闭。 |
 | Mock AI Pipeline | P0 | 第一阶段不用真实 AI，用 deterministic mock 根据用户消息返回 canvas patch。 | 用户发送首次来中国、放慢节奏、预算、食物、酒店、签证、支付等消息后，画布会更新。 |
 | Chat Panel | P0 | 支持 prompt chips、输入框、发送按钮、聊天记录。 | 用户输入内容并点击 Send 后，聊天记录出现用户和 VisePanda 消息。 |
 | Canvas Patch 应用 | P0 | 将 mock AI 返回的 patch 合并到当前 TripState。 | summary、days、alerts 能按规则更新，alert 按 type/title 去重。 |
@@ -49,7 +50,7 @@ VisePanda 是一个面向外国人来中国旅行的英文原生 AI 管家。用
 → 点击 Send
 → 右侧聊天出现用户消息和 VisePanda 回复
 → 左侧画布生成/更新 Beijing + Shanghai 行程
-→ Butler Rails 显示支付、签证等提醒
+→ 顶部五张任务/提醒卡显示支付、签证等提醒
 → 用户继续输入 “Make this trip less tiring”
 → 画布更新为 Relaxed pace
 ```
@@ -57,7 +58,8 @@ VisePanda 是一个面向外国人来中国旅行的英文原生 AI 管家。用
 ## 5. 非功能需求
 
 - 性能：MVP 首页首屏应保持轻量，避免真实第三方 SDK 阻塞加载。
-- 终端适配：PC 和 Mobile 必须可用；390px 宽度不能出现横向溢出或导航遮挡核心内容。
+- 终端适配：当前迭代优先电脑横屏端；移动竖屏保持可用，细节适配后续再做。
+- 桌面布局：Chat 工作台固定为横屏一页，页面本身不纵向滚动；长内容在聊天、行程列表或详情抽屉内部滚动。
 - 部署方式：Vercel。
 - 数据安全：第一阶段不写真实用户数据，不接真实 Supabase。
 - 稳定性：缺少 env key 时仍可完整体验 mock butler flow。
@@ -71,7 +73,7 @@ VisePanda 是一个面向外国人来中国旅行的英文原生 AI 管家。用
 - ❌ 真实 Trip.com / Meituan / Amap API：必须先验证真实能力边界，不能假集成。
 - ❌ 完整 Explore：当前只占位，后续再做城市、景点、美食、住宿。
 - ❌ 完整 Tools：当前只占位，后续再做翻译、支付、签证、汇率、地铁等工具。
+- ❌ 主界面展开每日详情：当前主画布只显示每日一句总结，完整详情必须通过抽屉查看。
 - ❌ 后台管理：当前没有运营后台需求。
 - ❌ 支付或预订闭环：VisePanda 先做规划和管家，不做订单交易。
 - ❌ MVP 目的地背景切换：北京/上海等场景化水墨背景已纳入后续迭代，不在第一阶段实现。
-

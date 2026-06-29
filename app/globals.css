@@ -97,7 +97,7 @@ select:focus-visible {
   width: min(1720px, 100%);
   min-height: 100dvh;
   margin: 0 auto;
-  padding: 0 clamp(16px, 3vw, 40px) 34px;
+  padding: 0 clamp(16px, 3vw, 40px) 24px;
 }
 
 .app-header {
@@ -267,6 +267,7 @@ select:focus-visible {
 .trip-canvas {
   display: grid;
   gap: 16px;
+  min-height: 0;
 }
 
 .trip-canvas__title {
@@ -365,6 +366,10 @@ select:focus-visible {
   color: var(--sage);
 }
 
+.canvas-task[data-priority="high"] {
+  border-color: rgba(163, 58, 45, 0.46);
+}
+
 .trip-summary {
   display: grid;
   grid-template-columns: 170px minmax(0, 1fr);
@@ -438,9 +443,10 @@ select:focus-visible {
 
 .trip-canvas__body {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.38fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 18px;
   align-items: start;
+  min-height: 0;
 }
 
 .trip-canvas__days,
@@ -448,6 +454,12 @@ select:focus-visible {
 .trip-canvas__side {
   display: grid;
   gap: 14px;
+}
+
+.trip-canvas__days {
+  min-height: 0;
+  overflow: auto;
+  padding-right: 2px;
 }
 
 .day-card {
@@ -637,17 +649,37 @@ select:focus-visible {
   line-height: 1.5;
 }
 
+.day-drawer-shell {
+  position: fixed;
+  inset: 86px 0 0 auto;
+  z-index: 30;
+  display: flex;
+  justify-content: flex-end;
+  width: min(430px, 34vw);
+  border-left: 1px solid rgba(111, 91, 73, 0.28);
+  background:
+    linear-gradient(180deg, rgba(251, 241, 223, 0.76), rgba(241, 221, 191, 0.7)),
+    url("/ink-landscape.png") right center / cover fixed;
+  box-shadow: -18px 0 36px rgba(55, 36, 18, 0.12);
+}
+
 .day-drawer {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
   border: 1px solid rgba(111, 91, 73, 0.2);
-  border-radius: 8px;
-  padding: 18px;
+  border-width: 0 0 0 1px;
+  border-radius: 0;
+  padding: 24px;
   background: color-mix(in srgb, var(--paper-soft) 78%, transparent);
-  box-shadow: 0 8px 20px rgba(55, 36, 18, 0.06);
+  box-shadow: none;
 }
 
 .day-drawer__head {
-  display: grid;
-  gap: 5px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
   border-bottom: 1px solid rgba(111, 91, 73, 0.12);
   padding-bottom: 13px;
 }
@@ -669,6 +701,17 @@ select:focus-visible {
 
 .day-drawer__head h2 {
   font-size: 1.45rem;
+}
+
+.day-drawer__head button {
+  min-height: 32px;
+  border: 1px solid rgba(163, 58, 45, 0.42);
+  border-radius: 5px;
+  padding: 0 10px;
+  background: transparent;
+  color: var(--cinnabar);
+  font-size: 0.76rem;
+  font-weight: 900;
 }
 
 .day-drawer__blocks,
@@ -719,8 +762,6 @@ select:focus-visible {
 .butler-rail {
   display: grid;
   gap: 12px;
-  border-left: 1px solid rgba(111, 91, 73, 0.14);
-  padding-left: 16px;
 }
 
 .butler-rail__head h2 {
@@ -776,6 +817,7 @@ select:focus-visible {
   grid-template-columns: minmax(0, 1.9fr) minmax(360px, 0.9fr);
   gap: 0;
   align-items: start;
+  min-height: 0;
 }
 
 .butler-workspace__canvas,
@@ -788,12 +830,14 @@ select:focus-visible {
   top: 0;
   display: grid;
   gap: 10px;
-  min-height: calc(100dvh - 104px);
+  height: calc(100dvh - 104px);
+  min-height: 0;
   border-left: 1px solid rgba(111, 91, 73, 0.28);
   padding-left: clamp(24px, 3.2vw, 42px);
 }
 
 .butler-workspace__canvas {
+  min-height: 0;
   padding-right: clamp(24px, 3.2vw, 42px);
 }
 
@@ -953,6 +997,47 @@ select:focus-visible {
   color: var(--ink-muted);
   font-size: 0.86rem;
   line-height: 1.45;
+}
+
+@media (min-width: 900px) {
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .app-shell {
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .app-main {
+    height: calc(100dvh - 86px);
+    overflow: hidden;
+  }
+
+  .butler-workspace {
+    height: calc(100dvh - 104px);
+    overflow: hidden;
+  }
+
+  .butler-workspace__canvas,
+  .trip-canvas {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .trip-canvas {
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+  }
+
+  .trip-canvas__body {
+    overflow: hidden;
+  }
+
+  .chat-log {
+    min-height: 0;
+  }
 }
 
 @media (max-width: 760px) {

@@ -84,6 +84,22 @@ erDiagram
   - 后续实现：先保证基础背景和工作台稳定。
 - 结论：MVP 使用单一水墨背景，destination-aware background switching 放入后续迭代。
 
+### ADR-005：为什么 Day 详情使用抽屉而不是直接展开在画布里
+
+- 背景：当前阶段优先电脑横屏端，主画布需要快速扫描，不应被 Day 1 详情占满。
+- 方案对比：
+  - 主界面直接展开详情：信息完整，但会挤压行程总览，页面难以固定为一屏。
+  - 每日一句摘要 + 抽屉详情：主画布更轻，用户需要时再查看完整行程。
+- 结论：Trip Canvas 主界面只显示每日摘要，完整时间段、餐饮、住宿、交通、备注进入关闭状态的侧边抽屉。
+
+### ADR-006：为什么桌面工作台固定为一屏
+
+- 背景：Chat 是右侧持续对话，左侧是实时画布；横屏端应像一个稳定工作台，而不是长页面。
+- 方案对比：
+  - 页面级滚动：实现简单，但聊天、画布和抽屉会互相错位。
+  - 一屏固定 + 区域内部滚动：更像产品工具，左右区域始终可见。
+- 结论：桌面端使用一屏固定布局，聊天流、日程列表和抽屉内部自行滚动。
+
 ## 路由/页面结构
 
 - `/`：重定向到 `/chat`
@@ -102,7 +118,7 @@ erDiagram
 - `app/`：Next.js routes、layout、global CSS、API routes。
 - `components/shell/`：AppShell、NavTabs。
 - `components/chat/`：ButlerWorkspace、ChatPanel。
-- `components/canvas/`：TripCanvas、TripSummary、DayCard、ButlerRail。
+- `components/canvas/`：TripCanvas、TripSummary、DayCard、DayDetailDrawer、CanvasTaskStrip。
 - `components/placeholders/`：PlaceholderPage。
 - `lib/mock-ai/`：mock butler provider。
 - `lib/canvas/`：canvas patch reducer。
@@ -110,4 +126,3 @@ erDiagram
 - `lib/env/`：环境变量状态 registry。
 - `tests/`：Vitest 和 Playwright 测试。
 - `public/`：项目静态资产。
-
