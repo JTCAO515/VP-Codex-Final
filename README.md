@@ -9,6 +9,8 @@ VisePanda is an English-native AI China travel butler for international visitors
 - The right side is a persistent AI butler chat.
 - Trips, Explore, Tools, and Account are placeholders in this phase.
 - External keys are placeholders only; missing keys must not break the app.
+- The visual system uses a warm New Chinese ink landscape background and solid paper-like UI surfaces.
+- Destination-aware background switching is reserved for a future iteration, such as Great Wall or Forbidden City ink scenes for Beijing and Bund or Jiangnan garden scenes for Shanghai.
 
 ## Tech Stack
 

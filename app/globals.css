@@ -38,6 +38,8 @@ body {
   margin: 0;
   overflow-x: hidden;
   background:
+    linear-gradient(180deg, rgba(251, 241, 223, 0.84), rgba(241, 221, 191, 0.76)),
+    url("/ink-landscape.png") center / cover fixed,
     radial-gradient(circle at 18% 14%, rgba(163, 58, 45, 0.12), transparent 24rem),
     radial-gradient(circle at 82% 8%, rgba(182, 134, 52, 0.16), transparent 22rem),
     linear-gradient(145deg, #fbf1df 0%, #f1ddbf 50%, #e9d5bb 100%);
