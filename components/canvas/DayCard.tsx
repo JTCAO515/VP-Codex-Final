@@ -1,37 +1,37 @@
 import type { TripDay } from "@/lib/types/trip";
 
-export function DayCard({ day }: { day: TripDay }) {
+interface DayCardProps {
+  day: TripDay;
+  isSelected: boolean;
+  onSelect: () => void;
+}
+
+export function DayCard({ day, isSelected, onSelect }: DayCardProps) {
+  const firstBlock = day.blocks[0];
+  const summary = firstBlock
+    ? `${firstBlock.title}: ${firstBlock.description}`
+    : `${day.city} day planned at a ${day.pace.toLowerCase()} pace.`;
+
   return (
-    <article className="day-card" data-status={day.status ?? "stable"}>
+    <article className="day-card" data-selected={isSelected ? "true" : "false"} data-status={day.status ?? "stable"}>
+      <div className="day-card__marker" aria-hidden="true">
+        <span>Day</span>
+        <strong>{day.day}</strong>
+      </div>
       <div className="day-card__head">
-        <p>Day {day.day}</p>
         <h2>{day.city}</h2>
         <span>{day.pace}</span>
       </div>
-      <div className="day-card__blocks">
-        {day.blocks.map((block) => (
-          <section className="day-block" key={`${day.day}-${block.time}-${block.title}`}>
-            <span>{block.time}</span>
-            <strong>{block.title}</strong>
-            <p>{block.description}</p>
-          </section>
-        ))}
-      </div>
-      <dl className="day-card__details">
-        <div>
-          <dt>Food</dt>
-          <dd>{day.food.join(", ")}</dd>
-        </div>
-        <div>
-          <dt>Stay</dt>
-          <dd>{day.stay}</dd>
-        </div>
-        <div>
-          <dt>Transport</dt>
-          <dd>{day.transport}</dd>
-        </div>
-      </dl>
-      <p className="day-card__note">{day.note}</p>
+      <p className="day-card__summary">{summary}</p>
+      <button
+        aria-expanded={isSelected}
+        aria-label={`View Day ${day.day} details`}
+        className="day-card__button"
+        onClick={onSelect}
+        type="button"
+      >
+        View details
+      </button>
     </article>
   );
 }

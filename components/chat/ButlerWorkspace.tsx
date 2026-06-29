@@ -7,12 +7,25 @@ import { applyCanvasPatch } from "@/lib/canvas/applyCanvasPatch";
 import { createMockButlerPatch, initialTripState } from "@/lib/mock-ai/mockButler";
 import type { ChatMessage, TripState } from "@/lib/types/trip";
 
-const welcomeMessage: ChatMessage = {
-  id: "assistant-welcome",
-  role: "assistant",
-  content:
-    "Tell me where you are starting, how many days you have, and what you care about. I will keep the trip canvas updated as we talk.",
-};
+const openingMessages: ChatMessage[] = [
+  {
+    id: "user-opening-context",
+    role: "user",
+    content:
+      "We're interested in history, culture, and good food. Prefer a less tiring trip. Any suggestions for our itinerary?",
+  },
+  {
+    id: "assistant-opening-draft",
+    role: "assistant",
+    content:
+      "I drafted a Beijing to Shanghai route with cultural highlights, local food, and a balanced pace. You can review the canvas on the left.",
+  },
+  {
+    id: "user-opening-adjustment",
+    role: "user",
+    content: "Looks good. Can we keep the hotels convenient and avoid too many transfers?",
+  },
+];
 
 function createMessage(role: ChatMessage["role"], content: string): ChatMessage {
   return {
@@ -24,7 +37,7 @@ function createMessage(role: ChatMessage["role"], content: string): ChatMessage 
 
 export function ButlerWorkspace() {
   const [trip, setTrip] = useState<TripState>(initialTripState);
-  const [messages, setMessages] = useState<ChatMessage[]>([welcomeMessage]);
+  const [messages, setMessages] = useState<ChatMessage[]>(openingMessages);
   const [status, setStatus] = useState("Canvas ready for your first request.");
 
   const statusText = useMemo(() => status, [status]);

@@ -2,12 +2,12 @@ import Link from "next/link";
 
 export type AppTab = "chat" | "trips" | "explore" | "tools" | "account";
 
-const tabs: Array<{ key: AppTab; label: string; href: string }> = [
-  { key: "chat", label: "Chat", href: "/chat" },
-  { key: "trips", label: "Trips", href: "/trips" },
-  { key: "explore", label: "Explore", href: "/explore" },
-  { key: "tools", label: "Tools", href: "/tools" },
-  { key: "account", label: "Account", href: "/account" },
+const tabs: Array<{ key: AppTab; label: string; href: string; icon: string }> = [
+  { key: "chat", label: "Chat", href: "/chat", icon: "C" },
+  { key: "trips", label: "Trips", href: "/trips", icon: "T" },
+  { key: "explore", label: "Explore", href: "/explore", icon: "E" },
+  { key: "tools", label: "Tools", href: "/tools", icon: "X" },
+  { key: "account", label: "Account", href: "/account", icon: "A" },
 ];
 
 export function NavTabs({ activeTab }: { activeTab: AppTab }) {
@@ -21,6 +21,7 @@ export function NavTabs({ activeTab }: { activeTab: AppTab }) {
           href={tab.href}
           key={tab.key}
         >
+          <span aria-hidden="true">{tab.icon}</span>
           {tab.label}
         </Link>
       ))}

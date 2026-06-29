@@ -37,7 +37,6 @@ export function ChatPanel({ messages, onSend, busy = false }: ChatPanelProps) {
     <aside className="chat-panel" aria-label="AI butler chat">
       <div className="chat-panel__head">
         <p className="section-kicker">Ask VisePanda</p>
-        <h2>Plan with your China travel butler</h2>
       </div>
       <div className="prompt-row" aria-label="Suggested prompts">
         {prompts.map((prompt) => (
