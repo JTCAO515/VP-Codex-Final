@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-VisePanda 是一个面向外国人来中国旅行的 AI 管家产品。当前主线是：右侧持续 Chat，左侧 Live Trip Canvas 实时刷新；Trips 已从占位页升级为 saved trips dashboard 骨架，后续会承接真实保存、恢复和分享。
+VisePanda 是一个面向外国人来中国旅行的 AI 管家产品。当前主线是：右侧持续 Chat，左侧 Live Trip Canvas 实时刷新；Trips 已从占位页升级为真实 Supabase persistence + 归档/分享流程；Explore 已从占位页升级为静态 provider 驱动的城市/景点/美食/住宿骨架，预留真实第三方 provider 接入点。
 
 ## 核心技术栈
 
@@ -49,6 +49,7 @@ VisePanda 是一个面向外国人来中国旅行的 AI 管家产品。当前主
 - 不要让移动导航遮挡核心内容。
 - Trips/Chat 现在有真实 Supabase persistence 首个闭环（保存、读取、恢复），guest draft 登录后会自动迁移，且已有 trip detail 页面（`/trips/[id]`），支持归档/恢复状态切换和分享链接生成/撤销，分享链接对应只读公开页面 `/share/[token]`。
 - 运行 `supabase/migrations/0002_trip_archive_and_share.sql` 之前，分享和归档相关数据库操作会因为 RLS policy 缺失而失败；该迁移必须在 0001 之后追加执行到真实 Supabase 项目。
+- Explore 数据必须只通过 `lib/explore/index.ts` 的 `getExploreProvider()` 获取，不要在组件里直接 import `staticProvider.ts` 或硬编码城市数据；后续接入真实 Amap/Trip.com/Meituan 时只新增一个实现 `ExploreProvider` 接口的模块并在工厂里切换。
 - 所有 Supabase 读写必须经过 `lib/supabase/tripsRepository.ts`，复用已确认的 `users`/`trips`/`canvas_versions`/`messages` 表结构，不要另起字段命名、拆分表，也不要绕开 repository 直接在组件里拼 Supabase 查询。
 - Supabase 相关代码必须在未配置环境变量、未登录、网络失败时优雅降级（不崩溃，回落到 guest/mock 体验），参考 `lib/supabase/client.ts` 的 `isSupabaseConfigured` 模式。
 - `SUPABASE_SERVICE_ROLE_KEY` 当前未在任何代码中使用；不要在浏览器端代码中引入它。

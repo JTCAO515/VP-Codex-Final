@@ -34,8 +34,8 @@
 
 ## 阶段四：Explore 与第三方 Provider
 
-- [ ] 任务 4.1：将 Explore 从占位页升级为城市、景点、美食、住宿入口。
-- [ ] 任务 4.2：设计 provider abstraction，避免 UI 直接依赖 Amap、Trip.com、Meituan。
+- [x] 任务 4.1：将 Explore 从占位页升级为城市、景点、美食、住宿入口。
+- [x] 任务 4.2：设计 provider abstraction，避免 UI 直接依赖 Amap、Trip.com、Meituan。
 - [ ] 任务 4.3：先接 verified/static provider，再接真实第三方 API。
 - [ ] 任务 4.4：把 Explore 结果加入 Chat 工作台的 Add to Trip / Add to Canvas 流程。
 
@@ -57,7 +57,8 @@
 - 技术选型：Next.js App Router、React、TypeScript、Vercel、Supabase 预留。
 - AI 约束：DeepSeek V4 Flash 只在服务端 API route 调用；真实 key 不进入浏览器、不写入仓库。
 - Fallback 约束：缺少 `DEEPSEEK_API_KEY`、API 失败或模型输出不合法时必须回落到 mock provider。
-- 当前重点：Chat / AI Butler 已完成 MVP 骨架；Trips 行程库已接入真实 Supabase persistence 首个闭环；guest draft 已能自动迁移到登录账号。
+- 当前重点：Chat / AI Butler 已完成 MVP 骨架；Trips 行程库已接入真实 Supabase persistence 首个闭环、归档/分享流程；guest draft 已能自动迁移到登录账号；Explore 已升级为静态 provider 驱动的城市/景点/美食/住宿骨架。
+- Explore provider 约束：`lib/explore/types.ts` 定义 `ExploreProvider` 接口；`lib/explore/staticProvider.ts` 是当前唯一实现（静态数据，覆盖 Beijing/Shanghai/Chengdu/Xi'an）；`lib/explore/index.ts` 的 `getExploreProvider()` 是组件唯一允许调用的入口，后续切换真实 Amap/Trip.com/Meituan provider 时只替换这里，不应改动 `components/explore/ExploreBoard.tsx` 的渲染逻辑。
 - Trips 当前限制：`v0.1.14` 已支持 trip detail 页面、归档/恢复状态切换、生成与撤销分享链接、以及只读公开分享页 `/share/[token]`；仍仅支持 magic link 登录，分享页不展示 chat 历史。
 - Supabase schema 约束：`supabase/migrations/0001_init_trip_schema.sql`、`supabase/migrations/0002_trip_archive_and_share.sql` 和 `lib/supabase/schema.ts` 是当前 schema 契约；`lib/supabase/tripsRepository.ts` 是唯一允许的 persistence 入口，不要绕开它直接拼 Supabase 查询。需要在 Supabase SQL Editor 中按顺序运行这两个迁移文件。
 - Supabase 部署约束：本仓库目前没有真实 Supabase 项目；`NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_ANON_KEY`、`SUPABASE_SERVICE_ROLE_KEY` 未配置前，所有 Supabase 相关代码必须保持优雅降级（不崩溃、自动回落到 mock/guest 体验）。
@@ -78,7 +79,7 @@
 - M4.5：guest draft 到 logged-in synced trip 自动迁移路径完成（2026-06-29，v0.1.12）。
 - M4.6：Trip detail 页面完成，支持从 Trips 查看真实/示例行程详情并恢复到 Chat（2026-06-29，v0.1.13）。
 - M4.7：分享状态、归档状态和只读分享链接完成（2026-06-29，v0.1.14）。
-- M5：Explore provider abstraction 完成（待排期）。
+- M5：Explore provider abstraction 和静态城市/景点/美食/住宿骨架完成（2026-06-29，v0.1.15）。
 - M6：Tools 第一批真实工具完成（待排期）。
 - M7：目的地感知背景切换完成（待排期）。
 

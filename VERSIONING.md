@@ -3,7 +3,7 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.14`
+- Current iteration: `v0.1.15`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -28,3 +28,4 @@
 - `v0.1.12`: implemented the guest draft to logged-in synced trip migration path (task 2.3) — guest chat drafts persist to `localStorage` and auto-save to Supabase the moment a user signs in.
 - `v0.1.13`: implemented the trip detail page (task 3.4) — `/trips/[id]` shows the real saved canvas for signed-in Supabase trips or an example-trip summary otherwise, with a new "View details" entry from the Trips Dashboard.
 - `v0.1.14`: implemented trip archive state and share links (task 3.5) — Trip Detail gained Mark as Ready/Archive/Restore actions plus Get share link/Revoke share link, backed by a new `0002_trip_archive_and_share.sql` migration and a public read-only `/share/[token]` page.
+- `v0.1.15`: implemented the Explore skeleton and provider abstraction (tasks 4.1, 4.2) — `lib/explore` defines an `ExploreProvider` interface with a static implementation covering Beijing/Shanghai/Chengdu/Xi'an, and `ExploreBoard` replaces the Explore placeholder with city filters and Attractions/Food/Stays columns.

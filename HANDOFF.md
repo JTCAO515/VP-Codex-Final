@@ -2,10 +2,10 @@
 
 ## 当前状态
 
-- 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase magic link 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面，并完成归档/分享链接流程（任务 3.5）。
+- 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase magic link 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面和归档/分享链接流程（任务 3.5）；阶段四 Explore 已升级为静态 provider 驱动的骨架，并完成 provider abstraction 设计（任务 4.1、4.2）。
 - 当前分支：`claude/visepanda-phase-3-hym6z9`（按用户要求后续直接推送到 `main`）
-- 当前版本：`v0.1.14`
-- 重要：用户已创建真实 Supabase 项目、跑过 `0001_init_trip_schema.sql` migration，并在 Vercel 配置了三个 Supabase 环境变量；`/account` 已验证可以正常使用。**本轮新增 `supabase/migrations/0002_trip_archive_and_share.sql`，用户需要在 Supabase SQL Editor 里手动追加执行这个迁移，否则归档/分享相关的状态更新会因 RLS 缺失而失败。**
+- 当前版本：`v0.1.15`
+- 重要：用户已创建真实 Supabase 项目、跑过 `0001_init_trip_schema.sql` migration，并在 Vercel 配置了三个 Supabase 环境变量；`/account` 已验证可以正常使用。**`supabase/migrations/0002_trip_archive_and_share.sql` 需要用户在 Supabase SQL Editor 里手动追加执行，否则归档/分享相关的状态更新会因 RLS 缺失而失败。**
 - 最新实现 commit：本轮提交后以 `git log -1 --oneline` 为准
 - 当前远端：`https://github.com/JTCAO515/VP-Codex-Final.git`
 - 部署地址：`https://go2china.space`
@@ -43,12 +43,12 @@
 - Guest draft 自动持久化到 `localStorage` 并在刷新后还原；用户登录后自动同步草稿到 Supabase（任务 2.3） ✅
 - Trip detail 页面（`/trips/[id]`）：已登录显示真实 Live Trip Canvas，未登录/示例行程显示摘要卡，未知 id 显示 not found（任务 3.4） ✅
 - 归档与分享链接（任务 3.5）：Trip detail 页面支持 Mark as Ready / Archive / Restore from archive 状态切换；支持 Get share link 生成 token 并展示完整 URL，支持 Revoke share link 撤销；新增公开只读分享页 `/share/[token]`（`components/share/ShareView.tsx`），未登录访客可查看分享行程的 Canvas，看不到聊天记录 ✅
+- Explore provider abstraction 与静态骨架（任务 4.1、4.2）：新增 `lib/explore/types.ts` 定义 `ExploreProvider` 接口和城市/景点/美食/住宿类型；`lib/explore/staticProvider.ts` 提供覆盖北京/上海/成都/西安的静态数据；`lib/explore/index.ts` 的 `getExploreProvider()` 是组件唯一允许调用的入口；`components/explore/ExploreBoard.tsx` 替换占位页，支持城市筛选按钮切换和景点/美食/住宿三列展示 ✅
 
 ## 未完成/待办
 
 - [ ] 真实 Supabase 项目已创建（用户已完成部署），需要提醒用户在 Supabase SQL Editor 里手动追加执行 `0002_trip_archive_and_share.sql`，否则归档/分享功能会因 RLS policy 缺失而报错。
-- [ ] 将 Explore 从占位升级为城市、景点、美食、住宿探索。
-- [ ] 设计并验证第三方 provider abstraction。
+- [ ] 接入 verified/static provider 之外的真实第三方 Explore API（Amap/Trip.com/Meituan），并把 Explore 结果接入 Chat 工作台的 Add to Trip 流程（任务 4.3、4.4）。
 - [ ] 实现 Tools 第一批真实工具。
 - [ ] 实现场景感知背景切换，例如北京对应长城/故宫水墨，上海对应外滩/江南园林水墨。
 - [ ] 移动端竖屏端细节适配。
@@ -66,8 +66,9 @@
 
 ## 下一步优先级
 
-1. 推进 Explore provider abstraction 和 Explore 骨架（任务 4.1、4.2）。
-2. 后续推进真实工具页（任务 5.x）。
+1. 将 Account 从独立页面改为图标 + 悬浮窗口登录（邮箱密码 + Google 登录，登录后可改名/改密码/登出）。
+2. 评估 Explore 真实第三方 provider 接入（任务 4.3）和 Add to Trip 流程（任务 4.4）。
+3. 后续推进真实工具页（任务 5.x）。
 
 ## 关键文件索引
 
@@ -96,6 +97,10 @@
 - `components/account/AccountPanel.tsx` — Account 登录 UI。
 - `supabase/migrations/0001_init_trip_schema.sql` — Supabase schema SQL 迁移（需要在真实项目里手动跑一次）。
 - `supabase/migrations/0002_trip_archive_and_share.sql` — 新增 `archived` 状态和分享链接公开只读 RLS policy（需要在 0001 之后手动追加执行）。
+- `lib/explore/types.ts` — Explore 域类型和 `ExploreProvider` 接口。
+- `lib/explore/staticProvider.ts` — 静态 Explore provider 实现（北京/上海/成都/西安）。
+- `lib/explore/index.ts` — `getExploreProvider()` 工厂，组件唯一允许调用的入口。
+- `app/explore/page.tsx`、`components/explore/ExploreBoard.tsx` — Explore 页面入口和城市/景点/美食/住宿看板组件。
 - `app/globals.css` — 当前视觉系统和响应式布局。
 - `public/ink-landscape.png` — MVP 水墨背景资产。
 - `tests/trips-dashboard.test.tsx` — Trips Dashboard 组件测试。
@@ -103,7 +108,7 @@
 
 ## 本地验证记录
 
-本轮 `v0.1.14` 需要通过：
+本轮 `v0.1.15` 需要通过：
 
 ```bash
 npm.cmd run test
