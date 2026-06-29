@@ -47,7 +47,8 @@ export function deepSeekSseToTextStream(
                 const delta = json.choices?.[0]?.delta?.content;
                 if (typeof delta === "string" && delta.length > 0) {
                   controller.enqueue(encoder.encode(delta));
-                  return; // Return after enqueueing to let consumer read
+                  // Return to let the queuing strategy decide when to call pull() again, avoiding starvation if backpressure is applied.
+                  return;
                 }
               } catch {
                 // Skip malformed SSE lines rather than failing the stream.
@@ -76,6 +77,10 @@ export function deepSeekSseToTextStream(
         buffer += decoder.decode(value, { stream: true });
         // Loop to try extracting lines again
       }
+    },
+    cancel(reason) {
+      // Propagate cancellation upstream to release the reader and the underlying HTTP response body.
+      reader.cancel(reason);
     },
   });
 }
