@@ -3,7 +3,7 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.11`
+- Current iteration: `v0.1.12`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -25,3 +25,4 @@
 - `v0.1.9`: redesigned Live Trip Canvas as a vertical day timeline with Morning/Afternoon/Evening blocks, removed the five butler task cards, and made each day editable through the detail drawer.
 - `v0.1.10`: designed the Supabase schema (`users`, `trips`, `canvas_versions`, `messages`) with RLS policies and a matching TypeScript contract, ahead of real persistence work.
 - `v0.1.11`: connected real Supabase magic-link auth and a first persistence loop — Save to Trips from Chat, real trip listing in Trips Dashboard, and Continue in Chat restoring a saved canvas — all degrading gracefully until a live Supabase project is configured.
+- `v0.1.12`: implemented the guest draft to logged-in synced trip migration path (task 2.3) — guest chat drafts persist to `localStorage` and auto-save to Supabase the moment a user signs in.

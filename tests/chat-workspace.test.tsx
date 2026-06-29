@@ -1,8 +1,12 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { ButlerWorkspace } from "@/components/chat/ButlerWorkspace";
 
 describe("ButlerWorkspace", () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
   it("starts without demo conversation and shows four suggestions in two rows", () => {
     render(<ButlerWorkspace />);
 
@@ -29,5 +33,22 @@ describe("ButlerWorkspace", () => {
     fireEvent.click(screen.getByRole("button", { name: /save to trips/i }));
 
     expect(await screen.findByText(/Add Supabase project keys to enable saving trips\./i)).toBeInTheDocument();
+  });
+
+  it("persists a guest draft to localStorage and restores it after remount", async () => {
+    const { unmount } = render(<ButlerWorkspace />);
+
+    fireEvent.change(screen.getByLabelText(/ask visepanda/i), {
+      target: { value: "I am visiting China for the first time for 5 days" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /send/i }));
+
+    await screen.findByText(/VisePanda updated the canvas/i);
+    expect(window.localStorage.getItem("visepanda:guest-draft")).toBeTruthy();
+
+    unmount();
+    render(<ButlerWorkspace />);
+
+    expect(await screen.findByText(/Restored your guest draft trip/i)).toBeInTheDocument();
   });
 });

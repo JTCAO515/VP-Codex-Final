@@ -1,5 +1,13 @@
 # VisePanda Changelog
 
+## v0.1.12 - 2026-06-29
+
+- Implemented task 2.3: guest draft to logged-in synced trip migration path.
+- `ButlerWorkspace` now persists an in-progress guest (not signed in, not yet saved) trip draft to `localStorage` under `visepanda:guest-draft` and restores it on remount.
+- When a guest signs in via magic link while a local draft exists, the draft is now automatically saved to Supabase (`saveTripCanvas` + `appendMessage`) without the user needing to click "Save to Trips" again.
+- The local draft is cleared once a trip is associated with a signed-in session (either restored from Supabase or freshly saved).
+- Added `tests/chat-workspace-guest-sync.test.tsx` covering the auto-save-on-sign-in flow, and a guest-draft persistence/restore test in `tests/chat-workspace.test.tsx`.
+
 ## v0.1.11 - 2026-06-29
 
 - Added a Supabase browser client and a `isSupabaseConfigured` guard so missing project keys never crash the app.

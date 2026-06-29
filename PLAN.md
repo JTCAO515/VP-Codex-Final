@@ -21,7 +21,7 @@
 
 - [x] 任务 2.1：接入 DeepSeek V4 Flash 真实 AI provider，保留 mock fallback。
 - [x] 任务 2.2：设计 Supabase schema：users、trips、messages、canvas_versions。
-- [ ] 任务 2.3：实现 guest draft 到 logged-in synced trip 的迁移路径。
+- [x] 任务 2.3：实现 guest draft 到 logged-in synced trip 的迁移路径。
 - [x] 任务 2.4：实现基础 auth（Supabase magic link），将 Account 占位页升级为真实登录/同步入口。
 
 ## 阶段三：Trips 行程库
@@ -57,8 +57,8 @@
 - 技术选型：Next.js App Router、React、TypeScript、Vercel、Supabase 预留。
 - AI 约束：DeepSeek V4 Flash 只在服务端 API route 调用；真实 key 不进入浏览器、不写入仓库。
 - Fallback 约束：缺少 `DEEPSEEK_API_KEY`、API 失败或模型输出不合法时必须回落到 mock provider。
-- 当前重点：Chat / AI Butler 已完成 MVP 骨架；Trips 行程库已接入真实 Supabase persistence 首个闭环。
-- Trips 当前限制：`v0.1.11` 已能在配置 Supabase 后保存/读取真实行程，但仅支持 magic link 登录，没有 trip detail 页面、归档、分享或 guest-to-account 迁移。
+- 当前重点：Chat / AI Butler 已完成 MVP 骨架；Trips 行程库已接入真实 Supabase persistence 首个闭环；guest draft 已能自动迁移到登录账号。
+- Trips 当前限制：`v0.1.12` 已能在配置 Supabase 后保存/读取真实行程，并支持 guest draft 登录后自动同步，但仍仅支持 magic link 登录，没有 trip detail 页面、归档或分享流程。
 - Supabase schema 约束：`supabase/migrations/0001_init_trip_schema.sql` 和 `lib/supabase/schema.ts` 是当前 schema 契约；`lib/supabase/tripsRepository.ts` 是唯一允许的 persistence 入口，不要绕开它直接拼 Supabase 查询。
 - Supabase 部署约束：本仓库目前没有真实 Supabase 项目；`NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_ANON_KEY`、`SUPABASE_SERVICE_ROLE_KEY` 未配置前，所有 Supabase 相关代码必须保持优雅降级（不崩溃、自动回落到 mock/guest 体验）。
 - 视觉约束：warm New Chinese、水墨背景、实底纸卡；不要半透明玻璃聊天框。
@@ -75,6 +75,7 @@
 - M3.5：Live Trip Canvas 三段式时间线和可编辑每日抽屉完成（2026-06-29，v0.1.9）。
 - M3.6：Supabase schema 设计完成（2026-06-29，v0.1.10）。
 - M4：Supabase magic link 登录 + Trips/Chat 真实 persistence 首个闭环完成（2026-06-29，v0.1.11）；trip detail、归档、分享待排期。
+- M4.5：guest draft 到 logged-in synced trip 自动迁移路径完成（2026-06-29，v0.1.12）。
 - M5：Explore provider abstraction 完成（待排期）。
 - M6：Tools 第一批真实工具完成（待排期）。
 - M7：目的地感知背景切换完成（待排期）。

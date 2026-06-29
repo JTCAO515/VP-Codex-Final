@@ -1,5 +1,6 @@
 "use client";
 
+import type { Session } from "@supabase/supabase-js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChatPanel } from "@/components/chat/ChatPanel";
 import { TripCanvas } from "@/components/canvas/TripCanvas";
@@ -8,6 +9,13 @@ import { createMockButlerPatch, initialTripState } from "@/lib/mock-ai/mockButle
 import { appendMessage, loadTripWithCanvas, saveTripCanvas } from "@/lib/supabase/tripsRepository";
 import { useSupabaseSession } from "@/lib/supabase/useSupabaseSession";
 import type { ChatMessage, TripState } from "@/lib/types/trip";
+
+const GUEST_DRAFT_KEY = "visepanda:guest-draft";
+
+interface GuestDraft {
+  trip: TripState;
+  messages: ChatMessage[];
+}
 
 const initialSuggestions = [
   "Plan my first China trip",
@@ -40,6 +48,8 @@ export function ButlerWorkspace() {
   const [saving, setSaving] = useState(false);
   const [tripId, setTripId] = useState<string | null>(null);
   const persistedMessageCount = useRef(0);
+  const hasLoadedDraftRef = useRef(false);
+  const previousSessionRef = useRef<Session | null>(null);
 
   const statusText = useMemo(() => status, [status]);
 
@@ -61,7 +71,34 @@ export function ButlerWorkspace() {
       });
   }, [configured]);
 
-  async function handleSaveToTrips() {
+  useEffect(() => {
+    if (typeof window === "undefined" || hasLoadedDraftRef.current) return;
+    hasLoadedDraftRef.current = true;
+    if (new URLSearchParams(window.location.search).get("trip")) return;
+
+    const raw = window.localStorage.getItem(GUEST_DRAFT_KEY);
+    if (!raw) return;
+    try {
+      const draft = JSON.parse(raw) as GuestDraft;
+      setTrip(draft.trip);
+      setMessages(draft.messages);
+      setStatus("Restored your guest draft trip.");
+    } catch {
+      window.localStorage.removeItem(GUEST_DRAFT_KEY);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (session || tripId) {
+      window.localStorage.removeItem(GUEST_DRAFT_KEY);
+      return;
+    }
+    if (messages.length === 0) return;
+    window.localStorage.setItem(GUEST_DRAFT_KEY, JSON.stringify({ trip, messages } satisfies GuestDraft));
+  }, [trip, messages, session, tripId]);
+
+  async function handleSaveToTrips(successMessage = "Saved this trip to your Trips library.") {
     if (!configured) {
       setStatus("Add Supabase project keys to enable saving trips.");
       return;
@@ -93,13 +130,22 @@ export function ButlerWorkspace() {
       }
       persistedMessageCount.current = messages.length;
 
-      setStatus("Saved this trip to your Trips library.");
+      setStatus(successMessage);
     } catch {
       setStatus("Saving failed. Please try again.");
     } finally {
       setSaving(false);
     }
   }
+
+  useEffect(() => {
+    const justSignedIn = !previousSessionRef.current && Boolean(session);
+    previousSessionRef.current = session;
+    if (!justSignedIn || loading || tripId || messages.length === 0) return;
+
+    void handleSaveToTrips("Synced your guest draft trip to your account.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session]);
 
   async function handleSend(message: string) {
     setBusy(true);
@@ -142,7 +188,7 @@ export function ButlerWorkspace() {
       <div className="butler-workspace__chat">
         <ChatPanel messages={messages} onSend={handleSend} busy={busy} suggestions={suggestions} />
         <div className="workspace-save-row">
-          <button type="button" onClick={handleSaveToTrips} disabled={saving || busy}>
+          <button type="button" onClick={() => handleSaveToTrips()} disabled={saving || busy}>
             {saving ? "Saving..." : "Save to Trips"}
           </button>
         </div>
