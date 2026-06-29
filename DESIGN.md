@@ -88,9 +88,9 @@ erDiagram
 
 ### ADR-004：为什么 Day 详情使用抽屉而不是直接展开
 
-- 背景：当前阶段优先电脑横屏端，主画布需要快速扫描，不应被 Day 详情占满。
-- 方案对比：主界面直接展开详情信息完整，但会挤压行程总览；每日一句摘要 + 抽屉详情让主画布更轻。
-- 结论：Trip Canvas 主界面只显示每日摘要，完整时间段、餐饮、住宿、交通、备注进入侧边抽屉。
+- 背景：当前阶段优先电脑横屏端，主画布需要快速扫描，同时用户希望直接看到 Morning / Afternoon / Evening 的一天结构。
+- 方案对比：主界面直接展开所有详情信息完整，但会挤压行程总览；三段式 Day 卡 + 抽屉详情让主画布可扫读，也保留编辑深度。
+- 结论：Trip Canvas 主界面显示 Day 时间线和 Morning / Afternoon / Evening 三段摘要，完整描述、酒店、交通、备注和本地修改进入侧边抽屉。
 
 ### ADR-005：为什么桌面工作台固定为一屏
 
@@ -110,6 +110,12 @@ erDiagram
 - 方案对比：立即接数据库会过早固定数据模型；先做静态 dashboard 可以验证页面信息结构、筛选和导航入口。
 - 结论：`v0.1.8` Trips 使用 `lib/trips/mockTrips.ts`，后续再接 Supabase persistence 和 trip detail。
 
+### ADR-008：为什么移除 Canvas 顶部五张任务卡
+
+- 背景：用户希望 Live Canvas 更像行程本体，而不是提醒/任务面板；Visa、Payment、Booking 等任务框占用了画布首屏空间。
+- 方案对比：保留任务卡能表达 AI 管家提醒，但会压缩每日行程；移除任务卡能让 Day 1 / Day 2 / Day 3 和三段行程成为视觉主角。
+- 结论：`v0.1.9` 从 `TripCanvas` 移除 `CanvasTaskStrip` 渲染。提醒能力暂时保留在数据和后续 Tools 深链规划中，不再显示在 Canvas 顶部。
+
 ## 路由/页面结构
 
 - `/`：重定向到 `/chat`
@@ -128,7 +134,7 @@ erDiagram
 - `app/`：Next.js routes、layout、global CSS、API routes。
 - `components/shell/`：AppShell、NavTabs。
 - `components/chat/`：ButlerWorkspace、ChatPanel。
-- `components/canvas/`：TripCanvas、TripSummary、DayCard、DayDetailDrawer、CanvasTaskStrip。
+- `components/canvas/`：TripCanvas、TripSummary、DayCard、DayDetailDrawer、CanvasTaskStrip（保留文件但当前不在 TripCanvas 渲染）。
 - `components/trips/`：TripsDashboard。
 - `components/placeholders/`：PlaceholderPage。
 - `lib/ai/`：DeepSeek provider 与 fallback orchestration。

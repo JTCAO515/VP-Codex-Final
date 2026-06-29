@@ -4,7 +4,7 @@
 
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider 已接入；阶段三 Trips Dashboard 骨架已完成。
 - 当前分支：`main`
-- 当前版本：`v0.1.8`
+- 当前版本：`v0.1.9`
 - 最新实现 commit：本轮提交后以 `git log -1 --oneline` 为准
 - 当前远端：`https://github.com/JTCAO515/VP-Codex-Final.git`
 - 部署地址：`https://go2china.space`
@@ -20,9 +20,10 @@
 - 无默认演示对话的真实 Chat 初始态 ✅
 - 两列建议问题 + 每轮 2 个上下文 follow-up ✅
 - Day-by-day summary cards ✅
-- 每日一句摘要卡 + 侧边详情抽屉 ✅
+- Day 时间线 + Morning / Afternoon / Evening 三段卡 ✅
+- 可编辑每日详情抽屉 ✅
 - 桌面横屏一屏固定工作台 ✅
-- 顶部五张任务/提醒卡 ✅
+- Canvas 顶部五张任务/提醒卡已移除 ✅
 - DeepSeek V4 Flash provider ✅
 - mock AI fallback ✅
 - canvas patch reducer ✅
@@ -52,14 +53,15 @@
 - 用户提供的 DeepSeek key 已出现在聊天上下文中，验证完成后建议在 DeepSeek 后台轮换。
 - npm audit 当前可能报告若干依赖安全提示；尚未使用 `npm audit fix --force`，避免破坏 Next/React 版本组合。
 - Trips 当前为 mock data，不具备真实保存或跨设备同步能力。
+- Day 抽屉编辑当前为本地状态，刷新页面后不会保存；后续需要接入 Supabase。
 - Explore、Tools、Account 当前仍是占位。
 - 桌面横屏端为当前优先体验；移动竖屏端后续需要针对抽屉、画布密度和 Trips 卡片继续优化。
 - OneDrive 目录偶尔会锁住 `.next` 构建缓存；如出现 `readlink` / `EBUSY`，停止 dev server 并安全删除 `.next` 后重跑。
 
 ## 下一步优先级
 
-1. 为 Trips 设计 Supabase schema：trip metadata、canvas snapshot、messages、share status。
-2. 实现从 Chat 保存当前 Trip Canvas 到 Trips 的最小闭环。
+1. 为 Trip Canvas / Trips 设计 Supabase schema：trip metadata、canvas snapshot、messages、share status。
+2. 实现从 Chat 保存当前 Trip Canvas 到 Trips 的最小闭环，并保存抽屉编辑后的 Day 内容。
 3. 实现从 Trips 点击某个行程恢复到 Chat 的上下文。
 4. 再扩展 trip detail 页面和分享/归档状态。
 5. 后续再推进 Explore provider abstraction 和真实工具页。
@@ -88,7 +90,7 @@
 
 ## 本地验证记录
 
-本轮 `v0.1.8` 需要通过：
+本轮 `v0.1.9` 需要通过：
 
 ```bash
 npm.cmd run test

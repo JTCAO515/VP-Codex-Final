@@ -3,7 +3,7 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.8`
+- Current iteration: `v0.1.9`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -22,3 +22,4 @@
 - `v0.1.6`: connected DeepSeek V4 Flash through the server chat route with mock fallback and server-only key handling.
 - `v0.1.7`: removed the demo opening conversation, changed suggested prompts to a two-column layout, and returns two context-aware follow-up questions after each AI reply.
 - `v0.1.8`: upgraded Trips from a placeholder into a desktop-first saved trips dashboard skeleton with mock trip cards, status filters, summary metrics, and Continue in Chat links.
+- `v0.1.9`: redesigned Live Trip Canvas as a vertical day timeline with Morning/Afternoon/Evening blocks, removed the five butler task cards, and made each day editable through the detail drawer.

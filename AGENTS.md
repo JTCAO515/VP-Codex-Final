@@ -40,10 +40,11 @@ VisePanda 是一个面向外国人来中国旅行的 AI 管家产品。当前主
 - DeepSeek key 只允许通过 `DEEPSEEK_API_KEY` 等服务器端环境变量读取，不允许传到浏览器或写入文档。
 - 不要删除 mock provider；真实 AI 接入后也必须保留 fallback。
 - 不要使用半透明玻璃聊天框。
-- 不要在 Trip Canvas 主界面直接展开每日详情；主界面只保留每日一句总结，完整详情进入抽屉。
+- 不要恢复 Canvas 顶部五个任务框：Visa / Payment / Booking / Less tiring / Food-focused 已被移除。
+- 不要在 Trip Canvas 主界面直接展开长篇每日详情；主界面保留 Day 时间线和 Morning / Afternoon / Evening 摘要，完整详情和编辑进入抽屉。
 - `/chat` 初始态不要放演示对话；真实 AI 接入后由用户第一句话开始对话。
 - 建议问题属于聊天 UI 状态，不要写入 `CanvasPatch`；每次 AI 回复后刷新为 2 个上下文相关问题。
-- 不要重新加入独立 Practical Reminder / Butler Rail 区块；管家提醒合并在顶部五张任务卡。
+- 不要重新加入独立 Practical Reminder / Butler Rail 区块；管家提醒后续应进入 Tools 或更轻量的上下文提示，不占据 Canvas 顶部。
 - 桌面横屏端优先保持一屏固定工作台；移动竖屏细节可以后续再精修。
 - 不要让移动导航遮挡核心内容。
 - Trips 当前是 dashboard 骨架，不要在未确认 schema 前接真实数据库或复杂详情流。

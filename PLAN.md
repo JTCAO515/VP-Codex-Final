@@ -14,6 +14,8 @@
 - [x] 任务 1.10：Trip Canvas 主界面只显示每日一句摘要，完整每日行程通过右侧抽屉查看。
 - [x] 任务 1.11：移除独立 Practical Reminder 区块，将管家提醒合并到顶部五张任务卡。
 - [x] 任务 1.12：移除 Chat 默认演示对话，建议问题改为两列，并在每次 AI 回复后生成 2 个上下文建议问题。
+- [x] 任务 1.13：将 Live Trip Canvas 改为 Day 时间线，每天显示 Morning / Afternoon / Evening 三段，并移除顶部五张任务卡。
+- [x] 任务 1.14：将每日详情抽屉升级为可编辑抽屉，支持本地修改日程块、酒店、交通和备注。
 
 ## 阶段二：AI Provider 与 Supabase 接入
 
@@ -59,6 +61,7 @@
 - Trips 当前限制：`v0.1.8` 只做静态 dashboard 骨架，不做 Supabase、登录、真实保存和 trip detail 页面。
 - 视觉约束：warm New Chinese、水墨背景、实底纸卡；不要半透明玻璃聊天框。
 - 桌面布局约束：当前阶段优先电脑横屏端，一屏工作台和内部滚动优先；移动竖屏端后续精修。
+- Canvas 约束：不要恢复顶部 Visa / Payment / Booking / Less tiring / Food-focused 五个任务框；每日主卡必须直接呈现 Morning / Afternoon / Evening。
 - 文档约束：每一次迭代都必须同步更新 `PLAN.md`、`PRD.md`、`DESIGN.md`、`AGENTS.md`、`HANDOFF.md`。
 - 测试约束：最终完成前必须跑 `npm run test`、`npm run build`、`npm run test:e2e`。
 
@@ -67,6 +70,7 @@
 - M1：AI Butler Chat MVP 骨架完成（2026-06-29，已完成）。
 - M2：真实 AI provider 完成（2026-06-29，已完成）；Supabase schema 待排期。
 - M3：Trips Dashboard 骨架完成（2026-06-29，v0.1.8）。
+- M3.5：Live Trip Canvas 三段式时间线和可编辑每日抽屉完成（2026-06-29，v0.1.9）。
 - M4：Supabase trip persistence 完成（待排期）。
 - M5：Explore provider abstraction 完成（待排期）。
 - M6：Tools 第一批真实工具完成（待排期）。

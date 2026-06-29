@@ -1,5 +1,13 @@
 # VisePanda Changelog
 
+## v0.1.9 - 2026-06-29
+
+- Redesigned Live Trip Canvas day cards into a vertical Day 1 / Day 2 / Day 3 timeline.
+- Added Morning / Afternoon / Evening blocks directly inside each day card.
+- Removed the five top butler task cards from the canvas surface.
+- Upgraded the day detail drawer into a local editor for city, day blocks, hotel, transport, and notes.
+- Added component coverage for the new editable canvas workflow.
+
 ## v0.1.8 - 2026-06-29
 
 - Upgraded `/trips` from a placeholder page into a saved trips dashboard skeleton.

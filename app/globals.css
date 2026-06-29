@@ -649,6 +649,104 @@ select:focus-visible {
   line-height: 1.5;
 }
 
+.day-card {
+  grid-template-columns: 74px minmax(0, 1fr) auto;
+  gap: 12px 16px;
+  align-items: start;
+  padding: 18px 18px 18px 0;
+}
+
+.day-card__marker {
+  margin-top: -1px;
+}
+
+.day-card__head {
+  grid-column: 2;
+  grid-template-columns: 1fr;
+  padding-top: 2px;
+}
+
+.day-card__head span {
+  display: none;
+}
+
+.day-card__blocks {
+  grid-column: 2 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+
+.day-block {
+  min-width: 0;
+  border: 1px solid rgba(111, 91, 73, 0.14);
+  border-radius: 6px;
+  padding: 10px;
+  background: rgba(255, 248, 237, 0.38);
+}
+
+.day-block__image {
+  display: grid;
+  min-height: 56px;
+  place-items: center;
+  border-radius: 5px;
+  padding: 8px;
+  background: rgba(182, 164, 136, 0.26);
+  color: var(--ink-soft);
+  font-size: 0.7rem;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.day-block span {
+  margin-top: 8px;
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.day-block strong {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: 0.94rem;
+  line-height: 1.25;
+}
+
+.day-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  grid-column: 2 / -1;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.day-card__link {
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  padding: 0;
+  background: transparent;
+  color: var(--ink-muted);
+  font-size: 0.82rem;
+}
+
+.day-card__button {
+  grid-column: 3;
+  grid-row: 1;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--cinnabar);
+}
+
+.day-card[data-selected="true"] .day-card__button {
+  background: transparent;
+  color: var(--cinnabar);
+}
+
 .day-drawer-shell {
   position: fixed;
   inset: 86px 0 0 auto;
@@ -757,6 +855,51 @@ select:focus-visible {
   margin-top: 14px;
   border-left: 3px solid var(--gold);
   padding-left: 11px;
+}
+
+.day-drawer__form {
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.day-drawer__form label,
+.day-drawer__block label,
+.day-drawer__details label {
+  display: grid;
+  gap: 6px;
+  color: var(--cinnabar);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.day-drawer__form input,
+.day-drawer__form textarea {
+  width: 100%;
+  border: 1px solid rgba(111, 91, 73, 0.2);
+  border-radius: 6px;
+  padding: 10px 11px;
+  background: rgba(255, 248, 237, 0.62);
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.45;
+  text-transform: none;
+}
+
+.day-drawer__form textarea {
+  min-height: 76px;
+  resize: vertical;
+}
+
+.day-drawer__save {
+  min-height: 42px;
+  border: 0;
+  border-radius: 7px;
+  background: var(--cinnabar);
+  color: var(--paper-soft);
+  font-weight: 900;
 }
 
 .butler-rail {
@@ -1235,7 +1378,7 @@ select:focus-visible {
   }
 
   .trip-canvas {
-    grid-template-rows: auto auto auto minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
   }
 
   .trip-canvas__body {
