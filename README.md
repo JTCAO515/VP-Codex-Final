@@ -37,3 +37,5 @@ npm run build
 ## Environment
 
 Copy `.env.example` to `.env.local` only when a later phase needs live providers. Phase one works without any configured keys.
+
+Reserved variables cover future Supabase, AI provider, Amap, Trip.com, and Meituan integrations. The first-stage skeleton treats every missing key as expected and keeps the mock butler flow available.
