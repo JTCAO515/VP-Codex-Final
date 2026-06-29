@@ -65,6 +65,7 @@ erDiagram
 - `ChatMessage`：聊天记录。
 - `suggestions`：`/api/chat` 顶层返回的两个上下文建议问题，不写入 `CanvasPatch`，避免污染行程数据契约。
 - `SavedTrip`：Trips Dashboard 当前使用的静态行程卡类型，后续会映射到 Supabase trips。
+- `UserRow` / `TripRow` / `CanvasVersionRow` / `MessageRow`（`lib/supabase/schema.ts`）：对应 `supabase/migrations/0001_init_trip_schema.sql` 中 `users`、`trips`、`canvas_versions`、`messages` 表的 TypeScript 契约，当前未接入真实 Supabase 客户端。
 
 ## 关键设计决策
 
@@ -110,6 +111,12 @@ erDiagram
 - 方案对比：立即接数据库会过早固定数据模型；先做静态 dashboard 可以验证页面信息结构、筛选和导航入口。
 - 结论：`v0.1.8` Trips 使用 `lib/trips/mockTrips.ts`，后续再接 Supabase persistence 和 trip detail。
 
+### ADR-009：为什么 Supabase schema 用 canvas_versions 而不是直接拆分 trip_days 表
+
+- 背景：`TripState` 包含 summary、days、alerts，结构会随 AI patch 频繁整体替换；Trips 后续还需要支持恢复历史版本和分享某个快照。
+- 方案对比：把 `TripDay`、`ButlerAlert` 拆成各自的表能做更细粒度查询，但会让 patch 应用从一次 JSON 替换变成多表事务，且历史版本难以整体回滚；用 `canvas_versions.canvas` 存整份 `TripState` JSON，能直接复用现有 `applyCanvasPatch` 输出，并天然支持版本历史和回滚。
+- 结论：`trips` 表存元信息和状态，`canvas_versions` 表存每次保存的完整 `TripState` JSON 快照，`trips.current_canvas_version_id` 指向最新快照；`messages` 表存聊天记录，结构对应 `ChatMessage`。Schema 文件：`supabase/migrations/0001_init_trip_schema.sql`，对应 TypeScript 契约：`lib/supabase/schema.ts`。
+
 ### ADR-008：为什么移除 Canvas 顶部五张任务卡
 
 - 背景：用户希望 Live Canvas 更像行程本体，而不是提醒/任务面板；Visa、Payment、Booking 等任务框占用了画布首屏空间。
@@ -141,6 +148,8 @@ erDiagram
 - `lib/mock-ai/`：mock butler fallback provider。
 - `lib/canvas/`：canvas patch reducer。
 - `lib/trips/`：Trips mock data 和后续 trip library helpers。
+- `lib/supabase/`：Supabase schema 的 TypeScript 契约（`schema.ts`），尚未包含真实客户端初始化。
+- `supabase/migrations/`：Supabase SQL schema 迁移文件，当前未应用到真实项目。
 - `lib/types/`：共享类型。
 - `lib/env/`：环境变量状态 registry。
 - `tests/`：Vitest 和 Playwright 测试。

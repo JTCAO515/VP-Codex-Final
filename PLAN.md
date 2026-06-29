@@ -20,7 +20,7 @@
 ## 阶段二：AI Provider 与 Supabase 接入
 
 - [x] 任务 2.1：接入 DeepSeek V4 Flash 真实 AI provider，保留 mock fallback。
-- [ ] 任务 2.2：设计 Supabase schema：users、trips、messages、canvas_versions。
+- [x] 任务 2.2：设计 Supabase schema：users、trips、messages、canvas_versions。
 - [ ] 任务 2.3：实现 guest draft 到 logged-in synced trip 的迁移路径。
 - [ ] 任务 2.4：实现基础 auth，将 Account 占位页升级为真实登录/同步入口。
 
@@ -58,7 +58,8 @@
 - AI 约束：DeepSeek V4 Flash 只在服务端 API route 调用；真实 key 不进入浏览器、不写入仓库。
 - Fallback 约束：缺少 `DEEPSEEK_API_KEY`、API 失败或模型输出不合法时必须回落到 mock provider。
 - 当前重点：Chat / AI Butler 已完成 MVP 骨架，本轮开始扩展 Trips 行程库。
-- Trips 当前限制：`v0.1.8` 只做静态 dashboard 骨架，不做 Supabase、登录、真实保存和 trip detail 页面。
+- Trips 当前限制：`v0.1.10` 已完成 Supabase schema 设计，但尚未接入真实数据库、登录和 trip detail 页面。
+- Supabase schema 约束：`supabase/migrations/0001_init_trip_schema.sql` 和 `lib/supabase/schema.ts` 是当前 schema 契约；实现任务 3.3 时必须复用该契约，不要另起字段命名。
 - 视觉约束：warm New Chinese、水墨背景、实底纸卡；不要半透明玻璃聊天框。
 - 桌面布局约束：当前阶段优先电脑横屏端，一屏工作台和内部滚动优先；移动竖屏端后续精修。
 - Canvas 约束：不要恢复顶部 Visa / Payment / Booking / Less tiring / Food-focused 五个任务框；每日主卡必须直接呈现 Morning / Afternoon / Evening。
@@ -71,6 +72,7 @@
 - M2：真实 AI provider 完成（2026-06-29，已完成）；Supabase schema 待排期。
 - M3：Trips Dashboard 骨架完成（2026-06-29，v0.1.8）。
 - M3.5：Live Trip Canvas 三段式时间线和可编辑每日抽屉完成（2026-06-29，v0.1.9）。
+- M3.6：Supabase schema 设计完成（2026-06-29，v0.1.10）。
 - M4：Supabase trip persistence 完成（待排期）。
 - M5：Explore provider abstraction 完成（待排期）。
 - M6：Tools 第一批真实工具完成（待排期）。

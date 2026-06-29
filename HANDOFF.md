@@ -2,9 +2,9 @@
 
 ## 当前状态
 
-- 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider 已接入；阶段三 Trips Dashboard 骨架已完成。
-- 当前分支：`main`
-- 当前版本：`v0.1.9`
+- 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider 已接入，Supabase schema 已设计；阶段三 Trips Dashboard 骨架已完成。
+- 当前分支：`claude/visepanda-phase-3-hym6z9`
+- 当前版本：`v0.1.10`
 - 最新实现 commit：本轮提交后以 `git log -1 --oneline` 为准
 - 当前远端：`https://github.com/JTCAO515/VP-Codex-Final.git`
 - 部署地址：`https://go2china.space`
@@ -34,10 +34,11 @@
 - `/api/trips`、`/api/explore`、`/api/tools` placeholder routes ✅
 - Vitest 单元/组件/API 测试 ✅
 - Playwright 桌面/移动烟测 ✅
+- Supabase schema 设计：`users`、`trips`、`canvas_versions`、`messages` 表 + RLS policies ✅
 
 ## 未完成/待办
 
-- [ ] 设计 Supabase schema 并接入 trips/chat/canvas persistence。
+- [ ] 接入真实 Supabase 客户端，实现 trips/chat/canvas persistence（schema 已确认，待实现）。
 - [ ] 实现 Account 登录和同步。
 - [ ] 让 Trips 支持真实保存、读取、更新、恢复到 Chat Canvas。
 - [ ] 增加 trip detail 页面和分享链接。
@@ -60,7 +61,7 @@
 
 ## 下一步优先级
 
-1. 为 Trip Canvas / Trips 设计 Supabase schema：trip metadata、canvas snapshot、messages、share status。
+1. 接入真实 Supabase 客户端，按已确认 schema 实现 trips/canvas_versions/messages persistence（任务 3.3）。
 2. 实现从 Chat 保存当前 Trip Canvas 到 Trips 的最小闭环，并保存抽屉编辑后的 Day 内容。
 3. 实现从 Trips 点击某个行程恢复到 Chat 的上下文。
 4. 再扩展 trip detail 页面和分享/归档状态。
@@ -83,6 +84,8 @@
 - `lib/mock-ai/mockButler.ts` — mock AI fallback provider。
 - `lib/canvas/applyCanvasPatch.ts` — canvas patch reducer。
 - `lib/types/trip.ts` — 核心产品类型。
+- `lib/supabase/schema.ts` — Supabase 表结构的 TypeScript 契约（尚未接客户端）。
+- `supabase/migrations/0001_init_trip_schema.sql` — Supabase schema SQL 迁移（尚未应用到真实项目）。
 - `app/globals.css` — 当前视觉系统和响应式布局。
 - `public/ink-landscape.png` — MVP 水墨背景资产。
 - `tests/trips-dashboard.test.tsx` — Trips Dashboard 组件测试。
@@ -90,7 +93,7 @@
 
 ## 本地验证记录
 
-本轮 `v0.1.9` 需要通过：
+本轮 `v0.1.10` 需要通过：
 
 ```bash
 npm.cmd run test

@@ -1,5 +1,12 @@
 # VisePanda Changelog
 
+## v0.1.10 - 2026-06-29
+
+- Designed the Supabase schema for `users`, `trips`, `canvas_versions`, and `messages` (task 2.2).
+- Added `supabase/migrations/0001_init_trip_schema.sql` with table definitions, indexes, foreign keys, and row-level security policies scoped to trip owners.
+- Added `lib/supabase/schema.ts` with TypeScript row types matching the migration, reusing `TripState`, `ChatMessage`, and `SavedTripStatus`.
+- No live Supabase project is connected yet; this is the schema contract that task 3.3 persistence work will implement against.
+
 ## v0.1.9 - 2026-06-29
 
 - Redesigned Live Trip Canvas day cards into a vertical Day 1 / Day 2 / Day 3 timeline.

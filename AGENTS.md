@@ -47,7 +47,8 @@ VisePanda 是一个面向外国人来中国旅行的 AI 管家产品。当前主
 - 不要重新加入独立 Practical Reminder / Butler Rail 区块；管家提醒后续应进入 Tools 或更轻量的上下文提示，不占据 Canvas 顶部。
 - 桌面横屏端优先保持一屏固定工作台；移动竖屏细节可以后续再精修。
 - 不要让移动导航遮挡核心内容。
-- Trips 当前是 dashboard 骨架，不要在未确认 schema 前接真实数据库或复杂详情流。
+- Trips 当前是 dashboard 骨架；Supabase schema 已在 `supabase/migrations/0001_init_trip_schema.sql` 和 `lib/supabase/schema.ts` 中确认，但仍未接入真实数据库客户端或复杂详情流。
+- 实现真实 Supabase 持久化（任务 3.3）时必须复用已确认的 `users`/`trips`/`canvas_versions`/`messages` 表结构，不要另起字段命名或拆分表。
 
 ## 常用命令
 
