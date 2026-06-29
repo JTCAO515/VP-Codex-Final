@@ -232,6 +232,234 @@ select:focus-visible {
   font-weight: 850;
 }
 
+.trip-canvas {
+  display: grid;
+  gap: 18px;
+}
+
+.trip-summary,
+.day-card,
+.butler-alert {
+  border: 1px solid rgba(111, 91, 73, 0.16);
+  background: var(--paper-soft);
+  box-shadow: var(--shadow-paper);
+}
+
+.trip-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px 22px;
+  align-items: start;
+  border-radius: var(--radius-lg);
+  padding: clamp(18px, 3vw, 28px);
+}
+
+.trip-summary h1 {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(2rem, 5vw, 4.4rem);
+  line-height: 0.92;
+  letter-spacing: 0;
+}
+
+.trip-summary__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  grid-column: 1 / -1;
+}
+
+.trip-summary__meta span,
+.trip-summary__confidence {
+  border: 1px solid rgba(163, 58, 45, 0.16);
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: #fff8ed;
+  color: var(--ink-muted);
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.trip-summary__confidence {
+  margin: 0;
+  color: var(--cinnabar);
+}
+
+.trip-summary__reason {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.trip-canvas__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 0.34fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.trip-canvas__days,
+.butler-rail__list {
+  display: grid;
+  gap: 14px;
+}
+
+.day-card {
+  border-radius: var(--radius-lg);
+  padding: 18px;
+}
+
+.day-card[data-status="new"] {
+  border-color: rgba(182, 134, 52, 0.42);
+}
+
+.day-card[data-status="revised"] {
+  border-color: rgba(163, 58, 45, 0.38);
+}
+
+.day-card__head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: baseline;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(111, 91, 73, 0.12);
+}
+
+.day-card__head p,
+.day-card__head h2 {
+  margin: 0;
+}
+
+.day-card__head p,
+.day-card__head span {
+  color: var(--cinnabar);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.day-card__head h2 {
+  font-size: 1.45rem;
+}
+
+.day-card__blocks {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.day-block {
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  gap: 3px 12px;
+}
+
+.day-block span {
+  grid-row: span 2;
+  color: var(--gold);
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.day-block strong {
+  color: var(--ink);
+}
+
+.day-block p {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.92rem;
+  line-height: 1.48;
+}
+
+.day-card__details {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 0;
+}
+
+.day-card__details div {
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.day-card__details dt {
+  color: var(--ink-soft);
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.day-card__details dd {
+  margin: 0;
+  color: var(--ink-muted);
+  line-height: 1.45;
+}
+
+.day-card__note {
+  margin: 16px 0 0;
+  border-left: 3px solid var(--gold);
+  padding-left: 12px;
+  color: var(--ink-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.butler-rail {
+  display: grid;
+  gap: 12px;
+}
+
+.butler-rail__head h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.butler-alert {
+  border-radius: var(--radius-md);
+  padding: 14px;
+}
+
+.butler-alert span {
+  display: inline-flex;
+  margin-bottom: 9px;
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: #f0e0c7;
+  color: var(--cinnabar);
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.butler-alert[data-priority="high"] span {
+  background: var(--cinnabar);
+  color: var(--paper-soft);
+}
+
+.butler-alert h3 {
+  margin: 0;
+  font-size: 0.98rem;
+}
+
+.butler-alert p {
+  margin: 8px 0 0;
+  color: var(--ink-muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.butler-alert strong {
+  display: block;
+  margin-top: 10px;
+  color: var(--gold);
+  font-size: 0.8rem;
+}
+
 @media (max-width: 760px) {
   .app-shell {
     padding: 14px 14px 112px;
@@ -267,6 +495,18 @@ select:focus-visible {
     align-items: start;
     min-height: auto;
     padding-top: 22px;
+  }
+
+  .trip-summary,
+  .trip-canvas__body,
+  .day-card__head,
+  .day-block,
+  .day-card__details div {
+    grid-template-columns: 1fr;
+  }
+
+  .trip-summary__confidence {
+    justify-self: start;
   }
 }
 
