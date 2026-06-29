@@ -156,11 +156,19 @@ erDiagram
 - 方案对比：保留任务卡能表达 AI 管家提醒，但会压缩每日行程；移除任务卡能让 Day 1 / Day 2 / Day 3 和三段行程成为视觉主角。
 - 结论：`v0.1.9` 从 `TripCanvas` 移除 `CanvasTaskStrip` 渲染。提醒能力暂时保留在数据和后续 Tools 深链规划中，不再显示在 Canvas 顶部。
 
+### ADR-014：为什么分享链接用宽松的 RLS 读策略，而不是在数据库层匹配具体 token
+
+- 背景：`v0.1.14` 需要让任何人（包括未登录访客）通过 `/share/[token]` 只读查看某条已分享行程，但 `trips`/`canvas_versions` 默认 RLS 只允许 `owner_id = auth.uid()`。
+- 方案对比：可以尝试在 RLS policy 里直接比较 `share_token` 和请求参数，但 Postgres RLS policy 无法直接读取应用层传入的 query 参数（只能用 `auth.uid()`、`current_setting` 等会话级上下文），伪造这种比较意义不大；更简单可靠的方式是用一条宽松策略允许"任何 `share_token is not null` 的行可读"，真正的 token 精确匹配交给应用层查询的 `.eq("share_token", shareToken)` 完成。
+- 结论：新增 `supabase/migrations/0002_trip_archive_and_share.sql`，为 `trips` 增加 `for select using (share_token is not null)` 策略，为 `canvas_versions` 增加基于 `exists` 子查询（检查对应 trip 是否有 `share_token`）的只读策略；`messages` 表不开放公开读取，保证分享页看不到聊天记录。该迁移是独立文件而不是直接改 `0001_init_trip_schema.sql`，因为已上线的 Supabase 项目已经执行过 0001，需要按顺序追加执行 0002。
+
 ## 路由/页面结构
 
 - `/`：重定向到 `/chat`
 - `/chat`：AI Butler 主工作台
 - `/trips`：Saved Trips Dashboard 骨架
+- `/trips/[id]`：Trip Detail 页面，支持归档状态切换和分享链接管理
+- `/share/[token]`：公开只读分享页，无需登录即可查看已分享行程的 Canvas
 - `/explore`：Explore 占位页
 - `/tools`：Tools 占位页
 - `/account`：Account 占位页
@@ -181,10 +189,11 @@ erDiagram
 - `lib/mock-ai/`：mock butler fallback provider。
 - `lib/canvas/`：canvas patch reducer。
 - `lib/trips/`：Trips mock data 和后续 trip library helpers。
-- `lib/supabase/`：Supabase 集成层 —— `schema.ts`（表结构契约）、`client.ts`（浏览器客户端 + 配置检测）、`auth.ts`（magic link 登录/登出/session）、`useSupabaseSession.ts`（React hook）、`tripsRepository.ts`（trips/canvas_versions/messages 读写）。
-- `supabase/migrations/`：Supabase SQL schema 迁移文件；需要在真实 Supabase 项目的 SQL Editor 中手动执行一次。
+- `lib/supabase/`：Supabase 集成层 —— `schema.ts`（表结构契约）、`client.ts`（浏览器客户端 + 配置检测）、`auth.ts`（magic link 登录/登出/session）、`useSupabaseSession.ts`（React hook）、`tripsRepository.ts`（trips/canvas_versions/messages 读写，含归档状态更新和分享 token 生成/撤销/公开读取）。
+- `supabase/migrations/`：Supabase SQL schema 迁移文件；需要按顺序在真实 Supabase 项目的 SQL Editor 中手动执行（`0001_init_trip_schema.sql` 之后追加 `0002_trip_archive_and_share.sql`）。
 - `components/account/AccountPanel.tsx`：Account 页面的 magic link 登录 UI 和 guest-mode 文案。
-- `app/trips/[id]/page.tsx`、`components/trips/TripDetail.tsx`：trip detail 页面，已登录且配置 Supabase 时渲染真实 `TripCanvas`，否则回落到示例行程摘要或 not-found 提示。
+- `app/trips/[id]/page.tsx`、`components/trips/TripDetail.tsx`：trip detail 页面，已登录且配置 Supabase 时渲染真实 `TripCanvas`，并提供 Mark as Ready / Archive / Restore from archive 状态切换和 Get share link / Revoke share link 操作；未登录或未配置时回落到示例行程摘要或 not-found 提示。
+- `app/share/[token]/page.tsx`、`components/share/ShareView.tsx`：公开只读分享页，不依赖登录态，仅渲染分享行程的 `TripCanvas` 快照，不包含 `AppShell` 导航。
 - `lib/types/`：共享类型。
 - `lib/env/`：环境变量状态 registry。
 - `tests/`：Vitest 和 Playwright 测试。

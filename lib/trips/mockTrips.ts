@@ -1,4 +1,4 @@
-export type SavedTripStatus = "draft" | "ready" | "shared";
+export type SavedTripStatus = "draft" | "ready" | "shared" | "archived";
 
 export interface SavedTrip {
   id: string;
@@ -54,6 +54,19 @@ export const savedTrips: SavedTrip[] = [
     summary: "A compact plan that fits meetings, river views, French Concession walks, and client dinners.",
     highlights: ["Jing'an", "The Bund", "Yu Garden"],
   },
+  {
+    id: "kunming-quiet-archive",
+    title: "Kunming Quiet Getaway",
+    route: "Kunming",
+    dates: "Mar 2 - Mar 5",
+    durationDays: 4,
+    travelers: "Solo traveler",
+    status: "archived",
+    updatedAt: "Updated 2 months ago",
+    alertCount: 0,
+    summary: "An archived slow-travel draft for Kunming's lakes and old town, kept for reference.",
+    highlights: ["Green Lake", "Old Town", "Stone Forest day trip"],
+  },
 ];
 
 export const tripStatusLabels: Record<SavedTripStatus | "all", string> = {
@@ -61,4 +74,5 @@ export const tripStatusLabels: Record<SavedTripStatus | "all", string> = {
   draft: "Draft",
   ready: "Ready",
   shared: "Shared",
+  archived: "Archived",
 };

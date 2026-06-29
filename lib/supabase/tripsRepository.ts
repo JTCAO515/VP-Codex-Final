@@ -96,6 +96,62 @@ export async function loadTripWithCanvas(tripId: string): Promise<RemoteTrip | n
   return { trip: trip as TripRow, canvas: (version as CanvasVersionRow).canvas };
 }
 
+export async function updateTripStatus(tripId: string, status: TripRow["status"]): Promise<void> {
+  const client = getSupabaseBrowserClient();
+  if (!client) throw new Error("Supabase is not configured.");
+
+  const { error } = await client
+    .from("trips")
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("id", tripId);
+  if (error) throw error;
+}
+
+export async function createShareLink(tripId: string): Promise<string> {
+  const client = getSupabaseBrowserClient();
+  if (!client) throw new Error("Supabase is not configured.");
+
+  const token = crypto.randomUUID();
+  const { error } = await client
+    .from("trips")
+    .update({ share_token: token, status: "shared", updated_at: new Date().toISOString() })
+    .eq("id", tripId);
+  if (error) throw error;
+
+  return token;
+}
+
+export async function revokeShareLink(tripId: string): Promise<void> {
+  const client = getSupabaseBrowserClient();
+  if (!client) throw new Error("Supabase is not configured.");
+
+  const { error } = await client.from("trips").update({ share_token: null }).eq("id", tripId);
+  if (error) throw error;
+}
+
+export async function loadSharedTrip(shareToken: string): Promise<RemoteTrip | null> {
+  const client = getSupabaseBrowserClient();
+  if (!client) return null;
+
+  const { data: trip, error: tripError } = await client
+    .from("trips")
+    .select("*")
+    .eq("share_token", shareToken)
+    .single();
+  if (tripError || !trip) return null;
+
+  if (!trip.current_canvas_version_id) return { trip: trip as TripRow, canvas: null };
+
+  const { data: version, error: versionError } = await client
+    .from("canvas_versions")
+    .select("*")
+    .eq("id", trip.current_canvas_version_id)
+    .single();
+  if (versionError || !version) return { trip: trip as TripRow, canvas: null };
+
+  return { trip: trip as TripRow, canvas: (version as CanvasVersionRow).canvas };
+}
+
 export async function appendMessage(tripId: string, message: ChatMessage): Promise<MessageRow> {
   const client = getSupabaseBrowserClient();
   if (!client) throw new Error("Supabase is not configured.");

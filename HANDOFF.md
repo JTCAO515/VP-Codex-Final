@@ -2,10 +2,10 @@
 
 ## 当前状态
 
-- 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase magic link 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，并加入了 trip detail 页面。
+- 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase magic link 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面，并完成归档/分享链接流程（任务 3.5）。
 - 当前分支：`claude/visepanda-phase-3-hym6z9`（按用户要求后续直接推送到 `main`）
-- 当前版本：`v0.1.13`
-- 重要：用户已创建真实 Supabase 项目、跑过 `0001_init_trip_schema.sql` migration，并在 Vercel 配置了三个 Supabase 环境变量；`/account` 已验证可以正常使用。
+- 当前版本：`v0.1.14`
+- 重要：用户已创建真实 Supabase 项目、跑过 `0001_init_trip_schema.sql` migration，并在 Vercel 配置了三个 Supabase 环境变量；`/account` 已验证可以正常使用。**本轮新增 `supabase/migrations/0002_trip_archive_and_share.sql`，用户需要在 Supabase SQL Editor 里手动追加执行这个迁移，否则归档/分享相关的状态更新会因 RLS 缺失而失败。**
 - 最新实现 commit：本轮提交后以 `git log -1 --oneline` 为准
 - 当前远端：`https://github.com/JTCAO515/VP-Codex-Final.git`
 - 部署地址：`https://go2china.space`
@@ -42,11 +42,11 @@
 - 从 Trips 的 Continue in Chat 恢复真实保存的 canvas 到 Chat 工作台（`/chat?trip=<id>`） ✅
 - Guest draft 自动持久化到 `localStorage` 并在刷新后还原；用户登录后自动同步草稿到 Supabase（任务 2.3） ✅
 - Trip detail 页面（`/trips/[id]`）：已登录显示真实 Live Trip Canvas，未登录/示例行程显示摘要卡，未知 id 显示 not found（任务 3.4） ✅
+- 归档与分享链接（任务 3.5）：Trip detail 页面支持 Mark as Ready / Archive / Restore from archive 状态切换；支持 Get share link 生成 token 并展示完整 URL，支持 Revoke share link 撤销；新增公开只读分享页 `/share/[token]`（`components/share/ShareView.tsx`），未登录访客可查看分享行程的 Canvas，看不到聊天记录 ✅
 
 ## 未完成/待办
 
-- [ ] 真实 Supabase 项目已创建（用户已完成部署），后续如有新 schema 变更需要提醒用户在 Supabase SQL Editor 里手动跑新的 migration 文件。
-- [ ] 增加分享/归档链接（任务 3.5）。
+- [ ] 真实 Supabase 项目已创建（用户已完成部署），需要提醒用户在 Supabase SQL Editor 里手动追加执行 `0002_trip_archive_and_share.sql`，否则归档/分享功能会因 RLS policy 缺失而报错。
 - [ ] 将 Explore 从占位升级为城市、景点、美食、住宿探索。
 - [ ] 设计并验证第三方 provider abstraction。
 - [ ] 实现 Tools 第一批真实工具。
@@ -66,14 +66,15 @@
 
 ## 下一步优先级
 
-1. 实现分享/归档状态（任务 3.5）。
-2. 后续再推进 Explore provider abstraction 和真实工具页（任务 4.1、4.2）。
+1. 推进 Explore provider abstraction 和 Explore 骨架（任务 4.1、4.2）。
+2. 后续推进真实工具页（任务 5.x）。
 
 ## 关键文件索引
 
 - `app/chat/page.tsx` — Chat / AI Butler 页面入口。
 - `app/trips/page.tsx` — Trips Dashboard 页面入口。
-- `app/trips/[id]/page.tsx`、`components/trips/TripDetail.tsx` — Trip detail 页面。
+- `app/trips/[id]/page.tsx`、`components/trips/TripDetail.tsx` — Trip detail 页面，含归档状态切换和分享链接管理。
+- `app/share/[token]/page.tsx`、`components/share/ShareView.tsx` — 公开只读分享页。
 - `app/api/chat/route.ts` — DeepSeek + fallback chat API。
 - `components/chat/ButlerWorkspace.tsx` — 主工作台状态管理和 API 调用。
 - `components/chat/ChatPanel.tsx` — 聊天面板。
@@ -94,6 +95,7 @@
 - `lib/supabase/tripsRepository.ts` — trips/canvas_versions/messages 的唯一读写入口。
 - `components/account/AccountPanel.tsx` — Account 登录 UI。
 - `supabase/migrations/0001_init_trip_schema.sql` — Supabase schema SQL 迁移（需要在真实项目里手动跑一次）。
+- `supabase/migrations/0002_trip_archive_and_share.sql` — 新增 `archived` 状态和分享链接公开只读 RLS policy（需要在 0001 之后手动追加执行）。
 - `app/globals.css` — 当前视觉系统和响应式布局。
 - `public/ink-landscape.png` — MVP 水墨背景资产。
 - `tests/trips-dashboard.test.tsx` — Trips Dashboard 组件测试。
@@ -101,7 +103,7 @@
 
 ## 本地验证记录
 
-本轮 `v0.1.13` 需要通过：
+本轮 `v0.1.14` 需要通过：
 
 ```bash
 npm.cmd run test

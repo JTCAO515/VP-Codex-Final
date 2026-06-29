@@ -30,7 +30,7 @@
 - [x] 任务 3.2：加入 mock trip cards、状态筛选、概览指标和 Continue in Chat 入口。
 - [x] 任务 3.3（首个闭环）：接入真实 Supabase trip persistence，支持从 Chat 保存当前 canvas、在 Trips 读取已登录用户的真实行程、并从 Trips 恢复到 Chat。仍需：未登录/未配置 Supabase 时使用 mock 数据兜底；trip detail 页面、归档/分享流程未实现。
 - [x] 任务 3.4：实现 trip detail 页面和从 Trips 恢复 Chat Canvas 上下文。
-- [ ] 任务 3.5：实现分享状态、归档状态和基础协作/分享链接。
+- [x] 任务 3.5：实现分享状态、归档状态和基础协作/分享链接。
 
 ## 阶段四：Explore 与第三方 Provider
 
@@ -58,8 +58,8 @@
 - AI 约束：DeepSeek V4 Flash 只在服务端 API route 调用；真实 key 不进入浏览器、不写入仓库。
 - Fallback 约束：缺少 `DEEPSEEK_API_KEY`、API 失败或模型输出不合法时必须回落到 mock provider。
 - 当前重点：Chat / AI Butler 已完成 MVP 骨架；Trips 行程库已接入真实 Supabase persistence 首个闭环；guest draft 已能自动迁移到登录账号。
-- Trips 当前限制：`v0.1.12` 已能在配置 Supabase 后保存/读取真实行程，并支持 guest draft 登录后自动同步，但仍仅支持 magic link 登录，没有 trip detail 页面、归档或分享流程。
-- Supabase schema 约束：`supabase/migrations/0001_init_trip_schema.sql` 和 `lib/supabase/schema.ts` 是当前 schema 契约；`lib/supabase/tripsRepository.ts` 是唯一允许的 persistence 入口，不要绕开它直接拼 Supabase 查询。
+- Trips 当前限制：`v0.1.14` 已支持 trip detail 页面、归档/恢复状态切换、生成与撤销分享链接、以及只读公开分享页 `/share/[token]`；仍仅支持 magic link 登录，分享页不展示 chat 历史。
+- Supabase schema 约束：`supabase/migrations/0001_init_trip_schema.sql`、`supabase/migrations/0002_trip_archive_and_share.sql` 和 `lib/supabase/schema.ts` 是当前 schema 契约；`lib/supabase/tripsRepository.ts` 是唯一允许的 persistence 入口，不要绕开它直接拼 Supabase 查询。需要在 Supabase SQL Editor 中按顺序运行这两个迁移文件。
 - Supabase 部署约束：本仓库目前没有真实 Supabase 项目；`NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_ANON_KEY`、`SUPABASE_SERVICE_ROLE_KEY` 未配置前，所有 Supabase 相关代码必须保持优雅降级（不崩溃、自动回落到 mock/guest 体验）。
 - 视觉约束：warm New Chinese、水墨背景、实底纸卡；不要半透明玻璃聊天框。
 - 桌面布局约束：当前阶段优先电脑横屏端，一屏工作台和内部滚动优先；移动竖屏端后续精修。
@@ -77,6 +77,7 @@
 - M4：Supabase magic link 登录 + Trips/Chat 真实 persistence 首个闭环完成（2026-06-29，v0.1.11）；trip detail、归档、分享待排期。
 - M4.5：guest draft 到 logged-in synced trip 自动迁移路径完成（2026-06-29，v0.1.12）。
 - M4.6：Trip detail 页面完成，支持从 Trips 查看真实/示例行程详情并恢复到 Chat（2026-06-29，v0.1.13）。
+- M4.7：分享状态、归档状态和只读分享链接完成（2026-06-29，v0.1.14）。
 - M5：Explore provider abstraction 完成（待排期）。
 - M6：Tools 第一批真实工具完成（待排期）。
 - M7：目的地感知背景切换完成（待排期）。

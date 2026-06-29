@@ -4,7 +4,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { TripCanvas } from "@/components/canvas/TripCanvas";
 import { savedTrips, tripStatusLabels } from "@/lib/trips/mockTrips";
-import { loadTripWithCanvas } from "@/lib/supabase/tripsRepository";
+import {
+  createShareLink,
+  loadTripWithCanvas,
+  revokeShareLink,
+  updateTripStatus,
+} from "@/lib/supabase/tripsRepository";
 import { useSupabaseSession } from "@/lib/supabase/useSupabaseSession";
 import type { TripRow } from "@/lib/supabase/schema";
 import type { TripState } from "@/lib/types/trip";
@@ -16,6 +21,9 @@ export function TripDetail({ tripId }: { tripId: string }) {
   const [remoteTrip, setRemoteTrip] = useState<TripRow | null>(null);
   const [canvas, setCanvas] = useState<TripState | null>(null);
   const [state, setState] = useState<LoadState>("loading");
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [actionBusy, setActionBusy] = useState(false);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!configured || loading || !session) {
@@ -33,6 +41,9 @@ export function TripDetail({ tripId }: { tripId: string }) {
         }
         setRemoteTrip(remote.trip);
         setCanvas(remote.canvas);
+        if (remote.trip.share_token && typeof window !== "undefined") {
+          setShareUrl(`${window.location.origin}/share/${remote.trip.share_token}`);
+        }
         setState("found");
       })
       .catch(() => {
@@ -43,6 +54,50 @@ export function TripDetail({ tripId }: { tripId: string }) {
       active = false;
     };
   }, [configured, loading, session, tripId]);
+
+  async function handleSetStatus(status: TripRow["status"]) {
+    if (!remoteTrip) return;
+    setActionBusy(true);
+    try {
+      await updateTripStatus(remoteTrip.id, status);
+      setRemoteTrip({ ...remoteTrip, status });
+      setActionMessage(status === "archived" ? "Trip archived." : `Trip marked as ${status}.`);
+    } catch {
+      setActionMessage("Could not update this trip. Please try again.");
+    } finally {
+      setActionBusy(false);
+    }
+  }
+
+  async function handleCreateShareLink() {
+    if (!remoteTrip) return;
+    setActionBusy(true);
+    try {
+      const token = await createShareLink(remoteTrip.id);
+      setRemoteTrip({ ...remoteTrip, status: "shared", share_token: token });
+      setShareUrl(`${window.location.origin}/share/${token}`);
+      setActionMessage("Share link created.");
+    } catch {
+      setActionMessage("Could not create a share link. Please try again.");
+    } finally {
+      setActionBusy(false);
+    }
+  }
+
+  async function handleRevokeShareLink() {
+    if (!remoteTrip) return;
+    setActionBusy(true);
+    try {
+      await revokeShareLink(remoteTrip.id);
+      setRemoteTrip({ ...remoteTrip, share_token: null });
+      setShareUrl(null);
+      setActionMessage("Share link revoked.");
+    } catch {
+      setActionMessage("Could not revoke the share link. Please try again.");
+    } finally {
+      setActionBusy(false);
+    }
+  }
 
   const mockTrip = savedTrips.find((trip) => trip.id === tripId);
 
@@ -75,6 +130,41 @@ export function TripDetail({ tripId }: { tripId: string }) {
             </Link>
           </div>
         </div>
+        <div className="trip-detail__status-actions">
+          {remoteTrip.status !== "archived" && (
+            <button disabled={actionBusy} onClick={() => handleSetStatus("ready")} type="button">
+              Mark as Ready
+            </button>
+          )}
+          {remoteTrip.status !== "archived" ? (
+            <button disabled={actionBusy} onClick={() => handleSetStatus("archived")} type="button">
+              Archive
+            </button>
+          ) : (
+            <button disabled={actionBusy} onClick={() => handleSetStatus("draft")} type="button">
+              Restore from archive
+            </button>
+          )}
+          {remoteTrip.share_token ? (
+            <button disabled={actionBusy} onClick={handleRevokeShareLink} type="button">
+              Revoke share link
+            </button>
+          ) : (
+            <button disabled={actionBusy} onClick={handleCreateShareLink} type="button">
+              Get share link
+            </button>
+          )}
+        </div>
+        {shareUrl && (
+          <p className="trip-detail__share-link" role="status">
+            Share link: <code>{shareUrl}</code>
+          </p>
+        )}
+        {actionMessage && (
+          <p aria-live="polite" className="trip-detail__action-message" role="status">
+            {actionMessage}
+          </p>
+        )}
         {canvas ? (
           <div className="trip-detail__canvas">
             <TripCanvas trip={canvas} />

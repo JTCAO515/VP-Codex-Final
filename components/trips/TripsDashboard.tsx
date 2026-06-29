@@ -9,11 +9,12 @@ import type { TripRow } from "@/lib/supabase/schema";
 
 type TripFilter = SavedTripStatus | "all";
 
-const filters: TripFilter[] = ["all", "draft", "ready", "shared"];
+const filters: TripFilter[] = ["all", "draft", "ready", "shared", "archived"];
 
 function getStatusCopy(status: SavedTripStatus) {
   if (status === "ready") return "Ready to review";
   if (status === "shared") return "Shared draft";
+  if (status === "archived") return "Archived";
   return "Draft in progress";
 }
 

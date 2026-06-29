@@ -36,6 +36,7 @@ VisePanda 是一个面向外国人来中国旅行的英文原生 AI 管家。用
 | Save to Trips | P0 | Chat 工作台可以把当前 canvas 保存为一条 Supabase trip + canvas version。 | 已登录且配置 Supabase 时,点击 Save to Trips 会创建/更新 `trips` 行和一条 `canvas_versions` 快照，并把当前对话消息写入 `messages`；未登录或未配置时给出对应提示文案，不会报错或崩溃。 |
 | Guest Draft 自动迁移 | P0 | 未登录用户在 Chat 里产生的草稿自动存在浏览器 `localStorage`，登录后自动同步到 Supabase。 | 未登录用户发消息后,草稿写入 `localStorage` 并在刷新/重新打开页面后还原；该用户随后通过 magic link 登录,草稿在不需要再点 Save to Trips 的情况下自动保存为一条真实 trip,并清除本地草稿。 |
 | Trip Detail 页面 | P0 | `/trips/[id]` 展示单条行程的完整详情；真实 trip 显示完整 Live Trip Canvas，示例 trip 显示摘要卡。 | 已登录且配置 Supabase 时,点击某条真实保存行程的 View details 会看到完整 Day 时间线画布；点击示例行程会看到摘要信息和"这是示例行程"提示；访问不存在的 id 会看到 Trip not found 提示。 |
+| 归档与分享链接 | P0 | Trip detail 页面支持 Mark as Ready / Archive / Restore from archive 状态切换，以及生成/撤销只读公开分享链接 `/share/[token]`。 | 已登录用户在自己的 trip detail 页面可以切换 draft/ready/archived 状态；点击 Get share link 会生成 token 并展示完整分享 URL；点击 Revoke share link 会清除 token；任何人（包括未登录访客）打开有效的 `/share/[token]` 链接都能只读查看该行程画布，看不到聊天记录；token 被撤销后该链接显示"Link not available"。 |
 | Canvas Patch 应用 | P0 | 将 AI 返回的 patch 合并到当前 TripState。 | summary、days、alerts 能按规则更新，alert 按 type/title 去重。 |
 | Placeholder Tabs | P1 | Explore、Tools、Account 暂时占位。 | 用户能打开三个 tab，并看到 reserved for later 的说明。 |
 | Warm New Chinese Visual | P1 | 使用暖纸色、水墨背景、朱砂、金色、墨棕、实底纸卡。 | 页面不使用半透明玻璃聊天框；背景不影响可读性。 |
@@ -97,7 +98,7 @@ VisePanda 是一个面向外国人来中国旅行的英文原生 AI 管家。用
 
 - 不做没有 fallback 的真实 AI：DeepSeek 已接入，但任何真实模型错误都必须回落到 mock。
 - 不做完整账号体系：当前只做 Supabase magic link 登录和 guest draft 自动迁移，不做密码、第三方 OAuth、多设备草稿合并。
-- 不做归档、分享链接：trip detail 独立页面已完成，但行程归档和分享流程还未实现。
+- 归档与分享链接已完成基础版本：支持 draft/ready/archived 状态切换和只读公开分享链接；不做多人协作编辑、分享链接访问权限分级、分享链接过期时间设置。
 - 不做真实 Trip.com / Meituan / Amap API：必须先验证真实能力边界。
 - 不做完整 Explore：当前仍占位，后续再做城市、景点、美食、住宿。
 - 不做完整 Tools：当前仍占位，后续再做翻译、支付、签证、汇率、地铁等工具。
