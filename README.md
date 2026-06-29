@@ -34,6 +34,7 @@ Open `http://127.0.0.1:3000`.
 ```bash
 npm run test
 npm run build
+npm run test:e2e
 ```
 
 ## Environment
