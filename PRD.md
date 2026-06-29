@@ -31,7 +31,7 @@ VisePanda 是一个面向外国人来中国旅行的英文原生 AI 管家。用
 | Live Trip Canvas | P0 | 展示 trip summary、顶部任务/提醒卡、day summary cards。 | 用户可以看到 Day 1、城市、节奏和一句当日总结；主界面不直接展开每日详情，也不出现独立 Practical Reminder 区块。 |
 | Day Detail Drawer | P0 | 用户点击某一天后，从侧边抽屉查看该日完整行程。 | 默认不显示每日详情；点击 View details 后显示时间段、餐饮、住宿、交通、备注，并可关闭。 |
 | DeepSeek AI Pipeline | P0 | 服务端 `/api/chat` 调用 DeepSeek V4 Flash 生成结构化 canvas patch，同时保留 deterministic mock fallback。 | 配置 `DEEPSEEK_API_KEY` 时返回 `deepseek` mode；缺 key、API 失败或输出不合法时返回 `mock` mode，画布仍可更新。 |
-| Chat Panel | P0 | 支持 prompt chips、输入框、发送按钮、聊天记录、busy 状态。 | 用户输入内容并点击 Send 后，聊天记录出现用户和 VisePanda 消息；请求中按钮禁用。 |
+| Chat Panel | P0 | 支持两列建议问题、输入框、发送按钮、聊天记录、busy 状态。 | 初始不显示演示对话；用户输入内容并点击 Send 后，聊天记录出现用户和 VisePanda 消息；请求中按钮禁用；AI 回复后刷新 2 个上下文建议问题。 |
 | Canvas Patch 应用 | P0 | 将 AI 返回的 patch 合并到当前 TripState。 | summary、days、alerts 能按规则更新，alert 按 type/title 去重。 |
 | Placeholder Tabs | P1 | Trips、Explore、Tools、Account 只做占位。 | 用户能打开四个 tab，并看到 coming next / reserved for later 的说明。 |
 | Warm New Chinese Visual | P1 | 使用暖纸色、水墨背景、朱砂、金色、墨棕、实底纸卡。 | 页面不使用半透明玻璃聊天框；背景不影响可读性。 |
@@ -49,6 +49,7 @@ VisePanda 是一个面向外国人来中国旅行的英文原生 AI 管家。用
 → 浏览器请求 /api/chat
 → 服务端优先调用 DeepSeek V4 Flash；失败时回落到 mock
 → 右侧聊天出现用户消息和 VisePanda 回复
+→ 建议问题刷新为 2 个上下文相关 follow-up questions
 → 左侧画布生成/更新 Beijing + Shanghai 行程
 → 顶部五张任务/提醒卡显示支付、签证等提醒
 → 用户点击某一天 View details

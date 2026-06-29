@@ -3,22 +3,14 @@
 import { FormEvent, useState } from "react";
 import type { ChatMessage } from "@/lib/types/trip";
 
-const prompts = [
-  "Plan my first China trip",
-  "Make this trip less tiring",
-  "Add food-focused stops",
-  "Keep hotels convenient",
-  "Reduce the budget",
-  "Add visa and payment reminders",
-];
-
 interface ChatPanelProps {
   messages: ChatMessage[];
   onSend: (message: string) => void | Promise<void>;
+  suggestions: string[];
   busy?: boolean;
 }
 
-export function ChatPanel({ messages, onSend, busy = false }: ChatPanelProps) {
+export function ChatPanel({ messages, onSend, suggestions, busy = false }: ChatPanelProps) {
   const [draft, setDraft] = useState("");
 
   function submitMessage(message: string) {
@@ -39,7 +31,7 @@ export function ChatPanel({ messages, onSend, busy = false }: ChatPanelProps) {
         <p className="section-kicker">Ask VisePanda</p>
       </div>
       <div className="prompt-row" aria-label="Suggested prompts">
-        {prompts.map((prompt) => (
+        {suggestions.map((prompt) => (
           <button key={prompt} type="button" onClick={() => submitMessage(prompt)} disabled={busy}>
             {prompt}
           </button>

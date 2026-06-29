@@ -7,13 +7,15 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const message = typeof body.message === "string" ? body.message : "";
   const currentTrip = isTripState(body.trip) ? body.trip : initialTripState;
-  const result = await requestButlerPatch({ currentTrip, message });
+  const recentMessages = Array.isArray(body.messages) ? body.messages : [];
+  const result = await requestButlerPatch({ currentTrip, message, recentMessages });
 
   return NextResponse.json({
     ok: true,
     fallbackReason: result.fallbackReason,
     mode: result.mode,
     patch: result.patch,
+    suggestions: result.suggestions,
   });
 }
 

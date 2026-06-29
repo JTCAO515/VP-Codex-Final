@@ -20,6 +20,7 @@ describe("requestButlerPatch", () => {
                 intent: "adjust_trip",
                 assistantMessage: "I updated the route with a calmer Beijing day.",
                 reason: "Used DeepSeek V4 Flash to refine the itinerary.",
+                suggestions: ["Should we add a food tour?", "Can you make hotels easier?"],
                 tripSummary: { confidence: "Refined" },
               }),
             },
@@ -37,6 +38,7 @@ describe("requestButlerPatch", () => {
 
     expect(result.mode).toBe("deepseek");
     expect(result.patch.assistantMessage).toContain("calmer Beijing");
+    expect(result.suggestions).toEqual(["Should we add a food tour?", "Can you make hotels easier?"]);
     expect(result.patch.tripSummary?.confidence).toBe("Refined");
     expect(fetchImpl).toHaveBeenCalledWith(
       "https://api.deepseek.com/chat/completions",
@@ -52,6 +54,7 @@ describe("requestButlerPatch", () => {
     expect(body.response_format).toEqual({ type: "json_object" });
     expect(body.max_tokens).toBe(2200);
     expect(body.messages[0].content).toContain("json");
+    expect(body.messages[1].content).toContain("suggestions");
   });
 
   it("falls back to mock mode when DeepSeek is not configured", async () => {
@@ -64,5 +67,6 @@ describe("requestButlerPatch", () => {
 
     expect(result.mode).toBe("mock");
     expect(result.patch.days?.some((day) => day.city === "Beijing")).toBe(true);
+    expect(result.suggestions).toHaveLength(2);
   });
 });

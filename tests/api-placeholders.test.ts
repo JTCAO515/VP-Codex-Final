@@ -39,6 +39,7 @@ describe("first-stage API routes", () => {
                   intent: "add_alerts",
                   assistantMessage: "I added the visa reminder.",
                   reason: "DeepSeek added a practical reminder.",
+                  suggestions: ["Add payment setup?", "Keep the pace lighter?"],
                   butlerAlerts: [
                     {
                       type: "visa",
@@ -69,6 +70,7 @@ describe("first-stage API routes", () => {
     expect(body.ok).toBe(true);
     expect(body.mode).toBe("deepseek");
     expect(body.patch.butlerAlerts[0].type).toBe("visa");
+    expect(body.suggestions).toEqual(["Add payment setup?", "Keep the pace lighter?"]);
   });
 
   it("returns placeholder status for reserved routes", async () => {

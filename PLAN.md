@@ -13,6 +13,7 @@
 - [x] 任务 1.9：将 Chat 工作台调整为桌面横屏一屏固定布局，页面本身不纵向滚动。
 - [x] 任务 1.10：Trip Canvas 主界面只显示每日一句摘要，完整每日行程通过右侧抽屉查看。
 - [x] 任务 1.11：移除独立 Practical Reminder 区块，将管家提醒合并到顶部五张任务卡。
+- [x] 任务 1.12：移除 Chat 默认演示对话，建议问题改为两列布局，并在每次 AI 回复后生成 2 个上下文建议问题。
 
 ## 阶段二：AI Provider 与 Supabase 接入
 
@@ -46,6 +47,7 @@
 - 技术选型：Next.js App Router、React、TypeScript、Vercel、Supabase 预留。
 - AI 约束：DeepSeek V4 Flash 只在服务端 API route 调用；真实 key 不进入浏览器、不写入仓库。
 - Fallback 约束：缺少 `DEEPSEEK_API_KEY`、API 失败或模型输出不合法时必须回落到 mock provider。
+- Chat 约束：真实 AI 接入后 `/chat` 不再显示演示对话；建议问题必须避免被遮挡，并随上下文刷新。
 - 当前重点：Chat / AI Butler 工作台。
 - 当前限制：Trips、Explore、Tools、Account 仍只做占位。
 - 视觉约束：warm New Chinese、水墨背景、实底纸卡；不要半透明玻璃聊天框。

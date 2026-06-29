@@ -7,24 +7,11 @@ import { applyCanvasPatch } from "@/lib/canvas/applyCanvasPatch";
 import { createMockButlerPatch, initialTripState } from "@/lib/mock-ai/mockButler";
 import type { ChatMessage, TripState } from "@/lib/types/trip";
 
-const openingMessages: ChatMessage[] = [
-  {
-    id: "user-opening-context",
-    role: "user",
-    content:
-      "We're interested in history, culture, and good food. Prefer a less tiring trip. Any suggestions for our itinerary?",
-  },
-  {
-    id: "assistant-opening-draft",
-    role: "assistant",
-    content:
-      "I drafted a Beijing to Shanghai route with cultural highlights, local food, and a balanced pace. You can review the canvas on the left.",
-  },
-  {
-    id: "user-opening-adjustment",
-    role: "user",
-    content: "Looks good. Can we keep the hotels convenient and avoid too many transfers?",
-  },
+const initialSuggestions = [
+  "Plan my first China trip",
+  "Make this trip less tiring",
+  "Add food-focused stops",
+  "Keep hotels convenient",
 ];
 
 function createMessage(role: ChatMessage["role"], content: string): ChatMessage {
@@ -37,7 +24,8 @@ function createMessage(role: ChatMessage["role"], content: string): ChatMessage 
 
 export function ButlerWorkspace() {
   const [trip, setTrip] = useState<TripState>(initialTripState);
-  const [messages, setMessages] = useState<ChatMessage[]>(openingMessages);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [suggestions, setSuggestions] = useState(initialSuggestions);
   const [status, setStatus] = useState("Canvas ready for your first request.");
   const [busy, setBusy] = useState(false);
 
@@ -45,13 +33,14 @@ export function ButlerWorkspace() {
 
   async function handleSend(message: string) {
     setBusy(true);
-    setMessages((current) => [...current, createMessage("user", message)]);
+    const nextMessages = [...messages, createMessage("user", message)];
+    setMessages(nextMessages);
 
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, trip }),
+        body: JSON.stringify({ message, messages: nextMessages, trip }),
       });
       const body = await response.json();
       const patch = body?.patch ?? createMockButlerPatch(message, trip);
@@ -60,6 +49,7 @@ export function ButlerWorkspace() {
 
       setTrip(nextTrip);
       setMessages((current) => [...current, createMessage("assistant", patch.assistantMessage)]);
+      setSuggestions(Array.isArray(body?.suggestions) ? body.suggestions.slice(0, 2) : initialSuggestions.slice(0, 2));
       setStatus(`VisePanda updated the canvas with ${modeNote}: ${patch.reason}`);
     } catch {
       const patch = createMockButlerPatch(message, trip);
@@ -67,6 +57,7 @@ export function ButlerWorkspace() {
 
       setTrip(nextTrip);
       setMessages((current) => [...current, createMessage("assistant", patch.assistantMessage)]);
+      setSuggestions(["Can you make one day lighter?", "What should we book first?"]);
       setStatus(`VisePanda updated the canvas with mock fallback: ${patch.reason}`);
     } finally {
       setBusy(false);
@@ -79,7 +70,7 @@ export function ButlerWorkspace() {
         <TripCanvas trip={trip} />
       </div>
       <div className="butler-workspace__chat">
-        <ChatPanel messages={messages} onSend={handleSend} busy={busy} />
+        <ChatPanel messages={messages} onSend={handleSend} busy={busy} suggestions={suggestions} />
         <p className="workspace-status" role="status" aria-live="polite">
           {statusText}
         </p>

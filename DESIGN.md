@@ -11,7 +11,7 @@ flowchart LR
     ButlerWorkspace --> ChatAPI["/api/chat"]
     ChatAPI --> DeepSeek["DeepSeek V4 Flash"]
     ChatAPI --> MockAI["mock fallback"]
-    DeepSeek --> Patch["CanvasPatch"]
+    DeepSeek --> Patch["CanvasPatch + suggestions"]
     MockAI --> Patch
     Patch --> Reducer["applyCanvasPatch"]
     Reducer --> TripState["TripState"]
@@ -52,6 +52,7 @@ erDiagram
 - `ButlerAlert`：签证、支付、预订、交通、天气、语言、风险、应急提醒。
 - `CanvasPatch`：AI provider 返回的结构化更新。
 - `ChatMessage`：聊天记录。
+- `suggestions`：`/api/chat` 顶层返回的两个上下文建议问题，不写入 `CanvasPatch`，避免污染行程数据契约。
 
 ## 关键设计决策
 
@@ -94,6 +95,14 @@ erDiagram
   - 页面级滚动：实现简单，但聊天、画布和抽屉会互相错位。
   - 一屏固定 + 区域内部滚动：更像产品工具，左右区域始终可见。
 - 结论：桌面端使用一屏固定布局，聊天流、日程列表和抽屉内部自行滚动。
+
+### ADR-006：为什么 suggestions 不放进 CanvasPatch
+
+- 背景：建议问题属于聊天体验，不属于行程画布状态。
+- 方案对比：
+  - 放进 `CanvasPatch`：实现简单，但会污染 trip/canvas 数据契约。
+  - 作为 `/api/chat` 顶层字段返回：聊天面板可直接刷新，画布 reducer 不需要关心。
+- 结论：`/api/chat` 返回 `{ patch, suggestions }`，其中 suggestions 固定为 2 个上下文相关问题。
 
 ## 路由/页面结构
 

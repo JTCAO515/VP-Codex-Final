@@ -3,6 +3,13 @@ import { describe, expect, it } from "vitest";
 import { ButlerWorkspace } from "@/components/chat/ButlerWorkspace";
 
 describe("ButlerWorkspace", () => {
+  it("starts without demo conversation and shows four suggestions in two rows", () => {
+    render(<ButlerWorkspace />);
+
+    expect(screen.queryByText(/We're interested in history, culture, and good food/i)).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button").filter((button) => button.closest(".prompt-row"))).toHaveLength(4);
+  });
+
   it("updates the canvas after a user asks for a first China trip", async () => {
     render(<ButlerWorkspace />);
 

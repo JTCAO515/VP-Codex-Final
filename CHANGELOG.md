@@ -1,5 +1,12 @@
 # VisePanda Changelog
 
+## v0.1.7 - 2026-06-29
+
+- Removed the default demo conversation from the chat page now that live AI is connected.
+- Changed suggested prompts to a stable two-column layout instead of a clipped horizontal row.
+- Added two context-aware follow-up questions to `/api/chat` responses.
+- Updated the chat panel so suggestions refresh after each AI answer.
+
 ## v0.1.6 - 2026-06-29
 
 - Added a DeepSeek V4 Flash provider for `/api/chat`.
