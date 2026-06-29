@@ -47,6 +47,7 @@ Primary promise:
 - Full Tools implementations.
 - Admin console.
 - Payment or booking checkout.
+- Scene-aware background switching by destination. This is a future experience layer, not part of the first-stage MVP.
 
 ## Information Architecture
 
@@ -358,6 +359,12 @@ Core direction:
 
 The background should create the first impression. The workspace content should feel placed onto a refined travel desk, not trapped inside floating translucent boxes.
 
+## Future Visual Iteration
+
+A later iteration should make the background scene-aware. When the user is planning Beijing, the ink landscape can shift toward Great Wall or Forbidden City imagery; when planning Shanghai, it can shift toward Bund, Jiangnan garden, or modern riverfront ink imagery. This should be driven by the active trip canvas destination state and should feel like a graceful environmental change, not a theme picker.
+
+This is intentionally excluded from the MVP. The first-stage app should use one high-quality warm ink background and keep the implementation simple.
+
 ## Loading and Stability Requirements
 
 - The app should render useful skeleton content before any provider keys exist.
@@ -404,4 +411,4 @@ Approved product decisions:
 - First stage focuses on Chat / Butler only; other tabs are placeholders.
 - Technical route should fit Vercel, Supabase, mobile use, stability, and loading speed.
 - Visual direction is warm New Chinese with ink landscape background and no translucent chat boxes.
-
+- Destination-aware background switching is approved as a later iteration, not an MVP requirement.

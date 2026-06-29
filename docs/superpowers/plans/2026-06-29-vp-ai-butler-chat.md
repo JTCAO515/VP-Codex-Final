@@ -17,6 +17,7 @@
 - Main mobile workspace is canvas-first with chat available from a fixed input or bottom panel.
 - Visual direction is warm New Chinese with ink landscape background.
 - Do not use translucent glass chat panels.
+- MVP uses one high-quality warm ink background only; destination-aware background switching is reserved for a later iteration.
 - Missing API keys must not break the app.
 - No real AI, Supabase, Trip.com, Meituan, Amap, weather, translation, or speech integration in this phase.
 - Keep dependencies minimal and compatible with Vercel.
@@ -885,6 +886,8 @@ git commit -m "feat: add first-stage API placeholders"
 
 Create or generate one optimized warm ink landscape background asset in `public/`. It should be calm, mostly light, with negative space where the app text sits. Do not use a dark, blurred, or stock-like image.
 
+Do not implement destination-aware background switching in this task. Future iterations may switch backgrounds based on active canvas destinations, such as Great Wall or Forbidden City ink imagery for Beijing and Bund or Jiangnan garden ink imagery for Shanghai.
+
 - [ ] **Step 2: Apply background**
 
 Set the app background using the asset, warm base colors, and subtle readability controls. Avoid translucent glass panels. Use solid paper-like surfaces for itinerary cards and chat.
@@ -1070,4 +1073,3 @@ Summarize:
 - what commands passed;
 - what remains for phase two;
 - local URL if the dev server is still running.
-
