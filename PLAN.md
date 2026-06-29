@@ -29,7 +29,7 @@
 - [x] 任务 3.1：将 Trips 从占位页升级为静态 saved trips dashboard 骨架。
 - [x] 任务 3.2：加入 mock trip cards、状态筛选、概览指标和 Continue in Chat 入口。
 - [x] 任务 3.3（首个闭环）：接入真实 Supabase trip persistence，支持从 Chat 保存当前 canvas、在 Trips 读取已登录用户的真实行程、并从 Trips 恢复到 Chat。仍需：未登录/未配置 Supabase 时使用 mock 数据兜底；trip detail 页面、归档/分享流程未实现。
-- [ ] 任务 3.4：实现 trip detail 页面和从 Trips 恢复 Chat Canvas 上下文。
+- [x] 任务 3.4：实现 trip detail 页面和从 Trips 恢复 Chat Canvas 上下文。
 - [ ] 任务 3.5：实现分享状态、归档状态和基础协作/分享链接。
 
 ## 阶段四：Explore 与第三方 Provider
@@ -76,6 +76,7 @@
 - M3.6：Supabase schema 设计完成（2026-06-29，v0.1.10）。
 - M4：Supabase magic link 登录 + Trips/Chat 真实 persistence 首个闭环完成（2026-06-29，v0.1.11）；trip detail、归档、分享待排期。
 - M4.5：guest draft 到 logged-in synced trip 自动迁移路径完成（2026-06-29，v0.1.12）。
+- M4.6：Trip detail 页面完成，支持从 Trips 查看真实/示例行程详情并恢复到 Chat（2026-06-29，v0.1.13）。
 - M5：Explore provider abstraction 完成（待排期）。
 - M6：Tools 第一批真实工具完成（待排期）。
 - M7：目的地感知背景切换完成（待排期）。

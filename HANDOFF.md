@@ -2,10 +2,10 @@
 
 ## 当前状态
 
-- 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase magic link 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环。
+- 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase magic link 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，并加入了 trip detail 页面。
 - 当前分支：`claude/visepanda-phase-3-hym6z9`（按用户要求后续直接推送到 `main`）
-- 当前版本：`v0.1.12`
-- 重要：本仓库尚未连接真实 Supabase 项目，Vercel 环境变量目前只有 DeepSeek key；Supabase 相关功能在用户完成项目创建和环境变量配置前不会生效（但也不会崩溃）。
+- 当前版本：`v0.1.13`
+- 重要：用户已创建真实 Supabase 项目、跑过 `0001_init_trip_schema.sql` migration，并在 Vercel 配置了三个 Supabase 环境变量；`/account` 已验证可以正常使用。
 - 最新实现 commit：本轮提交后以 `git log -1 --oneline` 为准
 - 当前远端：`https://github.com/JTCAO515/VP-Codex-Final.git`
 - 部署地址：`https://go2china.space`
@@ -41,11 +41,12 @@
 - Trips Dashboard：已登录且配置 Supabase 时读取真实行程列表；未登录/未配置时回落到 mock 行程 ✅
 - 从 Trips 的 Continue in Chat 恢复真实保存的 canvas 到 Chat 工作台（`/chat?trip=<id>`） ✅
 - Guest draft 自动持久化到 `localStorage` 并在刷新后还原；用户登录后自动同步草稿到 Supabase（任务 2.3） ✅
+- Trip detail 页面（`/trips/[id]`）：已登录显示真实 Live Trip Canvas，未登录/示例行程显示摘要卡，未知 id 显示 not found（任务 3.4） ✅
 
 ## 未完成/待办
 
-- [ ] 真实 Supabase 项目尚未创建；需要用户在 supabase.com 创建项目、跑 `supabase/migrations/0001_init_trip_schema.sql`、把三个环境变量加到 Vercel。
-- [ ] 增加 trip detail 页面和分享/归档链接。
+- [ ] 真实 Supabase 项目已创建（用户已完成部署），后续如有新 schema 变更需要提醒用户在 Supabase SQL Editor 里手动跑新的 migration 文件。
+- [ ] 增加分享/归档链接（任务 3.5）。
 - [ ] 将 Explore 从占位升级为城市、景点、美食、住宿探索。
 - [ ] 设计并验证第三方 provider abstraction。
 - [ ] 实现 Tools 第一批真实工具。
@@ -59,21 +60,20 @@
 - npm audit 当前可能报告若干依赖安全提示；尚未使用 `npm audit fix --force`，避免破坏 Next/React 版本组合。
 - Trips 在未登录或未配置 Supabase 时仍为 mock data；登录且配置后才会显示真实保存的行程。
 - Day 抽屉编辑仍是本地状态；只有点击 Save to Trips 才会把当时的 canvas 整体快照写入 Supabase，抽屉内的单次编辑不会自动保存。
-- 真实 Supabase 项目还没创建,Vercel 环境变量目前只有 DeepSeek key；用户需要按 README/对话中给出的步骤创建项目、跑 migration、配置 Vercel 环境变量后功能才会生效。
-- Explore、Tools、Account 当前仍是占位。
+- Explore、Tools 当前仍是占位。
 - 桌面横屏端为当前优先体验；移动竖屏端后续需要针对抽屉、画布密度和 Trips 卡片继续优化。
 - OneDrive 目录偶尔会锁住 `.next` 构建缓存；如出现 `readlink` / `EBUSY`，停止 dev server 并安全删除 `.next` 后重跑。
 
 ## 下一步优先级
 
-1. 用户在 supabase.com 创建真实项目、跑 migration、把环境变量加到 Vercel（步骤见对话记录/README）。
-2. 扩展 trip detail 页面和分享/归档状态（任务 3.4、3.5）。
-3. 后续再推进 Explore provider abstraction 和真实工具页。
+1. 实现分享/归档状态（任务 3.5）。
+2. 后续再推进 Explore provider abstraction 和真实工具页（任务 4.1、4.2）。
 
 ## 关键文件索引
 
 - `app/chat/page.tsx` — Chat / AI Butler 页面入口。
 - `app/trips/page.tsx` — Trips Dashboard 页面入口。
+- `app/trips/[id]/page.tsx`、`components/trips/TripDetail.tsx` — Trip detail 页面。
 - `app/api/chat/route.ts` — DeepSeek + fallback chat API。
 - `components/chat/ButlerWorkspace.tsx` — 主工作台状态管理和 API 调用。
 - `components/chat/ChatPanel.tsx` — 聊天面板。
@@ -101,7 +101,7 @@
 
 ## 本地验证记录
 
-本轮 `v0.1.12` 需要通过：
+本轮 `v0.1.13` 需要通过：
 
 ```bash
 npm.cmd run test

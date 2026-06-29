@@ -1,5 +1,12 @@
 # VisePanda Changelog
 
+## v0.1.13 - 2026-06-29
+
+- Implemented task 3.4: trip detail page (`/trips/[id]`).
+- Added `components/trips/TripDetail.tsx`: shows the real saved canvas (via `TripCanvas`) for signed-in Supabase-backed trips, falls back to an example-trip summary for mock trips, and shows a not-found notice otherwise.
+- Added a "View details" link on each Trips Dashboard card alongside the existing "Continue in Chat" link.
+- Added `tests/trip-detail.test.tsx` covering the mock-trip and not-found paths.
+
 ## v0.1.12 - 2026-06-29
 
 - Implemented task 2.3: guest draft to logged-in synced trip migration path.

@@ -3,7 +3,7 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.12`
+- Current iteration: `v0.1.13`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -26,3 +26,4 @@
 - `v0.1.10`: designed the Supabase schema (`users`, `trips`, `canvas_versions`, `messages`) with RLS policies and a matching TypeScript contract, ahead of real persistence work.
 - `v0.1.11`: connected real Supabase magic-link auth and a first persistence loop — Save to Trips from Chat, real trip listing in Trips Dashboard, and Continue in Chat restoring a saved canvas — all degrading gracefully until a live Supabase project is configured.
 - `v0.1.12`: implemented the guest draft to logged-in synced trip migration path (task 2.3) — guest chat drafts persist to `localStorage` and auto-save to Supabase the moment a user signs in.
+- `v0.1.13`: implemented the trip detail page (task 3.4) — `/trips/[id]` shows the real saved canvas for signed-in Supabase trips or an example-trip summary otherwise, with a new "View details" entry from the Trips Dashboard.

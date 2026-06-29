@@ -113,7 +113,10 @@ export function TripsDashboard() {
                 <h2>{trip.title}</h2>
                 <p>{trip.summary}</p>
               </div>
-              <Link href={isSignedIn ? `/chat?trip=${trip.id}` : "/chat"}>Continue in Chat</Link>
+              <div className="trip-card__links">
+                <Link href={`/trips/${trip.id}`}>View details</Link>
+                <Link href={isSignedIn ? `/chat?trip=${trip.id}` : "/chat"}>Continue in Chat</Link>
+              </div>
             </div>
             <dl className="trip-card__meta" aria-label={`${trip.title} summary`}>
               <div>
