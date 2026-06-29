@@ -1,5 +1,10 @@
 # VisePanda Changelog
 
+## v0.1.4 - 2026-06-29
+
+- Replaced the temporary `VP` header mark with the panda icon from the supplied brand manual.
+- Kept the current warm New Chinese interface direction instead of applying the full brand manual system.
+
 ## v0.1.3 - 2026-06-29
 
 - Reduced the Live Trip Canvas heading so it takes less desktop workspace.

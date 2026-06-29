@@ -116,18 +116,14 @@ select:focus-visible {
   text-decoration: none;
 }
 
-.brand-mark__seal {
-  display: grid;
-  width: 52px;
-  height: 52px;
-  place-items: center;
-  border: 2px solid rgba(46, 37, 29, 0.74);
-  border-radius: 50%;
-  background: #fff7ea;
-  color: var(--cinnabar);
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0;
+.brand-mark__logo {
+  width: 56px;
+  height: 56px;
+  border: 1px solid rgba(111, 91, 73, 0.2);
+  border-radius: 16px;
+  object-fit: cover;
+  object-position: center;
+  box-shadow: 0 6px 18px rgba(55, 36, 18, 0.08);
 }
 
 .brand-mark strong,

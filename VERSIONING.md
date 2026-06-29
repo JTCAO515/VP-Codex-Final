@@ -3,7 +3,7 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.3`
+- Current iteration: `v0.1.4`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -17,3 +17,4 @@
 - `v0.1.1`: first AI Butler Chat MVP skeleton.
 - `v0.1.2`: open ink-painting Chat workspace restyle with integrated canvas cards and a line-separated chat rail.
 - `v0.1.3`: desktop-first Trip Canvas density pass with smaller title, one-line day summaries, and a detail drawer.
+- `v0.1.4`: brand manual logo borrowing pass; header mark replaced with the panda icon while preserving the current visual direction.
