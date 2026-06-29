@@ -143,6 +143,12 @@ select:focus-visible {
   font-weight: 700;
 }
 
+.app-header__nav {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(14px, 3vw, 32px);
+}
+
 .nav-tabs {
   display: inline-flex;
   align-items: center;
@@ -193,6 +199,123 @@ select:focus-visible {
 
 .app-main {
   padding-top: 18px;
+}
+
+.account-menu {
+  position: relative;
+}
+
+.account-menu__trigger {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.account-menu__trigger[aria-expanded="true"] {
+  color: var(--cinnabar);
+}
+
+.account-menu__popover {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 20;
+  display: grid;
+  gap: 14px;
+  width: 280px;
+  border: 1px solid rgba(111, 91, 73, 0.18);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  background: var(--paper-soft);
+  box-shadow: var(--shadow-soft);
+}
+
+.account-menu__popover p {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.account-menu__popover form {
+  display: grid;
+  gap: 8px;
+}
+
+.account-menu__popover label {
+  color: var(--ink-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.account-menu__popover input {
+  min-height: 38px;
+  border: 1px solid rgba(111, 91, 73, 0.24);
+  border-radius: 8px;
+  padding: 0 12px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 0.92rem;
+}
+
+.account-menu__popover button {
+  min-height: 38px;
+  border: 1px solid rgba(111, 91, 73, 0.24);
+  border-radius: 999px;
+  padding: 0 14px;
+  background: transparent;
+  color: var(--ink);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.account-menu__popover button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.account-menu__popover form button[type="submit"],
+.account-menu__google {
+  background: var(--cinnabar);
+  border-color: var(--cinnabar);
+  color: var(--paper-soft);
+}
+
+.account-menu__mode-toggle {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.account-menu__mode-toggle button[data-active="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper-soft);
+}
+
+.account-menu__actions,
+.account-menu__form-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.account-menu__form-actions {
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+}
+
+.account-menu__status {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.85rem;
+  font-weight: 700;
 }
 
 .placeholder-page {

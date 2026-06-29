@@ -2,13 +2,13 @@
 
 ## 项目概述
 
-VisePanda 是一个面向外国人来中国旅行的 AI 管家产品。当前主线是：右侧持续 Chat，左侧 Live Trip Canvas 实时刷新；Trips 已从占位页升级为真实 Supabase persistence + 归档/分享流程；Explore 已从占位页升级为静态 provider 驱动的城市/景点/美食/住宿骨架，预留真实第三方 provider 接入点。
+VisePanda 是一个面向外国人来中国旅行的 AI 管家产品。当前主线是：右侧持续 Chat，左侧 Live Trip Canvas 实时刷新；Trips 已从占位页升级为真实 Supabase persistence + 归档/分享流程；Explore 已从占位页升级为静态 provider 驱动的城市/景点/美食/住宿骨架，预留真实第三方 provider 接入点；Account 已从独立页面改为头部图标 + 悬浮窗口，支持邮箱密码登录/注册和 Google 登录，登录后可改名/改密码/登出。
 
 ## 核心技术栈
 
 - 前端：Next.js App Router、React、TypeScript。
 - AI：DeepSeek V4 Flash provider + mock fallback。
-- 数据库：Supabase（`v0.1.11` 起接入真实 magic link 登录和 trips/canvas_versions/messages persistence；`v0.1.12` 起 guest draft 登录后自动迁移；未配置环境变量时优雅回落到 guest/mock 体验）。
+- 数据库：Supabase（`v0.1.11` 起接入真实登录和 trips/canvas_versions/messages persistence；`v0.1.12` 起 guest draft 登录后自动迁移；`v0.1.16` 起登录方式改为邮箱密码 + Google OAuth；未配置环境变量时优雅回落到 guest/mock 体验）。
 - 部署：Vercel，生产域名 `go2china.space`。
 - 测试：Vitest、Testing Library、Playwright。
 
@@ -53,6 +53,7 @@ VisePanda 是一个面向外国人来中国旅行的 AI 管家产品。当前主
 - 所有 Supabase 读写必须经过 `lib/supabase/tripsRepository.ts`，复用已确认的 `users`/`trips`/`canvas_versions`/`messages` 表结构，不要另起字段命名、拆分表，也不要绕开 repository 直接在组件里拼 Supabase 查询。
 - Supabase 相关代码必须在未配置环境变量、未登录、网络失败时优雅降级（不崩溃，回落到 guest/mock 体验），参考 `lib/supabase/client.ts` 的 `isSupabaseConfigured` 模式。
 - `SUPABASE_SERVICE_ROLE_KEY` 当前未在任何代码中使用；不要在浏览器端代码中引入它。
+- 不要恢复独立的 `/account` 页面或 magic link 登录；账号登录/管理唯一入口是 `components/account/AccountMenu.tsx`（头部图标 + 悬浮窗口），登录方式只允许邮箱密码（`signInWithPassword`/`signUpWithPassword`）和 Google OAuth（`signInWithGoogle`），登录后的改名/改密码必须走 `lib/supabase/auth.ts` 的 `updateDisplayName`/`updatePassword`。
 
 ## 常用命令
 

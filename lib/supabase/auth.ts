@@ -1,26 +1,63 @@
 import type { Session } from "@supabase/supabase-js";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
-export interface MagicLinkResult {
+export interface AuthResult {
   ok: boolean;
   message: string;
 }
 
-export async function signInWithMagicLink(email: string): Promise<MagicLinkResult> {
-  const client = getSupabaseBrowserClient();
-  if (!client) {
-    return { ok: false, message: "Supabase is not configured yet. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY." };
-  }
+const NOT_CONFIGURED_MESSAGE =
+  "Supabase is not configured yet. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.";
 
-  const { error } = await client.auth.signInWithOtp({
-    email,
+export async function signUpWithPassword(email: string, password: string): Promise<AuthResult> {
+  const client = getSupabaseBrowserClient();
+  if (!client) return { ok: false, message: NOT_CONFIGURED_MESSAGE };
+
+  const { error } = await client.auth.signUp({ email, password });
+  if (error) return { ok: false, message: error.message };
+  return { ok: true, message: "Account created. Check your email if confirmation is required, then sign in." };
+}
+
+export async function signInWithPassword(email: string, password: string): Promise<AuthResult> {
+  const client = getSupabaseBrowserClient();
+  if (!client) return { ok: false, message: NOT_CONFIGURED_MESSAGE };
+
+  const { error } = await client.auth.signInWithPassword({ email, password });
+  if (error) return { ok: false, message: error.message };
+  return { ok: true, message: "Signed in." };
+}
+
+export async function signInWithGoogle(): Promise<AuthResult> {
+  const client = getSupabaseBrowserClient();
+  if (!client) return { ok: false, message: NOT_CONFIGURED_MESSAGE };
+
+  const { error } = await client.auth.signInWithOAuth({
+    provider: "google",
     options: {
-      emailRedirectTo: typeof window !== "undefined" ? `${window.location.origin}/account` : undefined,
+      redirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
     },
   });
 
   if (error) return { ok: false, message: error.message };
-  return { ok: true, message: "Magic link sent. Check your email to finish signing in." };
+  return { ok: true, message: "Redirecting to Google..." };
+}
+
+export async function updateDisplayName(name: string): Promise<AuthResult> {
+  const client = getSupabaseBrowserClient();
+  if (!client) return { ok: false, message: NOT_CONFIGURED_MESSAGE };
+
+  const { error } = await client.auth.updateUser({ data: { full_name: name } });
+  if (error) return { ok: false, message: error.message };
+  return { ok: true, message: "Name updated." };
+}
+
+export async function updatePassword(newPassword: string): Promise<AuthResult> {
+  const client = getSupabaseBrowserClient();
+  if (!client) return { ok: false, message: NOT_CONFIGURED_MESSAGE };
+
+  const { error } = await client.auth.updateUser({ password: newPassword });
+  if (error) return { ok: false, message: error.message };
+  return { ok: true, message: "Password updated." };
 }
 
 export async function signOut(): Promise<void> {

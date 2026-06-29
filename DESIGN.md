@@ -23,8 +23,8 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    AccountPage["/account"] --> AuthLib["lib/supabase/auth.ts"]
-    AuthLib --> SupabaseAuth["Supabase Auth (magic link)"]
+    AccountMenu["AccountMenu (header icon + popover)"] --> AuthLib["lib/supabase/auth.ts"]
+    AuthLib --> SupabaseAuth["Supabase Auth (email/password + Google OAuth)"]
     ButlerWorkspace["ButlerWorkspace"] --> SaveAction["Save to Trips"]
     SaveAction --> TripsRepo["lib/supabase/tripsRepository.ts"]
     TripsRepo --> SupabaseDb["Supabase trips / canvas_versions / messages"]
@@ -126,11 +126,17 @@ erDiagram
 - 方案对比：立即接数据库会过早固定数据模型；先做静态 dashboard 可以验证页面信息结构、筛选和导航入口。
 - 结论：`v0.1.8` Trips 使用 `lib/trips/mockTrips.ts`，后续再接 Supabase persistence 和 trip detail。
 
-### ADR-010：为什么用 Supabase magic link 而不是密码或自建 auth
+### ADR-010：为什么 Account 登录从 magic link 改为邮箱密码 + Google OAuth（v0.1.16 起取代原决策）
 
-- 背景：任务 2.4 需要一个最小但真实的登录方式，把 owner_id 接到 `auth.users`，同时不引入密码存储和找回流程的复杂度。
-- 方案对比：邮箱密码需要额外的找回密码、强度校验流程；自建 auth 要重新实现会话和安全机制；Supabase 内置 magic link（`signInWithOtp`）零密码、零自建后端代码，并且和已设计的 RLS policies 直接兼容。
-- 结论：`/account` 只提供邮箱 magic link 登录，浏览器 Supabase 客户端默认 `detectSessionInUrl: true` 自动消费回跳链接中的 session,不需要额外的 OAuth 回调路由。
+- 背景：任务 2.4 最初用 Supabase magic link（`signInWithOtp`）做最小可用登录。`v0.1.16` 用户要求把 Account 从独立页面收进顶部导航的一个图标 + 悬浮窗口，并改用邮箱密码登录或 Google 登录，登录后能改名、改密码、登出。
+- 方案对比：继续用 magic link 需要用户跳出产品去查收邮件再跳回来，和"悬浮窗口里直接完成登录"的产品目标冲突；自建密码找回/校验流程成本高。Supabase 内置 `signInWithPassword`/`signUp`（邮箱密码）和 `signInWithOAuth({ provider: "google" })`（Google 登录）都是零自建后端代码的标准能力，且 `updateUser` 同时支持改密码（`password`）和改名（`data.full_name`），可以直接满足悬浮窗口内的账号管理需求。
+- 结论：`lib/supabase/auth.ts` 改为导出 `signInWithPassword`、`signUpWithPassword`、`signInWithGoogle`、`updateDisplayName`、`updatePassword`、`signOut`；不再提供 magic link 入口。Google 登录的回调仍依赖浏览器 Supabase 客户端默认的 `detectSessionInUrl: true` 自动消费回跳 session，不需要额外的服务端 OAuth 回调路由。
+
+### ADR-016：为什么把 Account 从独立页面改成头部图标 + 悬浮窗口
+
+- 背景：`/account` 作为独立页面需要整页导航才能登录/管理账号，而登录、改名、改密码、登出都是轻量的瞬时操作，不需要占用整页。
+- 方案对比：保留独立页面结构清晰但打断当前任务上下文（用户从 Chat/Trips/Explore 跳走再跳回）；做成头部常驻的图标 + 悬浮窗口可以在任意页面就地完成登录和账号管理，不离开当前上下文，也不需要任何路由跳转。
+- 结论：新增 `components/account/AccountMenu.tsx`，渲染在 `AppShell` 头部、`NavTabs` 旁边，自带 `open` 状态控制悬浮窗口显示；删除 `app/account/page.tsx` 和 `components/account/AccountPanel.tsx`，`NavTabs` 的 `AppTab` 类型移除 `"account"`。悬浮窗口内部按 `useSupabaseSession` 的 `configured/loading/session` 三态切换：未配置时显示 guest 提示，未登录时显示邮箱密码登录/注册表单和 Continue with Google 按钮，已登录时显示 Change name / Change password / Log out。
 
 ### ADR-011：为什么 Trips/Chat persistence 直接用浏览器端 Supabase 客户端而不是新建 API route
 
@@ -177,7 +183,6 @@ erDiagram
 - `/share/[token]`：公开只读分享页，无需登录即可查看已分享行程的 Canvas
 - `/explore`：Explore 骨架，按城市展示景点、美食、住宿（静态 provider 驱动）
 - `/tools`：Tools 占位页
-- `/account`：Account 占位页
 - `/api/chat`：DeepSeek V4 Flash chat API，失败时返回 mock canvas patch
 - `/api/trips`：placeholder API
 - `/api/explore`：placeholder API
@@ -186,7 +191,7 @@ erDiagram
 ## 代码结构
 
 - `app/`：Next.js routes、layout、global CSS、API routes。
-- `components/shell/`：AppShell、NavTabs。
+- `components/shell/`：AppShell、NavTabs（不再包含 account tab，AppShell 直接在头部渲染 `AccountMenu`）。
 - `components/chat/`：ButlerWorkspace、ChatPanel。
 - `components/canvas/`：TripCanvas、TripSummary、DayCard、DayDetailDrawer、CanvasTaskStrip（保留文件但当前不在 TripCanvas 渲染）。
 - `components/trips/`：TripsDashboard。
@@ -195,9 +200,9 @@ erDiagram
 - `lib/mock-ai/`：mock butler fallback provider。
 - `lib/canvas/`：canvas patch reducer。
 - `lib/trips/`：Trips mock data 和后续 trip library helpers。
-- `lib/supabase/`：Supabase 集成层 —— `schema.ts`（表结构契约）、`client.ts`（浏览器客户端 + 配置检测）、`auth.ts`（magic link 登录/登出/session）、`useSupabaseSession.ts`（React hook）、`tripsRepository.ts`（trips/canvas_versions/messages 读写，含归档状态更新和分享 token 生成/撤销/公开读取）。
+- `lib/supabase/`：Supabase 集成层 —— `schema.ts`（表结构契约）、`client.ts`（浏览器客户端 + 配置检测）、`auth.ts`（邮箱密码登录/注册、Google OAuth、改名、改密码、登出/session）、`useSupabaseSession.ts`（React hook）、`tripsRepository.ts`（trips/canvas_versions/messages 读写，含归档状态更新和分享 token 生成/撤销/公开读取）。
 - `supabase/migrations/`：Supabase SQL schema 迁移文件；需要按顺序在真实 Supabase 项目的 SQL Editor 中手动执行（`0001_init_trip_schema.sql` 之后追加 `0002_trip_archive_and_share.sql`）。
-- `components/account/AccountPanel.tsx`：Account 页面的 magic link 登录 UI 和 guest-mode 文案。
+- `components/account/AccountMenu.tsx`：头部图标 + 悬浮窗口，按 session 三态切换 guest 提示 / 邮箱密码登录注册 + Google 登录 / 已登录后的改名、改密码、登出。
 - `app/trips/[id]/page.tsx`、`components/trips/TripDetail.tsx`：trip detail 页面，已登录且配置 Supabase 时渲染真实 `TripCanvas`，并提供 Mark as Ready / Archive / Restore from archive 状态切换和 Get share link / Revoke share link 操作；未登录或未配置时回落到示例行程摘要或 not-found 提示。
 - `app/share/[token]/page.tsx`、`components/share/ShareView.tsx`：公开只读分享页，不依赖登录态，仅渲染分享行程的 `TripCanvas` 快照，不包含 `AppShell` 导航。
 - `lib/explore/`：Explore provider abstraction —— `types.ts`（`ExploreProvider` 接口和领域类型）、`staticProvider.ts`（当前唯一实现，静态城市/景点/美食/住宿数据）、`index.ts`（`getExploreProvider()` 工厂，组件唯一允许调用的入口）。

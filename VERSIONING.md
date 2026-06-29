@@ -3,7 +3,7 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.15`
+- Current iteration: `v0.1.16`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -29,3 +29,4 @@
 - `v0.1.13`: implemented the trip detail page (task 3.4) — `/trips/[id]` shows the real saved canvas for signed-in Supabase trips or an example-trip summary otherwise, with a new "View details" entry from the Trips Dashboard.
 - `v0.1.14`: implemented trip archive state and share links (task 3.5) — Trip Detail gained Mark as Ready/Archive/Restore actions plus Get share link/Revoke share link, backed by a new `0002_trip_archive_and_share.sql` migration and a public read-only `/share/[token]` page.
 - `v0.1.15`: implemented the Explore skeleton and provider abstraction (tasks 4.1, 4.2) — `lib/explore` defines an `ExploreProvider` interface with a static implementation covering Beijing/Shanghai/Chengdu/Xi'an, and `ExploreBoard` replaces the Explore placeholder with city filters and Attractions/Food/Stays columns.
+- `v0.1.16`: replaced the standalone `/account` page with a header icon + popover (task 2.5) — `AccountMenu` handles email/password sign-in/sign-up, Google OAuth sign-in, and post-login change-name/change-password/log-out, all without leaving the current page.

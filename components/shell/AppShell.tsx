@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { AccountMenu } from "@/components/account/AccountMenu";
 import { NavTabs, type AppTab } from "@/components/shell/NavTabs";
 
 interface AppShellProps {
@@ -17,7 +18,10 @@ export function AppShell({ activeTab, children }: AppShellProps) {
             <small>AI China Travel Butler</small>
           </span>
         </a>
-        <NavTabs activeTab={activeTab} />
+        <div className="app-header__nav">
+          <NavTabs activeTab={activeTab} />
+          <AccountMenu />
+        </div>
       </header>
       <main className="app-main">{children}</main>
     </div>
