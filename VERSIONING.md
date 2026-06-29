@@ -3,7 +3,7 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.5`
+- Current iteration: `v0.1.6`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -19,3 +19,4 @@
 - `v0.1.3`: desktop-first Trip Canvas density pass with smaller title, one-line day summaries, and a detail drawer.
 - `v0.1.4`: brand manual logo borrowing pass; header mark replaced with the panda icon while preserving the current visual direction.
 - `v0.1.5`: fixed desktop landscape workspace; day cards show only one-sentence summaries, details open in a side drawer, and butler reminders live in the top task cards.
+- `v0.1.6`: connected DeepSeek V4 Flash through the server chat route with mock fallback and server-only key handling.

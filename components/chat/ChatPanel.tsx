@@ -14,7 +14,7 @@ const prompts = [
 
 interface ChatPanelProps {
   messages: ChatMessage[];
-  onSend: (message: string) => void;
+  onSend: (message: string) => void | Promise<void>;
   busy?: boolean;
 }
 

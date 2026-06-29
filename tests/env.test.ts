@@ -10,8 +10,8 @@ describe("getEnvironmentStatus", () => {
   });
 
   it("marks configured keys", () => {
-    const result = getEnvironmentStatus({ AI_API_KEY: "test-key" });
+    const result = getEnvironmentStatus({ DEEPSEEK_API_KEY: "test-key" });
 
-    expect(result.find((item) => item.key === "AI_API_KEY")?.configured).toBe(true);
+    expect(result.find((item) => item.key === "DEEPSEEK_API_KEY")?.configured).toBe(true);
   });
 });

@@ -39,20 +39,38 @@ export function ButlerWorkspace() {
   const [trip, setTrip] = useState<TripState>(initialTripState);
   const [messages, setMessages] = useState<ChatMessage[]>(openingMessages);
   const [status, setStatus] = useState("Canvas ready for your first request.");
+  const [busy, setBusy] = useState(false);
 
   const statusText = useMemo(() => status, [status]);
 
-  function handleSend(message: string) {
-    const patch = createMockButlerPatch(message, trip);
-    const nextTrip = applyCanvasPatch(trip, patch);
+  async function handleSend(message: string) {
+    setBusy(true);
+    setMessages((current) => [...current, createMessage("user", message)]);
 
-    setTrip(nextTrip);
-    setMessages((current) => [
-      ...current,
-      createMessage("user", message),
-      createMessage("assistant", patch.assistantMessage),
-    ]);
-    setStatus(`VisePanda updated the canvas: ${patch.reason}`);
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, trip }),
+      });
+      const body = await response.json();
+      const patch = body?.patch ?? createMockButlerPatch(message, trip);
+      const nextTrip = applyCanvasPatch(trip, patch);
+      const modeNote = body?.mode === "deepseek" ? "DeepSeek V4 Flash" : "mock fallback";
+
+      setTrip(nextTrip);
+      setMessages((current) => [...current, createMessage("assistant", patch.assistantMessage)]);
+      setStatus(`VisePanda updated the canvas with ${modeNote}: ${patch.reason}`);
+    } catch {
+      const patch = createMockButlerPatch(message, trip);
+      const nextTrip = applyCanvasPatch(trip, patch);
+
+      setTrip(nextTrip);
+      setMessages((current) => [...current, createMessage("assistant", patch.assistantMessage)]);
+      setStatus(`VisePanda updated the canvas with mock fallback: ${patch.reason}`);
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -61,7 +79,7 @@ export function ButlerWorkspace() {
         <TripCanvas trip={trip} />
       </div>
       <div className="butler-workspace__chat">
-        <ChatPanel messages={messages} onSend={handleSend} />
+        <ChatPanel messages={messages} onSend={handleSend} busy={busy} />
         <p className="workspace-status" role="status" aria-live="polite">
           {statusText}
         </p>

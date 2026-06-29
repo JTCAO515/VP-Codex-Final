@@ -1,5 +1,12 @@
 # VisePanda Changelog
 
+## v0.1.6 - 2026-06-29
+
+- Added a DeepSeek V4 Flash provider for `/api/chat`.
+- Routed chat submissions through the server API so provider keys stay server-side.
+- Kept deterministic mock fallback for missing keys, API failures, or invalid model output.
+- Updated environment placeholders to use `DEEPSEEK_API_KEY`, `DEEPSEEK_BASE_URL`, and `DEEPSEEK_MODEL`.
+
 ## v0.1.5 - 2026-06-29
 
 - Removed day itinerary details from the main Trip Canvas surface.
