@@ -1,5 +1,13 @@
 # VisePanda Changelog
 
+## v0.1.8 - 2026-06-29
+
+- Upgraded `/trips` from a placeholder page into a saved trips dashboard skeleton.
+- Added three mock trip cards with route, date, length, traveler, status, highlights, butler task count, and summary copy.
+- Added All / Draft / Ready / Shared filters and summary metrics for the currently visible trips.
+- Added Continue in Chat links so saved-trip work can return to the AI Butler flow.
+- Added Trips Dashboard component tests.
+
 ## v0.1.7 - 2026-06-29
 
 - Removed the default demo conversation from the chat page now that live AI is connected.

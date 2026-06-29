@@ -2,7 +2,7 @@
 
 ## 架构概览
 
-VisePanda 采用 Next.js App Router 架构。核心体验是一个 AI Butler workspace：用户在右侧聊天，客户端调用服务端 `/api/chat`，服务端优先使用 DeepSeek V4 Flash 返回结构化 canvas patch，失败时回落到 mock provider，左侧 Trip Canvas 实时更新。
+VisePanda 采用 Next.js App Router 架构。核心体验是 AI Butler workspace：用户在右侧聊天，客户端调用服务端 `/api/chat`，服务端优先使用 DeepSeek V4 Flash 返回结构化 canvas patch，失败时回落到 mock provider，左侧 Trip Canvas 实时更新。
 
 ```mermaid
 flowchart LR
@@ -17,6 +17,16 @@ flowchart LR
     Reducer --> TripState["TripState"]
     TripState --> TripCanvas["Live Trip Canvas"]
     TripCanvas --> User
+```
+
+Trips 在 `v0.1.8` 采用静态 mock data + client-side filter。后续接入 Supabase 后，Trips 将成为保存、恢复、分享 Chat Canvas 的主要入口。
+
+```mermaid
+flowchart LR
+    TripsPage["/trips"] --> TripsDashboard["TripsDashboard"]
+    TripsDashboard --> MockTrips["lib/trips/mockTrips"]
+    TripsDashboard --> Filters["All / Draft / Ready / Shared"]
+    TripsDashboard --> ChatLink["Continue in Chat -> /chat"]
 ```
 
 ## 技术选型
@@ -42,6 +52,7 @@ erDiagram
     CanvasPatch ||--o{ TripDay : may_replace
     CanvasPatch ||--o{ ButlerAlert : may_add
     ChatMessage }o--|| TripState : updates
+    SavedTrip ||--o{ SavedTripHighlight : contains
 ```
 
 核心类型：
@@ -53,62 +64,57 @@ erDiagram
 - `CanvasPatch`：AI provider 返回的结构化更新。
 - `ChatMessage`：聊天记录。
 - `suggestions`：`/api/chat` 顶层返回的两个上下文建议问题，不写入 `CanvasPatch`，避免污染行程数据契约。
+- `SavedTrip`：Trips Dashboard 当前使用的静态行程卡类型，后续会映射到 Supabase trips。
 
 ## 关键设计决策
 
 ### ADR-001：为什么 DeepSeek 接入后仍保留 mock fallback
 
 - 背景：真实 AI 输出质量、key 配置、provider 可用性都会影响 MVP 稳定性。
-- 方案对比：
-  - 仅真实 AI：体验更接近最终产品，但任何 key、限流、格式错误都会阻断画布。
-  - DeepSeek + mock fallback：真实链路可用，同时保留 deterministic fallback 兜底。
+- 方案对比：仅真实 AI 更接近最终产品，但任何 key、限流、格式错误都会阻断画布；DeepSeek + mock fallback 可验证真实链路，同时保留 deterministic fallback 兜底。
 - 结论：`/api/chat` 优先调用 DeepSeek V4 Flash；缺少 `DEEPSEEK_API_KEY`、HTTP 失败或 JSON patch 不合法时回落到 mock。
 
-### ADR-002：为什么只做 Chat 完整体验，其他 tab 占位
+### ADR-002：为什么先做 Chat，再逐步扩展 Trips / Explore / Tools
 
-- 背景：用户明确要求这一轮着重 Chat 板块。
-- 方案对比：
-  - 同时做 Trips/Explore/Tools：范围大，容易牺牲核心体验。
-  - 只做 Chat，其它占位：更快验证核心交互。
-- 结论：当前阶段只完整实现 Chat / AI Butler。
+- 背景：用户明确要求 Chat 是本轮主体验，右侧持续聊天、左侧实时生成行程画布。
+- 方案对比：同时做所有 tab 范围过大，容易牺牲核心体验；先做 Chat 可以更快验证产品主线。
+- 结论：阶段一完整实现 Chat / AI Butler；`v0.1.8` 开始把 Trips 从占位扩展为行程库骨架。
 
 ### ADR-003：为什么场景化背景放到后续
 
 - 背景：按北京/上海切换水墨背景会显著增强体验。
-- 方案对比：
-  - 当前立即实现：需要 destination state、asset mapping、切换动画、性能处理。
-  - 后续实现：先保证基础背景和工作台稳定。
+- 方案对比：当前立即实现需要 destination state、asset mapping、切换动画、性能处理；后续实现可以先保证基础背景和工作台稳定。
 - 结论：当前使用单一水墨背景，destination-aware background switching 放入后续迭代。
 
-### ADR-004：为什么 Day 详情使用抽屉而不是直接展开在画布里
+### ADR-004：为什么 Day 详情使用抽屉而不是直接展开
 
 - 背景：当前阶段优先电脑横屏端，主画布需要快速扫描，不应被 Day 详情占满。
-- 方案对比：
-  - 主界面直接展开详情：信息完整，但会挤压行程总览，页面难以固定为一屏。
-  - 每日一句摘要 + 抽屉详情：主画布更轻，用户需要时再查看完整行程。
+- 方案对比：主界面直接展开详情信息完整，但会挤压行程总览；每日一句摘要 + 抽屉详情让主画布更轻。
 - 结论：Trip Canvas 主界面只显示每日摘要，完整时间段、餐饮、住宿、交通、备注进入侧边抽屉。
 
 ### ADR-005：为什么桌面工作台固定为一屏
 
-- 背景：Chat 是右侧持续对话，左侧是实时画布；横屏端应像一个稳定工作台，而不是长页面。
-- 方案对比：
-  - 页面级滚动：实现简单，但聊天、画布和抽屉会互相错位。
-  - 一屏固定 + 区域内部滚动：更像产品工具，左右区域始终可见。
-- 结论：桌面端使用一屏固定布局，聊天流、日程列表和抽屉内部自行滚动。
+- 背景：Chat 是右侧持续对话，左侧是实时画布；横屏端应像稳定工作台，而不是长页面。
+- 方案对比：页面级滚动实现简单，但聊天、画布和抽屉会互相错位；一屏固定 + 区域内部滚动更像产品工具。
+- 结论：桌面端使用一屏固定布局，聊天流、日程列表、Trips 列表和抽屉内部自行滚动。
 
 ### ADR-006：为什么 suggestions 不放进 CanvasPatch
 
 - 背景：建议问题属于聊天体验，不属于行程画布状态。
-- 方案对比：
-  - 放进 `CanvasPatch`：实现简单，但会污染 trip/canvas 数据契约。
-  - 作为 `/api/chat` 顶层字段返回：聊天面板可直接刷新，画布 reducer 不需要关心。
+- 方案对比：放进 `CanvasPatch` 实现简单，但会污染 trip/canvas 数据契约；作为 `/api/chat` 顶层字段返回更清晰。
 - 结论：`/api/chat` 返回 `{ patch, suggestions }`，其中 suggestions 固定为 2 个上下文相关问题。
+
+### ADR-007：为什么 Trips 先用 mock data
+
+- 背景：Trips 是保存行程、继续编辑和分享的关键入口，但 Supabase schema 尚未确认。
+- 方案对比：立即接数据库会过早固定数据模型；先做静态 dashboard 可以验证页面信息结构、筛选和导航入口。
+- 结论：`v0.1.8` Trips 使用 `lib/trips/mockTrips.ts`，后续再接 Supabase persistence 和 trip detail。
 
 ## 路由/页面结构
 
 - `/`：重定向到 `/chat`
 - `/chat`：AI Butler 主工作台
-- `/trips`：Trips 占位页
+- `/trips`：Saved Trips Dashboard 骨架
 - `/explore`：Explore 占位页
 - `/tools`：Tools 占位页
 - `/account`：Account 占位页
@@ -123,10 +129,12 @@ erDiagram
 - `components/shell/`：AppShell、NavTabs。
 - `components/chat/`：ButlerWorkspace、ChatPanel。
 - `components/canvas/`：TripCanvas、TripSummary、DayCard、DayDetailDrawer、CanvasTaskStrip。
+- `components/trips/`：TripsDashboard。
 - `components/placeholders/`：PlaceholderPage。
 - `lib/ai/`：DeepSeek provider 与 fallback orchestration。
 - `lib/mock-ai/`：mock butler fallback provider。
 - `lib/canvas/`：canvas patch reducer。
+- `lib/trips/`：Trips mock data 和后续 trip library helpers。
 - `lib/types/`：共享类型。
 - `lib/env/`：环境变量状态 registry。
 - `tests/`：Vitest 和 Playwright 测试。
