@@ -97,7 +97,7 @@ select:focus-visible {
   width: min(1720px, 100%);
   min-height: 100dvh;
   margin: 0 auto;
-  padding: 0 clamp(16px, 3vw, 40px) 24px;
+  padding: 0 clamp(16px, 2.4vw, 34px) 18px;
 }
 
 .app-header {
@@ -105,7 +105,7 @@ select:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  min-height: 86px;
+  min-height: 76px;
   border-bottom: 1px solid rgba(111, 91, 73, 0.18);
 }
 
@@ -117,8 +117,8 @@ select:focus-visible {
 }
 
 .brand-mark__logo {
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   border: 1px solid rgba(111, 91, 73, 0.2);
   border-radius: 16px;
   object-fit: cover;
@@ -132,7 +132,7 @@ select:focus-visible {
 }
 
 .brand-mark strong {
-  font-size: clamp(1.55rem, 2.6vw, 2.25rem);
+  font-size: clamp(1.35rem, 2.2vw, 1.9rem);
   line-height: 1.1;
 }
 
@@ -162,7 +162,7 @@ select:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  min-height: 86px;
+  min-height: 76px;
   min-width: 0;
   padding: 0 2px;
   color: var(--ink-muted);
@@ -174,13 +174,15 @@ select:focus-visible {
 
 .nav-tabs__link span {
   display: grid;
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   place-items: center;
   border: 1px solid currentColor;
   border-radius: 50%;
-  font-size: 0.72rem;
-  font-weight: 900;
+}
+
+.nav-tabs__link svg {
+  display: block;
 }
 
 .nav-tabs__link[data-active="true"] {
@@ -198,7 +200,7 @@ select:focus-visible {
 }
 
 .app-main {
-  padding-top: 18px;
+  padding-top: 12px;
 }
 
 .account-menu {
@@ -389,7 +391,7 @@ select:focus-visible {
 
 .trip-canvas {
   display: grid;
-  gap: 16px;
+  gap: 10px;
   min-height: 0;
 }
 
@@ -403,7 +405,7 @@ select:focus-visible {
 .trip-canvas__title h1 {
   margin: 0;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(1.6rem, 3vw, 2.35rem);
+  font-size: clamp(1.25rem, 2.2vw, 1.7rem);
   line-height: 1;
   letter-spacing: 0;
 }
@@ -495,28 +497,28 @@ select:focus-visible {
 
 .trip-summary {
   display: grid;
-  grid-template-columns: 170px minmax(0, 1fr);
-  gap: 0 28px;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 0 18px;
   align-items: center;
   border: 1px solid rgba(111, 91, 73, 0.2);
   border-radius: 8px;
-  padding: 22px 28px;
+  padding: 12px 18px;
   background: color-mix(in srgb, var(--paper-soft) 86%, transparent);
   box-shadow: 0 10px 24px rgba(55, 36, 18, 0.07);
 }
 
 .trip-summary__route-mark {
   position: relative;
-  min-height: 84px;
+  min-height: 58px;
   border-right: 1px dashed rgba(182, 134, 52, 0.54);
 }
 
 .trip-summary__route-mark span {
   position: absolute;
-  top: 14px;
-  left: 24px;
-  width: 92px;
-  height: 58px;
+  top: 10px;
+  left: 15px;
+  width: 68px;
+  height: 40px;
   border: 1px solid rgba(163, 58, 45, 0.18);
   border-radius: 45% 55% 50% 48%;
   background:
@@ -534,30 +536,30 @@ select:focus-visible {
 }
 
 .trip-summary__copy h2 {
-  margin: 5px 0 8px;
-  font-size: clamp(1.4rem, 2.4vw, 2rem);
+  margin: 3px 0 5px;
+  font-size: clamp(1.1rem, 2vw, 1.45rem);
   line-height: 1.1;
 }
 
 .trip-summary__copy span {
   display: block;
   color: var(--ink-muted);
-  font-size: 0.92rem;
-  line-height: 1.45;
+  font-size: 0.82rem;
+  line-height: 1.35;
 }
 
 .trip-summary__meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   grid-column: 2;
-  margin-top: 14px;
+  margin-top: 8px;
 }
 
 .trip-summary__meta span {
   border: 1px solid rgba(163, 58, 45, 0.16);
   border-radius: 999px;
-  padding: 6px 10px;
+  padding: 4px 8px;
   background: rgba(255, 248, 237, 0.72);
   color: var(--ink-muted);
   font-size: 0.78rem;
@@ -567,7 +569,7 @@ select:focus-visible {
 .trip-canvas__body {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 18px;
+  gap: 10px;
   align-items: start;
   min-height: 0;
 }
@@ -576,7 +578,7 @@ select:focus-visible {
 .butler-rail__list,
 .trip-canvas__side {
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 
 .trip-canvas__days {
@@ -602,7 +604,7 @@ select:focus-visible {
   position: absolute;
   top: -14px;
   bottom: -14px;
-  left: 40px;
+  left: 34px;
   width: 1px;
   background: rgba(182, 134, 52, 0.42);
   content: "";
@@ -773,20 +775,26 @@ select:focus-visible {
 }
 
 .day-card {
-  grid-template-columns: 74px minmax(0, 1fr) auto;
-  gap: 12px 16px;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  gap: 8px 12px;
   align-items: start;
-  padding: 18px 18px 18px 0;
+  padding: 12px 14px 12px 0;
 }
 
 .day-card__marker {
   margin-top: -1px;
+  width: 50px;
+  height: 50px;
 }
 
 .day-card__head {
   grid-column: 2;
   grid-template-columns: 1fr;
-  padding-top: 2px;
+  padding-top: 0;
+}
+
+.day-card__head h2 {
+  font-size: clamp(1.08rem, 1.7vw, 1.38rem);
 }
 
 .day-card__head span {
@@ -796,7 +804,7 @@ select:focus-visible {
 .day-card__blocks {
   grid-column: 2 / -1;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
   width: 100%;
 }
 
@@ -804,16 +812,16 @@ select:focus-visible {
   min-width: 0;
   border: 1px solid rgba(111, 91, 73, 0.14);
   border-radius: 6px;
-  padding: 10px;
+  padding: 8px;
   background: rgba(255, 248, 237, 0.38);
 }
 
 .day-block__image {
   display: grid;
-  min-height: 56px;
+  min-height: 38px;
   place-items: center;
   border-radius: 5px;
-  padding: 8px;
+  padding: 6px;
   background: rgba(182, 164, 136, 0.26);
   color: var(--ink-soft);
   font-size: 0.7rem;
@@ -822,7 +830,7 @@ select:focus-visible {
 }
 
 .day-block span {
-  margin-top: 8px;
+  margin-top: 5px;
   color: var(--ink-soft);
   font-size: 0.72rem;
   text-transform: uppercase;
@@ -831,17 +839,17 @@ select:focus-visible {
 .day-block strong {
   display: block;
   overflow-wrap: anywhere;
-  font-size: 0.94rem;
+  font-size: 0.86rem;
   line-height: 1.25;
 }
 
 .day-card__meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 16px;
+  gap: 5px 12px;
   grid-column: 2 / -1;
   color: var(--ink-soft);
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   line-height: 1.35;
 }
 
@@ -1080,7 +1088,7 @@ select:focus-visible {
 
 .butler-workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1.9fr) minmax(360px, 0.9fr);
+  grid-template-columns: minmax(0, 1.95fr) minmax(340px, 0.86fr);
   gap: 0;
   align-items: start;
   min-height: 0;
@@ -1096,22 +1104,22 @@ select:focus-visible {
   top: 0;
   display: grid;
   gap: 10px;
-  height: calc(100dvh - 104px);
+  height: calc(100dvh - 88px);
   min-height: 0;
   border-left: 1px solid rgba(111, 91, 73, 0.28);
-  padding-left: clamp(24px, 3.2vw, 42px);
+  padding-left: clamp(18px, 2.6vw, 32px);
 }
 
 .butler-workspace__canvas {
   min-height: 0;
-  padding-right: clamp(24px, 3.2vw, 42px);
+  padding-right: clamp(18px, 2.6vw, 32px);
 }
 
 .chat-panel {
   display: grid;
-  height: calc(100dvh - 108px);
-  max-height: calc(100dvh - 108px);
-  min-height: 650px;
+  height: calc(100dvh - 92px);
+  max-height: calc(100dvh - 92px);
+  min-height: 0;
   grid-template-rows: auto minmax(220px, 1fr) auto auto;
   overflow: hidden;
   border: 0;
@@ -1122,13 +1130,13 @@ select:focus-visible {
 
 .chat-panel__head {
   order: 1;
-  padding: 22px 0 16px;
+  padding: 10px 0 8px;
 }
 
 .chat-panel__head .section-kicker {
   position: relative;
   color: var(--ink);
-  font-size: clamp(1.35rem, 2.2vw, 1.75rem);
+  font-size: clamp(1.12rem, 1.8vw, 1.42rem);
   letter-spacing: 0;
   text-transform: none;
 }
@@ -1137,7 +1145,7 @@ select:focus-visible {
   display: block;
   width: 24px;
   height: 2px;
-  margin-top: 10px;
+  margin-top: 7px;
   background: var(--cinnabar);
   content: "";
 }
@@ -1147,7 +1155,7 @@ select:focus-visible {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   order: 3;
-  padding: 14px 0 16px;
+  padding: 8px 0 10px;
 }
 
 .prompt-row button {
@@ -1165,7 +1173,7 @@ select:focus-visible {
   order: 2;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 12px;
   overflow: auto;
   border: 0;
   padding: 10px 10px 10px 0;
@@ -1193,7 +1201,7 @@ select:focus-visible {
   margin: 0;
   border: 1px solid rgba(111, 91, 73, 0.22);
   border-radius: 8px;
-  padding: 14px 16px;
+  padding: 10px 12px;
   background: color-mix(in srgb, var(--paper-soft) 72%, transparent);
   color: var(--ink-muted);
   box-shadow: 0 6px 18px rgba(55, 36, 18, 0.05);
@@ -1209,10 +1217,10 @@ select:focus-visible {
 .chat-composer {
   order: 4;
   display: grid;
-  gap: 10px;
+  gap: 8px;
   border: 1px solid rgba(111, 91, 73, 0.24);
   border-radius: 8px;
-  padding: 14px;
+  padding: 10px;
   background: color-mix(in srgb, var(--paper-soft) 70%, transparent);
 }
 
@@ -1225,7 +1233,7 @@ select:focus-visible {
 
 .chat-composer textarea {
   width: 100%;
-  min-height: 86px;
+  min-height: 62px;
   resize: vertical;
   border: 0;
   border-bottom: 1px solid rgba(111, 91, 73, 0.18);
@@ -1254,7 +1262,7 @@ select:focus-visible {
 
 .workspace-save-row button {
   min-width: 132px;
-  min-height: 38px;
+  min-height: 32px;
   border: 1px solid rgba(182, 134, 52, 0.34);
   border-radius: 7px;
   background: transparent;
@@ -1270,17 +1278,17 @@ select:focus-visible {
   margin: 0;
   border: 0;
   border-top: 1px solid rgba(182, 134, 52, 0.34);
-  padding: 10px 0 0;
+  padding: 6px 0 0;
   background: transparent;
   color: var(--ink-muted);
-  font-size: 0.86rem;
-  line-height: 1.45;
+  font-size: 0.78rem;
+  line-height: 1.35;
 }
 
 .trips-dashboard {
   display: grid;
   grid-template-rows: auto auto auto minmax(0, 1fr);
-  gap: 16px;
+  gap: 10px;
   min-height: 0;
 }
 
@@ -1288,25 +1296,25 @@ select:focus-visible {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 24px;
+  gap: 18px;
   border-bottom: 1px solid rgba(111, 91, 73, 0.16);
-  padding: 6px 0 16px;
+  padding: 2px 0 10px;
 }
 
 .trips-dashboard__header h1 {
   margin: 0;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(1.7rem, 3vw, 2.55rem);
+  font-size: clamp(1.32rem, 2.4vw, 1.9rem);
   line-height: 1;
   letter-spacing: 0;
 }
 
 .trips-dashboard__header p:not(.section-kicker) {
   max-width: 660px;
-  margin: 10px 0 0;
+  margin: 5px 0 0;
   color: var(--ink-muted);
-  font-size: 0.95rem;
-  line-height: 1.55;
+  font-size: 0.82rem;
+  line-height: 1.35;
 }
 
 .trips-dashboard__primary,
@@ -1314,7 +1322,7 @@ select:focus-visible {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 40px;
+  min-height: 32px;
   border-radius: 7px;
   padding: 0 16px;
   background: var(--cinnabar);
@@ -1333,7 +1341,7 @@ select:focus-visible {
 .trips-dashboard__summary article {
   border: 1px solid rgba(111, 91, 73, 0.2);
   border-radius: 8px;
-  padding: 14px 16px;
+  padding: 9px 12px;
   background: color-mix(in srgb, var(--paper-soft) 80%, transparent);
   box-shadow: 0 8px 18px rgba(55, 36, 18, 0.05);
 }
@@ -1342,13 +1350,13 @@ select:focus-visible {
   display: block;
   color: var(--cinnabar);
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 1.7rem;
+  font-size: 1.28rem;
   font-weight: 800;
   line-height: 1;
 }
 
 .trips-dashboard__summary p {
-  margin: 7px 0 0;
+  margin: 4px 0 0;
   color: var(--ink-muted);
   font-size: 0.78rem;
   font-weight: 900;
@@ -1362,7 +1370,7 @@ select:focus-visible {
 }
 
 .trip-filters button {
-  min-height: 34px;
+  min-height: 30px;
   border: 1px solid rgba(163, 58, 45, 0.42);
   border-radius: 999px;
   padding: 0 14px;
@@ -1379,7 +1387,7 @@ select:focus-visible {
 
 .trip-library {
   display: grid;
-  gap: 12px;
+  gap: 9px;
   min-height: 0;
   overflow: auto;
   padding-right: 4px;
@@ -1387,11 +1395,11 @@ select:focus-visible {
 
 .trip-card {
   display: grid;
-  gap: 14px;
+  gap: 9px;
   border: 1px solid rgba(111, 91, 73, 0.2);
   border-left: 4px solid var(--gold);
   border-radius: 8px;
-  padding: 16px 18px;
+  padding: 11px 14px;
   background: color-mix(in srgb, var(--paper-soft) 82%, transparent);
   box-shadow: 0 10px 24px rgba(55, 36, 18, 0.07);
 }
@@ -1415,7 +1423,7 @@ select:focus-visible {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
 }
 
 .trip-card__status span {
@@ -1432,28 +1440,28 @@ select:focus-visible {
 
 .trip-card__main h2 {
   margin: 0;
-  font-size: clamp(1.15rem, 2vw, 1.45rem);
+  font-size: clamp(1rem, 1.7vw, 1.22rem);
   line-height: 1.12;
 }
 
 .trip-card__main p {
   max-width: 820px;
-  margin: 8px 0 0;
+  margin: 4px 0 0;
   color: var(--ink-muted);
-  font-size: 0.92rem;
-  line-height: 1.5;
+  font-size: 0.82rem;
+  line-height: 1.35;
 }
 
 .trip-card__meta {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
   margin: 0;
 }
 
 .trip-card__meta div {
   border-top: 1px solid rgba(111, 91, 73, 0.14);
-  padding-top: 9px;
+  padding-top: 6px;
 }
 
 .trip-card__meta dt {
@@ -1464,16 +1472,16 @@ select:focus-visible {
 }
 
 .trip-card__meta dd {
-  margin: 4px 0 0;
+  margin: 2px 0 0;
   color: var(--ink);
-  font-size: 0.88rem;
+  font-size: 0.78rem;
   font-weight: 850;
 }
 
 .trip-card__footer ul {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -1483,10 +1491,10 @@ select:focus-visible {
 .trip-card__footer span {
   border: 1px solid rgba(182, 134, 52, 0.32);
   border-radius: 999px;
-  padding: 5px 9px;
+  padding: 4px 8px;
   background: rgba(255, 248, 237, 0.52);
   color: var(--ink-muted);
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   font-weight: 850;
 }
 
@@ -1609,21 +1617,40 @@ select:focus-visible {
 
 .explore-board {
   display: grid;
-  gap: 18px;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 10px;
+  min-height: 0;
 }
 
 .explore-board__header p {
   color: var(--ink-muted);
 }
 
+.explore-board__header h1,
+.tools-board__header h1 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.28rem, 2.3vw, 1.86rem);
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.explore-board__header p:not(.section-kicker),
+.tools-board__header p:not(.section-kicker) {
+  max-width: 760px;
+  margin: 6px 0 0;
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
 .explore-city-filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .explore-city-filters button {
-  min-height: 34px;
+  min-height: 30px;
   border: 1px solid rgba(163, 58, 45, 0.42);
   border-radius: 999px;
   padding: 0 14px;
@@ -1640,18 +1667,21 @@ select:focus-visible {
 
 .explore-board__body {
   display: grid;
-  gap: 16px;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .explore-city-summary {
   border: 1px solid rgba(111, 91, 73, 0.2);
   border-radius: 12px;
-  padding: 16px 18px;
+  padding: 10px 14px;
   background: color-mix(in srgb, var(--paper-soft) 84%, transparent);
 }
 
 .explore-city-summary__region {
-  margin: 2px 0 8px;
+  margin: 1px 0 5px;
   color: var(--ink-muted);
   font-size: 0.85rem;
 }
@@ -1659,16 +1689,16 @@ select:focus-visible {
 .explore-city-summary ul {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   list-style: none;
   padding: 0;
-  margin: 10px 0 0;
+  margin: 7px 0 0;
 }
 
 .explore-city-summary li {
   border: 1px solid rgba(111, 91, 73, 0.24);
   border-radius: 999px;
-  padding: 4px 10px;
+  padding: 3px 8px;
   font-size: 0.78rem;
   color: var(--ink-muted);
 }
@@ -1676,21 +1706,24 @@ select:focus-visible {
 .explore-board__columns {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
+  gap: 10px;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 4px;
 }
 
 .explore-board__columns section {
   border: 1px solid rgba(111, 91, 73, 0.2);
   border-radius: 12px;
-  padding: 14px 16px;
+  padding: 10px 12px;
 }
 
 .explore-board__columns ul {
   list-style: none;
   padding: 0;
-  margin: 10px 0 0;
+  margin: 7px 0 0;
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .explore-board__columns li {
@@ -1700,7 +1733,8 @@ select:focus-visible {
 
 .explore-board__columns li span {
   color: var(--ink-muted);
-  font-size: 0.85rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
 }
 
 .explore-add-button {
@@ -1722,7 +1756,9 @@ select:focus-visible {
 
 .tools-board {
   display: grid;
-  gap: 18px;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  min-height: 0;
 }
 
 .tools-board__header p {
@@ -1732,7 +1768,9 @@ select:focus-visible {
 .tools-board__body {
   display: grid;
   grid-template-columns: minmax(180px, 240px) 1fr;
-  gap: 16px;
+  gap: 10px;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .tools-category-list {
@@ -1740,14 +1778,14 @@ select:focus-visible {
   padding: 0;
   margin: 0;
   display: grid;
-  gap: 8px;
+  gap: 6px;
   align-content: start;
 }
 
 .tools-category-list button {
   width: 100%;
   text-align: left;
-  padding: 10px 14px;
+  padding: 8px 12px;
   border: 1px solid rgba(111, 91, 73, 0.2);
   border-radius: 10px;
   background: transparent;
@@ -1757,19 +1795,21 @@ select:focus-visible {
 .tools-category-list button[data-active="true"] {
   border-color: var(--cinnabar);
   color: var(--cinnabar);
+  background: rgba(166, 49, 36, 0.08);
 }
 
 .tools-category-detail {
   border: 1px solid rgba(111, 91, 73, 0.2);
   border-radius: 12px;
-  padding: 16px 20px;
+  overflow: auto;
+  padding: 12px 16px;
 }
 
 .tools-category-detail ul {
-  margin: 10px 0 0;
+  margin: 8px 0 0;
   padding-left: 18px;
   display: grid;
-  gap: 8px;
+  gap: 7px;
 }
 
 @media (min-width: 900px) {
@@ -1785,12 +1825,12 @@ select:focus-visible {
   }
 
   .app-main {
-    height: calc(100dvh - 86px);
+    height: calc(100dvh - 76px);
     overflow: hidden;
   }
 
   .butler-workspace {
-    height: calc(100dvh - 104px);
+    height: calc(100dvh - 88px);
     overflow: hidden;
   }
 
@@ -1813,7 +1853,13 @@ select:focus-visible {
   }
 
   .trips-dashboard {
-    height: calc(100dvh - 112px);
+    height: calc(100dvh - 88px);
+    overflow: hidden;
+  }
+
+  .explore-board,
+  .tools-board {
+    height: calc(100dvh - 88px);
     overflow: hidden;
   }
 }

@@ -51,6 +51,7 @@ flowchart LR
 | 框架 | Next.js App Router | 原生适配 Vercel，后续可自然加入 API routes、server actions、动态页面。 |
 | UI | React + TypeScript | Chat 状态驱动画布更新，组件化和类型契约更稳定。 |
 | 样式 | 全局 CSS tokens + 组件 class | 第一阶段减少依赖，方便精确控制 warm New Chinese 视觉。 |
+| 图标 | lucide-react | 顶部导航使用轻量线性图标，避免字母占位，同时保持与 Vercel/Next.js 前端栈兼容。 |
 | 数据库 | Supabase（预留） | 后续适合 auth、trips、chat history、canvas snapshots。 |
 | AI | DeepSeek V4 Flash + mock fallback | 真实 API 可以验证产品主链路；mock fallback 保证无 key 或模型异常时仍稳定可用。 |
 | 部署 | Vercel | 与 Next.js 路线一致，适合静态页面 + API route。 |
@@ -150,6 +151,24 @@ erDiagram
 - 方案对比：可以先接一个真实 API（比如汇率换算）验证可行性，但这会让其余 6 个仍是占位的分类显得不一致，也会把 `ToolsBoard` 的渲染逻辑和某一家 API 的响应结构绑死；参考 ADR-015 对 Explore 的处理方式，先用接口加静态内容把 7 个分类都做成可用的骨架（每个分类给出准确、不易过期的通用建议，而不是承诺实时数据），用户立刻可以读到有用的清单，且后续接入真实数据源时只需替换 provider 实现。
 - 结论：新增 `lib/tools/types.ts` 定义 `ToolsProvider` 接口（`listCategories()`）和 `ToolCategory` 类型（`id`/`name`/`summary`/`tips`）；`lib/tools/staticProvider.ts` 用精选静态内容实现该接口，覆盖 7 个分类；`lib/tools/index.ts` 的 `getToolsProvider()` 是组件唯一允许调用的工厂函数。`Currency`/`Translate` 等分类的文案明确写出"实时数据未接入，请查询银行/官方渠道"，避免用户误以为是实时结果。后续接入真实汇率/翻译 API 时，只需新增一个实现该接口的 provider 并在工厂里切换，`components/tools/ToolsBoard.tsx` 不需要改动。
 
+### ADR-019：为什么 Tools 分类深链使用 `?category=` 参数而不是恢复 Canvas 任务卡
+
+- 背景：任务 5.2 需要让任务/提醒入口能跳到对应工具分类，但用户已明确要求移除 Canvas 顶部 Visa / Payment / Booking / Less tiring / Food-focused 五个任务框，当前画布应优先展示 Day 时间线和 Morning / Afternoon / Evening。
+- 方案对比：恢复顶部任务卡能提供显眼入口，但会破坏 `v0.1.9` 确认过的画布信息架构；用 `/tools?category=<tool-category-id>` 深链则让 Chat、Canvas、未来轻量提醒或外部链接都能指向同一工具分类，不需要在画布上重新占位。
+- 结论：`ToolsBoard` 挂载后读取 `window.location.search` 中的 `category` 参数，如果匹配当前 provider 返回的 `ToolCategory.id` 就自动选中该分类，否则回退到第一个分类；用户手动点击分类时用 `history.replaceState` 更新地址栏，方便复制和复用深链。该实现继续只通过 `getToolsProvider()` 获取工具数据。
+
+### ADR-020：为什么桌面端继续一屏锁定并压缩标题区
+
+- 背景：用户要求 Chat / Trips / Explore / Tools 都尽量把展示面积留给主体内容，页面展示不下时使用滑动条，而不是让整个页面纵向滚动。
+- 方案对比：页面级滚动实现简单，但顶部导航、Chat rail 和 Trip Canvas 会在滚动时错位；一屏锁定 + 内部滚动可以保持产品工作台感，但要求标题、摘要、筛选、卡片间距都更克制。
+- 结论：桌面端 `.app-main` 保持 `overflow: hidden`；Chat 的 `.trip-canvas__days`、Trips 的 `.trip-library`、Explore 的 `.explore-board__columns`、Tools 的 `.tools-category-detail` 使用内部滚动。`v0.1.19` 压缩了顶部导航高度、Live Trip Canvas 标题、Trip Draft summary、Trips/Explore/Tools 页头和卡片间距。
+
+### ADR-021：为什么顶部导航使用 lucide-react 图标
+
+- 背景：之前 Chat / Trips / Explore / Tools 导航只用 C/T/E/X 字母占位，识别度低，也不像成品。
+- 方案对比：自画 SVG 可以少一个依赖，但不利于统一线宽和未来扩展；`lucide-react` 是轻量、Tree-shake 友好的 React 图标库，能直接提供 MessageCircle、Luggage、Compass、Wrench 等语义明确的线性图标。
+- 结论：`components/shell/NavTabs.tsx` 引入 `lucide-react` 的四个图标，保留原来的文字 label 和 active 状态，不改变路由结构。
+
 ### ADR-011：为什么 Trips/Chat persistence 直接用浏览器端 Supabase 客户端而不是新建 API route
 
 - 背景：`/api/trips` 之前是占位 route；真实保存只涉及 `trips`/`canvas_versions`/`messages`,不涉及任何服务端密钥。
@@ -194,7 +213,7 @@ erDiagram
 - `/trips/[id]`：Trip Detail 页面，支持归档状态切换和分享链接管理
 - `/share/[token]`：公开只读分享页，无需登录即可查看已分享行程的 Canvas
 - `/explore`：Explore 骨架，按城市展示景点、美食、住宿（静态 provider 驱动）
-- `/tools`：Tools 骨架，按分类展示签证入境、支付设置、翻译、汇率、地铁、eSIM/VPN、应急的静态参考清单（静态 provider 驱动）
+- `/tools`：Tools 骨架，按分类展示签证入境、支付设置、翻译、汇率、地铁、eSIM/VPN、应急的静态参考清单（静态 provider 驱动）；支持 `/tools?category=<tool-category-id>` 直接打开指定分类
 - `/api/chat`：DeepSeek V4 Flash chat API，失败时返回 mock canvas patch
 - `/api/trips`：placeholder API
 - `/api/explore`：placeholder API
@@ -203,7 +222,7 @@ erDiagram
 ## 代码结构
 
 - `app/`：Next.js routes、layout、global CSS、API routes。
-- `components/shell/`：AppShell、NavTabs（不再包含 account tab，AppShell 直接在头部渲染 `AccountMenu`）。
+- `components/shell/`：AppShell、NavTabs（不再包含 account tab，AppShell 直接在头部渲染 `AccountMenu`；NavTabs 使用 lucide-react 图标）。
 - `components/chat/`：ButlerWorkspace（挂载时读取 `?trip=`、`?add=` URL 参数，分别用于恢复保存的画布和自动发送 Explore 的 Add to Trip 草稿消息）、ChatPanel。
 - `components/canvas/`：TripCanvas、TripSummary、DayCard、DayDetailDrawer、CanvasTaskStrip（保留文件但当前不在 TripCanvas 渲染）。
 - `components/trips/`：TripsDashboard。
@@ -220,7 +239,7 @@ erDiagram
 - `lib/explore/`：Explore provider abstraction —— `types.ts`（`ExploreProvider` 接口和领域类型）、`staticProvider.ts`（当前唯一实现，静态城市/景点/美食/住宿数据）、`index.ts`（`getExploreProvider()` 工厂，组件唯一允许调用的入口）。
 - `app/explore/page.tsx`、`components/explore/ExploreBoard.tsx`：Explore 页面，城市筛选 + 该城市的景点/美食/住宿三栏展示，数据来自 `getExploreProvider()`；每个条目带 Add to Trip 按钮，跳转 `/chat?add=<草稿消息>`。
 - `lib/tools/`：Tools provider abstraction —— `types.ts`（`ToolsProvider` 接口和 `ToolCategory` 类型）、`staticProvider.ts`（当前唯一实现，签证入境/支付设置/翻译/汇率/地铁/eSIM-VPN/应急 7 个分类的静态参考清单）、`index.ts`（`getToolsProvider()` 工厂，组件唯一允许调用的入口）。
-- `app/tools/page.tsx`、`components/tools/ToolsBoard.tsx`：Tools 页面，分类列表 + 选中分类的摘要和建议清单，数据来自 `getToolsProvider()`。
+- `app/tools/page.tsx`、`components/tools/ToolsBoard.tsx`：Tools 页面，分类列表 + 选中分类的摘要和建议清单，数据来自 `getToolsProvider()`；`ToolsBoard` 读取并维护 `?category=` URL 参数用于分类深链。
 - `lib/types/`：共享类型。
 - `lib/env/`：环境变量状态 registry。
 - `tests/`：Vitest 和 Playwright 测试。

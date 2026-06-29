@@ -1,5 +1,16 @@
 # VisePanda Changelog
 
+## v0.1.19 - 2026-06-30
+
+- Implemented task 5.2: Tools category deep links.
+- `components/tools/ToolsBoard.tsx` now reads `/tools?category=<tool-category-id>` on mount and opens the matching category, falling back to the default category for invalid values.
+- Category clicks now update the URL with `history.replaceState`, making selected Tools categories copyable and reusable from future Chat/Canvas reminder entry points.
+- Added a subtle active background highlight for the selected Tools category.
+- Expanded `tests/tools-board.test.tsx` to cover URL-selected categories and invalid-category fallback.
+- Replaced the letter placeholders in the top navigation with Lucide icons for Chat, Trips, Explore, and Tools.
+- Tightened desktop page density across Chat, Trips, Explore, and Tools: smaller headers, slimmer summary cards, tighter spacing, and internal scroll containers so the page itself stays locked to one viewport.
+- Added `tests/nav-tabs.test.tsx` to cover the icon-backed primary navigation.
+
 ## v0.1.18 - 2026-06-29
 
 - Implemented task 5.1: upgraded `/tools` from a placeholder into a real static-provider-driven skeleton covering 7 categories — Visa and entry, Payment setup, Translate, Currency, Metro, eSIM/VPN, and Emergency.

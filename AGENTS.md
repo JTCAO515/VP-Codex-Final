@@ -2,11 +2,12 @@
 
 ## 项目概述
 
-VisePanda 是一个面向外国人来中国旅行的 AI 管家产品。当前主线是：右侧持续 Chat，左侧 Live Trip Canvas 实时刷新；Trips 已从占位页升级为真实 Supabase persistence + 归档/分享流程；Explore 已从占位页升级为静态 provider 驱动的城市/景点/美食/住宿骨架，预留真实第三方 provider 接入点，并接入了 Add to Trip 流程（跳转 Chat 后走真实 AI pipeline 加入画布）；Account 已从独立页面改为头部图标 + 悬浮窗口，支持邮箱密码登录/注册和 Google 登录，登录后可改名/改密码/登出；Tools 已从占位页升级为静态 provider 驱动的签证入境/支付设置/翻译/汇率/地铁/eSIM-VPN/应急 7 个分类骨架。
+VisePanda 是一个面向外国人来中国旅行的 AI 管家产品。当前主线是：右侧持续 Chat，左侧 Live Trip Canvas 实时刷新；Trips 已从占位页升级为真实 Supabase persistence + 归档/分享流程；Explore 已从占位页升级为静态 provider 驱动的城市/景点/美食/住宿骨架，预留真实第三方 provider 接入点，并接入了 Add to Trip 流程（跳转 Chat 后走真实 AI pipeline 加入画布）；Account 已从独立页面改为头部图标 + 悬浮窗口，支持邮箱密码登录/注册和 Google 登录，登录后可改名/改密码/登出；Tools 已从占位页升级为静态 provider 驱动的签证入境/支付设置/翻译/汇率/地铁/eSIM-VPN/应急 7 个分类骨架，并支持 `/tools?category=<tool-category-id>` 分类深链。
 
 ## 核心技术栈
 
 - 前端：Next.js App Router、React、TypeScript。
+- 图标：lucide-react（顶部导航等常规 UI 图标优先使用）。
 - AI：DeepSeek V4 Flash provider + mock fallback。
 - 数据库：Supabase（`v0.1.11` 起接入真实登录和 trips/canvas_versions/messages persistence；`v0.1.12` 起 guest draft 登录后自动迁移；`v0.1.16` 起登录方式改为邮箱密码 + Google OAuth；未配置环境变量时优雅回落到 guest/mock 体验）。
 - 部署：Vercel，生产域名 `go2china.space`。
@@ -47,11 +48,14 @@ VisePanda 是一个面向外国人来中国旅行的 AI 管家产品。当前主
 - 不要重新加入独立 Practical Reminder / Butler Rail 区块；管家提醒后续应进入 Tools 或更轻量的上下文提示，不占据 Canvas 顶部。
 - 桌面横屏端优先保持一屏固定工作台；移动竖屏细节可以后续再精修。
 - 不要让移动导航遮挡核心内容。
+- 顶部 Chat / Trips / Explore / Tools 导航使用 lucide-react 线性图标，不要退回 C/T/E/X 字母占位。
+- 桌面端 Chat / Trips / Explore / Tools 必须保持一屏锁定；展示不下的内容放进内部滚动容器，不要让 `body` 或页面级主区域纵向滚动。
 - Trips/Chat 现在有真实 Supabase persistence 首个闭环（保存、读取、恢复），guest draft 登录后会自动迁移，且已有 trip detail 页面（`/trips/[id]`），支持归档/恢复状态切换和分享链接生成/撤销，分享链接对应只读公开页面 `/share/[token]`。
 - 运行 `supabase/migrations/0002_trip_archive_and_share.sql` 之前，分享和归档相关数据库操作会因为 RLS policy 缺失而失败；该迁移必须在 0001 之后追加执行到真实 Supabase 项目。
 - Explore 数据必须只通过 `lib/explore/index.ts` 的 `getExploreProvider()` 获取，不要在组件里直接 import `staticProvider.ts` 或硬编码城市数据；后续接入真实 Amap/Trip.com/Meituan 时只新增一个实现 `ExploreProvider` 接口的模块并在工厂里切换。
 - Explore 的 Add to Trip 必须通过「跳转 `/chat?add=<草稿消息>` 并由 `ButlerWorkspace` 调用既有 `handleSend` → `/api/chat` → `CanvasPatch` → `applyCanvasPatch`」流程加入画布，不允许在 `ExploreBoard` 或其他非 Chat 组件里直接拼装/合并 `TripDay`、`TripState` 或绕开 AI pipeline 写入画布。
 - Tools 数据必须只通过 `lib/tools/index.ts` 的 `getToolsProvider()` 获取，不要在组件里直接 import `staticProvider.ts` 或硬编码分类数据；当前内容均为静态参考清单，不要在没有真实数据源前声称提供实时汇率、实时翻译或实时签证规则查询，后续接入真实数据源时只新增一个实现 `ToolsProvider` 接口的模块并在工厂里切换。
+- Tools 分类深链必须使用 `/tools?category=<tool-category-id>`；`ToolsBoard` 会读取该参数并在无效时回退默认分类。后续 Chat/Canvas/提醒入口需要跳 Tools 时复用这个参数，不要为了入口恢复 Canvas 顶部五个任务框。
 - 所有 Supabase 读写必须经过 `lib/supabase/tripsRepository.ts`，复用已确认的 `users`/`trips`/`canvas_versions`/`messages` 表结构，不要另起字段命名、拆分表，也不要绕开 repository 直接在组件里拼 Supabase 查询。
 - Supabase 相关代码必须在未配置环境变量、未登录、网络失败时优雅降级（不崩溃，回落到 guest/mock 体验），参考 `lib/supabase/client.ts` 的 `isSupabaseConfigured` 模式。
 - `SUPABASE_SERVICE_ROLE_KEY` 当前未在任何代码中使用；不要在浏览器端代码中引入它。
