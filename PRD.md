@@ -24,15 +24,16 @@ Shared traits: English as the working language, 25-55, mobile-first, no fluency 
 
 ## Phase Roadmap
 
-### Phase 1 — Trip Canvas + Butler Rails (current)
+### Phase 1 — Trip Canvas + Butler Rails (current, scope revised 2026-06-29)
 
-Scope: a single workspace page. Day-by-day itinerary canvas (left, desktop) driven live by a persistent chat (right), with a Butler Rails reminder bar (visa/payment/hotel/transport/weather/risk/language/emergency) across the top. No login, no database — trip state lives in the browser. AI calls are optional (placeholder key, deterministic mock fallback). Full design: `docs/superpowers/specs/2026-06-29-mvp-trip-canvas-design.md`. Full build plan: `docs/superpowers/plans/2026-06-29-mvp-trip-canvas.md`.
+Scope: a real multi-route app shell (Chat / Trips / Explore / Tools / Account in the top nav), but only **Chat** is a fully built page. Chat is the AI butler workspace: Day-by-day itinerary canvas with a Trip Summary card (left, desktop) driven live by a persistent chat (right), with a Butler Rails reminder bar (visa/payment/hotel/transport/weather/risk/language/emergency) across the top. Trips/Explore/Tools/Account are real, navigable routes that render a shared "coming soon" placeholder — not decorative dead links, but not feature pages yet. No login, no database — trip state lives in the browser. AI calls are optional (placeholder key, deterministic mock fallback). Full design: `docs/superpowers/specs/2026-06-29-mvp-trip-canvas-design.md` (original decisions) and `DESIGN.md` rev. 2 (current visual direction, locked from a concrete reference mockup). Full build plan: `docs/superpowers/plans/2026-06-29-mvp-trip-canvas.md` v2.
 
 **Success criteria for Phase 1:**
-- A user can describe a multi-city, multi-day trip in plain English and see correct Day cards appear without manual form entry.
+- A user can describe a multi-city, multi-day trip in plain English and see correct Day cards (and a Trip Summary card) appear without manual form entry.
 - A follow-up preference ("don't want to be too tired") visibly updates the existing plan rather than replacing it with something unrelated.
 - The whole loop works with zero API keys configured (mock mode), so the experience can be demoed/reviewed before any real integration exists.
-- No part of the UI uses a semi-transparent dialog/card background — text sits on the ink-wash background via dark-mask treatment only.
+- No part of the UI uses a semi-transparent/glass-blur dialog or card — cards sit at the same flat tone as the page, divided by hairline borders/lines (see `DESIGN.md` rev. 2), not by elevation or a dark mask.
+- The top nav and all five routes (Chat/Trips/Explore/Tools/Account) are real, navigable — clicking any of them changes the URL and renders a page, even though only Chat has real functionality.
 
 ### Phase 2 — Real AI + Background Art (planned, not yet scoped)
 

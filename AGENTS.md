@@ -18,10 +18,10 @@ Read these before making broad changes:
 - Stack is Next.js 14 (App Router) + TypeScript + Tailwind + Zustand. Do not introduce a separate backend language/runtime without revisiting this decision with the user.
 - No backend database in Phase 1 — trip state is Zustand + `localStorage` only.
 - Every external dependency (AI today; maps/booking/translation later) must degrade gracefully with no API key configured. Never make a feature hard-fail because a key is missing.
-- No semi-transparent card/dialog backgrounds — see DESIGN.md's "no dialog box" rule before adding any new text-bearing UI.
+- No semi-transparent/glass-blur card or dialog backgrounds — see `DESIGN.md` rev. 2's card/divider rules before adding any new text-bearing UI. Cards are flat, bordered, same-tone-family as the page; left/right division uses hairline border lines, not background contrast.
 - TDD only for logic-only modules (`lib/store.ts`, `lib/parse-instructions.ts`, `lib/mock-ai.ts`, `lib/streaming.ts`). Don't add component-render tests for presentational components — those are verified by `npm run build` + manual walkthrough per the design doc's reduced MVP test scope.
 - Do not commit real API keys, tokens, or secrets. `.env.example` lists required variable names only, left blank.
-- Keep Phase 1 to the single workspace page (no tabs, no auth) unless the user explicitly moves the project into Phase 3.
+- Phase 1 has a real 5-route shell (Chat/Trips/Explore/Tools/Account) but only Chat is a feature page — don't build real functionality into the other four without revisiting with the user; they get the shared placeholder only.
 
 ## Useful Checks
 
