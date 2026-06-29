@@ -619,11 +619,12 @@ select:focus-visible {
 
 @media (max-width: 760px) {
   .app-shell {
-    padding: 14px 14px 112px;
+    padding: 14px 14px 28px;
   }
 
   .app-header {
-    align-items: flex-start;
+    display: grid;
+    align-items: start;
   }
 
   .brand-mark small {
@@ -631,13 +632,10 @@ select:focus-visible {
   }
 
   .nav-tabs {
-    position: fixed;
-    right: 12px;
-    bottom: calc(12px + env(safe-area-inset-bottom));
-    left: 12px;
-    z-index: 20;
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
+    width: 100%;
+    margin-top: 12px;
     border-radius: 18px;
   }
 
