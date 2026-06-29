@@ -3,7 +3,7 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.17`
+- Current iteration: `v0.1.18`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -31,3 +31,4 @@
 - `v0.1.15`: implemented the Explore skeleton and provider abstraction (tasks 4.1, 4.2) — `lib/explore` defines an `ExploreProvider` interface with a static implementation covering Beijing/Shanghai/Chengdu/Xi'an, and `ExploreBoard` replaces the Explore placeholder with city filters and Attractions/Food/Stays columns.
 - `v0.1.16`: replaced the standalone `/account` page with a header icon + popover (task 2.5) — `AccountMenu` handles email/password sign-in/sign-up, Google OAuth sign-in, and post-login change-name/change-password/log-out, all without leaving the current page.
 - `v0.1.17`: implemented the Explore "Add to Trip" flow (task 4.4) — every Explore attraction/food/stay item has an Add to Trip button that navigates to `/chat?add=<draft message>`, and `ButlerWorkspace` auto-sends that draft through the existing `/api/chat` → `CanvasPatch` pipeline on mount, keeping all canvas writes flowing through the AI pipeline.
+- `v0.1.18`: upgraded `/tools` from a placeholder into a static-provider-driven skeleton (task 5.1) covering Visa and entry, Payment setup, Translate, Currency, Metro, eSIM/VPN, and Emergency, following the same provider-abstraction pattern as Explore.

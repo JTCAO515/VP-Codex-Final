@@ -1,5 +1,13 @@
 # VisePanda Changelog
 
+## v0.1.18 - 2026-06-29
+
+- Implemented task 5.1: upgraded `/tools` from a placeholder into a real static-provider-driven skeleton covering 7 categories — Visa and entry, Payment setup, Translate, Currency, Metro, eSIM/VPN, and Emergency.
+- Added `lib/tools/types.ts` (`ToolsProvider` interface, `ToolCategory` type), `lib/tools/staticProvider.ts` (static reference checklists per category), and `lib/tools/index.ts` (`getToolsProvider()` factory — the only entry point components may call).
+- Added `components/tools/ToolsBoard.tsx` and replaced the Tools placeholder page with it: a category list and a detail panel showing that category's summary and tips.
+- Currency/Translate copy explicitly states that live exchange-rate conversion and machine translation aren't wired up yet, to avoid implying real-time data.
+- Added `tests/tools-provider.test.ts` and `tests/tools-board.test.tsx` covering the static provider's category list and the board's category-switch interaction.
+
 ## v0.1.17 - 2026-06-29
 
 - Implemented task 4.4: Explore "Add to Trip" flow.

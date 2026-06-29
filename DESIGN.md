@@ -144,6 +144,12 @@ erDiagram
 - 方案对比：可以让 `ExploreBoard` 直接在本地拼出一份 `CanvasPatch`（比如把景点名字塞进某一天的 Morning block）插入画布，这样不需要跳转页面，但会绕开 `/api/chat` 和 DeepSeek/mock fallback，导致两套生成画布内容的逻辑并存，且新内容无法获得 AI 对行程节奏、冲突、合理性的判断；改为「跳转 Chat 并自动发送一条草稿消息」则完全复用已有的 `handleSend` → `/api/chat` → `CanvasPatch` → `applyCanvasPatch` 流程，新内容和用户手打的请求走相同代码路径，不需要新增任何画布写入入口。
 - 结论：`ExploreBoard` 的每个条目新增一个 "Add to Trip" 按钮，点击后用 `window.location.href` 跳转到 `/chat?add=<encodeURIComponent(草稿消息)>`（草稿消息形如 `Add ${name} in ${city} to my trip.`，与 ADR-012 一致用原生 `window.location` 而不是 `next/navigation`，保持组件可在无 Router context 的 Vitest 测试中渲染）；`ButlerWorkspace` 挂载时用一个一次性 `useEffect` 读取 `add` 参数，若存在则立即清空 URL（`history.replaceState`）并调用现有的 `handleSend(addParam)`，画布更新路径与用户手动发消息完全一致。
 
+### ADR-018：为什么 Tools 第一版用静态参考清单 + provider 接口，而不是直接接实时汇率/翻译/签证 API
+
+- 背景：任务 5.1 要求把 Tools 从占位页升级为签证入境、支付设置、翻译、汇率、地铁、eSIM/VPN、应急 7 个真实工具页面，但实时汇率、机器翻译、签证规则查询都需要第三方 API 和持续维护的数据源，目前没有已验证的合作方或配额。
+- 方案对比：可以先接一个真实 API（比如汇率换算）验证可行性，但这会让其余 6 个仍是占位的分类显得不一致，也会把 `ToolsBoard` 的渲染逻辑和某一家 API 的响应结构绑死；参考 ADR-015 对 Explore 的处理方式，先用接口加静态内容把 7 个分类都做成可用的骨架（每个分类给出准确、不易过期的通用建议，而不是承诺实时数据），用户立刻可以读到有用的清单，且后续接入真实数据源时只需替换 provider 实现。
+- 结论：新增 `lib/tools/types.ts` 定义 `ToolsProvider` 接口（`listCategories()`）和 `ToolCategory` 类型（`id`/`name`/`summary`/`tips`）；`lib/tools/staticProvider.ts` 用精选静态内容实现该接口，覆盖 7 个分类；`lib/tools/index.ts` 的 `getToolsProvider()` 是组件唯一允许调用的工厂函数。`Currency`/`Translate` 等分类的文案明确写出"实时数据未接入，请查询银行/官方渠道"，避免用户误以为是实时结果。后续接入真实汇率/翻译 API 时，只需新增一个实现该接口的 provider 并在工厂里切换，`components/tools/ToolsBoard.tsx` 不需要改动。
+
 ### ADR-011：为什么 Trips/Chat persistence 直接用浏览器端 Supabase 客户端而不是新建 API route
 
 - 背景：`/api/trips` 之前是占位 route；真实保存只涉及 `trips`/`canvas_versions`/`messages`,不涉及任何服务端密钥。
@@ -188,7 +194,7 @@ erDiagram
 - `/trips/[id]`：Trip Detail 页面，支持归档状态切换和分享链接管理
 - `/share/[token]`：公开只读分享页，无需登录即可查看已分享行程的 Canvas
 - `/explore`：Explore 骨架，按城市展示景点、美食、住宿（静态 provider 驱动）
-- `/tools`：Tools 占位页
+- `/tools`：Tools 骨架，按分类展示签证入境、支付设置、翻译、汇率、地铁、eSIM/VPN、应急的静态参考清单（静态 provider 驱动）
 - `/api/chat`：DeepSeek V4 Flash chat API，失败时返回 mock canvas patch
 - `/api/trips`：placeholder API
 - `/api/explore`：placeholder API
@@ -213,6 +219,8 @@ erDiagram
 - `app/share/[token]/page.tsx`、`components/share/ShareView.tsx`：公开只读分享页，不依赖登录态，仅渲染分享行程的 `TripCanvas` 快照，不包含 `AppShell` 导航。
 - `lib/explore/`：Explore provider abstraction —— `types.ts`（`ExploreProvider` 接口和领域类型）、`staticProvider.ts`（当前唯一实现，静态城市/景点/美食/住宿数据）、`index.ts`（`getExploreProvider()` 工厂，组件唯一允许调用的入口）。
 - `app/explore/page.tsx`、`components/explore/ExploreBoard.tsx`：Explore 页面，城市筛选 + 该城市的景点/美食/住宿三栏展示，数据来自 `getExploreProvider()`；每个条目带 Add to Trip 按钮，跳转 `/chat?add=<草稿消息>`。
+- `lib/tools/`：Tools provider abstraction —— `types.ts`（`ToolsProvider` 接口和 `ToolCategory` 类型）、`staticProvider.ts`（当前唯一实现，签证入境/支付设置/翻译/汇率/地铁/eSIM-VPN/应急 7 个分类的静态参考清单）、`index.ts`（`getToolsProvider()` 工厂，组件唯一允许调用的入口）。
+- `app/tools/page.tsx`、`components/tools/ToolsBoard.tsx`：Tools 页面，分类列表 + 选中分类的摘要和建议清单，数据来自 `getToolsProvider()`。
 - `lib/types/`：共享类型。
 - `lib/env/`：环境变量状态 registry。
 - `tests/`：Vitest 和 Playwright 测试。
