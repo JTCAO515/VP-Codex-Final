@@ -1,8 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { savedTrips, tripStatusLabels, type SavedTripStatus } from "@/lib/trips/mockTrips";
+import { useEffect, useMemo, useState } from "react";
+import { savedTrips, tripStatusLabels, type SavedTrip, type SavedTripStatus } from "@/lib/trips/mockTrips";
+import { listTripsForOwner } from "@/lib/supabase/tripsRepository";
+import { useSupabaseSession } from "@/lib/supabase/useSupabaseSession";
+import type { TripRow } from "@/lib/supabase/schema";
 
 type TripFilter = SavedTripStatus | "all";
 
@@ -14,11 +17,44 @@ function getStatusCopy(status: SavedTripStatus) {
   return "Draft in progress";
 }
 
+function tripRowToSavedTrip(row: TripRow): SavedTrip {
+  return {
+    id: row.id,
+    title: row.title,
+    route: "",
+    dates: "",
+    durationDays: 0,
+    travelers: "",
+    status: row.status,
+    updatedAt: `Updated ${new Date(row.updated_at).toLocaleDateString()}`,
+    alertCount: 0,
+    summary: "Saved from your Chat workspace.",
+    highlights: [],
+  };
+}
+
 export function TripsDashboard() {
+  const { configured, loading, session } = useSupabaseSession();
   const [activeFilter, setActiveFilter] = useState<TripFilter>("all");
+  const [remoteTrips, setRemoteTrips] = useState<SavedTrip[] | null>(null);
+
+  useEffect(() => {
+    if (!configured || loading || !session) {
+      setRemoteTrips(null);
+      return;
+    }
+
+    listTripsForOwner(session.user.id)
+      .then((rows) => setRemoteTrips(rows.map(tripRowToSavedTrip)))
+      .catch(() => setRemoteTrips([]));
+  }, [configured, loading, session]);
+
+  const isSignedIn = configured && !loading && Boolean(session);
+  const trips = isSignedIn ? remoteTrips ?? [] : savedTrips;
+
   const visibleTrips = useMemo(
-    () => savedTrips.filter((trip) => activeFilter === "all" || trip.status === activeFilter),
-    [activeFilter],
+    () => trips.filter((trip) => activeFilter === "all" || trip.status === activeFilter),
+    [trips, activeFilter],
   );
   const totalDays = visibleTrips.reduce((sum, trip) => sum + trip.durationDays, 0);
   const totalAlerts = visibleTrips.reduce((sum, trip) => sum + trip.alertCount, 0);
@@ -77,7 +113,7 @@ export function TripsDashboard() {
                 <h2>{trip.title}</h2>
                 <p>{trip.summary}</p>
               </div>
-              <Link href="/chat">Continue in Chat</Link>
+              <Link href={isSignedIn ? `/chat?trip=${trip.id}` : "/chat"}>Continue in Chat</Link>
             </div>
             <dl className="trip-card__meta" aria-label={`${trip.title} summary`}>
               <div>
@@ -107,6 +143,9 @@ export function TripsDashboard() {
             </div>
           </article>
         ))}
+        {isSignedIn && visibleTrips.length === 0 && (
+          <p className="trips-dashboard__empty">No saved trips yet. Use Save to Trips from the Chat workspace.</p>
+        )}
       </div>
     </section>
   );

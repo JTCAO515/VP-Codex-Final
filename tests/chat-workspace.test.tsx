@@ -22,4 +22,12 @@ describe("ButlerWorkspace", () => {
     expect(await screen.findAllByText(/Shanghai/i)).not.toHaveLength(0);
     expect(await screen.findByText(/VisePanda updated the canvas/i)).toBeInTheDocument();
   });
+
+  it("prompts to configure Supabase when saving without project keys", async () => {
+    render(<ButlerWorkspace />);
+
+    fireEvent.click(screen.getByRole("button", { name: /save to trips/i }));
+
+    expect(await screen.findByText(/Add Supabase project keys to enable saving trips\./i)).toBeInTheDocument();
+  });
 });

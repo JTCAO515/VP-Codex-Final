@@ -31,7 +31,9 @@ VisePanda 是一个面向外国人来中国旅行的英文原生 AI 管家。用
 | Day Detail Drawer | P0 | 用户点击某一天后，从侧边抽屉查看并修改该日完整行程。 | 默认不显示每日详情；点击 Edit 后显示三段日程、酒店、交通、备注字段，用户可本地修改并保存回画布。 |
 | DeepSeek AI Pipeline | P0 | 服务端 `/api/chat` 调用 DeepSeek V4 Flash 生成结构化 canvas patch，同时保留 deterministic mock fallback。 | 配置 `DEEPSEEK_API_KEY` 时返回 `deepseek` mode；缺 key、API 失败或输出不合法时返回 `mock` mode，画布仍可更新。 |
 | Chat Panel | P0 | 支持两列建议问题、输入框、发送按钮、聊天记录、busy 状态。 | 初始不显示演示对话；用户发送后出现用户和 VisePanda 消息；AI 回复后刷新 2 个上下文建议问题。 |
-| Trips Dashboard | P0 | 行程库骨架，展示静态 saved trips、状态筛选、概览指标和 Continue in Chat 入口。 | 用户打开 `/trips` 可以看到 Your trips、至少 3 张 trip cards、All/Draft/Ready/Shared 筛选，并可点击 Continue in Chat 返回 `/chat`。 |
+| Trips Dashboard | P0 | 行程库，展示状态筛选、概览指标和 Continue in Chat 入口；已登录且 Supabase 已配置时展示用户真实保存的行程，否则展示静态示例行程。 | 未登录/未配置 Supabase 时,用户打开 `/trips` 看到示例 trip cards 和筛选；已登录且配置 Supabase 时，看到该账号真实保存的行程（可能为空），点击 Continue in Chat 带着 trip id 回到 `/chat` 并恢复该行程画布。 |
+| Account 登录 | P0 | Supabase magic link 邮箱登录，guest 模式始终可用。 | 配置 Supabase 后，用户在 `/account` 输入邮箱可收到登录链接；未配置 Supabase 时显示 guest-only 提示，不阻断任何功能。 |
+| Save to Trips | P0 | Chat 工作台可以把当前 canvas 保存为一条 Supabase trip + canvas version。 | 已登录且配置 Supabase 时,点击 Save to Trips 会创建/更新 `trips` 行和一条 `canvas_versions` 快照，并把当前对话消息写入 `messages`；未登录或未配置时给出对应提示文案，不会报错或崩溃。 |
 | Canvas Patch 应用 | P0 | 将 AI 返回的 patch 合并到当前 TripState。 | summary、days、alerts 能按规则更新，alert 按 type/title 去重。 |
 | Placeholder Tabs | P1 | Explore、Tools、Account 暂时占位。 | 用户能打开三个 tab，并看到 reserved for later 的说明。 |
 | Warm New Chinese Visual | P1 | 使用暖纸色、水墨背景、朱砂、金色、墨棕、实底纸卡。 | 页面不使用半透明玻璃聊天框；背景不影响可读性。 |
@@ -54,6 +56,17 @@ VisePanda 是一个面向外国人来中国旅行的英文原生 AI 管家。用
 → 用户点击某一天 Edit
 → 右侧抽屉显示完整每日行程并允许本地编辑
 → 用户保存后，该日卡片同步更新
+```
+
+```text
+用户打开 /account
+→ 输入邮箱并点击 Send magic link
+→ 收到 Supabase 邮件并点击链接
+→ 浏览器带着 session 回到 /account，显示已登录邮箱
+→ 回到 /chat，点击 Save to Trips
+→ 当前 canvas 写入 Supabase trips + canvas_versions + messages
+→ 打开 /trips，看到刚保存的真实行程
+→ 点击 Continue in Chat，带着 trip id 回到 /chat 并恢复该行程画布
 ```
 
 ```text
@@ -81,8 +94,8 @@ VisePanda 是一个面向外国人来中国旅行的英文原生 AI 管家。用
 ## 6. 不做什么（明确排除）
 
 - 不做没有 fallback 的真实 AI：DeepSeek 已接入，但任何真实模型错误都必须回落到 mock。
-- 不做真实 Supabase 登录/同步：待 Trip/Canvas 数据模型稳定后再做。
-- 不做 Trips 真实保存：`v0.1.8` 只做静态 dashboard 骨架。
+- 不做完整账号体系：当前只做 Supabase magic link 登录，不做密码、第三方 OAuth、guest-to-account 数据迁移。
+- 不做 trip detail 独立页面、归档、分享链接：当前只做从 Chat 保存到 Trips、再从 Trips 恢复到 Chat 的最小闭环。
 - 不做真实 Trip.com / Meituan / Amap API：必须先验证真实能力边界。
 - 不做完整 Explore：当前仍占位，后续再做城市、景点、美食、住宿。
 - 不做完整 Tools：当前仍占位，后续再做翻译、支付、签证、汇率、地铁等工具。

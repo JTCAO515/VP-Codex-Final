@@ -2,9 +2,10 @@
 
 ## 当前状态
 
-- 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider 已接入，Supabase schema 已设计；阶段三 Trips Dashboard 骨架已完成。
-- 当前分支：`claude/visepanda-phase-3-hym6z9`
-- 当前版本：`v0.1.10`
+- 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase magic link 登录已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环。
+- 当前分支：`claude/visepanda-phase-3-hym6z9`（按用户要求后续直接推送到 `main`）
+- 当前版本：`v0.1.11`
+- 重要：本仓库尚未连接真实 Supabase 项目，Vercel 环境变量目前只有 DeepSeek key；Supabase 相关功能在用户完成项目创建和环境变量配置前不会生效（但也不会崩溃）。
 - 最新实现 commit：本轮提交后以 `git log -1 --oneline` 为准
 - 当前远端：`https://github.com/JTCAO515/VP-Codex-Final.git`
 - 部署地址：`https://go2china.space`
@@ -35,13 +36,16 @@
 - Vitest 单元/组件/API 测试 ✅
 - Playwright 桌面/移动烟测 ✅
 - Supabase schema 设计：`users`、`trips`、`canvas_versions`、`messages` 表 + RLS policies ✅
+- Supabase magic link 登录（Account 页面，guest 模式始终可用）✅
+- Chat 工作台 Save to Trips：保存当前 canvas 到 `trips` + `canvas_versions`，并同步聊天记录到 `messages` ✅
+- Trips Dashboard：已登录且配置 Supabase 时读取真实行程列表；未登录/未配置时回落到 mock 行程 ✅
+- 从 Trips 的 Continue in Chat 恢复真实保存的 canvas 到 Chat 工作台（`/chat?trip=<id>`） ✅
 
 ## 未完成/待办
 
-- [ ] 接入真实 Supabase 客户端，实现 trips/chat/canvas persistence（schema 已确认，待实现）。
-- [ ] 实现 Account 登录和同步。
-- [ ] 让 Trips 支持真实保存、读取、更新、恢复到 Chat Canvas。
-- [ ] 增加 trip detail 页面和分享链接。
+- [ ] 真实 Supabase 项目尚未创建；需要用户在 supabase.com 创建项目、跑 `supabase/migrations/0001_init_trip_schema.sql`、把三个环境变量加到 Vercel。
+- [ ] 实现 guest draft 到 logged-in synced trip 的迁移路径（任务 2.3）。
+- [ ] 增加 trip detail 页面和分享/归档链接。
 - [ ] 将 Explore 从占位升级为城市、景点、美食、住宿探索。
 - [ ] 设计并验证第三方 provider abstraction。
 - [ ] 实现 Tools 第一批真实工具。
@@ -53,19 +57,19 @@
 - DeepSeek 输出虽要求 JSON，但真实模型仍可能返回无效 patch 或无效 suggestions；当前会自动回落/规范化。
 - 用户提供的 DeepSeek key 已出现在聊天上下文中，验证完成后建议在 DeepSeek 后台轮换。
 - npm audit 当前可能报告若干依赖安全提示；尚未使用 `npm audit fix --force`，避免破坏 Next/React 版本组合。
-- Trips 当前为 mock data，不具备真实保存或跨设备同步能力。
-- Day 抽屉编辑当前为本地状态，刷新页面后不会保存；后续需要接入 Supabase。
+- Trips 在未登录或未配置 Supabase 时仍为 mock data；登录且配置后才会显示真实保存的行程。
+- Day 抽屉编辑仍是本地状态；只有点击 Save to Trips 才会把当时的 canvas 整体快照写入 Supabase，抽屉内的单次编辑不会自动保存。
+- 真实 Supabase 项目还没创建,Vercel 环境变量目前只有 DeepSeek key；用户需要按 README/对话中给出的步骤创建项目、跑 migration、配置 Vercel 环境变量后功能才会生效。
 - Explore、Tools、Account 当前仍是占位。
 - 桌面横屏端为当前优先体验；移动竖屏端后续需要针对抽屉、画布密度和 Trips 卡片继续优化。
 - OneDrive 目录偶尔会锁住 `.next` 构建缓存；如出现 `readlink` / `EBUSY`，停止 dev server 并安全删除 `.next` 后重跑。
 
 ## 下一步优先级
 
-1. 接入真实 Supabase 客户端，按已确认 schema 实现 trips/canvas_versions/messages persistence（任务 3.3）。
-2. 实现从 Chat 保存当前 Trip Canvas 到 Trips 的最小闭环，并保存抽屉编辑后的 Day 内容。
-3. 实现从 Trips 点击某个行程恢复到 Chat 的上下文。
-4. 再扩展 trip detail 页面和分享/归档状态。
-5. 后续再推进 Explore provider abstraction 和真实工具页。
+1. 用户在 supabase.com 创建真实项目、跑 migration、把环境变量加到 Vercel（步骤见对话记录/README）。
+2. 实现任务 2.3：guest draft 到 logged-in synced trip 的迁移路径。
+3. 扩展 trip detail 页面和分享/归档状态。
+4. 后续再推进 Explore provider abstraction 和真实工具页。
 
 ## 关键文件索引
 
@@ -84,8 +88,13 @@
 - `lib/mock-ai/mockButler.ts` — mock AI fallback provider。
 - `lib/canvas/applyCanvasPatch.ts` — canvas patch reducer。
 - `lib/types/trip.ts` — 核心产品类型。
-- `lib/supabase/schema.ts` — Supabase 表结构的 TypeScript 契约（尚未接客户端）。
-- `supabase/migrations/0001_init_trip_schema.sql` — Supabase schema SQL 迁移（尚未应用到真实项目）。
+- `lib/supabase/schema.ts` — Supabase 表结构的 TypeScript 契约。
+- `lib/supabase/client.ts` — 浏览器 Supabase 客户端 + `isSupabaseConfigured`。
+- `lib/supabase/auth.ts` — magic link 登录/登出/session 读取。
+- `lib/supabase/useSupabaseSession.ts` — React hook，给组件提供 `{ configured, loading, session }`。
+- `lib/supabase/tripsRepository.ts` — trips/canvas_versions/messages 的唯一读写入口。
+- `components/account/AccountPanel.tsx` — Account 登录 UI。
+- `supabase/migrations/0001_init_trip_schema.sql` — Supabase schema SQL 迁移（需要在真实项目里手动跑一次）。
 - `app/globals.css` — 当前视觉系统和响应式布局。
 - `public/ink-landscape.png` — MVP 水墨背景资产。
 - `tests/trips-dashboard.test.tsx` — Trips Dashboard 组件测试。
@@ -93,7 +102,7 @@
 
 ## 本地验证记录
 
-本轮 `v0.1.10` 需要通过：
+本轮 `v0.1.11` 需要通过：
 
 ```bash
 npm.cmd run test

@@ -19,14 +19,20 @@ flowchart LR
     TripCanvas --> User
 ```
 
-Trips 在 `v0.1.8` 采用静态 mock data + client-side filter。后续接入 Supabase 后，Trips 将成为保存、恢复、分享 Chat Canvas 的主要入口。
+`v0.1.11` 开始，Trips 和 Chat 共用一个真实 Supabase persistence 闭环：登录且配置 Supabase 时使用真实数据，否则回落到 `lib/trips/mockTrips`。
 
 ```mermaid
 flowchart LR
+    AccountPage["/account"] --> AuthLib["lib/supabase/auth.ts"]
+    AuthLib --> SupabaseAuth["Supabase Auth (magic link)"]
+    ButlerWorkspace["ButlerWorkspace"] --> SaveAction["Save to Trips"]
+    SaveAction --> TripsRepo["lib/supabase/tripsRepository.ts"]
+    TripsRepo --> SupabaseDb["Supabase trips / canvas_versions / messages"]
     TripsPage["/trips"] --> TripsDashboard["TripsDashboard"]
-    TripsDashboard --> MockTrips["lib/trips/mockTrips"]
-    TripsDashboard --> Filters["All / Draft / Ready / Shared"]
-    TripsDashboard --> ChatLink["Continue in Chat -> /chat"]
+    TripsDashboard --> TripsRepo
+    TripsDashboard --> MockTrips["lib/trips/mockTrips (fallback when signed out / not configured)"]
+    TripsDashboard --> ChatLink["Continue in Chat -> /chat?trip=id"]
+    ChatLink --> ButlerWorkspace
 ```
 
 ## 技术选型
@@ -111,6 +117,24 @@ erDiagram
 - 方案对比：立即接数据库会过早固定数据模型；先做静态 dashboard 可以验证页面信息结构、筛选和导航入口。
 - 结论：`v0.1.8` Trips 使用 `lib/trips/mockTrips.ts`，后续再接 Supabase persistence 和 trip detail。
 
+### ADR-010：为什么用 Supabase magic link 而不是密码或自建 auth
+
+- 背景：任务 2.4 需要一个最小但真实的登录方式，把 owner_id 接到 `auth.users`，同时不引入密码存储和找回流程的复杂度。
+- 方案对比：邮箱密码需要额外的找回密码、强度校验流程；自建 auth 要重新实现会话和安全机制；Supabase 内置 magic link（`signInWithOtp`）零密码、零自建后端代码，并且和已设计的 RLS policies 直接兼容。
+- 结论：`/account` 只提供邮箱 magic link 登录，浏览器 Supabase 客户端默认 `detectSessionInUrl: true` 自动消费回跳链接中的 session,不需要额外的 OAuth 回调路由。
+
+### ADR-011：为什么 Trips/Chat persistence 直接用浏览器端 Supabase 客户端而不是新建 API route
+
+- 背景：`/api/trips` 之前是占位 route；真实保存只涉及 `trips`/`canvas_versions`/`messages`,不涉及任何服务端密钥。
+- 方案对比：经过 `/api/trips` 服务端转发会多一层网络跳转和重复的 schema 校验代码；让浏览器端 Supabase 客户端（用 `NEXT_PUBLIC_SUPABASE_ANON_KEY`）直接读写，由 Postgres RLS policies（`auth.uid() = owner_id`）保证隔离,逻辑更直接也更安全。
+- 结论：`lib/supabase/tripsRepository.ts` 是浏览器端读写 trips 数据的唯一入口，被 `ButlerWorkspace`（保存当前 canvas）和 `TripsDashboard`（读取行程列表/恢复 canvas）共用；`SUPABASE_SERVICE_ROLE_KEY` 仍保留给未来需要绕过 RLS 的服务端任务，目前未使用。
+
+### ADR-012：为什么 Chat 用 `window.location` / `history.replaceState` 而不是 `next/navigation`
+
+- 背景：需要把保存后的 trip id 写进 `/chat` 的 URL，并在打开 `/chat?trip=<id>` 时读取它来恢复 canvas。
+- 方案对比：`useSearchParams`/`useRouter`（`next/navigation`）是 Next App Router 的标准方式，但它们需要被挂载在真实的 Next Router 树下；现有 Vitest 组件测试直接 `render(<ButlerWorkspace />)`，没有 Router context，会在测试里抛错，还需要额外的测试基础设施改造。直接用浏览器原生 `window.location.search` 读、`window.history.replaceState` 写，行为等价（同样不触发整页跳转），且不依赖任何 Router 上下文，测试和组件解耦更简单。
+- 结论：`ButlerWorkspace` 用原生 `window.location` / `history.replaceState` 读写 `?trip=` 参数，不引入 `next/navigation` 依赖。
+
 ### ADR-009：为什么 Supabase schema 用 canvas_versions 而不是直接拆分 trip_days 表
 
 - 背景：`TripState` 包含 summary、days、alerts，结构会随 AI patch 频繁整体替换；Trips 后续还需要支持恢复历史版本和分享某个快照。
@@ -148,8 +172,9 @@ erDiagram
 - `lib/mock-ai/`：mock butler fallback provider。
 - `lib/canvas/`：canvas patch reducer。
 - `lib/trips/`：Trips mock data 和后续 trip library helpers。
-- `lib/supabase/`：Supabase schema 的 TypeScript 契约（`schema.ts`），尚未包含真实客户端初始化。
-- `supabase/migrations/`：Supabase SQL schema 迁移文件，当前未应用到真实项目。
+- `lib/supabase/`：Supabase 集成层 —— `schema.ts`（表结构契约）、`client.ts`（浏览器客户端 + 配置检测）、`auth.ts`（magic link 登录/登出/session）、`useSupabaseSession.ts`（React hook）、`tripsRepository.ts`（trips/canvas_versions/messages 读写）。
+- `supabase/migrations/`：Supabase SQL schema 迁移文件；需要在真实 Supabase 项目的 SQL Editor 中手动执行一次。
+- `components/account/AccountPanel.tsx`：Account 页面的 magic link 登录 UI 和 guest-mode 文案。
 - `lib/types/`：共享类型。
 - `lib/env/`：环境变量状态 registry。
 - `tests/`：Vitest 和 Playwright 测试。

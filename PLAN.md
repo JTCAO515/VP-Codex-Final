@@ -22,13 +22,13 @@
 - [x] 任务 2.1：接入 DeepSeek V4 Flash 真实 AI provider，保留 mock fallback。
 - [x] 任务 2.2：设计 Supabase schema：users、trips、messages、canvas_versions。
 - [ ] 任务 2.3：实现 guest draft 到 logged-in synced trip 的迁移路径。
-- [ ] 任务 2.4：实现基础 auth，将 Account 占位页升级为真实登录/同步入口。
+- [x] 任务 2.4：实现基础 auth（Supabase magic link），将 Account 占位页升级为真实登录/同步入口。
 
 ## 阶段三：Trips 行程库
 
 - [x] 任务 3.1：将 Trips 从占位页升级为静态 saved trips dashboard 骨架。
 - [x] 任务 3.2：加入 mock trip cards、状态筛选、概览指标和 Continue in Chat 入口。
-- [ ] 任务 3.3：接入 Supabase trip persistence，支持保存、读取、更新行程。
+- [x] 任务 3.3（首个闭环）：接入真实 Supabase trip persistence，支持从 Chat 保存当前 canvas、在 Trips 读取已登录用户的真实行程、并从 Trips 恢复到 Chat。仍需：未登录/未配置 Supabase 时使用 mock 数据兜底；trip detail 页面、归档/分享流程未实现。
 - [ ] 任务 3.4：实现 trip detail 页面和从 Trips 恢复 Chat Canvas 上下文。
 - [ ] 任务 3.5：实现分享状态、归档状态和基础协作/分享链接。
 
@@ -57,9 +57,10 @@
 - 技术选型：Next.js App Router、React、TypeScript、Vercel、Supabase 预留。
 - AI 约束：DeepSeek V4 Flash 只在服务端 API route 调用；真实 key 不进入浏览器、不写入仓库。
 - Fallback 约束：缺少 `DEEPSEEK_API_KEY`、API 失败或模型输出不合法时必须回落到 mock provider。
-- 当前重点：Chat / AI Butler 已完成 MVP 骨架，本轮开始扩展 Trips 行程库。
-- Trips 当前限制：`v0.1.10` 已完成 Supabase schema 设计，但尚未接入真实数据库、登录和 trip detail 页面。
-- Supabase schema 约束：`supabase/migrations/0001_init_trip_schema.sql` 和 `lib/supabase/schema.ts` 是当前 schema 契约；实现任务 3.3 时必须复用该契约，不要另起字段命名。
+- 当前重点：Chat / AI Butler 已完成 MVP 骨架；Trips 行程库已接入真实 Supabase persistence 首个闭环。
+- Trips 当前限制：`v0.1.11` 已能在配置 Supabase 后保存/读取真实行程，但仅支持 magic link 登录，没有 trip detail 页面、归档、分享或 guest-to-account 迁移。
+- Supabase schema 约束：`supabase/migrations/0001_init_trip_schema.sql` 和 `lib/supabase/schema.ts` 是当前 schema 契约；`lib/supabase/tripsRepository.ts` 是唯一允许的 persistence 入口，不要绕开它直接拼 Supabase 查询。
+- Supabase 部署约束：本仓库目前没有真实 Supabase 项目；`NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_ANON_KEY`、`SUPABASE_SERVICE_ROLE_KEY` 未配置前，所有 Supabase 相关代码必须保持优雅降级（不崩溃、自动回落到 mock/guest 体验）。
 - 视觉约束：warm New Chinese、水墨背景、实底纸卡；不要半透明玻璃聊天框。
 - 桌面布局约束：当前阶段优先电脑横屏端，一屏工作台和内部滚动优先；移动竖屏端后续精修。
 - Canvas 约束：不要恢复顶部 Visa / Payment / Booking / Less tiring / Food-focused 五个任务框；每日主卡必须直接呈现 Morning / Afternoon / Evening。
@@ -73,7 +74,7 @@
 - M3：Trips Dashboard 骨架完成（2026-06-29，v0.1.8）。
 - M3.5：Live Trip Canvas 三段式时间线和可编辑每日抽屉完成（2026-06-29，v0.1.9）。
 - M3.6：Supabase schema 设计完成（2026-06-29，v0.1.10）。
-- M4：Supabase trip persistence 完成（待排期）。
+- M4：Supabase magic link 登录 + Trips/Chat 真实 persistence 首个闭环完成（2026-06-29，v0.1.11）；trip detail、归档、分享待排期。
 - M5：Explore provider abstraction 完成（待排期）。
 - M6：Tools 第一批真实工具完成（待排期）。
 - M7：目的地感知背景切换完成（待排期）。
@@ -83,7 +84,7 @@
 - 已知风险 1：真实 AI 输出需要严格结构化，否则 canvas patch 可能不稳定。
 - 已知风险 2：DeepSeek key、限流、网络和模型输出质量会影响实时体验，因此必须保留 mock fallback。
 - 已知风险 3：Supabase schema 一旦过早固定，后续 Trips/Canvas 迭代会受限。
-- 已知风险 4：Trips 当前为 mock data，用户可能误以为已经能真实保存；上线文案和交互需要避免误导。
+- 已知风险 4：未配置 Supabase 或未登录时 Trips 仍展示 mock data；文案需要持续避免让用户误以为这些是真实保存的行程。
 - 已知风险 5：第三方 API 能力边界必须先验证，不能伪造未确认的 Trip.com、Meituan、Amap 能力。
 - 已知风险 6：水墨背景如果过重，会影响文字可读性和移动端性能。
 - 待验证假设 1：用户会更喜欢“右侧持续聊天 + 左侧实时画布”而不是传统单列聊天。
