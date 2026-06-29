@@ -40,6 +40,7 @@ VisePanda 是一个面向外国人来中国旅行的英文原生 AI 管家。用
 | 归档与分享链接 | P0 | Trip detail 页面支持 Mark as Ready / Archive / Restore from archive 状态切换，以及生成/撤销只读公开分享链接 `/share/[token]`。 | 已登录用户在自己的 trip detail 页面可以切换 draft/ready/archived 状态；点击 Get share link 会生成 token 并展示完整分享 URL；点击 Revoke share link 会清除 token；任何人（包括未登录访客）打开有效的 `/share/[token]` 链接都能只读查看该行程画布，看不到聊天记录；token 被撤销后该链接显示"Link not available"。 |
 | Canvas Patch 应用 | P0 | 将 AI 返回的 patch 合并到当前 TripState。 | summary、days、alerts 能按规则更新，alert 按 type/title 去重。 |
 | Explore 骨架 | P1 | `/explore` 通过 provider abstraction 展示城市、景点、美食、住宿。 | 用户打开 `/explore` 能看到城市筛选按钮，点击切换城市后下方更新该城市的景点、美食、住宿列表；当前由 `lib/explore` 静态 provider 提供数据，UI 不直接依赖任何第三方 API。 |
+| Explore Add to Trip | P1 | Explore 每个景点/美食/住宿条目有 Add to Trip 按钮，点击后跳转到 Chat 并通过真实 AI pipeline 把这条内容加入当前行程画布。 | 用户在 `/explore` 点击某个条目的 Add to Trip，会跳转到 `/chat` 并自动发送一条描述该条目的消息；Chat 收到回复后画布按正常 Canvas Patch 流程更新，地址栏的 `add` 参数被清除；该流程不会绕开 `/api/chat`、不会在 Explore 组件里直接拼装 TripDay 数据。 |
 | Placeholder Tabs | P1 | Tools 暂时占位。 | 用户能打开 Tools tab，并看到 reserved for later 的说明。 |
 | Warm New Chinese Visual | P1 | 使用暖纸色、水墨背景、朱砂、金色、墨棕、实底纸卡。 | 页面不使用半透明玻璃聊天框；背景不影响可读性。 |
 | 自动化测试 | P1 | 覆盖 DeepSeek provider、mock fallback、patch reducer、env、API、组件、e2e。 | `npm run test`、`npm run build`、`npm run test:e2e` 通过。 |
@@ -101,7 +102,7 @@ VisePanda 是一个面向外国人来中国旅行的英文原生 AI 管家。用
 - 不做完整账号体系：当前只做 Supabase 邮箱密码登录、Google OAuth 登录和 guest draft 自动迁移，不做找回密码邮件、其他第三方登录（Apple/微信等）、多设备草稿合并。
 - 归档与分享链接已完成基础版本：支持 draft/ready/archived 状态切换和只读公开分享链接；不做多人协作编辑、分享链接访问权限分级、分享链接过期时间设置。
 - 不做真实 Trip.com / Meituan / Amap API：Explore 当前用静态 provider，真实第三方能力边界必须先验证。
-- Explore 已有静态骨架（城市、景点、美食、住宿），但不做收藏、行程内 Add to Trip、真实地图或预订能力。
+- Explore 已有静态骨架（城市、景点、美食、住宿）和基础 Add to Trip 入口（跳转 Chat 并通过 AI pipeline 加入画布），但不做收藏、真实地图、预订能力或在 Explore 内直接预览/编辑画布。
 - 不做完整 Tools：当前仍占位，后续再做翻译、支付、签证、汇率、地铁等工具。
 - 不恢复顶部五个任务框：Visa / Payment / Booking / Less tiring / Food-focused 已从 Canvas 顶部移除。
 - 不在主界面展开长篇每日详情：当前主画布显示 Morning / Afternoon / Evening 摘要，完整详情和修改通过抽屉完成。

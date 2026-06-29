@@ -49,6 +49,7 @@ export function ButlerWorkspace() {
   const [tripId, setTripId] = useState<string | null>(null);
   const persistedMessageCount = useRef(0);
   const hasLoadedDraftRef = useRef(false);
+  const hasAppliedAddRef = useRef(false);
   const previousSessionRef = useRef<Session | null>(null);
 
   const statusText = useMemo(() => status, [status]);
@@ -86,6 +87,16 @@ export function ButlerWorkspace() {
     } catch {
       window.localStorage.removeItem(GUEST_DRAFT_KEY);
     }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || hasAppliedAddRef.current) return;
+    const addParam = new URLSearchParams(window.location.search).get("add");
+    if (!addParam) return;
+    hasAppliedAddRef.current = true;
+    window.history.replaceState(null, "", "/chat");
+    void handleSend(addParam);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

@@ -1,5 +1,13 @@
 # VisePanda Changelog
 
+## v0.1.17 - 2026-06-29
+
+- Implemented task 4.4: Explore "Add to Trip" flow.
+- `components/explore/ExploreBoard.tsx`: every attraction/food/stay item now has an "Add to Trip" button that navigates to `/chat?add=<encoded draft message>` (e.g. "Add Forbidden City in Beijing to my trip.").
+- `components/chat/ButlerWorkspace.tsx`: added a one-time mount effect that reads the `add` URL param, clears it via `history.replaceState`, and calls the existing `handleSend` so the new content always goes through `/api/chat` → `CanvasPatch` → `applyCanvasPatch`, never a direct UI-side canvas write.
+- Added `.explore-add-button` styles in `app/globals.css`.
+- Added a navigation test in `tests/explore-board.test.tsx` and an auto-send test in `tests/chat-workspace.test.tsx`.
+
 ## v0.1.16 - 2026-06-29
 
 - Implemented task 2.5: replaced the standalone `/account` page with a header icon + popover, and switched login from magic link to email/password and Google OAuth.

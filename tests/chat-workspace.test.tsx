@@ -5,6 +5,7 @@ import { ButlerWorkspace } from "@/components/chat/ButlerWorkspace";
 describe("ButlerWorkspace", () => {
   beforeEach(() => {
     window.localStorage.clear();
+    window.history.replaceState(null, "", "/chat");
   });
 
   it("starts without demo conversation and shows four suggestions in two rows", () => {
@@ -50,5 +51,15 @@ describe("ButlerWorkspace", () => {
     render(<ButlerWorkspace />);
 
     expect(await screen.findByText(/Restored your guest draft trip/i)).toBeInTheDocument();
+  });
+
+  it("auto-sends an Explore add-to-trip draft message found in the ?add= URL param", async () => {
+    window.history.replaceState(null, "", "/chat?add=" + encodeURIComponent("Add Forbidden City in Beijing to my trip."));
+
+    render(<ButlerWorkspace />);
+
+    expect(await screen.findByText("Add Forbidden City in Beijing to my trip.")).toBeInTheDocument();
+    expect(await screen.findByText(/VisePanda updated the canvas/i)).toBeInTheDocument();
+    expect(window.location.search).toBe("");
   });
 });

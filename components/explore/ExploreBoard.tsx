@@ -29,6 +29,11 @@ export function ExploreBoard() {
 
   const activeCity = cities.find((city) => city.id === activeCityId) ?? null;
 
+  function addToTrip(message: string) {
+    if (typeof window === "undefined") return;
+    window.location.href = `/chat?add=${encodeURIComponent(message)}`;
+  }
+
   return (
     <section className="explore-board" aria-labelledby="explore-title">
       <header className="explore-board__header">
@@ -72,6 +77,15 @@ export function ExploreBoard() {
                   <li key={attraction.id}>
                     <strong>{attraction.name}</strong>
                     <span>{attraction.description}</span>
+                    <button
+                      type="button"
+                      className="explore-add-button"
+                      onClick={() =>
+                        addToTrip(`Add ${attraction.name} in ${activeCity.name} to my trip.`)
+                      }
+                    >
+                      Add to Trip
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -84,6 +98,15 @@ export function ExploreBoard() {
                   <li key={spot.id}>
                     <strong>{spot.name}</strong>
                     <span>{spot.dish} — {spot.description}</span>
+                    <button
+                      type="button"
+                      className="explore-add-button"
+                      onClick={() =>
+                        addToTrip(`Add ${spot.name} (${spot.dish}) in ${activeCity.name} to my trip.`)
+                      }
+                    >
+                      Add to Trip
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -96,6 +119,15 @@ export function ExploreBoard() {
                   <li key={stay.id}>
                     <strong>{stay.name}</strong>
                     <span>{stay.area} — {stay.description}</span>
+                    <button
+                      type="button"
+                      className="explore-add-button"
+                      onClick={() =>
+                        addToTrip(`Add ${stay.name} in ${activeCity.name} as a place to stay.`)
+                      }
+                    >
+                      Add to Trip
+                    </button>
                   </li>
                 ))}
               </ul>

@@ -2,9 +2,9 @@
 
 ## 当前状态
 
-- 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面和归档/分享链接流程（任务 3.5）；阶段四 Explore 已升级为静态 provider 驱动的骨架，并完成 provider abstraction 设计（任务 4.1、4.2）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）。
+- 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面和归档/分享链接流程（任务 3.5）；阶段四 Explore 已升级为静态 provider 驱动的骨架，完成 provider abstraction 设计（任务 4.1、4.2），并接入了 Add to Trip 流程（任务 4.4）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）。
 - 当前分支：`claude/visepanda-phase-3-hym6z9`（按用户要求后续直接推送到 `main`）
-- 当前版本：`v0.1.16`
+- 当前版本：`v0.1.17`
 - 重要：用户已创建真实 Supabase 项目、跑过 `0001_init_trip_schema.sql` migration，并在 Vercel 配置了三个 Supabase 环境变量。**`supabase/migrations/0002_trip_archive_and_share.sql` 需要用户在 Supabase SQL Editor 里手动追加执行，否则归档/分享相关的状态更新会因 RLS 缺失而失败。** **本轮（v0.1.16）登录方式从 magic link 改为邮箱密码 + Google 登录：Google 登录需要用户在 Supabase 项目的 Authentication → Providers 里启用 Google provider 并配置 OAuth Client ID/Secret，否则点击 Continue with Google 会报错；邮箱密码登录不需要额外配置即可使用。**
 - 最新实现 commit：本轮提交后以 `git log -1 --oneline` 为准
 - 当前远端：`https://github.com/JTCAO515/VP-Codex-Final.git`
@@ -45,12 +45,13 @@
 - 归档与分享链接（任务 3.5）：Trip detail 页面支持 Mark as Ready / Archive / Restore from archive 状态切换；支持 Get share link 生成 token 并展示完整 URL，支持 Revoke share link 撤销；新增公开只读分享页 `/share/[token]`（`components/share/ShareView.tsx`），未登录访客可查看分享行程的 Canvas，看不到聊天记录 ✅
 - Explore provider abstraction 与静态骨架（任务 4.1、4.2）：新增 `lib/explore/types.ts` 定义 `ExploreProvider` 接口和城市/景点/美食/住宿类型；`lib/explore/staticProvider.ts` 提供覆盖北京/上海/成都/西安的静态数据；`lib/explore/index.ts` 的 `getExploreProvider()` 是组件唯一允许调用的入口；`components/explore/ExploreBoard.tsx` 替换占位页，支持城市筛选按钮切换和景点/美食/住宿三列展示 ✅
 - Account 图标 + 悬浮窗口重做（任务 2.5）：删除独立 `/account` 页面和 `AccountPanel.tsx`；新增 `components/account/AccountMenu.tsx`，渲染在 `AppShell` 头部、`NavTabs` 旁边；登录方式从 magic link 改为邮箱密码登录/注册（`signInWithPassword`/`signUpWithPassword`）和 Google 登录（`signInWithGoogle`）；已登录状态下悬浮窗口提供 Change name（`updateDisplayName`）、Change password（`updatePassword`）、Log out 三个操作 ✅
+- Explore Add to Trip 流程（任务 4.4）：`ExploreBoard` 的每个景点/美食/住宿条目新增 Add to Trip 按钮，点击后跳转到 `/chat?add=<编码后的草稿消息>`；`ButlerWorkspace` 挂载时读取 `add` 参数，清空 URL 后调用既有的 `handleSend`，新内容和用户手动发消息一样经过 `/api/chat` → `CanvasPatch` → `applyCanvasPatch`，没有新增任何绕开 AI pipeline 的画布写入入口 ✅
 
 ## 未完成/待办
 
 - [ ] 真实 Supabase 项目已创建（用户已完成部署），需要提醒用户在 Supabase SQL Editor 里手动追加执行 `0002_trip_archive_and_share.sql`，否则归档/分享功能会因 RLS policy 缺失而报错。
 - [ ] 需要提醒用户在 Supabase 项目的 Authentication → Providers 里启用并配置 Google OAuth provider，否则悬浮窗口里的 Continue with Google 会报错；邮箱密码登录不需要额外配置。
-- [ ] 接入 verified/static provider 之外的真实第三方 Explore API（Amap/Trip.com/Meituan），并把 Explore 结果接入 Chat 工作台的 Add to Trip 流程（任务 4.3、4.4）。
+- [ ] 接入 verified/static provider 之外的真实第三方 Explore API（Amap/Trip.com/Meituan）（任务 4.3）。
 - [ ] 实现 Tools 第一批真实工具。
 - [ ] 实现场景感知背景切换，例如北京对应长城/故宫水墨，上海对应外滩/江南园林水墨。
 - [ ] 移动端竖屏端细节适配。
@@ -69,7 +70,7 @@
 
 ## 下一步优先级
 
-1. 评估 Explore 真实第三方 provider 接入（任务 4.3）和 Add to Trip 流程（任务 4.4）。
+1. 评估 Explore 真实第三方 provider 接入（任务 4.3）。
 2. 后续推进真实工具页（任务 5.x）。
 
 ## 关键文件索引
@@ -79,7 +80,7 @@
 - `app/trips/[id]/page.tsx`、`components/trips/TripDetail.tsx` — Trip detail 页面，含归档状态切换和分享链接管理。
 - `app/share/[token]/page.tsx`、`components/share/ShareView.tsx` — 公开只读分享页。
 - `app/api/chat/route.ts` — DeepSeek + fallback chat API。
-- `components/chat/ButlerWorkspace.tsx` — 主工作台状态管理和 API 调用。
+- `components/chat/ButlerWorkspace.tsx` — 主工作台状态管理和 API 调用，挂载时读取 `?trip=`（恢复保存的画布）和 `?add=`（自动发送 Explore 的 Add to Trip 草稿消息）两个 URL 参数。
 - `components/chat/ChatPanel.tsx` — 聊天面板。
 - `components/canvas/TripCanvas.tsx` — live trip canvas 组合组件。
 - `components/canvas/DayCard.tsx` — 单日行程摘要卡片。
@@ -101,7 +102,7 @@
 - `lib/explore/types.ts` — Explore 域类型和 `ExploreProvider` 接口。
 - `lib/explore/staticProvider.ts` — 静态 Explore provider 实现（北京/上海/成都/西安）。
 - `lib/explore/index.ts` — `getExploreProvider()` 工厂，组件唯一允许调用的入口。
-- `app/explore/page.tsx`、`components/explore/ExploreBoard.tsx` — Explore 页面入口和城市/景点/美食/住宿看板组件。
+- `app/explore/page.tsx`、`components/explore/ExploreBoard.tsx` — Explore 页面入口和城市/景点/美食/住宿看板组件，每个条目带 Add to Trip 按钮（跳转 `/chat?add=<草稿消息>`）。
 - `components/account/AccountMenu.tsx` — Account 头部图标 + 悬浮窗口，登录/注册/Google 登录/改名/改密码/登出的唯一入口。
 - `app/globals.css` — 当前视觉系统和响应式布局。
 - `public/ink-landscape.png` — MVP 水墨背景资产。
@@ -110,7 +111,7 @@
 
 ## 本地验证记录
 
-本轮 `v0.1.16` 需要通过：
+本轮 `v0.1.17` 需要通过：
 
 ```bash
 npm.cmd run test

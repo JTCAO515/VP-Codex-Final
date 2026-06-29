@@ -1703,6 +1703,23 @@ select:focus-visible {
   font-size: 0.85rem;
 }
 
+.explore-add-button {
+  justify-self: start;
+  margin-top: 4px;
+  padding: 4px 10px;
+  border: 1px solid var(--cinnabar);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--cinnabar);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.explore-add-button:hover {
+  background: var(--cinnabar);
+  color: var(--paper);
+}
+
 @media (min-width: 900px) {
   html,
   body {

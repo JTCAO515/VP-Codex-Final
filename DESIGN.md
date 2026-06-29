@@ -138,6 +138,12 @@ erDiagram
 - 方案对比：保留独立页面结构清晰但打断当前任务上下文（用户从 Chat/Trips/Explore 跳走再跳回）；做成头部常驻的图标 + 悬浮窗口可以在任意页面就地完成登录和账号管理，不离开当前上下文，也不需要任何路由跳转。
 - 结论：新增 `components/account/AccountMenu.tsx`，渲染在 `AppShell` 头部、`NavTabs` 旁边，自带 `open` 状态控制悬浮窗口显示；删除 `app/account/page.tsx` 和 `components/account/AccountPanel.tsx`，`NavTabs` 的 `AppTab` 类型移除 `"account"`。悬浮窗口内部按 `useSupabaseSession` 的 `configured/loading/session` 三态切换：未配置时显示 guest 提示，未登录时显示邮箱密码登录/注册表单和 Continue with Google 按钮，已登录时显示 Change name / Change password / Log out。
 
+### ADR-017：为什么 Explore 的 Add to Trip 用「跳转 Chat 并自动发送消息」而不是直接拼装 CanvasPatch
+
+- 背景：任务 4.4 需要让用户在 `/explore` 看到某个景点/美食/住宿后，能一键把它加入当前行程画布；但 `AGENTS.md` 明确约束「AI 输出必须通过 `CanvasPatch` 结构进入画布，不要让 UI 直接解析自然语言」，也不允许任何非 Chat 界面直接构造或合并 `TripDay`/`TripState`。
+- 方案对比：可以让 `ExploreBoard` 直接在本地拼出一份 `CanvasPatch`（比如把景点名字塞进某一天的 Morning block）插入画布，这样不需要跳转页面，但会绕开 `/api/chat` 和 DeepSeek/mock fallback，导致两套生成画布内容的逻辑并存，且新内容无法获得 AI 对行程节奏、冲突、合理性的判断；改为「跳转 Chat 并自动发送一条草稿消息」则完全复用已有的 `handleSend` → `/api/chat` → `CanvasPatch` → `applyCanvasPatch` 流程，新内容和用户手打的请求走相同代码路径，不需要新增任何画布写入入口。
+- 结论：`ExploreBoard` 的每个条目新增一个 "Add to Trip" 按钮，点击后用 `window.location.href` 跳转到 `/chat?add=<encodeURIComponent(草稿消息)>`（草稿消息形如 `Add ${name} in ${city} to my trip.`，与 ADR-012 一致用原生 `window.location` 而不是 `next/navigation`，保持组件可在无 Router context 的 Vitest 测试中渲染）；`ButlerWorkspace` 挂载时用一个一次性 `useEffect` 读取 `add` 参数，若存在则立即清空 URL（`history.replaceState`）并调用现有的 `handleSend(addParam)`，画布更新路径与用户手动发消息完全一致。
+
 ### ADR-011：为什么 Trips/Chat persistence 直接用浏览器端 Supabase 客户端而不是新建 API route
 
 - 背景：`/api/trips` 之前是占位 route；真实保存只涉及 `trips`/`canvas_versions`/`messages`,不涉及任何服务端密钥。
@@ -192,7 +198,7 @@ erDiagram
 
 - `app/`：Next.js routes、layout、global CSS、API routes。
 - `components/shell/`：AppShell、NavTabs（不再包含 account tab，AppShell 直接在头部渲染 `AccountMenu`）。
-- `components/chat/`：ButlerWorkspace、ChatPanel。
+- `components/chat/`：ButlerWorkspace（挂载时读取 `?trip=`、`?add=` URL 参数，分别用于恢复保存的画布和自动发送 Explore 的 Add to Trip 草稿消息）、ChatPanel。
 - `components/canvas/`：TripCanvas、TripSummary、DayCard、DayDetailDrawer、CanvasTaskStrip（保留文件但当前不在 TripCanvas 渲染）。
 - `components/trips/`：TripsDashboard。
 - `components/placeholders/`：PlaceholderPage。
@@ -206,7 +212,7 @@ erDiagram
 - `app/trips/[id]/page.tsx`、`components/trips/TripDetail.tsx`：trip detail 页面，已登录且配置 Supabase 时渲染真实 `TripCanvas`，并提供 Mark as Ready / Archive / Restore from archive 状态切换和 Get share link / Revoke share link 操作；未登录或未配置时回落到示例行程摘要或 not-found 提示。
 - `app/share/[token]/page.tsx`、`components/share/ShareView.tsx`：公开只读分享页，不依赖登录态，仅渲染分享行程的 `TripCanvas` 快照，不包含 `AppShell` 导航。
 - `lib/explore/`：Explore provider abstraction —— `types.ts`（`ExploreProvider` 接口和领域类型）、`staticProvider.ts`（当前唯一实现，静态城市/景点/美食/住宿数据）、`index.ts`（`getExploreProvider()` 工厂，组件唯一允许调用的入口）。
-- `app/explore/page.tsx`、`components/explore/ExploreBoard.tsx`：Explore 页面，城市筛选 + 该城市的景点/美食/住宿三栏展示，数据来自 `getExploreProvider()`。
+- `app/explore/page.tsx`、`components/explore/ExploreBoard.tsx`：Explore 页面，城市筛选 + 该城市的景点/美食/住宿三栏展示，数据来自 `getExploreProvider()`；每个条目带 Add to Trip 按钮，跳转 `/chat?add=<草稿消息>`。
 - `lib/types/`：共享类型。
 - `lib/env/`：环境变量状态 registry。
 - `tests/`：Vitest 和 Playwright 测试。
