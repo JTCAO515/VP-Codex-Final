@@ -1,5 +1,21 @@
 # VisePanda Changelog
 
+## v0.1.37 - 2026-06-30
+
+- Added multi-language (i18n) system supporting English, Spanish, Arabic, Japanese, Korean, and French.
+- Language preference stored in localStorage (`visepanda:locale`); persists across sessions.
+- Custom React context (`I18nProvider`) and `useTranslation()` hook — no external library required.
+- Locale bundles dynamically imported per language (only the active locale is loaded).
+- Arabic (`ar`) sets `document.documentElement.dir="rtl"` automatically; all other locales use LTR.
+- `[dir="rtl"]` CSS overrides for Arabic: card accent borders, day notes, tool modal tips, explore add-note, and phrase-book notes flip to the right side.
+- `LanguageSwitcher` component added to the app header (left of the account menu) — compact EN/ES/AR/JA/KO/FR selector.
+- Navigation labels (Chat, Trips, Explore, Tools, Translate, Community) translated in all 6 locales.
+- Trips Dashboard: heading, filter pills, card labels, status copy, empty state all translated.
+- Tools Board: section heading, "Open checklist →", badge labels, "Close", "Offline pocket notes" all translated.
+- Explore Board: section heading, column headers (Attractions/Food/Stays), "Add to Trip" translated.
+- Community Board: section heading, tab labels (Feed/Hot Spots/Photos) translated.
+- Translator Page: section heading and subtitle translated.
+
 ## v0.1.36 - 2026-06-30
 
 - Mobile layout overhaul: all pages now scroll naturally on phones (390px viewport).

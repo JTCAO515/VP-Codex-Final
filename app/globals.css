@@ -4983,3 +4983,106 @@ select {
     padding: 8px 14px 0;
   }
 }
+
+/* ============================================================
+   LANGUAGE SWITCHER
+   ============================================================ */
+
+.language-switcher {
+  appearance: none;
+  background: transparent;
+  border: 1px solid rgba(111, 91, 73, 0.3);
+  border-radius: 6px;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 4px 8px;
+  text-transform: uppercase;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.language-switcher:hover,
+.language-switcher:focus-visible {
+  background: rgba(111, 91, 73, 0.06);
+  border-color: var(--cinnabar);
+  outline: none;
+}
+
+@media (max-width: 760px) {
+  .language-switcher {
+    font-size: 0.65rem;
+    padding: 3px 6px;
+  }
+}
+
+/* ============================================================
+   RTL OVERRIDES — Arabic
+   ============================================================ */
+
+[dir="rtl"] {
+  /* Reverse nav active underline */
+  .nav-tabs__link[data-active="true"]::after {
+    inset-inline: 0;
+    left: auto;
+    right: auto;
+  }
+
+  /* Trip card left-accent → right */
+  .trip-card {
+    border-left: none;
+    border-right: 4px solid var(--gold);
+  }
+  .trip-card[data-status="ready"]    { border-right-color: var(--sage); border-left: none; }
+  .trip-card[data-status="shared"]   { border-right-color: var(--cinnabar); border-left: none; }
+  .trip-card[data-status="archived"] { border-right-color: rgba(111,91,73,0.35); border-left: none; }
+
+  /* Tool card accent */
+  .tool-card {
+    border-left: none;
+    border-right: 3px solid var(--tool-accent, var(--cinnabar));
+  }
+
+  /* Tool modal tips bar */
+  .tool-modal__tips {
+    border-left: none;
+    border-right: 3px solid var(--gold);
+    border-radius: 8px 0 0 8px;
+    padding-left: 0;
+    padding-right: 1rem;
+  }
+
+  /* Canvas day note bar */
+  .day-card__note,
+  .day-drawer__note {
+    border-left: none;
+    border-right: 3px solid var(--gold);
+    padding-left: 0;
+    padding-right: 12px;
+  }
+
+  /* Explore add note bar */
+  .explore-add-note {
+    border-left: none;
+    border-right: 3px solid var(--gold);
+    padding-left: 0;
+    padding-right: 0.75rem;
+  }
+
+  /* Phrase book notes bar */
+  .phrase-book__notes {
+    border-left: none;
+    border-right: 3px solid var(--gold);
+    padding-left: 0;
+    padding-right: 0.5rem;
+  }
+
+  /* Use Arabic-friendly sans-serif for cards */
+  .tool-card__name,
+  .trip-card h2,
+  .community-post-card h3 {
+    font-family: "Noto Sans Arabic", system-ui, sans-serif;
+  }
+}

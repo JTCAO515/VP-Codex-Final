@@ -4,14 +4,17 @@ import { OcrTranslator } from "@/components/translate/OcrTranslator";
 import { PhraseBook } from "@/components/translate/PhraseBook";
 import { TextTranslator } from "@/components/translate/TextTranslator";
 import { VoiceTranslator } from "@/components/translate/VoiceTranslator";
+import { useTranslation } from "@/lib/i18n/I18nContext";
 
 export function TranslatorPage() {
+  const { t } = useTranslation();
+
   return (
     <section className="translator-page" aria-labelledby="translator-title">
       <header className="translator-page__header">
-        <p className="section-kicker">Translator</p>
-        <h1 id="translator-title">China travel translator</h1>
-        <p>Text, image scan, voice, and phrases — all in one view.</p>
+        <p className="section-kicker">{t.translate.kicker}</p>
+        <h1 id="translator-title">{t.translate.heading}</h1>
+        <p>{t.translate.subtitle}</p>
       </header>
 
       <div className="translator-grid">

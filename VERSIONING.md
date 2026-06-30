@@ -3,7 +3,7 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.36`
+- Current iteration: `v0.1.37`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -48,3 +48,6 @@
 - `v0.1.32`: simplified Tools into six non-Translate category cards with details hidden until a drawer card is opened. Removed provider/API metadata from the Tools UI while keeping provider status available in the data layer, and routed retained language reminders to `/translate`.
 - `v0.1.33`: refreshed the desktop visual layout system across Chat, Trips, Explore, Tools, Translate, Community, and Account with tighter typography, paper/ink styling, compact cards, unified inputs, internal scrolling, and cleaned Translator/Community page labels.
 - `v0.1.34`: desktop landscape frontend polish — Tools cards grid with modal overlay dialogs (6 floating drawers), Trips layout fix moving filter pills above the scrollable library (always visible), Translator single-page 2×2 grid showing Text/OCR/Voice/Phrases simultaneously without tabs, and CSS typography/visual refinements throughout.
+- `v0.1.35`: English-only UI pass — all Chinese-only labels replaced with English; place/attraction names updated to "English (中文)" bilingual format.
+- `v0.1.36`: mobile layout overhaul — 6-tab icon nav, scrollable pages, translator 1-column on mobile, trip status guide and meta hidden on mobile, community strip scrollable, late-cascade CSS override pattern.
+- `v0.1.37`: multi-language i18n system — Spanish, Arabic, Japanese, Korean, French plus English; LanguageSwitcher in header; RTL support for Arabic with `[dir="rtl"]` CSS overrides; locale stored in localStorage.

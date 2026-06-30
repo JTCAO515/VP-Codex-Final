@@ -9,6 +9,7 @@ import type {
   ExploreProviderStatus,
   ExploreStay,
 } from "@/lib/explore";
+import { useTranslation } from "@/lib/i18n/I18nContext";
 
 export function ExploreBoard() {
   const [cities, setCities] = useState<ExploreCity[]>([]);
@@ -17,6 +18,7 @@ export function ExploreBoard() {
   const [foodSpots, setFoodSpots] = useState<ExploreFoodSpot[]>([]);
   const [stays, setStays] = useState<ExploreStay[]>([]);
   const [providerStatus, setProviderStatus] = useState<ExploreProviderStatus | null>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const provider = getExploreProvider();
@@ -50,9 +52,9 @@ export function ExploreBoard() {
   return (
     <section className="explore-board" aria-labelledby="explore-title">
       <header className="explore-board__header">
-        <p className="section-kicker">Explore</p>
-        <h1 id="explore-title">Cities, attractions, food, and stays</h1>
-        <p>Curated starting points for your China trip. Real provider data will connect here next.</p>
+        <p className="section-kicker">{t.explore.kicker}</p>
+        <h1 id="explore-title">{t.explore.heading}</h1>
+        <p>{t.explore.subtitle}</p>
       </header>
 
       <div className="explore-city-filters" aria-label="Explore city picker">
@@ -68,7 +70,7 @@ export function ExploreBoard() {
           </button>
         ))}
       </div>
-      <p className="explore-add-note">VisePanda will reopen Chat and rebalance the route before updating the canvas.</p>
+      <p className="explore-add-note">{t.explore.addToTrip} — VisePanda will reopen Chat and rebalance the route before updating the canvas.</p>
 
       {activeCity && (
         <div className="explore-board__body">
@@ -93,7 +95,7 @@ export function ExploreBoard() {
 
           <div className="explore-board__columns">
             <section aria-labelledby="explore-attractions-title">
-              <h3 id="explore-attractions-title">Attractions</h3>
+              <h3 id="explore-attractions-title">{t.explore.attractions}</h3>
               <ul>
                 {attractions.map((attraction) => (
                   <li key={attraction.id}>
@@ -104,7 +106,7 @@ export function ExploreBoard() {
                       className="explore-add-button"
                       onClick={() => addToTrip(buildAddToTripMessage(attraction.name, activeCity.name))}
                     >
-                      Add to Trip
+                      {t.explore.addToTrip}
                     </button>
                   </li>
                 ))}
@@ -112,7 +114,7 @@ export function ExploreBoard() {
             </section>
 
             <section aria-labelledby="explore-food-title">
-              <h3 id="explore-food-title">Food</h3>
+              <h3 id="explore-food-title">{t.explore.food}</h3>
               <ul>
                 {foodSpots.map((spot) => (
                   <li key={spot.id}>
@@ -125,7 +127,7 @@ export function ExploreBoard() {
                         addToTrip(buildAddToTripMessage(spot.name, activeCity.name, spot.dish))
                       }
                     >
-                      Add to Trip
+                      {t.explore.addToTrip}
                     </button>
                   </li>
                 ))}
@@ -133,7 +135,7 @@ export function ExploreBoard() {
             </section>
 
             <section aria-labelledby="explore-stays-title">
-              <h3 id="explore-stays-title">Stays</h3>
+              <h3 id="explore-stays-title">{t.explore.stays}</h3>
               <ul>
                 {stays.map((stay) => (
                   <li key={stay.id}>
@@ -146,7 +148,7 @@ export function ExploreBoard() {
                         addToTrip(buildAddToTripMessage(stay.name, activeCity.name, stay.area))
                       }
                     >
-                      Add to Trip
+                      {t.explore.addToTrip}
                     </button>
                   </li>
                 ))}

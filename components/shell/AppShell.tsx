@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { AccountMenu } from "@/components/account/AccountMenu";
 import { NavTabs, type AppTab } from "@/components/shell/NavTabs";
+import { LanguageSwitcher } from "@/components/shell/LanguageSwitcher";
 
 interface AppShellProps {
   activeTab: AppTab;
@@ -20,6 +21,7 @@ export function AppShell({ activeTab, children }: AppShellProps) {
         </a>
         <div className="app-header__nav">
           <NavTabs activeTab={activeTab} />
+          <LanguageSwitcher />
           <AccountMenu />
         </div>
       </header>

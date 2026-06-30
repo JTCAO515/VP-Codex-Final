@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { getToolsProvider } from "@/lib/tools";
 import type { ToolCategory } from "@/lib/tools";
+import { useTranslation } from "@/lib/i18n/I18nContext";
 
 type ToolMeta = { Icon: React.ElementType; accent: string; bg: string; badge: string };
 
@@ -36,6 +37,16 @@ export function ToolsBoard() {
   const [categories, setCategories] = useState<ToolCategory[]>([]);
   const [active, setActive] = useState<ToolCategory | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
+
+  const BADGE_LABELS: Record<string, string> = {
+    "visa-and-entry": t.tools.badgeRequired,
+    "payment-setup":  t.tools.badgePreTrip,
+    "currency":       t.tools.badgeLive,
+    "metro":          t.tools.badgeTransit,
+    "esim-vpn":       t.tools.badgeConnectivity,
+    "emergency":      t.tools.badgeEmergency,
+  };
 
   useEffect(() => {
     getToolsProvider()
@@ -70,14 +81,15 @@ export function ToolsBoard() {
   return (
     <section className="tools-board" aria-labelledby="tools-title">
       <header className="tools-board__header">
-        <p className="section-kicker">Tools</p>
-        <h1 id="tools-title">On-the-ground tools</h1>
-        <p>Six essential toolkits for every step of your China journey.</p>
+        <p className="section-kicker">{t.tools.kicker}</p>
+        <h1 id="tools-title">{t.tools.heading}</h1>
+        <p>{t.tools.subtitle}</p>
       </header>
 
       <div className="tools-grid" role="list" aria-label="Tool categories">
         {categories.map((cat) => {
-          const { Icon, accent, bg, badge } = TOOL_META[cat.id] ?? FALLBACK_META;
+          const { Icon, accent, bg } = TOOL_META[cat.id] ?? FALLBACK_META;
+          const badge = BADGE_LABELS[cat.id] ?? (TOOL_META[cat.id] ?? FALLBACK_META).badge;
           return (
             <button
               aria-haspopup="dialog"
@@ -97,7 +109,7 @@ export function ToolsBoard() {
               </div>
               <strong className="tool-card__name">{cat.name}</strong>
               <p className="tool-card__desc">{cat.summary}</p>
-              <span className="tool-card__cta">Open checklist →</span>
+              <span className="tool-card__cta">{t.tools.openChecklist}</span>
             </button>
           );
         })}
@@ -125,7 +137,7 @@ export function ToolsBoard() {
                 })()}
               </span>
               <h2 className="tool-modal__title" id="tool-modal-heading">{active.name}</h2>
-              <button aria-label="Close" className="tool-modal__close" onClick={close} type="button">✕</button>
+              <button aria-label={t.tools.close} className="tool-modal__close" onClick={close} type="button">✕</button>
             </div>
 
             <p className="tool-modal__summary">{active.summary}</p>
@@ -158,7 +170,7 @@ export function ToolsBoard() {
             {/* Offline pocket notes */}
             {active.offlineTips.length > 0 && (
               <div className="tool-modal__offline">
-                <h3>📵 Offline pocket notes</h3>
+                <h3>{t.tools.offlineHeading}</h3>
                 <ul>
                   {active.offlineTips.map((tip) => (
                     <li key={tip}>{tip}</li>
