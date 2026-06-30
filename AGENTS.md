@@ -62,8 +62,8 @@ VisePanda 是一个面向外国人来中国旅行的 AI 管家产品。当前主
 - Tools `ToolCategory` 必须包含 `tips`、`sections`、`offlineTips`、`apiPriority`；组件只渲染这些字段，不要在 `ToolsBoard` 里新增分类专属硬编码文案。
 - Tools provider 必须实现 `getProviderStatus()`；页面展示的 provider mode、coverage、candidate sources、next integration 和 limitations 应来自 provider 层，不要在 `ToolsBoard` 里硬编码。
 - Tools 分类深链必须使用 `/tools?category=<tool-category-id>`；`ToolsBoard` 会读取该参数并在无效时回退默认分类；点击分类时用 `history.replaceState` 更新 URL。后续 Chat/Canvas/提醒入口需要跳 Tools 时复用这个参数，不要为了入口恢复 Canvas 顶部五个任务框。
-- `components/tools/ToolsBoard.tsx` 必须保留对 `?category=<id>` URL 参数的读取和预选中逻辑，供 `ButlerReminders` 等深链入口使用；新增分类 id 时要同时更新 `lib/tools/staticProvider.ts` 和任何引用具体分类 id 的映射（例如 `ButlerReminders` 里的 `alertToolCategoryMap`）。
-- `ButlerReminders` 的 alert 类型到 Tools 分类映射集中在 `components/canvas/ButlerReminders.tsx` 的 `alertToolCategoryMap`；`booking`/`weather` 等无对应 Tools 分类的类型渲染为纯文本 action，不生成链接；新增 alert 类型时在映射表里添加即可，不需要改 `TripCanvas` 或 `ToolsBoard`。
+- `components/tools/ToolsBoard.tsx` 必须保留对 `?category=<id>` URL 参数的读取和预选中逻辑，供 `ButlerReminders` 等深链入口使用；新增分类 id 时要同时更新 `lib/tools/staticProvider.ts` 和任何引用具体分类 id 的映射（例如 `ButlerReminders` 里的 `alertActionHrefMap`）。
+- `ButlerReminders` 的 alert 类型到 action href 映射集中在 `components/canvas/ButlerReminders.tsx` 的 `alertActionHrefMap`；Tools-backed alerts 继续使用 `/tools?category=<id>`，`language` 必须直接链接 `/translate`；`booking`/`weather` 等无对应入口的类型渲染为纯文本 action，不生成链接；新增 alert 类型时在映射表里添加即可，不需要改 `TripCanvas` 或 `ToolsBoard`。
 - 目的地背景切换由 `lib/visual/destinationBackground.ts` 根据 `TripSummary.destinations` 推导；不要在页面组件中散落城市匹配规则。当前使用 CSS 场景层叠加同一张 `ink-landscape.png`，后续若换真实城市背景图，也应保留该 helper 作为映射入口。
 - 所有 Supabase 读写必须经过 `lib/supabase/tripsRepository.ts`，复用已确认的 `users`/`trips`/`canvas_versions`/`messages` 表结构，不要另起字段命名、拆分表，也不要绕开 repository 直接在组件里拼 Supabase 查询。
 - Supabase 相关代码必须在未配置环境变量、未登录、网络失败时优雅降级（不崩溃，回落到 guest/mock 体验），参考 `lib/supabase/client.ts` 的 `isSupabaseConfigured` 模式。
@@ -111,3 +111,14 @@ npm.cmd run test:e2e
 - Membership levels are defined in `lib/community/membership.ts`; do not duplicate tier names or benefits inside components.
 - Panda avatars are defined in `lib/account/avatars.ts` and stored under `public/avatars/`. Account avatar selection uses `visepanda:selected-avatar` in `localStorage`.
 - Do not implement real avatar upload or photo file upload until the project adds Supabase Storage buckets, upload validation, image moderation, and profile/media persistence.
+
+## v0.1.32 Agent Update - Tools UI Rules
+
+- `/tools` must not include a Translate category. Translation belongs to the dedicated `/translate` tab.
+- Tools category cards are name-only. Do not add summaries, descriptions, badges, or provider labels inside the closed cards unless the product direction changes.
+- Tools details are hidden by default. Only open a drawer after a category click or a valid `/tools?category=<tool-category-id>` URL param.
+- Clicking the active Tools card should close the drawer and remove the `category` query param.
+- Do not render provider status, coverage copy, next-integration copy, candidate API-source strings, or category `apiPriority` copy in the traveler-facing Tools UI.
+- `getProviderStatus()` and `apiPriority` may remain in the provider/data layer for internal planning, but user-facing Tools copy should stay practical and non-technical.
+- The retained `ButlerReminders` helper must route `language` alerts to `/translate`, not `/tools?category=translate`.
+- When changing Tools categories, update `tests/tools-provider.test.ts`, `tests/tools-board.test.tsx`, and any deep-link mappings such as `ButlerReminders`.

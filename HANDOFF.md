@@ -4,7 +4,7 @@
 
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）。
 - 当前分支：`main`
-- 当前版本：`v0.1.30`
+- 当前版本：`v0.1.32`
 - 重要（已完成）：
   - `supabase/migrations/0002_trip_archive_and_share.sql`：用户已手动在 Supabase SQL Editor 执行，归档/分享 RLS policy 已生效。
   - Google OAuth：用户已在 Google Cloud 创建 OAuth 凭据并在 Supabase Authentication → Providers → Google 填入，Google 登录功能已配置就绪。
@@ -190,6 +190,31 @@ Known follow-up:
 - Add Supabase community tables and repository layer for cross-device posts, comments, likes, saves, and photos.
 - Add Supabase Storage avatar/photo upload, cropping, content moderation, and profile sync.
 - Add real membership progression, points ledger, paid entitlement rules, and admin moderation tools.
+
+## v0.1.32 Handoff Update - Tools Card Drawers
+
+Current version: `v0.1.32`.
+
+Completed in this iteration:
+
+- Removed the old Translate category from `/tools`. Translation remains available through the dedicated `/translate` nav tab.
+- Converted Tools category selection into six compact name-only cards: Visa and entry, Payment setup, Currency, Metro, eSIM/VPN, and Emergency.
+- Changed default Tools behavior so no category detail is visible unless a valid `?category=` param is present or the user opens a card.
+- Kept `/tools?category=<tool-category-id>` deep links working for valid category ids.
+- Added active-card toggling: clicking the currently open card closes the drawer and clears the query param.
+- Removed traveler-facing provider metadata from Tools UI, including provider label, coverage, next-integration copy, candidate API-source strings, and category API-priority blocks.
+- Updated retained `ButlerReminders` language alerts to route directly to `/translate`, because `/tools?category=translate` no longer exists.
+- Updated targeted Tools tests for six categories, card/drawer behavior, Translate removal, and hidden provider metadata.
+
+Known constraints:
+
+- `ToolsProvider.getProviderStatus()` and `ToolCategory.apiPriority` still exist for internal planning, but `ToolsBoard` must not render them unless the product direction changes.
+- `ButlerReminders` is still retained as an unused component file; its `language` alert route now points to `/translate` instead of the removed `/tools?category=translate` category.
+
+Next recommended steps:
+
+1. Decide whether Tools provider status should stay internal-only or move to a future admin/debug page.
+2. Continue product polish on one-page desktop layouts after validating the Tools card/drawer behavior on production.
 
 ## v0.1.30 Handoff Update - Translator Qwen Stack
 

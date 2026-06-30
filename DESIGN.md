@@ -364,3 +364,21 @@ ADR-032: Community uses localStorage before Supabase tables.
 - Decision: Finish the product experience first with localStorage-backed interactions and document Supabase persistence as the next backend step.
 - Reason: This keeps the MVP usable on Vercel immediately, avoids introducing half-built storage/moderation flows, and preserves the existing provider/fallback style.
 - Future migration: Add `community_posts`, `community_media`, `community_likes`, `community_comments`, `community_bookmarks`, profile avatar fields, Supabase Storage buckets, and moderation queues.
+
+## v0.1.32 Design Update - Tools Card Drawers
+
+Tools keeps the provider abstraction but no longer exposes provider-readiness metadata to travelers.
+
+- `lib/tools/staticProvider.ts` now returns six user-facing categories: `visa-and-entry`, `payment-setup`, `currency`, `metro`, `esim-vpn`, and `emergency`.
+- The Translate capability remains implemented under `/translate` and is intentionally absent from the Tools category list.
+- `components/tools/ToolsBoard.tsx` loads categories through `getToolsProvider()`, renders name-only category cards, and renders the selected category as a drawer-like detail area below the cards.
+- `ToolsBoard` still reads valid `?category=<id>` params for deep links, but invalid or absent params leave the drawer closed rather than selecting the first category.
+- `ToolsProvider.getProviderStatus()` remains available for internal readiness tracking and tests, but `ToolsBoard` does not render it.
+- `ToolCategory.apiPriority` remains in the data model for provider planning, but it is not rendered in the current traveler-facing Tools UI.
+- The retained `ButlerReminders` helper now uses an href map: Tools-backed alerts still route to `/tools?category=<id>`, while `language` routes directly to `/translate`.
+
+ADR-033: Keep Tools provider status internal-only for the traveler UI.
+
+- Background: The previous Tools page displayed provider labels, coverage, next integration, and candidate API-source strings. The user asked to remove these words from the Tools page and make the surface card/drawer based.
+- Decision: Remove provider status and API-priority rendering from `ToolsBoard`, while preserving provider metadata in the data layer for future implementation planning.
+- Reason: Travelers need practical checklists, not integration roadmap copy. Keeping metadata internal preserves future provider-switching context without adding visual noise.

@@ -3,7 +3,7 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.31`
+- Current iteration: `v0.1.32`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -45,3 +45,4 @@
 - `v0.1.29`: added Community page (`/community`) framework — Feed (shared trips/tips), Hot Spots (city-level rankings with Add to Trip), Photos wall. Mock data with 6 posts, 12 hot spots, 8 photos. 6th main nav tab (Globe icon). Real Supabase/API integration planned for Phase 11.
 - `v0.1.30`: upgraded Translator to Aliyun Bailian Qwen for text translation (`qwen-mt-flash`), OCR (`qwen3.5-ocr`), TTS (`qwen3-tts-instruct-flash`), and STT (`qwen3-asr-flash`); added `/api/translate/tts`, `/api/translate/stt`, a Voice tab, and server-side Qwen TTS playback across Translator components.
 - `v0.1.31`: upgraded Community to a local interactive MVP with local posts, filters, likes, saves, comments, photo-card publishing, membership levels, bundled panda avatars, and Account avatar selection. Supabase community persistence and avatar/photo upload remain planned.
+- `v0.1.32`: simplified Tools into six non-Translate category cards with details hidden until a drawer card is opened. Removed provider/API metadata from the Tools UI while keeping provider status available in the data layer, and routed retained language reminders to `/translate`.

@@ -164,3 +164,14 @@ Next translator priorities:
 - [x] Upgrade Photos tab to local photo-card publishing and local likes.
 - [x] Add reusable panda avatar assets and Account avatar picker with localStorage persistence.
 - [ ] Future: connect community posts/photos/likes/comments to Supabase and add Supabase Storage avatar/photo uploads, moderation, and real member progression.
+
+## v0.1.32 Addendum - Tools Card Drawers
+
+- [x] Remove the old Translate category from `/tools`; translation remains available through the dedicated `/translate` tab.
+- [x] Convert Tools into six compact category cards: Visa and entry, Payment setup, Currency, Metro, eSIM/VPN, and Emergency.
+- [x] Keep category cards name-only; hide checklist details until a card is opened.
+- [x] Preserve `/tools?category=<tool-category-id>` deep links so external entries can open a specific drawer.
+- [x] Remove provider implementation metadata from the Tools UI, including live-provider labels, coverage copy, next-integration copy, candidate API-source strings, and category API-priority blocks.
+- [x] Update retained `ButlerReminders` language alerts to link `/translate` instead of the removed `/tools?category=translate` path.
+- [x] Update Tools tests for the six-category provider, drawer interaction, Translate removal, and hidden provider metadata.
+- [ ] Future: decide whether Tools provider status should remain internal-only or move to an admin/debug surface.

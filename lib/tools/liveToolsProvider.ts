@@ -57,7 +57,7 @@ export function createLiveToolsProvider(): ToolsProvider {
         id: "live-tools",
         label: "Live tools provider (exchange rate connected)",
         mode: "live",
-        nextIntegration: "Translation API is the next candidate after exchange-rate is validated.",
+        nextIntegration: "Visa-rule or transit data is the next candidate after exchange-rate is validated.",
         limitations: base.limitations.filter((l) => !l.toLowerCase().includes("exchange rate")),
       };
     },

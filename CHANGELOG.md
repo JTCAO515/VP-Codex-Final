@@ -1,5 +1,14 @@
 # VisePanda Changelog
 
+## v0.1.32 - 2026-06-30
+
+- Removed the old Translate category from `/tools`; translation now remains a dedicated `/translate` main navigation page.
+- Converted Tools categories into compact name-only cards. Details stay hidden until a category card is opened, and URL deep links such as `/tools?category=currency` still open the matching drawer.
+- Removed Tools provider implementation/status metadata from the page UI, including live-provider labels, coverage copy, next-integration copy, and candidate API-source strings.
+- Removed the visible Tools API-priority block from category drawers so users see travel checklists rather than implementation planning text.
+- Updated the retained `ButlerReminders` helper so `language` alerts route to `/translate` instead of the removed `/tools?category=translate` category.
+- Updated Tools tests to cover the six-category provider, card-first drawer interaction, Translate removal, and hidden provider metadata.
+
 ## v0.1.31 - 2026-06-30
 
 - Upgraded the Community page from static mock display to a local interactive MVP.

@@ -7,7 +7,8 @@ describe("Tools provider status", () => {
 
     expect(status.mode).toBe("static");
     expect(status.label).toMatch(/static travel tools provider/i);
-    expect(status.candidates).toEqual(expect.arrayContaining(["Exchange-rate API", "Machine translation API", "Visa rules API"]));
+    expect(status.candidates).toEqual(expect.arrayContaining(["Exchange-rate API", "Visa rules API"]));
+    expect(status.candidates).not.toContain("Machine translation API");
     expect(status.nextIntegration).toMatch(/exchange-rate/i);
   });
 });

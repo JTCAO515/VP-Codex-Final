@@ -20,6 +20,13 @@ describe("ButlerReminders", () => {
         body: "Two tickets still need confirmation.",
         action: "Confirm tickets",
       },
+      {
+        type: "language",
+        priority: "medium",
+        title: "Keep a few phrases ready",
+        body: "Menus and street signs may need quick translation.",
+        action: "Open translator",
+      },
     ];
 
     render(<ButlerReminders alerts={alerts} />);
@@ -30,6 +37,7 @@ describe("ButlerReminders", () => {
     );
     expect(screen.getByText("Confirm tickets")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /confirm tickets/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /open translator/i })).toHaveAttribute("href", "/translate");
   });
 
   it("renders nothing when there are no alerts", () => {

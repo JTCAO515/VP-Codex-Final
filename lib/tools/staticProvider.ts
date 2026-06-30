@@ -47,26 +47,6 @@ function withToolDetails(category: Omit<ToolCategory, "sections" | "offlineTips"
       offlineTips: [...sharedOfflineTips, "Write down your card issuer support number outside the payment app."],
       apiPriority: "Later: payment setup remains checklist-first; no payment transaction API is planned yet.",
     },
-    translate: {
-      sections: [
-        {
-          title: "Useful phrases",
-          items: [
-            "Save allergies, dietary limits, hotel address, and route questions as Chinese text.",
-            "Use camera translation for menus and signs, then confirm key details with staff.",
-          ],
-        },
-        {
-          title: "Conversation",
-          items: [
-            "Keep sentences short and ask one thing at a time.",
-            "Show written Chinese for addresses rather than relying on pronunciation.",
-          ],
-        },
-      ],
-      offlineTips: [...sharedOfflineTips, "Download an offline translation pack before boarding."],
-      apiPriority: "Next later: machine translation API can be connected after language provider selection.",
-    },
     currency: {
       sections: [
         {
@@ -79,7 +59,7 @@ function withToolDetails(category: Omit<ToolCategory, "sections" | "offlineTips"
         {
           title: "Rate checks",
           items: [
-            "Live exchange-rate conversion is not wired in yet.",
+            "Check the current exchange rate with your bank or a trusted currency app before large exchanges.",
             "Confirm current rates with your bank or a trusted currency app before large exchanges.",
           ],
         },
@@ -179,24 +159,13 @@ const categories: ToolCategory[] = [
     ],
   }),
   withToolDetails({
-    id: "translate",
-    name: "Translate",
-    summary: "Bridge the language gap for menus, signs, and conversations.",
-    tips: [
-      "Download an offline translation app or dictionary before you arrive because connectivity is not guaranteed everywhere.",
-      "Save a few key phrases (greetings, directions, allergies) in Chinese characters so you can show them, not just say them.",
-      "Camera-based translation works well for menus and street signs.",
-    ],
-    cta: { label: "打开翻译工具 Open Translator →", href: "/translate" },
-  }),
-  withToolDetails({
     id: "currency",
     name: "Currency",
     summary: "Understand RMB cash and exchange basics.",
     tips: [
       "Exchange a small amount of RMB before you arrive, or use an airport counter for emergency cash.",
       "ATMs at major banks generally accept foreign cards for RMB withdrawals; check your home bank's foreign withdrawal fees first.",
-      "Live exchange-rate conversion isn't built in yet; check your bank or a currency app for the current rate.",
+      "Check a current exchange-rate reference before large cash exchanges or ATM withdrawals.",
     ],
   }),
   withToolDetails({
@@ -239,11 +208,11 @@ export function createStaticToolsProvider(): ToolsProvider {
         id: "static-tools",
         label: "Static travel tools provider",
         mode: "static",
-        coverage: "7 travel tool categories with practical checklists and offline notes.",
-        candidates: ["Exchange-rate API", "Machine translation API", "Visa rules API", "Transit data API"],
+        coverage: "6 travel tool categories with practical checklists and offline notes.",
+        candidates: ["Exchange-rate API", "Visa rules API", "Transit data API"],
         nextIntegration: "Exchange-rate API should be validated first because it is low-risk and clearly scoped.",
         limitations: [
-          "No real-time exchange rate, translation, visa-rule, or transit feed is connected yet.",
+          "No visa-rule or transit feed is connected yet.",
           "Static guidance must stay conservative and avoid implying official or real-time status.",
         ],
       };

@@ -161,3 +161,22 @@ Explicit exclusions:
 - No Supabase community persistence in this iteration.
 - No real avatar upload or photo file upload in this iteration.
 - No paid membership, points ledger, payment, or entitlement enforcement yet.
+
+## v0.1.32 Tools Requirement Update
+
+Tools is now a card-drawer reference surface rather than a category sidebar with visible implementation status.
+
+MVP acceptance additions:
+
+- `/tools` shows six non-Translate travel tool cards: Visa and entry, Payment setup, Currency, Metro, eSIM/VPN, and Emergency.
+- Each card shows only the category name before selection.
+- No category detail is visible by default unless the URL contains a valid `?category=<tool-category-id>` deep link.
+- Clicking a card opens that category's checklist drawer; clicking the active card closes it and clears the category URL param.
+- `/translate` remains the dedicated translation product area and is not duplicated inside Tools.
+- Any retained language reminder entry should route to `/translate`, not to a removed Tools category.
+- The Tools page must not show implementation/provider metadata such as provider labels, coverage summaries, "next integration" copy, candidate API-source strings, or category API-priority planning blocks.
+
+Explicit exclusions:
+
+- Do not restore a Translate category inside `/tools`.
+- Do not show internal API/provider roadmap strings in user-facing Tools UI.

@@ -1,12 +1,12 @@
 import type { AlertType, ButlerAlert } from "@/lib/types/trip";
 
-const alertToolCategoryMap: Partial<Record<AlertType, string>> = {
-  visa: "visa-and-entry",
-  payment: "payment-setup",
-  language: "translate",
-  transport: "metro",
-  risk: "emergency",
-  emergency: "emergency",
+const alertActionHrefMap: Partial<Record<AlertType, string>> = {
+  visa: "/tools?category=visa-and-entry",
+  payment: "/tools?category=payment-setup",
+  language: "/translate",
+  transport: "/tools?category=metro",
+  risk: "/tools?category=emergency",
+  emergency: "/tools?category=emergency",
 };
 
 export function ButlerReminders({ alerts }: { alerts: ButlerAlert[] }) {
@@ -17,13 +17,13 @@ export function ButlerReminders({ alerts }: { alerts: ButlerAlert[] }) {
       <h3>Butler reminders</h3>
       <ul>
         {alerts.map((alert, index) => {
-          const categoryId = alertToolCategoryMap[alert.type];
+          const actionHref = alertActionHrefMap[alert.type];
 
           return (
             <li data-priority={alert.priority} key={`${alert.type}-${index}`}>
               <span>{alert.title}</span>
-              {categoryId ? (
-                <a href={`/tools?category=${categoryId}`}>{alert.action}</a>
+              {actionHref ? (
+                <a href={actionHref}>{alert.action}</a>
               ) : (
                 <span className="butler-reminders__action">{alert.action}</span>
               )}

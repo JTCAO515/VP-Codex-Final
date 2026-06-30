@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getToolsProvider } from "@/lib/tools";
-import type { ToolCategory, ToolsProviderStatus } from "@/lib/tools";
+import type { ToolCategory } from "@/lib/tools";
 
 function readCategoryParam() {
   if (typeof window === "undefined") {
@@ -13,13 +12,17 @@ function readCategoryParam() {
   return new URLSearchParams(window.location.search).get("category");
 }
 
-function writeCategoryParam(categoryId: string) {
+function writeCategoryParam(categoryId: string | null) {
   if (typeof window === "undefined") {
     return;
   }
 
   const nextUrl = new URL(window.location.href);
-  nextUrl.searchParams.set("category", categoryId);
+  if (categoryId) {
+    nextUrl.searchParams.set("category", categoryId);
+  } else {
+    nextUrl.searchParams.delete("category");
+  }
   window.history.replaceState(null, "", `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`);
 }
 
@@ -30,15 +33,12 @@ function toDomId(value: string) {
 export function ToolsBoard() {
   const [categories, setCategories] = useState<ToolCategory[]>([]);
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
-  const [providerStatus, setProviderStatus] = useState<ToolsProviderStatus | null>(null);
 
   useEffect(() => {
     const provider = getToolsProvider();
-    provider.getProviderStatus().then(setProviderStatus);
     provider.listCategories().then((loaded) => {
       const requestedCategoryId = readCategoryParam();
-      const initialCategoryId =
-        loaded.find((category) => category.id === requestedCategoryId)?.id ?? loaded[0]?.id ?? null;
+      const initialCategoryId = loaded.find((category) => category.id === requestedCategoryId)?.id ?? null;
 
       setCategories(loaded);
       setActiveCategoryId((current) => current ?? initialCategoryId);
@@ -48,8 +48,11 @@ export function ToolsBoard() {
   const activeCategory = categories.find((category) => category.id === activeCategoryId) ?? null;
 
   function handleCategorySelect(categoryId: string) {
-    setActiveCategoryId(categoryId);
-    writeCategoryParam(categoryId);
+    setActiveCategoryId((current) => {
+      const next = current === categoryId ? null : categoryId;
+      writeCategoryParam(next);
+      return next;
+    });
   }
 
   return (
@@ -57,14 +60,15 @@ export function ToolsBoard() {
       <header className="tools-board__header">
         <p className="section-kicker">Tools</p>
         <h1 id="tools-title">On-the-ground travel tools</h1>
-        <p>Practical checklists for visa, payment, language, currency, transit, connectivity, and emergencies.</p>
+        <p>Practical checklists for visa, payment, currency, transit, connectivity, and emergencies.</p>
       </header>
 
       <div className="tools-board__body">
-        <ul className="tools-category-list" aria-label="Tool categories">
+        <ul className="tools-category-list tools-category-list--cards" aria-label="Tool categories">
           {categories.map((category) => (
             <li key={category.id}>
               <button
+                aria-expanded={category.id === activeCategoryId}
                 aria-pressed={category.id === activeCategoryId}
                 data-active={category.id === activeCategoryId ? "true" : "false"}
                 data-category-id={category.id}
@@ -77,9 +81,9 @@ export function ToolsBoard() {
           ))}
         </ul>
 
-        {activeCategory && (
+        {activeCategory ? (
           <article
-            className="tools-category-detail"
+            className="tools-category-detail tools-category-drawer"
             aria-labelledby="tools-category-title"
             data-category-id={activeCategory.id}
             id={`tool-${activeCategory.id}`}
@@ -91,14 +95,6 @@ export function ToolsBoard() {
                 <li key={tip}>{tip}</li>
               ))}
             </ul>
-            {providerStatus && (
-              <aside className="provider-status" aria-label="Tools provider status">
-                <strong>{providerStatus.label}</strong>
-                <span>{providerStatus.coverage}</span>
-                <p>{providerStatus.nextIntegration}</p>
-                <small>{providerStatus.candidates.join(" / ")}</small>
-              </aside>
-            )}
             <div className="tools-category-sections">
               {activeCategory.sections.map((section) => {
                 const sectionId = `tool-section-${activeCategory.id}-${toDomId(section.title)}`;
@@ -123,16 +119,9 @@ export function ToolsBoard() {
                 ))}
               </ul>
             </section>
-            <p className="tools-api-priority">
-              <strong>API priority</strong>
-              {activeCategory.apiPriority}
-            </p>
-            {activeCategory.cta && (
-              <Link className="tools-category-cta" href={activeCategory.cta.href}>
-                {activeCategory.cta.label}
-              </Link>
-            )}
           </article>
+        ) : (
+          <p className="tools-drawer-empty">Select a tool card to open its checklist.</p>
         )}
       </div>
     </section>
