@@ -1,5 +1,11 @@
 # VisePanda Changelog
 
+## v0.1.39 - 2026-07-01
+
+- Replaced background image with new golden-line Chinese landscape (mountains, pagodas, traditional buildings on warm cream paper).
+- Reduced background gradient overlay opacity across all body and destination-scene variants so the new line-art image shows clearly (was ~0.58, now ~0.16–0.18).
+- Day drawer panel overlay also lightened to match.
+
 ## v0.1.38 - 2026-06-30
 
 - New landing home page (`/`) replaces the redirect-to-chat default — brand hero with "Start Planning →" CTA and 6 feature cards (Chat, Trips, Explore, Tools, Translate, Community).
