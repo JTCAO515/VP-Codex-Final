@@ -2,9 +2,9 @@
 
 ## 当前状态
 
-- 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为静态 provider 驱动的 8 城骨架，完成 provider abstraction、Add to Trip 和 route rebalance 文案（任务 4.1-4.5）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes 和 API priority 说明（任务 5.1-5.3）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）。
+- 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为静态 provider 驱动的 8 城骨架，完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority 和 provider readiness metadata（任务 5.1-5.3、7.3-7.4）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）。
 - 当前分支：`main`
-- 当前版本：`v0.1.22`
+- 当前版本：`v0.1.25`
 - 重要：用户已创建真实 Supabase 项目、跑过 `0001_init_trip_schema.sql` migration，并在 Vercel 配置了三个 Supabase 环境变量。**`supabase/migrations/0002_trip_archive_and_share.sql` 需要用户在 Supabase SQL Editor 里手动追加执行，否则归档/分享相关的状态更新会因 RLS 缺失而失败。** **本轮（v0.1.16）登录方式从 magic link 改为邮箱密码 + Google 登录：Google 登录需要用户在 Supabase 项目的 Authentication → Providers 里启用 Google provider 并配置 OAuth Client ID/Secret，否则点击 Continue with Google 会报错；邮箱密码登录不需要额外配置即可使用。**
 - 最新实现 commit：本轮提交后以 `git log -1 --oneline` 为准
 - 当前远端：`https://github.com/JTCAO515/VP-Codex-Final.git`
@@ -45,20 +45,23 @@
 - Trip detail 页面（`/trips/[id]`）：已登录显示真实 Live Trip Canvas，未登录/示例行程显示摘要卡，未知 id 显示 not found（任务 3.4） ✅
 - 归档与分享链接（任务 3.5）：Trip detail 页面支持 Mark as Ready / Archive / Restore from archive 状态切换；支持 Get share link 生成 token 并展示完整 URL，支持 Revoke share link 撤销；新增公开只读分享页 `/share/[token]`（`components/share/ShareView.tsx`），未登录访客可查看分享行程的 Canvas，看不到聊天记录 ✅
 - Explore provider abstraction 与静态骨架（任务 4.1-4.3）：新增 `lib/explore/types.ts` 定义 `ExploreProvider` 接口和城市/景点/美食/住宿类型；`lib/explore/staticProvider.ts` 提供覆盖北京/上海/成都/西安/广州/杭州/苏州/重庆的静态数据；`lib/explore/index.ts` 的 `getExploreProvider()` 是组件唯一允许调用的入口；`components/explore/ExploreBoard.tsx` 支持城市筛选按钮切换和景点/美食/住宿三列展示 ✅
+- Explore provider readiness（任务 7.1、7.2）：`ExploreProvider` 新增 `getProviderStatus()`，静态 provider 返回当前 static mode、8 城覆盖范围、Amap/Trip.com/Meituan/Tripadvisor 候选 provider、限制和下一步 POI/place-detail 验证重点；`ExploreBoard` 渲染该状态，不在组件里硬编码候选 provider 文案 ✅
 - Account 图标 + 悬浮窗口重做（任务 2.5）：删除独立 `/account` 页面和 `AccountPanel.tsx`；新增 `components/account/AccountMenu.tsx`，渲染在 `AppShell` 头部、`NavTabs` 旁边；登录方式从 magic link 改为邮箱密码登录/注册（`signInWithPassword`/`signUpWithPassword`）和 Google 登录（`signInWithGoogle`）；已登录状态下悬浮窗口提供 Change name（`updateDisplayName`）、Change password（`updatePassword`）、Log out 三个操作 ✅
 - Explore Add to Trip 流程（任务 4.4、4.5）：`ExploreBoard` 的每个景点/美食/住宿条目新增 Add to Trip 按钮，点击后跳转到 `/chat?add=<编码后的草稿消息>`；草稿消息明确要求 VisePanda 把该地点加入行程并重新平衡路线；`ButlerWorkspace` 挂载时读取 `add` 参数，清空 URL 后调用既有的 `handleSend`，新内容和用户手动发消息一样经过 `/api/chat` → `CanvasPatch` → `applyCanvasPatch`，没有新增任何绕开 AI pipeline 的画布写入入口 ✅
 - Tools 静态骨架（任务 5.1-5.3）：新增 `lib/tools/types.ts`（`ToolsProvider` 接口、`ToolCategory` 类型）、`lib/tools/staticProvider.ts`（签证入境/支付设置/翻译/汇率/地铁/eSIM-VPN/应急 7 个分类的静态参考清单、结构化 sections、离线 pocket notes、API priority）、`lib/tools/index.ts`（`getToolsProvider()` 工厂）；`components/tools/ToolsBoard.tsx` 替换占位页，左侧分类列表 + 右侧摘要、建议清单、出发前清单、离线提示和 API 优先级；Currency/Translate 文案明确说明实时汇率/翻译尚未接入 ✅
+- Tools provider readiness（任务 7.3、7.4）：`ToolsProvider` 新增 `getProviderStatus()`，静态 provider 返回当前 static mode、7 类覆盖范围、Exchange-rate/Machine translation/Visa rules/Transit data 候选数据源、限制和下一步实时汇率验证重点；`ToolsBoard` 渲染该状态，与分类级 `apiPriority` 形成总览 + 详情 ✅
 - Tools 分类深链（任务 5.2）：`components/tools/ToolsBoard.tsx` 会读取 `/tools?category=<tool-category-id>` 并自动选中匹配分类，无效参数回退默认分类；点击分类时会用 `history.replaceState` 更新地址栏，便于从 Chat/Canvas/未来提醒入口复用深链 ✅
 - 顶部导航图标：`components/shell/NavTabs.tsx` 使用 `lucide-react` 为 Chat / Trips / Explore / Tools 渲染线性图标，替换 C/T/E/X 字母占位 ✅
 - 桌面端密度优化：Chat / Trips / Explore / Tools 标题、摘要区、筛选区、卡片间距已压缩；桌面端页面本身保持一屏锁定，长内容在 `.trip-canvas__days`、`.trip-library`、`.explore-board__columns`、`.tools-category-detail` 内部滚动 ✅
+- 目的地感知背景切换（任务 6.1-6.4）：新增 `lib/visual/destinationBackground.ts`，`TripCanvas` 根据当前 `summary.destinations` 把 Beijing / Shanghai / Hangzhou / Suzhou / Chongqing 映射到不同水墨背景氛围；CSS 通过 `body[data-destination-scene]` 使用同一张 `ink-landscape.png` 叠加不同场景色层，未知目的地回落默认水墨背景 ✅
 
 ## 未完成/待办
 
 - [ ] 真实 Supabase 项目已创建（用户已完成部署），需要提醒用户在 Supabase SQL Editor 里手动追加执行 `0002_trip_archive_and_share.sql`，否则归档/分享功能会因 RLS policy 缺失而报错。
 - [ ] 需要提醒用户在 Supabase 项目的 Authentication → Providers 里启用并配置 Google OAuth provider，否则悬浮窗口里的 Continue with Google 会报错；邮箱密码登录不需要额外配置。
-- [ ] 接入静态 provider 之外的真实第三方 Explore API（Amap/Trip.com/Meituan/Tripadvisor 等），当前已完成 8 城静态 provider 和 Add to Trip rebalancing 流程。
-- [ ] Tools 接入真实第三方数据源（实时汇率换算、机器翻译、签证规则查询、地铁/应急信息等），当前已完成结构化静态内容、离线 pocket notes 和 API priority 说明。
-- [ ] 实现场景感知背景切换，例如北京对应长城/故宫水墨，上海对应外滩/江南园林水墨。
+- [ ] 接入静态 provider 之外的真实第三方 Explore API（Amap/Trip.com/Meituan/Tripadvisor 等），当前已完成 8 城静态 provider、provider readiness 和 Add to Trip rebalancing 流程。
+- [ ] Tools 接入真实第三方数据源（实时汇率换算、机器翻译、签证规则查询、地铁/应急信息等），当前已完成结构化静态内容、离线 pocket notes、API priority 和 provider readiness 说明。
+- [ ] 目的地背景切换当前是 CSS 氛围层；后续如需要更惊艳，可生成/接入城市级真实水墨背景资产。
 - [ ] 移动端竖屏端细节适配。
 
 ## 已知问题
@@ -68,8 +71,9 @@
 - npm audit 当前可能报告若干依赖安全提示；尚未使用 `npm audit fix --force`，避免破坏 Next/React 版本组合。
 - Trips 在未登录或未配置 Supabase 时仍为 mock data；登录且配置后才会显示真实保存的行程。
 - Day 抽屉编辑仍是本地状态；只有点击 Save to Trips 才会把当时的 canvas 整体快照写入 Supabase，抽屉内的单次编辑不会自动保存。
-- Explore 当前是 8 城静态 provider，尚未接入真实 POI / 酒店 / 餐饮 / 票务 API。
-- Tools 当前是结构化静态参考清单，支持分类深链、离线 pocket notes 和 API priority，但没有接入真实汇率/翻译/签证规则数据源。
+- Explore 当前是 8 城静态 provider，已有 provider readiness metadata，但尚未接入真实 POI / 酒店 / 餐饮 / 票务 API。
+- Tools 当前是结构化静态参考清单，支持分类深链、离线 pocket notes、API priority 和 provider readiness metadata，但没有接入真实汇率/翻译/签证规则数据源。
+- 目的地背景当前通过 CSS 场景层模拟北京/上海/江南/山城氛围，尚未引入单独城市背景图片资产。
 - 桌面端已按 1440x900 做过截图和滚动断言；移动竖屏仍是后续精修范围。
 - 桌面横屏端为当前优先体验；移动竖屏端后续需要针对抽屉、画布密度和 Trips 卡片继续优化。
 - OneDrive 目录偶尔会锁住 `.next` 构建缓存；如出现 `readlink` / `EBUSY`，停止 dev server 并安全删除 `.next` 后重跑。
@@ -77,9 +81,9 @@
 
 ## 下一步优先级
 
-1. 评估 Explore 真实第三方 provider 接入，优先验证 Amap/Trip.com/Meituan/Tripadvisor 哪个最适合 POI、餐饮、住宿和票务数据。
-2. 评估 Tools 真实数据源接入，优先级为实时汇率、机器翻译、签证规则、地铁/应急信息。
-3. 实现场景感知背景切换，例如北京对应长城/故宫水墨，上海对应外滩/江南园林水墨。
+1. 选择并验证第一个真实数据源：建议从 Tools 的实时汇率 API 开始，因为风险低、字段简单、对旅行实用性明确。
+2. 评估 Explore 真实第三方 provider 接入，优先验证 Amap/Trip.com/Meituan/Tripadvisor 哪个最适合 POI、餐饮、住宿和票务数据。
+3. 如需要强化视觉惊艳感，生成/接入北京、上海、江南、山城等城市级水墨背景资产，替换当前 CSS 氛围层。
 4. 继续移动端竖屏细节适配。
 
 ## 关键文件索引
@@ -92,6 +96,7 @@
 - `components/chat/ButlerWorkspace.tsx` — 主工作台状态管理和 API 调用，挂载时读取 `?trip=`（恢复保存的画布）和 `?add=`（自动发送 Explore 的 Add to Trip 草稿消息）两个 URL 参数。
 - `components/chat/ChatPanel.tsx` — 聊天面板。
 - `components/canvas/TripCanvas.tsx` — live trip canvas 组合组件。
+- `lib/visual/destinationBackground.ts` — 目的地到水墨背景场景的唯一映射入口。
 - `components/canvas/DayCard.tsx` — 单日行程摘要卡片。
 - `components/canvas/DayDetailDrawer.tsx` — 单日完整行程详情抽屉。
 - `components/trips/TripsDashboard.tsx` — Trips 行程库 dashboard。
@@ -107,19 +112,22 @@
 - `lib/supabase/tripsRepository.ts` — trips/canvas_versions/messages 的唯一读写入口。
 - `supabase/migrations/0001_init_trip_schema.sql` — Supabase schema SQL 迁移（需要在真实项目里手动跑一次）。
 - `supabase/migrations/0002_trip_archive_and_share.sql` — 新增 `archived` 状态和分享链接公开只读 RLS policy（需要在 0001 之后手动追加执行）。
-- `lib/explore/types.ts` — Explore 域类型和 `ExploreProvider` 接口。
-- `lib/explore/staticProvider.ts` — 静态 Explore provider 实现（北京/上海/成都/西安/广州/杭州/苏州/重庆）。
+- `lib/explore/types.ts` — Explore 域类型、`ExploreProvider` 接口和 `ExploreProviderStatus`。
+- `lib/explore/staticProvider.ts` — 静态 Explore provider 实现（北京/上海/成都/西安/广州/杭州/苏州/重庆）和 provider readiness metadata。
 - `lib/explore/index.ts` — `getExploreProvider()` 工厂，组件唯一允许调用的入口。
 - `app/explore/page.tsx`、`components/explore/ExploreBoard.tsx` — Explore 页面入口和城市/景点/美食/住宿看板组件，每个条目带 Add to Trip 按钮（跳转 `/chat?add=<草稿消息>`）。
 - `components/account/AccountMenu.tsx` — Account 头部图标 + 悬浮窗口，登录/注册/Google 登录/改名/改密码/登出的唯一入口。
-- `lib/tools/types.ts` — Tools 域类型和 `ToolsProvider` 接口，`ToolCategory` 包含 `tips`、`sections`、`offlineTips`、`apiPriority`。
-- `lib/tools/staticProvider.ts` — 静态 Tools provider 实现（签证入境/支付设置/翻译/汇率/地铁/eSIM-VPN/应急 7 个分类），包含结构化内容、离线提示和 API 接入优先级。
+- `lib/tools/types.ts` — Tools 域类型、`ToolsProvider` 接口和 `ToolsProviderStatus`；`ToolCategory` 包含 `tips`、`sections`、`offlineTips`、`apiPriority`。
+- `lib/tools/staticProvider.ts` — 静态 Tools provider 实现（签证入境/支付设置/翻译/汇率/地铁/eSIM-VPN/应急 7 个分类），包含结构化内容、离线提示、API 接入优先级和 provider readiness metadata。
 - `lib/tools/index.ts` — `getToolsProvider()` 工厂，组件唯一允许调用的入口。
 - `components/shell/NavTabs.tsx` — 顶部 Chat / Trips / Explore / Tools 导航，使用 `lucide-react` 图标。
 - `app/tools/page.tsx`、`components/tools/ToolsBoard.tsx` — Tools 页面入口和分类列表/详情看板组件，支持 `/tools?category=<tool-category-id>` 分类深链，并渲染出发前清单、离线 pocket notes、API priority。
 - `app/globals.css` — 当前视觉系统和响应式布局。
 - `public/ink-landscape.png` — MVP 水墨背景资产。
 - `tests/trips-dashboard.test.tsx` — Trips Dashboard 组件测试。
+- `tests/destination-background.test.ts` — 目的地到背景场景映射测试。
+- `tests/explore-provider-status.test.ts` — Explore provider readiness metadata 测试。
+- `tests/tools-provider-status.test.ts` — Tools provider readiness metadata 测试。
 - `tests/` — 单元、组件、API、e2e 测试。
 
 ## 本地验证记录
@@ -143,3 +151,13 @@ npm.cmd run test:e2e  # 2 Playwright tests passed
 ```
 
 额外做过 1440x900 桌面布局断言：`/trips`、`/explore`、`/tools?category=currency` 均保持 `bodyScroll=false`，主要内容在各自内部滚动容器中滚动，并确认 Trips 状态说明、Explore Add to Trip rebalance note、Tools offline/API priority 文案可见。
+
+本轮 `v0.1.25` 已通过：
+
+```bash
+npm.cmd run test      # 25 files, 52 tests passed
+npm.cmd run build     # production build passed
+npm.cmd run test:e2e  # 2 Playwright tests passed
+```
+
+额外做过 1440x900 桌面布局断言：`/chat`、`/explore`、`/tools?category=currency` 均保持 `bodyScroll=false`，主要内容在各自内部滚动容器中滚动；`/chat` 的目的地场景为 `beijing-imperial`，Explore/Tools provider status 文案可见。

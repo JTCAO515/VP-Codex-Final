@@ -233,6 +233,20 @@ const categories: ToolCategory[] = [
 export function createStaticToolsProvider(): ToolsProvider {
   return {
     id: "static-tools",
+    async getProviderStatus() {
+      return {
+        id: "static-tools",
+        label: "Static travel tools provider",
+        mode: "static",
+        coverage: "7 travel tool categories with practical checklists and offline notes.",
+        candidates: ["Exchange-rate API", "Machine translation API", "Visa rules API", "Transit data API"],
+        nextIntegration: "Exchange-rate API should be validated first because it is low-risk and clearly scoped.",
+        limitations: [
+          "No real-time exchange rate, translation, visa-rule, or transit feed is connected yet.",
+          "Static guidance must stay conservative and avoid implying official or real-time status.",
+        ],
+      };
+    },
     async listCategories() {
       return categories;
     },

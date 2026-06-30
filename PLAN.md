@@ -52,20 +52,27 @@
 
 ## 阶段六：场景化视觉与体验增强
 
-- [ ] 任务 6.1：实现 destination-aware background switching。
-- [ ] 任务 6.2：规划北京时切换为长城/故宫风格水墨背景。
-- [ ] 任务 6.3：规划上海时切换为外滩/江南园林风格水墨背景。
-- [ ] 任务 6.4：根据 active trip canvas destination state 平滑切换背景，避免做成手动主题选择器。
+- [x] 任务 6.1：实现 destination-aware background switching。
+- [x] 任务 6.2：规划北京时切换为长城/故宫风格水墨背景氛围。
+- [x] 任务 6.3：规划上海时切换为外滩/江南园林风格水墨背景氛围。
+- [x] 任务 6.4：根据 active trip canvas destination state 自动切换背景，避免做成手动主题选择器。
+
+## 阶段七：真实 Provider 接入准备
+
+- [x] 任务 7.1：为 Explore provider 增加 provider readiness metadata，记录当前静态模式、覆盖范围、候选第三方 API、限制和下一步接入优先级。
+- [x] 任务 7.2：在 Explore 页面渲染 provider status，不让 UI 直接硬编码候选 provider 文案。
+- [x] 任务 7.3：为 Tools provider 增加 provider readiness metadata，记录实时汇率、机器翻译、签证规则、交通数据等候选数据源。
+- [x] 任务 7.4：在 Tools 页面渲染 provider status，与分类级 `apiPriority` 形成总览 + 详情两层信息。
 
 ## 关键约束
 
 - 技术选型：Next.js App Router、React、TypeScript、Vercel、Supabase 预留。
 - AI 约束：DeepSeek V4 Flash 只在服务端 API route 调用；真实 key 不进入浏览器、不写入仓库。
 - Fallback 约束：缺少 `DEEPSEEK_API_KEY`、API 失败或模型输出不合法时必须回落到 mock provider。
-- 当前重点：Chat / AI Butler 已完成 MVP 骨架；Trips 行程库已接入真实 Supabase persistence 首个闭环、归档/分享流程，并补充了状态说明；guest draft 已能自动迁移到登录账号；Explore 已升级为静态 provider 驱动的城市/景点/美食/住宿骨架，覆盖北京/上海/成都/西安/广州/杭州/苏州/重庆，并接入了 Add to Trip 回 Chat 重新平衡路线流程；Account 已从独立页面改为头部图标 + 悬浮窗口，支持邮箱密码登录/注册、Google 登录，登录后可改名/改密码/登出；Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架（签证入境/支付设置/翻译/汇率/地铁/eSIM-VPN/应急），支持深链、结构化分组、离线 pocket notes 和 API priority 说明。
+- 当前重点：Chat / AI Butler 已完成 MVP 骨架；Trips 行程库已接入真实 Supabase persistence 首个闭环、归档/分享流程，并补充了状态说明；guest draft 已能自动迁移到登录账号；Explore 已升级为静态 provider 驱动的城市/景点/美食/住宿骨架，覆盖北京/上海/成都/西安/广州/杭州/苏州/重庆，并接入了 Add to Trip 回 Chat 重新平衡路线流程和 provider readiness metadata；Account 已从独立页面改为头部图标 + 悬浮窗口，支持邮箱密码登录/注册、Google 登录，登录后可改名/改密码/登出；Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架（签证入境/支付设置/翻译/汇率/地铁/eSIM-VPN/应急），支持深链、结构化分组、离线 pocket notes、API priority 和 provider readiness metadata；Trip Canvas 已支持目的地感知水墨背景氛围切换。
 - Tools provider 约束：`lib/tools/types.ts` 定义 `ToolsProvider` 接口和 `ToolCategory` 类型；`lib/tools/staticProvider.ts` 是当前唯一实现（静态 checklist 内容，覆盖 7 个分类）；`lib/tools/index.ts` 的 `getToolsProvider()` 是组件唯一允许调用的入口；当前所有内容均为静态参考信息，不包含实时汇率、实时翻译或实时签证规则查询，后续接入真实数据源时只需替换该工厂内的实现。
 - Tools 深链约束：`/tools?category=<tool-category-id>` 会自动选中对应工具分类；无效分类回退到第一个分类。后续从 Chat/Canvas/提醒入口跳转 Tools 时应复用该 URL 参数，不要恢复 Canvas 顶部五个任务框。
-- Explore provider 约束：`lib/explore/types.ts` 定义 `ExploreProvider` 接口；`lib/explore/staticProvider.ts` 是当前唯一实现（静态数据，覆盖 Beijing/Shanghai/Chengdu/Xi'an）；`lib/explore/index.ts` 的 `getExploreProvider()` 是组件唯一允许调用的入口，后续切换真实 Amap/Trip.com/Meituan provider 时只替换这里，不应改动 `components/explore/ExploreBoard.tsx` 的渲染逻辑。
+- Explore provider 约束：`lib/explore/types.ts` 定义 `ExploreProvider` 接口；`lib/explore/staticProvider.ts` 是当前唯一实现（静态数据，覆盖 Beijing/Shanghai/Chengdu/Xi'an/Guangzhou/Hangzhou/Suzhou/Chongqing）；`lib/explore/index.ts` 的 `getExploreProvider()` 是组件唯一允许调用的入口，后续切换真实 Amap/Trip.com/Meituan/Tripadvisor provider 时只替换这里，不应改动 `components/explore/ExploreBoard.tsx` 的渲染逻辑；provider 必须提供 `getProviderStatus()`。
 - Explore Add to Trip 约束（`v0.1.17`）：`ExploreBoard` 的每个景点/美食/住宿条目都有一个 "Add to Trip" 按钮；点击后跳转到 `/chat?add=<编码后的草稿消息>`，由 `ButlerWorkspace` 在挂载时读取 `add` 参数并通过既有的 `handleSend` → `/api/chat` → `CanvasPatch` → `applyCanvasPatch` 流程发送，不允许在 Explore 组件里直接拼装 `TripDay`/`TripState` 或绕开 AI pipeline 写入画布。
 - Trips 当前限制：`v0.1.14` 已支持 trip detail 页面、归档/恢复状态切换、生成与撤销分享链接、以及只读公开分享页 `/share/[token]`；分享页不展示 chat 历史。
 - Account 约束：`v0.1.16` 起不再有独立 `/account` 页面；`components/account/AccountMenu.tsx` 是登录/账号管理唯一入口，渲染在 `AppShell` 头部；登录方式为邮箱密码（`signInWithPassword`/`signUpWithPassword`）和 Google OAuth（`signInWithGoogle`），不再提供 magic link；登录后的改名/改密码通过 `updateDisplayName`/`updatePassword`（均封装在 `lib/supabase/auth.ts`）完成。
@@ -92,7 +99,8 @@
 - M5.5：Account 从独立页面改为头部图标 + 悬浮窗口，邮箱密码登录 + Google 登录，登录后可改名/改密码/登出完成（2026-06-29，v0.1.16）。
 - M5.6：Explore Add to Trip / Add to Canvas 流程完成（2026-06-29，v0.1.17）。
 - M6：Tools 从占位页升级为静态 provider 驱动的 7 个分类骨架完成（2026-06-29，v0.1.18）；Tools 分类深链完成（2026-06-30，v0.1.19）；真实第三方数据源待排期。
-- M7：目的地感知背景切换完成（待排期）。
+- M7：目的地感知背景切换完成（2026-06-30，v0.1.23）。
+- M8：Explore/Tools provider readiness metadata 完成（2026-06-30，v0.1.24-v0.1.25）。
 
 ## 风险
 

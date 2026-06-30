@@ -103,6 +103,20 @@ const stays: ExploreStay[] = [
 export function createStaticExploreProvider(): ExploreProvider {
   return {
     id: "static",
+    async getProviderStatus() {
+      return {
+        id: "static-explore",
+        label: "Static curated provider",
+        mode: "static",
+        coverage: "8 cities with curated attractions, food, and stay areas.",
+        candidates: ["Amap", "Trip.com", "Meituan", "Tripadvisor"],
+        nextIntegration: "POI search and place-detail verification should be validated first.",
+        limitations: [
+          "No live opening hours, ticket availability, booking inventory, or map routing yet.",
+          "Static content is written for information architecture and itinerary-planning tests.",
+        ],
+      };
+    },
     async listCities() {
       return cities;
     },

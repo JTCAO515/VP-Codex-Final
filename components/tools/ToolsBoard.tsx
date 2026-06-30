@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getToolsProvider } from "@/lib/tools";
-import type { ToolCategory } from "@/lib/tools";
+import type { ToolCategory, ToolsProviderStatus } from "@/lib/tools";
 
 function readCategoryParam() {
   if (typeof window === "undefined") {
@@ -29,9 +29,11 @@ function toDomId(value: string) {
 export function ToolsBoard() {
   const [categories, setCategories] = useState<ToolCategory[]>([]);
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
+  const [providerStatus, setProviderStatus] = useState<ToolsProviderStatus | null>(null);
 
   useEffect(() => {
     const provider = getToolsProvider();
+    provider.getProviderStatus().then(setProviderStatus);
     provider.listCategories().then((loaded) => {
       const requestedCategoryId = readCategoryParam();
       const initialCategoryId =
@@ -88,6 +90,14 @@ export function ToolsBoard() {
                 <li key={tip}>{tip}</li>
               ))}
             </ul>
+            {providerStatus && (
+              <aside className="provider-status" aria-label="Tools provider status">
+                <strong>{providerStatus.label}</strong>
+                <span>{providerStatus.coverage}</span>
+                <p>{providerStatus.nextIntegration}</p>
+                <small>{providerStatus.candidates.join(" / ")}</small>
+              </aside>
+            )}
             <div className="tools-category-sections">
               {activeCategory.sections.map((section) => {
                 const sectionId = `tool-section-${activeCategory.id}-${toDomId(section.title)}`;

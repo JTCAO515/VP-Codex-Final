@@ -30,8 +30,19 @@ export interface ExploreStay {
   description: string;
 }
 
+export interface ExploreProviderStatus {
+  id: string;
+  label: string;
+  mode: "static" | "live";
+  coverage: string;
+  candidates: string[];
+  nextIntegration: string;
+  limitations: string[];
+}
+
 export interface ExploreProvider {
   id: string;
+  getProviderStatus(): Promise<ExploreProviderStatus>;
   listCities(): Promise<ExploreCity[]>;
   listAttractions(cityId: string): Promise<ExploreAttraction[]>;
   listFoodSpots(cityId: string): Promise<ExploreFoodSpot[]>;

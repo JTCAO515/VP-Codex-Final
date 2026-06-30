@@ -5,4 +5,11 @@ export function getExploreProvider(): ExploreProvider {
   return createStaticExploreProvider();
 }
 
-export type { ExploreAttraction, ExploreCity, ExploreFoodSpot, ExploreProvider, ExploreStay } from "@/lib/explore/types";
+export type {
+  ExploreAttraction,
+  ExploreCity,
+  ExploreFoodSpot,
+  ExploreProvider,
+  ExploreProviderStatus,
+  ExploreStay,
+} from "@/lib/explore/types";

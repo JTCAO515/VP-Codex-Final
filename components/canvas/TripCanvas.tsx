@@ -3,6 +3,7 @@
 import { DayDetailDrawer } from "@/components/canvas/DayDetailDrawer";
 import { DayCard } from "@/components/canvas/DayCard";
 import { TripSummary } from "@/components/canvas/TripSummary";
+import { getDestinationScene } from "@/lib/visual/destinationBackground";
 import { useEffect, useMemo, useState } from "react";
 import type { TripDay, TripState } from "@/lib/types/trip";
 
@@ -13,6 +14,18 @@ export function TripCanvas({ trip }: { trip: TripState }) {
   useEffect(() => {
     setEditableTrip(trip);
   }, [trip]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const scene = getDestinationScene(editableTrip.summary.destinations);
+    document.body.dataset.destinationScene = scene.cssValue;
+    document.body.dataset.destinationSceneLabel = scene.label;
+
+    return () => {
+      document.body.dataset.destinationScene = "default-ink";
+      document.body.dataset.destinationSceneLabel = "China ink landscape";
+    };
+  }, [editableTrip.summary.destinations]);
 
   const selectedDay = useMemo(
     () => editableTrip.days.find((day) => day.day === selectedDayNumber),

@@ -3,7 +3,7 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.22`
+- Current iteration: `v0.1.25`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -36,3 +36,6 @@
 - `v0.1.20`: improved Trips status clarity with a shared Draft/Ready/Shared/Archived guide on the dashboard and matching status guidance on Trip Detail.
 - `v0.1.21`: expanded Explore static coverage to Guangzhou, Hangzhou, Suzhou, and Chongqing, and clarified that Add to Trip reopens Chat for AI route rebalancing.
 - `v0.1.22`: practicalized Tools with structured checklist sections, offline pocket notes, and API priority metadata for every category.
+- `v0.1.23`: added destination-aware ink-wash scene switching based on the active Trip Canvas route.
+- `v0.1.24`: added Explore provider readiness metadata and UI status for future POI/place-detail API validation.
+- `v0.1.25`: added Tools provider readiness metadata and UI status for future exchange-rate, translation, visa-rule, and transit API validation.

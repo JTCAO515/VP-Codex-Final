@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { getExploreProvider } from "@/lib/explore";
-import type { ExploreAttraction, ExploreCity, ExploreFoodSpot, ExploreStay } from "@/lib/explore";
+import type {
+  ExploreAttraction,
+  ExploreCity,
+  ExploreFoodSpot,
+  ExploreProviderStatus,
+  ExploreStay,
+} from "@/lib/explore";
 
 export function ExploreBoard() {
   const [cities, setCities] = useState<ExploreCity[]>([]);
@@ -10,9 +16,11 @@ export function ExploreBoard() {
   const [attractions, setAttractions] = useState<ExploreAttraction[]>([]);
   const [foodSpots, setFoodSpots] = useState<ExploreFoodSpot[]>([]);
   const [stays, setStays] = useState<ExploreStay[]>([]);
+  const [providerStatus, setProviderStatus] = useState<ExploreProviderStatus | null>(null);
 
   useEffect(() => {
     const provider = getExploreProvider();
+    provider.getProviderStatus().then(setProviderStatus);
     provider.listCities().then((loaded) => {
       setCities(loaded);
       setActiveCityId((current) => current ?? loaded[0]?.id ?? null);
@@ -74,6 +82,14 @@ export function ExploreBoard() {
               ))}
             </ul>
           </article>
+          {providerStatus && (
+            <aside className="provider-status" aria-label="Explore provider status">
+              <strong>{providerStatus.label}</strong>
+              <span>{providerStatus.coverage}</span>
+              <p>{providerStatus.nextIntegration}</p>
+              <small>{providerStatus.candidates.join(" / ")}</small>
+            </aside>
+          )}
 
           <div className="explore-board__columns">
             <section aria-labelledby="explore-attractions-title">

@@ -5,4 +5,4 @@ export function getToolsProvider(): ToolsProvider {
   return createStaticToolsProvider();
 }
 
-export type { ToolCategory, ToolsProvider } from "@/lib/tools/types";
+export type { ToolCategory, ToolsProvider, ToolsProviderStatus } from "@/lib/tools/types";

@@ -46,6 +46,42 @@ body {
   color: var(--ink);
 }
 
+body[data-destination-scene="beijing-imperial"] {
+  background:
+    linear-gradient(180deg, rgba(251, 241, 223, 0.58), rgba(241, 221, 191, 0.48)),
+    radial-gradient(circle at 18% 78%, rgba(163, 58, 45, 0.2), transparent 21rem),
+    radial-gradient(circle at 76% 12%, rgba(74, 82, 63, 0.18), transparent 24rem),
+    url("/ink-landscape.png") center / cover fixed,
+    linear-gradient(145deg, #fbf1df 0%, #efd7b2 48%, #ddc4a6 100%);
+}
+
+body[data-destination-scene="shanghai-jiangnan"] {
+  background:
+    linear-gradient(180deg, rgba(251, 241, 223, 0.54), rgba(237, 226, 207, 0.5)),
+    radial-gradient(circle at 74% 76%, rgba(102, 123, 92, 0.22), transparent 22rem),
+    radial-gradient(circle at 20% 18%, rgba(182, 134, 52, 0.14), transparent 25rem),
+    url("/ink-landscape.png") right center / cover fixed,
+    linear-gradient(145deg, #fbf1df 0%, #e9dbc3 52%, #d8c8b3 100%);
+}
+
+body[data-destination-scene="jiangnan-lake"] {
+  background:
+    linear-gradient(180deg, rgba(251, 241, 223, 0.56), rgba(232, 224, 203, 0.5)),
+    radial-gradient(circle at 22% 78%, rgba(102, 123, 92, 0.2), transparent 24rem),
+    radial-gradient(circle at 84% 22%, rgba(92, 120, 128, 0.14), transparent 23rem),
+    url("/ink-landscape.png") center / cover fixed,
+    linear-gradient(145deg, #fbf1df 0%, #e5dac2 50%, #d4cab4 100%);
+}
+
+body[data-destination-scene="mountain-river"] {
+  background:
+    linear-gradient(180deg, rgba(251, 241, 223, 0.54), rgba(230, 218, 197, 0.52)),
+    radial-gradient(circle at 12% 20%, rgba(80, 88, 76, 0.22), transparent 24rem),
+    radial-gradient(circle at 82% 78%, rgba(163, 58, 45, 0.14), transparent 22rem),
+    url("/ink-landscape.png") left center / cover fixed,
+    linear-gradient(145deg, #fbf1df 0%, #e0d1b8 48%, #cbbda9 100%);
+}
+
 button,
 input,
 textarea,
@@ -1730,7 +1766,7 @@ select:focus-visible {
 
 .explore-board__body {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
   gap: 10px;
   min-height: 0;
   overflow: hidden;
@@ -1764,6 +1800,36 @@ select:focus-visible {
   padding: 3px 8px;
   font-size: 0.78rem;
   color: var(--ink-muted);
+}
+
+.provider-status {
+  display: grid;
+  gap: 3px;
+  border: 1px solid rgba(111, 91, 73, 0.16);
+  border-left: 3px solid var(--sage);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: rgba(255, 248, 237, 0.34);
+  color: var(--ink-muted);
+}
+
+.provider-status strong {
+  color: var(--ink);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.provider-status span,
+.provider-status p,
+.provider-status small {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.3;
+}
+
+.provider-status small {
+  color: var(--cinnabar);
+  font-weight: 800;
 }
 
 .explore-board__columns {

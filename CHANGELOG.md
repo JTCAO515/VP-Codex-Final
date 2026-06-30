@@ -1,5 +1,23 @@
 # VisePanda Changelog
 
+## v0.1.25 - 2026-06-30
+
+- Added Tools provider readiness metadata so the Tools layer documents static mode, coverage, candidate live data sources, limitations, and the first integration priority.
+- `ToolsBoard` now renders the provider status alongside category content without hardcoding provider-specific copy in the component.
+- Added provider status tests for the Tools abstraction.
+
+## v0.1.24 - 2026-06-30
+
+- Added Explore provider readiness metadata for static mode, current coverage, candidate data providers, limitations, and the next integration target.
+- `ExploreBoard` now shows the provider status so users and future agents can see that the page is static today and prepared for POI/place-detail provider validation.
+- Added provider status tests for the Explore abstraction.
+
+## v0.1.23 - 2026-06-30
+
+- Added destination-aware background scene selection for the Trip Canvas route.
+- `TripCanvas` now syncs the active destination scene to the document body, and CSS switches the ink-wash atmosphere for Beijing, Shanghai/Jiangnan, Hangzhou/Suzhou, Chongqing, or the default China ink landscape.
+- Added tests for the destination-to-scene mapper.
+
 ## v0.1.22 - 2026-06-30
 
 - Implemented the Tools practicalization pass: every static Tools category now has structured sections, offline pocket notes, and an API priority note.
