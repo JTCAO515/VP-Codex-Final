@@ -3,7 +3,7 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.33`
+- Current iteration: `v0.1.34`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -47,3 +47,4 @@
 - `v0.1.31`: upgraded Community to a local interactive MVP with local posts, filters, likes, saves, comments, photo-card publishing, membership levels, bundled panda avatars, and Account avatar selection. Supabase community persistence and avatar/photo upload remain planned.
 - `v0.1.32`: simplified Tools into six non-Translate category cards with details hidden until a drawer card is opened. Removed provider/API metadata from the Tools UI while keeping provider status available in the data layer, and routed retained language reminders to `/translate`.
 - `v0.1.33`: refreshed the desktop visual layout system across Chat, Trips, Explore, Tools, Translate, Community, and Account with tighter typography, paper/ink styling, compact cards, unified inputs, internal scrolling, and cleaned Translator/Community page labels.
+- `v0.1.34`: desktop landscape frontend polish — Tools cards grid with modal overlay dialogs (6 floating drawers), Trips layout fix moving filter pills above the scrollable library (always visible), Translator single-page 2×2 grid showing Text/OCR/Voice/Phrases simultaneously without tabs, and CSS typography/visual refinements throughout.

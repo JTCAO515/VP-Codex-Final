@@ -1,129 +1,174 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import {
+  AlertTriangle,
+  CreditCard,
+  DollarSign,
+  FileCheck,
+  Tv,
+  Train,
+} from "lucide-react";
 import { getToolsProvider } from "@/lib/tools";
 import type { ToolCategory } from "@/lib/tools";
 
-function readCategoryParam() {
-  if (typeof window === "undefined") {
-    return null;
-  }
+type ToolMeta = { Icon: React.ElementType; accent: string; bg: string; badge: string };
 
-  return new URLSearchParams(window.location.search).get("category");
-}
+const TOOL_META: Record<string, ToolMeta> = {
+  "visa-and-entry":  { Icon: FileCheck,     accent: "#a33a2d", bg: "rgba(163,58,45,0.07)",   badge: "必须" },
+  "payment-setup":   { Icon: CreditCard,    accent: "#b68634", bg: "rgba(182,134,52,0.07)",  badge: "到前" },
+  "currency":        { Icon: DollarSign,    accent: "#667b5c", bg: "rgba(102,123,92,0.07)",  badge: "实时" },
+  "metro":           { Icon: Train,         accent: "#4a6080", bg: "rgba(74,96,128,0.07)",   badge: "交通" },
+  "esim-vpn":        { Icon: Tv,            accent: "#7a5c8a", bg: "rgba(122,92,138,0.07)",  badge: "连网" },
+  "emergency":       { Icon: AlertTriangle, accent: "#9d2f24", bg: "rgba(157,47,36,0.07)",   badge: "紧急" },
+};
 
-function writeCategoryParam(categoryId: string | null) {
-  if (typeof window === "undefined") {
-    return;
-  }
+const FALLBACK_META: ToolMeta = { Icon: FileCheck, accent: "#6f5b49", bg: "rgba(111,91,73,0.07)", badge: "" };
 
-  const nextUrl = new URL(window.location.href);
-  if (categoryId) {
-    nextUrl.searchParams.set("category", categoryId);
-  } else {
-    nextUrl.searchParams.delete("category");
-  }
-  window.history.replaceState(null, "", `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`);
-}
-
-function toDomId(value: string) {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+function writeCategoryParam(id: string | null) {
+  if (typeof window === "undefined") return;
+  const u = new URL(window.location.href);
+  id ? u.searchParams.set("category", id) : u.searchParams.delete("category");
+  window.history.replaceState(null, "", `${u.pathname}${u.search}${u.hash}`);
 }
 
 export function ToolsBoard() {
   const [categories, setCategories] = useState<ToolCategory[]>([]);
-  const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
+  const [active, setActive] = useState<ToolCategory | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const provider = getToolsProvider();
-    provider.listCategories().then((loaded) => {
-      const requestedCategoryId = readCategoryParam();
-      const initialCategoryId = loaded.find((category) => category.id === requestedCategoryId)?.id ?? null;
-
-      setCategories(loaded);
-      setActiveCategoryId((current) => current ?? initialCategoryId);
-    });
+    getToolsProvider()
+      .listCategories()
+      .then((loaded) => {
+        const req = typeof window !== "undefined"
+          ? new URLSearchParams(window.location.search).get("category")
+          : null;
+        setCategories(loaded);
+        const match = loaded.find((c) => c.id === req);
+        if (match) setActive(match);
+      });
   }, []);
 
-  const activeCategory = categories.find((category) => category.id === activeCategoryId) ?? null;
+  useEffect(() => {
+    if (!active) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") close(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [active]);
 
-  function handleCategorySelect(categoryId: string) {
-    setActiveCategoryId((current) => {
-      const next = current === categoryId ? null : categoryId;
-      writeCategoryParam(next);
-      return next;
-    });
+  function open(cat: ToolCategory) {
+    setActive(cat);
+    writeCategoryParam(cat.id);
+  }
+
+  function close() {
+    setActive(null);
+    writeCategoryParam(null);
   }
 
   return (
     <section className="tools-board" aria-labelledby="tools-title">
       <header className="tools-board__header">
         <p className="section-kicker">Tools</p>
-        <h1 id="tools-title">On-the-ground travel tools</h1>
-        <p>Practical checklists for visa, payment, currency, transit, connectivity, and emergencies.</p>
+        <h1 id="tools-title">On-the-ground tools</h1>
+        <p>Six essential toolkits for every step of your China journey.</p>
       </header>
 
-      <div className="tools-board__body">
-        <ul className="tools-category-list tools-category-list--cards" aria-label="Tool categories">
-          {categories.map((category) => (
-            <li key={category.id}>
-              <button
-                aria-expanded={category.id === activeCategoryId}
-                aria-pressed={category.id === activeCategoryId}
-                data-active={category.id === activeCategoryId ? "true" : "false"}
-                data-category-id={category.id}
-                onClick={() => handleCategorySelect(category.id)}
-                type="button"
-              >
-                {category.name}
-              </button>
-            </li>
-          ))}
-        </ul>
+      <div className="tools-grid" role="list" aria-label="Tool categories">
+        {categories.map((cat) => {
+          const { Icon, accent, bg, badge } = TOOL_META[cat.id] ?? FALLBACK_META;
+          return (
+            <button
+              aria-haspopup="dialog"
+              aria-label={cat.name}
+              className="tool-card"
+              data-category-id={cat.id}
+              key={cat.id}
+              onClick={() => open(cat)}
+              style={{ "--tool-accent": accent, "--tool-bg": bg } as React.CSSProperties}
+              type="button"
+            >
+              <div className="tool-card__top">
+                <span className="tool-card__icon-wrap">
+                  <Icon color={accent} size={22} strokeWidth={1.6} />
+                </span>
+                {badge && <span className="tool-card__badge">{badge}</span>}
+              </div>
+              <strong className="tool-card__name">{cat.name}</strong>
+              <p className="tool-card__desc">{cat.summary}</p>
+              <span className="tool-card__cta">Open checklist →</span>
+            </button>
+          );
+        })}
+      </div>
 
-        {activeCategory ? (
-          <article
-            className="tools-category-detail tools-category-drawer"
-            aria-labelledby="tools-category-title"
-            data-category-id={activeCategory.id}
-            id={`tool-${activeCategory.id}`}
+      {active && (
+        <div
+          aria-labelledby="tool-modal-heading"
+          aria-modal="true"
+          className="tool-modal-overlay"
+          onClick={close}
+          role="dialog"
+        >
+          <div
+            className="tool-modal"
+            onClick={(e) => e.stopPropagation()}
+            ref={modalRef}
           >
-            <h2 id="tools-category-title">{activeCategory.name}</h2>
-            <p>{activeCategory.summary}</p>
-            <ul aria-label={`${activeCategory.name} tips`}>
-              {activeCategory.tips.map((tip) => (
-                <li key={tip}>{tip}</li>
-              ))}
-            </ul>
-            <div className="tools-category-sections">
-              {activeCategory.sections.map((section) => {
-                const sectionId = `tool-section-${activeCategory.id}-${toDomId(section.title)}`;
+            {/* Modal header */}
+            <div className="tool-modal__head">
+              <span className="tool-modal__icon-wrap" style={{ background: (TOOL_META[active.id] ?? FALLBACK_META).bg }}>
+                {(() => {
+                  const { Icon, accent } = TOOL_META[active.id] ?? FALLBACK_META;
+                  return <Icon color={accent} size={20} strokeWidth={1.6} />;
+                })()}
+              </span>
+              <h2 className="tool-modal__title" id="tool-modal-heading">{active.name}</h2>
+              <button aria-label="Close" className="tool-modal__close" onClick={close} type="button">✕</button>
+            </div>
 
-                return (
-                  <section key={section.title} aria-labelledby={sectionId}>
-                    <h3 id={sectionId}>{section.title}</h3>
+            <p className="tool-modal__summary">{active.summary}</p>
+
+            {/* Quick tips */}
+            {active.tips.length > 0 && (
+              <ul className="tool-modal__tips">
+                {active.tips.map((tip) => (
+                  <li key={tip}>{tip}</li>
+                ))}
+              </ul>
+            )}
+
+            {/* Sections */}
+            {active.sections.length > 0 && (
+              <div className="tool-modal__sections">
+                {active.sections.map((section) => (
+                  <section key={section.title}>
+                    <h3>{section.title}</h3>
                     <ul>
                       {section.items.map((item) => (
                         <li key={item}>{item}</li>
                       ))}
                     </ul>
                   </section>
-                );
-              })}
-            </div>
-            <section className="tools-offline-notes" aria-labelledby={`offline-notes-${activeCategory.id}`}>
-              <h3 id={`offline-notes-${activeCategory.id}`}>Offline pocket notes</h3>
-              <ul>
-                {activeCategory.offlineTips.map((tip) => (
-                  <li key={tip}>{tip}</li>
                 ))}
-              </ul>
-            </section>
-          </article>
-        ) : (
-          <p className="tools-drawer-empty">Select a tool card to open its checklist.</p>
-        )}
-      </div>
+              </div>
+            )}
+
+            {/* Offline pocket notes */}
+            {active.offlineTips.length > 0 && (
+              <div className="tool-modal__offline">
+                <h3>📵 Offline pocket notes</h3>
+                <ul>
+                  {active.offlineTips.map((tip) => (
+                    <li key={tip}>{tip}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </section>
   );
 }

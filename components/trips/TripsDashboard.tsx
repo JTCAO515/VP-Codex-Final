@@ -95,16 +95,6 @@ export function TripsDashboard() {
         </article>
       </div>
 
-      <div className="trip-status-guide" aria-label="Trip status guide">
-        {(["draft", "ready", "shared", "archived"] as SavedTripStatus[]).map((status) => (
-          <article data-status={status} key={status}>
-            <strong>{status === "ready" ? "Ready plans" : tripStatusLabels[status]}</strong>
-            <p>{tripStatusDescriptions[status]}</p>
-            <span>{tripStatusNextActions[status]}</span>
-          </article>
-        ))}
-      </div>
-
       <div className="trip-filters" aria-label="Trip status filters">
         {filters.map((filter) => (
           <button
@@ -120,6 +110,15 @@ export function TripsDashboard() {
       </div>
 
       <div className="trip-library" aria-label="Saved trips">
+        <div className="trip-status-guide" aria-label="Trip status guide">
+          {(["draft", "ready", "shared", "archived"] as SavedTripStatus[]).map((status) => (
+            <article data-status={status} key={status}>
+              <strong>{status === "ready" ? "Ready plans" : tripStatusLabels[status]}</strong>
+              <p>{tripStatusDescriptions[status]}</p>
+              <span>{tripStatusNextActions[status]}</span>
+            </article>
+          ))}
+        </div>
         {visibleTrips.map((trip) => (
           <article className="trip-card" data-status={trip.status} key={trip.id}>
             <div className="trip-card__status">

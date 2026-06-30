@@ -1,5 +1,13 @@
 # VisePanda Changelog
 
+## v0.1.34 - 2026-06-30
+
+- Redesigned Tools page with 6 modal-overlay card dialogs: each tool now appears as a themed card (icon, Chinese badge, accent color) in a 3×2 grid; clicking opens a floating modal with tips, checklist sections, and offline notes. ESC and backdrop click close the modal. URL deep links (`?category=<id>`) preserved.
+- Fixed Trips dashboard filter button visibility: ALL/DRAFT/READY/SHARED/ARCHIVED filter pills are now always visible above the scrollable trip library, with the status guide moved inside the scroll area. Grid reduced from 5 rows to 4.
+- Redesigned Translator as a single-page 2×2 grid: Text (top-left), OCR (top-right), Voice (bottom-left), Phrases (bottom-right) are all visible simultaneously — no tab navigation. Each panel scrolls independently.
+- Updated CSS throughout: `.tools-grid` (3×2 card grid), `.tool-card` with per-card accent theming, `.tool-modal-overlay` + `.tool-modal`, `.translator-grid` (2×2 panel grid), `.translator-grid__panel`, and responsive overrides for mobile.
+- Updated `tests/tools-board.test.tsx` to mock the static provider directly and updated `tests/translator-page.test.tsx` for the single-page layout.
+
 ## v0.1.33 - 2026-06-30
 
 - Added a desktop-first visual layout refresh across Chat, Trips, Explore, Tools, Translate, Community, and Account.

@@ -1,6 +1,15 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ToolsBoard } from "@/components/tools/ToolsBoard";
+
+vi.mock("@/lib/tools", async () => {
+  const { createStaticToolsProvider } = await vi.importActual<typeof import("@/lib/tools/staticProvider")>(
+    "@/lib/tools/staticProvider",
+  );
+  return {
+    getToolsProvider: () => createStaticToolsProvider(),
+  };
+});
 
 describe("ToolsBoard", () => {
   afterEach(() => {
