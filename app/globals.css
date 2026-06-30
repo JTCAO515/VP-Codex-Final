@@ -2283,18 +2283,27 @@ select:focus-visible {
 }
 
 @media (max-width: 760px) {
-  .translator-grid {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto;
-  }
+  /* ── Scrollable shell on mobile ──────────────────────────────── */
 
-  .tools-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  body {
+    overflow-y: auto;
   }
 
   .app-shell {
-    padding: 14px 14px 28px;
+    height: auto;
+    min-height: 100dvh;
+    padding: 0 0 32px;
+    overflow: visible;
   }
+
+  .app-main {
+    height: auto;
+    min-height: 0;
+    padding-top: 0;
+    overflow: visible;
+  }
+
+  /* ── Nav: 6-column icon-only bottom bar ─────────────────────── */
 
   .app-header {
     display: grid;
@@ -2307,24 +2316,64 @@ select:focus-visible {
 
   .nav-tabs {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     width: 100%;
-    margin-top: 12px;
+    margin-top: 0;
     gap: 0;
     border-top: 1px solid rgba(111, 91, 73, 0.16);
   }
 
   .nav-tabs__link {
     justify-content: center;
-    min-height: 54px;
+    flex-direction: column;
+    gap: 3px;
+    min-height: 52px;
     min-width: 0;
-    padding: 12px 6px;
-    font-size: 0.74rem;
+    padding: 8px 2px;
+    font-size: 0.6rem;
+    letter-spacing: 0;
   }
 
   .nav-tabs__link span {
-    display: none;
+    display: grid;
+    width: 24px;
+    height: 24px;
   }
+
+  /* ── Page containers: natural height, scrollable ─────────────── */
+
+  .translator-page,
+  .trips-dashboard,
+  .tools-board,
+  .explore-board,
+  .community-board {
+    height: auto;
+    overflow: visible;
+  }
+
+  .translator-page {
+    grid-template-rows: auto auto;
+  }
+
+  /* ── Translator: 1-column stack on mobile ───────────────────── */
+  /* Note: the base .translator-grid desktop styles come later in   */
+  /* the file; this rule wins because @media increases specificity  */
+  .translator-grid {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+  }
+
+  .translator-grid__panel {
+    min-height: 260px;
+  }
+
+  /* ── Tools: 2-column on mobile ──────────────────────────────── */
+
+  .tools-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* ── Placeholder pages ──────────────────────────────────────── */
 
   .placeholder-page {
     grid-template-columns: 1fr;
@@ -2332,6 +2381,8 @@ select:focus-visible {
     min-height: auto;
     padding-top: 22px;
   }
+
+  /* ── Canvas / Chat ──────────────────────────────────────────── */
 
   .canvas-task-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2359,6 +2410,12 @@ select:focus-visible {
 
   .butler-workspace {
     grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .butler-workspace__canvas,
+  .butler-workspace__chat {
+    overflow: visible;
   }
 
   .butler-workspace__chat {
@@ -2375,8 +2432,20 @@ select:focus-visible {
     padding-right: 0;
   }
 
+  .trip-canvas {
+    height: auto;
+    grid-template-rows: auto auto auto;
+  }
+
   .trip-canvas__body {
     gap: 16px;
+    overflow: visible;
+    max-height: none;
+  }
+
+  /* Hide thumbnail placeholder — title already shown in the block text */
+  .day-block__image {
+    display: none;
   }
 
   .day-card {
@@ -2402,7 +2471,18 @@ select:focus-visible {
 
   .chat-panel {
     max-height: none;
-    min-height: 520px;
+    min-height: 460px;
+  }
+
+  /* ── Trips ──────────────────────────────────────────────────── */
+
+  .trips-dashboard {
+    grid-template-rows: auto auto auto auto;
+  }
+
+  .trip-library {
+    overflow: visible;
+    max-height: none;
   }
 
   .trips-dashboard__header,
@@ -2413,11 +2493,47 @@ select:focus-visible {
     flex-direction: column;
   }
 
-  .trips-dashboard__summary,
   .trip-card__meta,
   .trip-status-guide,
   .tools-category-sections {
     grid-template-columns: 1fr;
+  }
+
+  .trips-dashboard__summary {
+    gap: 6px;
+    font-size: 0.82rem;
+  }
+
+  /* Horizontally scrollable filter pills */
+  .trip-filters {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .trip-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ── Community ──────────────────────────────────────────────── */
+
+  /* Membership strip: horizontal scroll instead of truncated 5-col grid */
+  .community-membership-strip {
+    display: flex;
+    grid-template-columns: unset;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .community-membership-strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .community-membership-strip__tier {
+    flex: 0 0 140px;
   }
 }
 
@@ -2462,10 +2578,17 @@ select:focus-visible {
 
 .translator-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
+  grid-template-rows: auto;
   gap: 12px;
   min-height: 0;
+}
+
+@media (min-width: 761px) {
+  .translator-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .translator-grid__panel {
@@ -4770,5 +4893,93 @@ select {
     top: calc(100% + 9px);
     width: 326px;
     padding: 14px;
+  }
+}
+
+/* ── Mobile: override late-cascade locked-viewport rules ──────── */
+/* The warm visual system above sets overflow:hidden on .app-shell */
+/* and .app-main without a breakpoint guard. This block sits last  */
+/* in the file so it wins the cascade on small screens.            */
+@media (max-width: 760px) {
+  body {
+    overflow-y: auto;
+  }
+
+  .app-shell {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+    padding: 0 0 32px;
+  }
+
+  .app-main {
+    height: auto;
+    overflow: visible;
+    padding-top: 0;
+  }
+
+  /* Page section containers */
+  .trips-dashboard,
+  .tools-board,
+  .explore-board,
+  .community-board,
+  .translator-page {
+    height: auto;
+    overflow: visible;
+  }
+
+  /* Page inner scroll areas should flow naturally */
+  .trip-library,
+  .explore-board__columns,
+  .butler-workspace__canvas,
+  .butler-workspace__chat,
+  .trip-canvas,
+  .trip-canvas__body {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  /* Hide status-guide descriptions on mobile — trip cards show status inline */
+  .trip-status-guide {
+    display: none;
+  }
+
+  /* Compact trip card on mobile — hide meta table, show only essentials */
+  .trip-card__meta {
+    display: none;
+  }
+
+  /* Community: membership strip must scroll, not truncate */
+  .community-membership-strip {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .community-membership-strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .community-membership-strip__tier {
+    flex: 0 0 150px;
+    min-width: 0;
+  }
+
+  /* Community board body must flow, not clip */
+  .community-board__body {
+    overflow: visible;
+    height: auto;
+    max-height: none;
+  }
+
+  /* App header: correct mobile padding */
+  .app-header {
+    padding: 0 14px;
+  }
+
+  .app-shell > .app-main {
+    padding: 8px 14px 0;
   }
 }

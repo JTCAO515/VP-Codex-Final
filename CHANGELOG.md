@@ -1,5 +1,18 @@
 # VisePanda Changelog
 
+## v0.1.36 - 2026-06-30
+
+- Mobile layout overhaul: all pages now scroll naturally on phones (390px viewport).
+- Nav bar becomes a 6-icon bottom strip on mobile, fitting all tabs including Community.
+- Translator switches to single-column stack on mobile (fixed CSS cascade bug where desktop 2×2 grid overrode the mobile rule).
+- Day block thumbnail placeholder hidden on mobile (title already shown in block text).
+- Trip status guide hidden on mobile to bring trip cards immediately into view; trip meta table hidden to reduce card height.
+- Trip filter pills horizontally scrollable on mobile (no more wrapping).
+- Community membership strip horizontally scrollable on mobile (full tier names visible).
+- Community board body and all page containers flow with natural height on mobile (no more overflow:hidden clipping).
+- Trips summary stats remain 3-column on mobile.
+- Added late-cascade `@media (max-width: 760px)` block at end of globals.css to override warm visual system styles that weren't guarded by a min-width breakpoint.
+
 ## v0.1.35 - 2026-06-30
 
 - English-only UI pass: all Chinese-only UI labels replaced with English across Tools badges, Community HotSpots filters and actions, Community Photos default emoji, mock trip highlights, and mock butler itinerary attraction names.
