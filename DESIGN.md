@@ -81,6 +81,7 @@ erDiagram
 - `ChatMessage`：聊天记录。
 - `suggestions`：`/api/chat` 顶层返回的两个上下文建议问题，不写入 `CanvasPatch`，避免污染行程数据契约。
 - `SavedTrip`：Trips Dashboard 当前使用的静态行程卡类型，后续会映射到 Supabase trips。
+- `tripStatusDescriptions` / `tripStatusNextActions`：Trips 状态说明和下一步操作文案，Dashboard 与 Trip Detail 共用。
 - `UserRow` / `TripRow` / `CanvasVersionRow` / `MessageRow`（`lib/supabase/schema.ts`）：对应 `supabase/migrations/0001_init_trip_schema.sql` 中 `users`、`trips`、`canvas_versions`、`messages` 表的 TypeScript 契约，当前未接入真实 Supabase 客户端。
 
 ## 关键设计决策
@@ -169,6 +170,24 @@ erDiagram
 - 方案对比：自画 SVG 可以少一个依赖，但不利于统一线宽和未来扩展；`lucide-react` 是轻量、Tree-shake 友好的 React 图标库，能直接提供 MessageCircle、Luggage、Compass、Wrench 等语义明确的线性图标。
 - 结论：`components/shell/NavTabs.tsx` 引入 `lucide-react` 的四个图标，保留原来的文字 label 和 active 状态，不改变路由结构。
 
+### ADR-022：为什么 Trips 状态说明集中在 `lib/trips/mockTrips.ts`
+
+- 背景：Trips Dashboard 和 Trip Detail 都需要解释 draft / ready / shared / archived 的含义。如果每个组件各写一套文案，后续状态语义很容易漂移。
+- 方案对比：组件内硬编码最快，但会重复；把状态说明和下一步动作放在 domain mock 数据旁边，可以让静态示例、真实 Supabase rows 映射后的 UI、详情页共用一套语言。
+- 结论：`lib/trips/mockTrips.ts` 新增 `tripStatusDescriptions` 和 `tripStatusNextActions`。Dashboard 渲染状态 guide，Trip Detail 渲染当前状态说明。真实 Supabase 的 `TripRow.status` 继续复用同一组状态 key。
+
+### ADR-023：为什么继续扩展 Explore 静态 provider 而不是直接接第三方 API
+
+- 背景：Explore 需要看起来更像真实发现页，但 Amap/Trip.com/Meituan 的具体授权、字段、配额还未确认。
+- 方案对比：现在接任意一个第三方 API 会让 UI 提前依赖该服务的字段结构；继续扩展静态 provider 能验证城市、景点、美食、住宿的展示密度和 Add to Trip 流程，同时保持 provider interface 稳定。
+- 结论：`lib/explore/staticProvider.ts` 扩展到北京、上海、成都、西安、广州、杭州、苏州、重庆。Add to Trip 的消息统一要求 VisePanda 在 Chat 中重新平衡路线，仍然通过 `/chat?add=` 进入既有 AI pipeline。
+
+### ADR-024：为什么 Tools provider 增加 `sections` / `offlineTips` / `apiPriority`
+
+- 背景：Tools 第一版只有简单 tips，像参考清单，不够像旅行落地工具；用户也要求补离线可读体验和后续 API 接入优先级。
+- 方案对比：只在 `ToolsBoard` 里硬编码额外文案会破坏 provider abstraction；扩展 `ToolCategory` 类型能让静态 provider 和未来真实 provider 共享同一数据契约。
+- 结论：`ToolCategory` 新增 `sections`（结构化清单）、`offlineTips`（离线 pocket notes）、`apiPriority`（后续真实数据源优先级说明）。`ToolsBoard` 只渲染 provider 返回的数据，不直接 import 静态数据。
+
 ### ADR-011：为什么 Trips/Chat persistence 直接用浏览器端 Supabase 客户端而不是新建 API route
 
 - 背景：`/api/trips` 之前是占位 route；真实保存只涉及 `trips`/`canvas_versions`/`messages`,不涉及任何服务端密钥。
@@ -225,7 +244,7 @@ erDiagram
 - `components/shell/`：AppShell、NavTabs（不再包含 account tab，AppShell 直接在头部渲染 `AccountMenu`；NavTabs 使用 lucide-react 图标）。
 - `components/chat/`：ButlerWorkspace（挂载时读取 `?trip=`、`?add=` URL 参数，分别用于恢复保存的画布和自动发送 Explore 的 Add to Trip 草稿消息）、ChatPanel。
 - `components/canvas/`：TripCanvas、TripSummary、DayCard、DayDetailDrawer、CanvasTaskStrip（保留文件但当前不在 TripCanvas 渲染）。
-- `components/trips/`：TripsDashboard。
+- `components/trips/`：TripsDashboard、TripDetail；Dashboard 和详情页共用 `lib/trips/mockTrips.ts` 的状态说明。
 - `components/placeholders/`：PlaceholderPage。
 - `lib/ai/`：DeepSeek provider 与 fallback orchestration。
 - `lib/mock-ai/`：mock butler fallback provider。
@@ -237,9 +256,9 @@ erDiagram
 - `app/trips/[id]/page.tsx`、`components/trips/TripDetail.tsx`：trip detail 页面，已登录且配置 Supabase 时渲染真实 `TripCanvas`，并提供 Mark as Ready / Archive / Restore from archive 状态切换和 Get share link / Revoke share link 操作；未登录或未配置时回落到示例行程摘要或 not-found 提示。
 - `app/share/[token]/page.tsx`、`components/share/ShareView.tsx`：公开只读分享页，不依赖登录态，仅渲染分享行程的 `TripCanvas` 快照，不包含 `AppShell` 导航。
 - `lib/explore/`：Explore provider abstraction —— `types.ts`（`ExploreProvider` 接口和领域类型）、`staticProvider.ts`（当前唯一实现，静态城市/景点/美食/住宿数据）、`index.ts`（`getExploreProvider()` 工厂，组件唯一允许调用的入口）。
-- `app/explore/page.tsx`、`components/explore/ExploreBoard.tsx`：Explore 页面，城市筛选 + 该城市的景点/美食/住宿三栏展示，数据来自 `getExploreProvider()`；每个条目带 Add to Trip 按钮，跳转 `/chat?add=<草稿消息>`。
-- `lib/tools/`：Tools provider abstraction —— `types.ts`（`ToolsProvider` 接口和 `ToolCategory` 类型）、`staticProvider.ts`（当前唯一实现，签证入境/支付设置/翻译/汇率/地铁/eSIM-VPN/应急 7 个分类的静态参考清单）、`index.ts`（`getToolsProvider()` 工厂，组件唯一允许调用的入口）。
-- `app/tools/page.tsx`、`components/tools/ToolsBoard.tsx`：Tools 页面，分类列表 + 选中分类的摘要和建议清单，数据来自 `getToolsProvider()`；`ToolsBoard` 读取并维护 `?category=` URL 参数用于分类深链。
+- `app/explore/page.tsx`、`components/explore/ExploreBoard.tsx`：Explore 页面，城市筛选 + 该城市的景点/美食/住宿三栏展示，数据来自 `getExploreProvider()`；静态 provider 当前覆盖 Beijing/Shanghai/Chengdu/Xi'an/Guangzhou/Hangzhou/Suzhou/Chongqing；每个条目带 Add to Trip 按钮，跳转 `/chat?add=<草稿消息>` 并要求 VisePanda 重新平衡路线。
+- `lib/tools/`：Tools provider abstraction —— `types.ts`（`ToolsProvider` 接口和 `ToolCategory` 类型，含 `sections` / `offlineTips` / `apiPriority`）、`staticProvider.ts`（当前唯一实现，签证入境/支付设置/翻译/汇率/地铁/eSIM-VPN/应急 7 个分类的静态参考清单）、`index.ts`（`getToolsProvider()` 工厂，组件唯一允许调用的入口）。
+- `app/tools/page.tsx`、`components/tools/ToolsBoard.tsx`：Tools 页面，分类列表 + 选中分类的摘要、建议清单、结构化分组、离线 pocket notes 和 API priority，数据来自 `getToolsProvider()`；`ToolsBoard` 读取并维护 `?category=` URL 参数用于分类深链。
 - `lib/types/`：共享类型。
 - `lib/env/`：环境变量状态 registry。
 - `tests/`：Vitest 和 Playwright 测试。

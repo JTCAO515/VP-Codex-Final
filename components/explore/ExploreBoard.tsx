@@ -34,6 +34,11 @@ export function ExploreBoard() {
     window.location.href = `/chat?add=${encodeURIComponent(message)}`;
   }
 
+  function buildAddToTripMessage(name: string, cityName: string, context?: string) {
+    const detail = context ? ` (${context})` : "";
+    return `Add ${name}${detail} in ${cityName} to my trip and ask VisePanda to rebalance the route around it.`;
+  }
+
   return (
     <section className="explore-board" aria-labelledby="explore-title">
       <header className="explore-board__header">
@@ -55,6 +60,7 @@ export function ExploreBoard() {
           </button>
         ))}
       </div>
+      <p className="explore-add-note">VisePanda will reopen Chat and rebalance the route before updating the canvas.</p>
 
       {activeCity && (
         <div className="explore-board__body">
@@ -80,9 +86,7 @@ export function ExploreBoard() {
                     <button
                       type="button"
                       className="explore-add-button"
-                      onClick={() =>
-                        addToTrip(`Add ${attraction.name} in ${activeCity.name} to my trip.`)
-                      }
+                      onClick={() => addToTrip(buildAddToTripMessage(attraction.name, activeCity.name))}
                     >
                       Add to Trip
                     </button>
@@ -102,7 +106,7 @@ export function ExploreBoard() {
                       type="button"
                       className="explore-add-button"
                       onClick={() =>
-                        addToTrip(`Add ${spot.name} (${spot.dish}) in ${activeCity.name} to my trip.`)
+                        addToTrip(buildAddToTripMessage(spot.name, activeCity.name, spot.dish))
                       }
                     >
                       Add to Trip
@@ -123,7 +127,7 @@ export function ExploreBoard() {
                       type="button"
                       className="explore-add-button"
                       onClick={() =>
-                        addToTrip(`Add ${stay.name} in ${activeCity.name} as a place to stay.`)
+                        addToTrip(buildAddToTripMessage(stay.name, activeCity.name, stay.area))
                       }
                     >
                       Add to Trip

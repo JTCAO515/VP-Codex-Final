@@ -3,7 +3,7 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.19`
+- Current iteration: `v0.1.22`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -33,3 +33,6 @@
 - `v0.1.17`: implemented the Explore "Add to Trip" flow (task 4.4) — every Explore attraction/food/stay item has an Add to Trip button that navigates to `/chat?add=<draft message>`, and `ButlerWorkspace` auto-sends that draft through the existing `/api/chat` → `CanvasPatch` pipeline on mount, keeping all canvas writes flowing through the AI pipeline.
 - `v0.1.18`: upgraded `/tools` from a placeholder into a static-provider-driven skeleton (task 5.1) covering Visa and entry, Payment setup, Translate, Currency, Metro, eSIM/VPN, and Emergency, following the same provider-abstraction pattern as Explore.
 - `v0.1.19`: implemented Tools category deep links (task 5.2), added icon-backed top navigation for Chat/Trips/Explore/Tools, and tightened desktop page density so Chat, Trips, Explore, and Tools stay locked to one viewport with internal scrolling.
+- `v0.1.20`: improved Trips status clarity with a shared Draft/Ready/Shared/Archived guide on the dashboard and matching status guidance on Trip Detail.
+- `v0.1.21`: expanded Explore static coverage to Guangzhou, Hangzhou, Suzhou, and Chongqing, and clarified that Add to Trip reopens Chat for AI route rebalancing.
+- `v0.1.22`: practicalized Tools with structured checklist sections, offline pocket notes, and API priority metadata for every category.

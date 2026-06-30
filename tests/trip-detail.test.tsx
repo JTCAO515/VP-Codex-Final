@@ -9,6 +9,7 @@ describe("TripDetail", () => {
     expect(await screen.findByRole("heading", { name: /beijing -> shanghai first china trip/i })).toBeInTheDocument();
     expect(screen.getByText(/this is an example trip/i)).toBeInTheDocument();
     expect(screen.getByText(/forbidden city/i)).toBeInTheDocument();
+    expect(screen.getByText(/ready means this itinerary is prepared for review/i)).toBeInTheDocument();
   });
 
   it("shows a not-found notice for an unknown trip id", async () => {

@@ -8,6 +8,9 @@ describe("static explore provider", () => {
     const cities = await provider.listCities();
     expect(cities.length).toBeGreaterThan(0);
     expect(cities.map((city) => city.id)).toContain("beijing");
+    expect(cities.map((city) => city.id)).toEqual(
+      expect.arrayContaining(["guangzhou", "hangzhou", "suzhou", "chongqing"]),
+    );
 
     const attractions = await provider.listAttractions("beijing");
     expect(attractions.length).toBeGreaterThan(0);
@@ -20,6 +23,9 @@ describe("static explore provider", () => {
     const stays = await provider.listStays("xian");
     expect(stays.length).toBeGreaterThan(0);
     expect(stays.every((stay) => stay.cityId === "xian")).toBe(true);
+
+    const hangzhouAttractions = await provider.listAttractions("hangzhou");
+    expect(hangzhouAttractions.map((attraction) => attraction.name)).toContain("West Lake");
   });
 
   it("returns an empty list for an unknown city", async () => {

@@ -22,6 +22,10 @@ function writeCategoryParam(categoryId: string) {
   window.history.replaceState(null, "", `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`);
 }
 
+function toDomId(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
 export function ToolsBoard() {
   const [categories, setCategories] = useState<ToolCategory[]>([]);
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
@@ -84,6 +88,34 @@ export function ToolsBoard() {
                 <li key={tip}>{tip}</li>
               ))}
             </ul>
+            <div className="tools-category-sections">
+              {activeCategory.sections.map((section) => {
+                const sectionId = `tool-section-${activeCategory.id}-${toDomId(section.title)}`;
+
+                return (
+                  <section key={section.title} aria-labelledby={sectionId}>
+                    <h3 id={sectionId}>{section.title}</h3>
+                    <ul>
+                      {section.items.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </section>
+                );
+              })}
+            </div>
+            <section className="tools-offline-notes" aria-labelledby={`offline-notes-${activeCategory.id}`}>
+              <h3 id={`offline-notes-${activeCategory.id}`}>Offline pocket notes</h3>
+              <ul>
+                {activeCategory.offlineTips.map((tip) => (
+                  <li key={tip}>{tip}</li>
+                ))}
+              </ul>
+            </section>
+            <p className="tools-api-priority">
+              <strong>API priority</strong>
+              {activeCategory.apiPriority}
+            </p>
           </article>
         )}
       </div>

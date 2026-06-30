@@ -76,3 +76,17 @@ export const tripStatusLabels: Record<SavedTripStatus | "all", string> = {
   shared: "Shared",
   archived: "Archived",
 };
+
+export const tripStatusDescriptions: Record<SavedTripStatus, string> = {
+  draft: "Drafts are still flexible and should continue in Chat before review.",
+  ready: "Ready means this itinerary is prepared for review before sharing or traveling.",
+  shared: "Shared plans already have a public read-only link or are ready to send.",
+  archived: "Archived trips are kept for reference and hidden from active planning work.",
+};
+
+export const tripStatusNextActions: Record<SavedTripStatus, string> = {
+  draft: "Continue editing in Chat",
+  ready: "Review details or create a share link",
+  shared: "Open details to manage the share link",
+  archived: "Restore from archive if planning resumes",
+};

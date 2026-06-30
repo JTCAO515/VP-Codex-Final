@@ -39,7 +39,13 @@ describe("ExploreBoard", () => {
     fireEvent.click(within(item as HTMLElement).getByRole("button", { name: /add to trip/i }));
 
     expect(window.location.href).toBe(
-      `/chat?add=${encodeURIComponent("Add Forbidden City in Beijing to my trip.")}`,
+      `/chat?add=${encodeURIComponent("Add Forbidden City in Beijing to my trip and ask VisePanda to rebalance the route around it.")}`,
     );
+  });
+
+  it("explains that Add to Trip will be re-planned by the AI butler", async () => {
+    render(<ExploreBoard />);
+
+    expect(await screen.findByText(/VisePanda will reopen Chat and rebalance the route/i)).toBeInTheDocument();
   });
 });

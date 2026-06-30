@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { TripCanvas } from "@/components/canvas/TripCanvas";
-import { savedTrips, tripStatusLabels } from "@/lib/trips/mockTrips";
+import { savedTrips, tripStatusDescriptions, tripStatusLabels, tripStatusNextActions } from "@/lib/trips/mockTrips";
 import {
   createShareLink,
   loadTripWithCanvas,
@@ -155,6 +155,11 @@ export function TripDetail({ tripId }: { tripId: string }) {
             </button>
           )}
         </div>
+        <aside className="trip-detail__status-guide" aria-label="Current trip status">
+          <strong>{tripStatusLabels[remoteTrip.status]}</strong>
+          <p>{tripStatusDescriptions[remoteTrip.status]}</p>
+          <span>{tripStatusNextActions[remoteTrip.status]}</span>
+        </aside>
         {shareUrl && (
           <p className="trip-detail__share-link" role="status">
             Share link: <code>{shareUrl}</code>
@@ -200,6 +205,11 @@ export function TripDetail({ tripId }: { tripId: string }) {
           This is an example trip. Sign in from Account and save a real trip from Chat to see its full live canvas
           here.
         </p>
+        <aside className="trip-detail__status-guide" aria-label="Current trip status">
+          <strong>{tripStatusLabels[mockTrip.status]}</strong>
+          <p>{tripStatusDescriptions[mockTrip.status]}</p>
+          <span>{tripStatusNextActions[mockTrip.status]}</span>
+        </aside>
         <dl className="trip-card__meta" aria-label={`${mockTrip.title} summary`}>
           <div>
             <dt>Route</dt>

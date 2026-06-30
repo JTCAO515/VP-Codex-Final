@@ -18,6 +18,9 @@ describe("static tools provider", () => {
     ]);
     for (const category of categories) {
       expect(category.tips.length).toBeGreaterThan(0);
+      expect(category.sections.length).toBeGreaterThan(0);
+      expect(category.offlineTips.length).toBeGreaterThan(0);
+      expect(category.apiPriority).toMatch(/later|next|not planned yet/i);
     }
   });
 });

@@ -34,19 +34,21 @@
 - [x] 任务 3.3（首个闭环）：接入真实 Supabase trip persistence，支持从 Chat 保存当前 canvas、在 Trips 读取已登录用户的真实行程、并从 Trips 恢复到 Chat。仍需：未登录/未配置 Supabase 时使用 mock 数据兜底；trip detail 页面、归档/分享流程未实现。
 - [x] 任务 3.4：实现 trip detail 页面和从 Trips 恢复 Chat Canvas 上下文。
 - [x] 任务 3.5：实现分享状态、归档状态和基础协作/分享链接。
+- [x] 任务 3.6：强化 Trips dashboard 和 trip detail 的 draft / ready / shared / archived 状态说明与下一步操作提示。
 
 ## 阶段四：Explore 与第三方 Provider
 
 - [x] 任务 4.1：将 Explore 从占位页升级为城市、景点、美食、住宿入口。
 - [x] 任务 4.2：设计 provider abstraction，避免 UI 直接依赖 Amap、Trip.com、Meituan。
-- [ ] 任务 4.3：先接 verified/static provider，再接真实第三方 API。
+- [x] 任务 4.3：扩展 verified/static provider 城市覆盖和字段结构，为真实第三方 API 接入前验证 Explore 信息架构。
 - [x] 任务 4.4：把 Explore 结果加入 Chat 工作台的 Add to Trip / Add to Canvas 流程。
+- [x] 任务 4.5：强化 Explore Add to Trip 文案，明确跳回 Chat 后由 AI 管家重新平衡路线。
 
 ## 阶段五：Tools 与落地旅行能力
 
 - [x] 任务 5.1：实现签证、入境、支付设置、翻译、汇率、地铁、eSIM/VPN、应急工具页面（静态 provider 驱动的骨架，覆盖 7 个分类）。
 - [x] 任务 5.2：让顶部任务/提醒卡可以深链到对应工具（`/tools?category=<tool-category-id>`）。
-- [ ] 任务 5.3：补充移动端工具入口和离线可读内容。
+- [x] 任务 5.3：补充工具分类的结构化内容、离线可读 pocket notes 和移动端一列可读布局。
 
 ## 阶段六：场景化视觉与体验增强
 
@@ -60,7 +62,7 @@
 - 技术选型：Next.js App Router、React、TypeScript、Vercel、Supabase 预留。
 - AI 约束：DeepSeek V4 Flash 只在服务端 API route 调用；真实 key 不进入浏览器、不写入仓库。
 - Fallback 约束：缺少 `DEEPSEEK_API_KEY`、API 失败或模型输出不合法时必须回落到 mock provider。
-- 当前重点：Chat / AI Butler 已完成 MVP 骨架；Trips 行程库已接入真实 Supabase persistence 首个闭环、归档/分享流程；guest draft 已能自动迁移到登录账号；Explore 已升级为静态 provider 驱动的城市/景点/美食/住宿骨架，并接入了 Add to Trip 流程；Account 已从独立页面改为头部图标 + 悬浮窗口，支持邮箱密码登录/注册、Google 登录，登录后可改名/改密码/登出；Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架（签证入境/支付设置/翻译/汇率/地铁/eSIM-VPN/应急），并支持用 `/tools?category=<tool-category-id>` 深链打开指定分类。
+- 当前重点：Chat / AI Butler 已完成 MVP 骨架；Trips 行程库已接入真实 Supabase persistence 首个闭环、归档/分享流程，并补充了状态说明；guest draft 已能自动迁移到登录账号；Explore 已升级为静态 provider 驱动的城市/景点/美食/住宿骨架，覆盖北京/上海/成都/西安/广州/杭州/苏州/重庆，并接入了 Add to Trip 回 Chat 重新平衡路线流程；Account 已从独立页面改为头部图标 + 悬浮窗口，支持邮箱密码登录/注册、Google 登录，登录后可改名/改密码/登出；Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架（签证入境/支付设置/翻译/汇率/地铁/eSIM-VPN/应急），支持深链、结构化分组、离线 pocket notes 和 API priority 说明。
 - Tools provider 约束：`lib/tools/types.ts` 定义 `ToolsProvider` 接口和 `ToolCategory` 类型；`lib/tools/staticProvider.ts` 是当前唯一实现（静态 checklist 内容，覆盖 7 个分类）；`lib/tools/index.ts` 的 `getToolsProvider()` 是组件唯一允许调用的入口；当前所有内容均为静态参考信息，不包含实时汇率、实时翻译或实时签证规则查询，后续接入真实数据源时只需替换该工厂内的实现。
 - Tools 深链约束：`/tools?category=<tool-category-id>` 会自动选中对应工具分类；无效分类回退到第一个分类。后续从 Chat/Canvas/提醒入口跳转 Tools 时应复用该 URL 参数，不要恢复 Canvas 顶部五个任务框。
 - Explore provider 约束：`lib/explore/types.ts` 定义 `ExploreProvider` 接口；`lib/explore/staticProvider.ts` 是当前唯一实现（静态数据，覆盖 Beijing/Shanghai/Chengdu/Xi'an）；`lib/explore/index.ts` 的 `getExploreProvider()` 是组件唯一允许调用的入口，后续切换真实 Amap/Trip.com/Meituan provider 时只替换这里，不应改动 `components/explore/ExploreBoard.tsx` 的渲染逻辑。

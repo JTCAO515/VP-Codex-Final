@@ -29,6 +29,34 @@ const cities: ExploreCity[] = [
     tagline: "Ancient city walls and the Terracotta Army.",
     bestFor: ["History lovers", "Day-trip planners"],
   },
+  {
+    id: "guangzhou",
+    name: "Guangzhou",
+    region: "South China",
+    tagline: "Cantonese food, river views, old trading history, and easy Greater Bay links.",
+    bestFor: ["Food travelers", "Business travelers", "Warm weather"],
+  },
+  {
+    id: "hangzhou",
+    name: "Hangzhou",
+    region: "East China",
+    tagline: "West Lake scenery, tea fields, temples, and relaxed day trips from Shanghai.",
+    bestFor: ["Scenic walks", "Tea culture", "Couples"],
+  },
+  {
+    id: "suzhou",
+    name: "Suzhou",
+    region: "East China",
+    tagline: "Classical gardens, canals, silk history, and soft Jiangnan pacing.",
+    bestFor: ["Gardens", "Photography", "Slow travel"],
+  },
+  {
+    id: "chongqing",
+    name: "Chongqing",
+    region: "Southwest China",
+    tagline: "Mountain-city views, hotpot, river nightscapes, and dramatic urban layers.",
+    bestFor: ["Food travelers", "Night views", "Urban explorers"],
+  },
 ];
 
 const attractions: ExploreAttraction[] = [
@@ -40,6 +68,14 @@ const attractions: ExploreAttraction[] = [
   { id: "chengdu-kuanzhai", cityId: "chengdu", name: "Kuanzhai Alley", category: "Heritage", description: "Restored Qing-dynasty lanes with teahouses and shops." },
   { id: "xian-terracotta-army", cityId: "xian", name: "Terracotta Army", category: "Heritage", description: "Thousands of life-sized terracotta soldiers guarding an ancient emperor's tomb." },
   { id: "xian-city-wall", cityId: "xian", name: "Xi'an City Wall", category: "Heritage", description: "One of China's best-preserved ancient city walls, open for walking and cycling." },
+  { id: "guangzhou-chen-clan", cityId: "guangzhou", name: "Chen Clan Ancestral Hall", category: "Heritage", description: "Intricate Lingnan architecture with carved wood, brick, and ceramic details." },
+  { id: "guangzhou-canton-tower", cityId: "guangzhou", name: "Canton Tower", category: "Landmark", description: "A skyline icon with Pearl River views, best around sunset or after dark." },
+  { id: "hangzhou-west-lake", cityId: "hangzhou", name: "West Lake", category: "Scenic", description: "Hangzhou's classic lakefront for walking, cycling, boats, and temple-side views." },
+  { id: "hangzhou-longjing", cityId: "hangzhou", name: "Longjing Tea Village", category: "Tea culture", description: "Green tea terraces and village lanes west of the lake." },
+  { id: "suzhou-humble-administrator", cityId: "suzhou", name: "Humble Administrator's Garden", category: "Garden", description: "A landmark classical garden with ponds, pavilions, and layered views." },
+  { id: "suzhou-pingjiang", cityId: "suzhou", name: "Pingjiang Road", category: "Canal street", description: "A canal-side historic street for easy walks, snacks, and small shops." },
+  { id: "chongqing-hongya", cityId: "chongqing", name: "Hongya Cave", category: "Night view", description: "Layered riverside architecture that glows at night near Jiefangbei." },
+  { id: "chongqing-ciqikou", cityId: "chongqing", name: "Ciqikou Ancient Town", category: "Old town", description: "Historic lanes, snacks, teahouses, and a slower break from downtown hills." },
 ];
 
 const foodSpots: ExploreFoodSpot[] = [
@@ -47,6 +83,10 @@ const foodSpots: ExploreFoodSpot[] = [
   { id: "shanghai-xiaolongbao", cityId: "shanghai", name: "Din Tai Fung", dish: "Xiaolongbao", description: "Soup dumplings done with precision." },
   { id: "chengdu-hotpot", cityId: "chengdu", name: "Shu Jiu Xiang Hotpot", dish: "Sichuan hotpot", description: "Spicy, numbing hotpot in a classic Chengdu setting." },
   { id: "xian-noodles", cityId: "xian", name: "De Fa Chang", dish: "Biang biang noodles", description: "Hand-pulled wide noodles, a Xi'an street food staple." },
+  { id: "guangzhou-dim-sum", cityId: "guangzhou", name: "Tao Tao Ju", dish: "Dim sum", description: "Classic Cantonese tea-house dining with a broad dim sum menu." },
+  { id: "hangzhou-louwailou", cityId: "hangzhou", name: "Lou Wai Lou", dish: "West Lake fish", description: "A historic lakeside restaurant for Hangzhou classics." },
+  { id: "suzhou-noodles", cityId: "suzhou", name: "Tong De Xing", dish: "Suzhou noodles", description: "Seasonal noodle bowls with a delicate Jiangnan style." },
+  { id: "chongqing-hotpot", cityId: "chongqing", name: "Pei Jie Hotpot", dish: "Chongqing hotpot", description: "Bold, spicy hotpot close to the city's signature flavor." },
 ];
 
 const stays: ExploreStay[] = [
@@ -54,6 +94,10 @@ const stays: ExploreStay[] = [
   { id: "shanghai-jingan", cityId: "shanghai", name: "Jing'an area", area: "Jing'an District", description: "Convenient metro access and a mix of local and international dining." },
   { id: "chengdu-kuanzhai-stay", cityId: "chengdu", name: "Kuanzhai Alley area", area: "Qingyang District", description: "Walkable old-town base close to teahouses and food streets." },
   { id: "xian-bell-tower", cityId: "xian", name: "Bell Tower area", area: "Beilin District", description: "Central base inside the city wall, close to the Muslim Quarter." },
+  { id: "guangzhou-tianhe", cityId: "guangzhou", name: "Tianhe area", area: "Tianhe District", description: "Business-friendly base with malls, metro access, and easy dining." },
+  { id: "hangzhou-west-lake-stay", cityId: "hangzhou", name: "West Lake east shore", area: "Shangcheng District", description: "Convenient for lake walks, shopping streets, and first-time stays." },
+  { id: "suzhou-gusu", cityId: "suzhou", name: "Gusu old town", area: "Gusu District", description: "Best for gardens, canals, and short taxi or walking distances." },
+  { id: "chongqing-jiefangbei", cityId: "chongqing", name: "Jiefangbei area", area: "Yuzhong District", description: "Central for night views, food streets, metro access, and riverfront walks." },
 ];
 
 export function createStaticExploreProvider(): ExploreProvider {

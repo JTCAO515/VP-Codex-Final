@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { savedTrips, tripStatusLabels, type SavedTrip, type SavedTripStatus } from "@/lib/trips/mockTrips";
+import {
+  savedTrips,
+  tripStatusDescriptions,
+  tripStatusLabels,
+  tripStatusNextActions,
+  type SavedTrip,
+  type SavedTripStatus,
+} from "@/lib/trips/mockTrips";
 import { listTripsForOwner } from "@/lib/supabase/tripsRepository";
 import { useSupabaseSession } from "@/lib/supabase/useSupabaseSession";
 import type { TripRow } from "@/lib/supabase/schema";
@@ -86,6 +93,16 @@ export function TripsDashboard() {
           <span>{totalAlerts}</span>
           <p>Butler tasks</p>
         </article>
+      </div>
+
+      <div className="trip-status-guide" aria-label="Trip status guide">
+        {(["draft", "ready", "shared", "archived"] as SavedTripStatus[]).map((status) => (
+          <article data-status={status} key={status}>
+            <strong>{status === "ready" ? "Ready plans" : tripStatusLabels[status]}</strong>
+            <p>{tripStatusDescriptions[status]}</p>
+            <span>{tripStatusNextActions[status]}</span>
+          </article>
+        ))}
       </div>
 
       <div className="trip-filters" aria-label="Trip status filters">

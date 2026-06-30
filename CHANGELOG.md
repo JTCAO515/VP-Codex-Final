@@ -1,5 +1,26 @@
 # VisePanda Changelog
 
+## v0.1.22 - 2026-06-30
+
+- Implemented the Tools practicalization pass: every static Tools category now has structured sections, offline pocket notes, and an API priority note.
+- `lib/tools/types.ts` and `lib/tools/staticProvider.ts` now model `sections`, `offlineTips`, and `apiPriority` so future real providers can fill the same fields without changing `ToolsBoard`.
+- `components/tools/ToolsBoard.tsx` renders category tips, grouped checklist sections, offline-readable notes, and the next API integration priority.
+- Expanded Tools tests to require structured sections, offline content, and API priority metadata.
+
+## v0.1.21 - 2026-06-30
+
+- Expanded Explore static data with Guangzhou, Hangzhou, Suzhou, and Chongqing across city summaries, attractions, food, and stays.
+- Updated Explore Add to Trip messaging so every item sends the user back to Chat with a request for VisePanda to rebalance the route around the selected place.
+- Added a visible note explaining that Add to Trip reopens Chat and updates the canvas through the AI planning pipeline.
+- Expanded Explore provider and board tests for the new cities and rebalanced Add to Trip message.
+
+## v0.1.20 - 2026-06-30
+
+- Added a Trips status guide that explains Draft, Ready, Shared, and Archived states in plain language.
+- Trip Detail now shows the current status meaning and next recommended action for both real Supabase-backed trips and example trips.
+- Shared status copy now lives in `lib/trips/mockTrips.ts` so dashboard cards and detail pages use the same language.
+- Expanded Trips Dashboard and Trip Detail tests for the status guide behavior.
+
 ## v0.1.19 - 2026-06-30
 
 - Implemented task 5.2: Tools category deep links.

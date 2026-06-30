@@ -12,6 +12,11 @@ describe("TripsPage", () => {
     expect(screen.getByText("Chengdu Food Weekend")).toBeInTheDocument();
     expect(screen.getByText("Shanghai Business + Culture")).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: /continue in chat/i })[0]).toHaveAttribute("href", "/chat");
+    const guide = screen.getByLabelText(/trip status guide/i);
+    expect(within(guide).getByText(/drafts are still flexible/i)).toBeInTheDocument();
+    expect(within(guide).getByText(/ready plans/i)).toBeInTheDocument();
+    expect(within(guide).getByText(/shared plans/i)).toBeInTheDocument();
+    expect(within(guide).getByText(/archived trips/i)).toBeInTheDocument();
   });
 
   it("filters saved trips by status", () => {

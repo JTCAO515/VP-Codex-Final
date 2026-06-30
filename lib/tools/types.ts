@@ -3,6 +3,12 @@ export interface ToolCategory {
   name: string;
   summary: string;
   tips: string[];
+  sections: Array<{
+    title: string;
+    items: string[];
+  }>;
+  offlineTips: string[];
+  apiPriority: string;
 }
 
 export interface ToolsProvider {
