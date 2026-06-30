@@ -16,13 +16,8 @@ describe("TripCanvas", () => {
     expect(screen.getAllByText(/^Morning$/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/^Afternoon$/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/^Evening$/i).length).toBeGreaterThan(0);
-    expect(screen.getByText("Set up Alipay before arrival")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /review payment setup/i })).toHaveAttribute(
-      "href",
-      "/tools?category=payment-setup",
-    );
+    expect(screen.queryByText("Butler reminders")).not.toBeInTheDocument();
     expect(screen.queryByText("Visa")).not.toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: /practical reminders/i })).not.toBeInTheDocument();
   });
 
   it("switches the detail drawer when a day summary is selected", () => {

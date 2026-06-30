@@ -187,6 +187,7 @@ const categories: ToolCategory[] = [
       "Save a few key phrases (greetings, directions, allergies) in Chinese characters so you can show them, not just say them.",
       "Camera-based translation works well for menus and street signs.",
     ],
+    cta: { label: "打开翻译工具 Open Translator →", href: "/translate" },
   }),
   withToolDetails({
     id: "currency",

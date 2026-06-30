@@ -1,14 +1,15 @@
 import Link from "next/link";
-import { Compass, Luggage, MessageCircle, Wrench } from "lucide-react";
+import { Compass, Languages, Luggage, MessageCircle, Wrench } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-export type AppTab = "chat" | "trips" | "explore" | "tools";
+export type AppTab = "chat" | "trips" | "explore" | "tools" | "translate";
 
 const tabs: Array<{ key: AppTab; label: string; href: string; icon: LucideIcon }> = [
   { key: "chat", label: "Chat", href: "/chat", icon: MessageCircle },
   { key: "trips", label: "Trips", href: "/trips", icon: Luggage },
   { key: "explore", label: "Explore", href: "/explore", icon: Compass },
   { key: "tools", label: "Tools", href: "/tools", icon: Wrench },
+  { key: "translate", label: "Translate", href: "/translate", icon: Languages },
 ];
 
 export function NavTabs({ activeTab }: { activeTab: AppTab }) {

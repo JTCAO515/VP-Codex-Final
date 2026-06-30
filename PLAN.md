@@ -73,6 +73,23 @@
 - [x] 任务 9.1：接入 ExchangeRate-API 实时汇率数据。新增 `/api/exchange-rate` 服务端路由（通过 `EXCHANGE_RATE_API_KEY` 环境变量调用，不暴露给浏览器）；新增 `lib/tools/liveToolsProvider.ts`，包装静态 provider 并在 currency 分类注入实时 CNY 汇率行（每小时 ISR 刷新），API 不可达时优雅回落到静态文案；`lib/tools/index.ts` 工厂切换为 `createLiveToolsProvider()`。
 - [x] 任务 9.2：接入高德地图 POI 搜索 API。新增 `/api/explore/amap` 服务端路由（通过 `AMAP_API_KEY` 环境变量调用，支持 `cityId` + `type` 查询参数，类型码：景点 `110000`/餐饮 `050000`/住宿 `100000`）；新增 `lib/explore/amapProvider.ts`，按城市按分类请求高德 POI，每个方法在返回空列表时回落到对应城市的静态数据；`lib/explore/index.ts` 工厂切换为 `createAmapExploreProvider()`。
 
+## 阶段十：Translator 独立页面
+
+- [x] 任务 10.1：建立 `/translate` 独立页面，含三标签布局（Text / Scan / Phrases）、导航新增 Translate 标签（`Languages` 图标）、Tools Translate 分类新增「Open Full Translator」CTA 链接，TripCanvas 移除 ButlerReminders 渲染（组件文件保留）。
+- [x] 任务 10.2：实现文字翻译功能——`/api/translate/text` 服务端路由（DeepSeek，返回翻译 + 拼音 JSON）；支持 EN/FR/DE/JA/KO/ES → ZH 和 ZH → EN 双向；语言选择器 + 一键互换；Web Speech API TTS 朗读（zh-CN）；复制按钮。
+- [x] 任务 10.3：实现 OCR 扫描翻译——拍照/上传图片后在客户端将图片转为 base64 并调整尺寸（Canvas API，最大 1200px）；`/api/translate/ocr` 服务端路由调用 OCR.space API（中英文识别，免费 demo key 无需配置，可选 `OCR_SPACE_API_KEY` 环境变量提升限额）；提取文字后自动转入翻译流程并支持 TTS。
+- [x] 任务 10.4：实现静态常用短语词库（Greetings / Dining / Transport / Shopping / Emergency / Hotel 6 类，共 44 条）和特殊词语词库（景点 8 条 / 菜名 12 条 / 常见标识 8 条）；每条包含英文、中文、拼音、背景说明；每条可点击 TTS 朗读（Web Speech API）。
+- [ ] 任务 10.5（规划中，暂未实现）：语音识别输入——Web Speech API SpeechRecognition 识别语音转文字，自动送入翻译流程。当前仅占位，按钮显示"Coming soon"。
+
+## 阶段十一：社区页面（规划中，暂未实现）
+
+- [ ] 任务 11.1（规划）：Community 页面骨架——用户发帖/分享入口，`/community` 路由，NavTabs 可选择性添加社区标签。
+- [ ] 任务 11.2（规划）：行程分享广场——浏览已公开分享的行程卡片，查看分享详情，评论（需 Supabase 登录）。
+- [ ] 任务 11.3（规划）：旅行照片分享——上传照片到 Supabase Storage，与行程/城市/景点绑定，浏览社区照片墙。
+- [ ] 任务 11.4（规划）：景点/美食点评联动——与高德 POI（`AMAP_API_KEY`）和美团数据（待评估 API）联动，展示真实评分、热度和用户点评。
+- [ ] 任务 11.5（规划）：社区后台数据库设计——Supabase 新表：`community_posts`（标题/正文/用户/类型）、`community_media`（图片/存储路径）、`community_likes`、`community_comments`，新增对应 migration SQL。
+- [ ] 任务 11.6（规划）：社区内容基础治理——内容举报功能占位、关键词过滤（本地规则集）、管理员审核队列设计。
+
 ## 关键约束
 
 - 技术选型：Next.js App Router、React、TypeScript、Vercel、Supabase 预留。
@@ -113,6 +130,8 @@
 - M8：Explore/Tools provider readiness metadata 完成（2026-06-30，v0.1.24-v0.1.25）。
 - M9：Canvas ButlerReminders 深链 Tools 分类完成（2026-06-30，v0.1.26）。
 - M10：真实数据源接入完成（2026-06-30，v0.1.27）：ExchangeRate-API 实时汇率 + 高德地图 POI 搜索，两者均含静态 fallback。
+- M11：Translator 独立页面完成（2026-06-30，v0.1.28）：文字翻译（DeepSeek + 拼音 + TTS）+ OCR 扫描翻译（OCR.space + TTS）+ 静态短语/特殊词语词库；NavTabs 增加第五个 Translate 标签。
+- M12（规划中）：Community 社区页面——行程分享广场 + 照片 + 景点/美食点评 + 高德/美团联动。
 
 ## 风险
 

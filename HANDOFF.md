@@ -2,9 +2,9 @@
 
 ## 当前状态
 
-- 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）。
+- 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）。
 - 当前分支：`main`
-- 当前版本：`v0.1.27`
+- 当前版本：`v0.1.28`
 - 重要（已完成）：
   - `supabase/migrations/0002_trip_archive_and_share.sql`：用户已手动在 Supabase SQL Editor 执行，归档/分享 RLS policy 已生效。
   - Google OAuth：用户已在 Google Cloud 创建 OAuth 凭据并在 Supabase Authentication → Providers → Google 填入，Google 登录功能已配置就绪。
@@ -59,6 +59,7 @@
 - 桌面端密度优化：Chat / Trips / Explore / Tools 标题、摘要区、筛选区、卡片间距已压缩；桌面端页面本身保持一屏锁定，长内容在 `.trip-canvas__days`、`.trip-library`、`.explore-board__columns`、`.tools-category-detail` 内部滚动 ✅
 - 目的地感知背景切换（任务 6.1-6.4）：新增 `lib/visual/destinationBackground.ts`，`TripCanvas` 根据当前 `summary.destinations` 把 Beijing / Shanghai / Hangzhou / Suzhou / Chongqing 映射到不同水墨背景氛围；CSS 通过 `body[data-destination-scene]` 使用同一张 `ink-landscape.png` 叠加不同场景色层，未知目的地回落默认水墨背景 ✅
 - ButlerReminders 深链（任务 8.1，v0.1.26）：新增 `components/canvas/ButlerReminders.tsx`，渲染在 `TripCanvas` 行程时间线下方（不在顶部）；`alertToolCategoryMap` 把 `visa`→`visa-and-entry`、`payment`→`payment-setup`、`language`→`translate`、`transport`→`metro`、`risk`/`emergency`→`emergency`，有映射的 alert 渲染为 `<a href="/tools?category=<id>">` 链接，`booking`/`weather` 等无对应分类的渲染为纯文本；空 alerts 列表不渲染任何内容 ✅
+- 翻译页面（任务 10.1-10.4，v0.1.28）：新增 `/translate` 作为第五个主导航 Tab（Languages 图标）；`TranslatorPage` 三 Tab 布局（文字翻译 / 扫描翻译 / 短语词典）；`TextTranslator` 支持 EN↔ZH 双向文字翻译（DeepSeek via `/api/translate/text`，返回翻译+拼音）、Web Speech API TTS（zh-CN rate 0.85）、剪贴板复制、Ctrl+Enter 快捷键；`OcrTranslator` 支持拖放/相机拍照/文件上传图片，Canvas API 本地缩放至 1200px 后调用 `/api/translate/ocr`（OCR.space，默认免费 key，optional `OCR_SPACE_API_KEY`），识别结果自动送入翻译接口并提供 TTS；`PhraseBook` 包含 44 条常用短语（6 分类：问候/餐饮/交通/购物/应急/酒店）和 28 条特殊词语（3 分类：景点/菜名/标识），每条带 TTS 按钮；`lib/translate/types.ts` 定义 `Phrase`/`SpecialTerm` 类型；`lib/translate/phrases.ts` 提供全量静态数据；`ToolCategory` 新增可选 `cta?: { label; href }` 字段，Translate 分类注入 CTA 链接到 `/translate`，`ToolsBoard` 渲染时展示该链接；`ButlerReminders` 从 `TripCanvas` 移除（组件文件保留），Canvas 测试已同步更新 ✅
 
 ## 未完成/待办
 
@@ -66,7 +67,9 @@
 - [x] Google OAuth：已在 Supabase Authentication → Providers → Google 配置完毕。
 - [x] ExchangeRate-API 接入：`EXCHANGE_RATE_API_KEY` 已配置到 Vercel，`/api/exchange-rate` 路由已连接，Tools Currency 分类展示实时 CNY 汇率。
 - [x] Amap POI API 接入：`AMAP_API_KEY` 已配置到 Vercel，`/api/explore/amap` 路由已连接，Explore 景点/美食/住宿来自高德实时搜索，未配置时回落静态数据。
-- [ ] 后续 Tools 真实数据源：机器翻译 API（目前仍为静态清单）、签证规则查询 API、地铁路线 API。
+- [x] 翻译页面：`/translate` 已实现，含文字翻译、OCR 扫描、短语词典（v0.1.28）。
+- [ ] 后续 Tools 真实数据源：签证规则查询 API、地铁路线 API。
+- [ ] 社区页面（规划中，Phase 11）：用户共享 trips、分享照片、分享行程景点美食，与高德/美团 API 联动。
 - [ ] 目的地背景切换当前是 CSS 氛围层；后续如需要更惊艳，可生成/接入城市级真实水墨背景资产。
 - [ ] 移动端竖屏端细节适配。
 
@@ -101,8 +104,8 @@
 - `app/api/chat/route.ts` — DeepSeek + fallback chat API。
 - `components/chat/ButlerWorkspace.tsx` — 主工作台状态管理和 API 调用，挂载时读取 `?trip=`（恢复保存的画布）和 `?add=`（自动发送 Explore 的 Add to Trip 草稿消息）两个 URL 参数。
 - `components/chat/ChatPanel.tsx` — 聊天面板。
-- `components/canvas/TripCanvas.tsx` — live trip canvas 组合组件，渲染 Day 时间线和 ButlerReminders。
-- `components/canvas/ButlerReminders.tsx` — 行程时间线下方的轻量提醒列表，按 `AlertType` 深链到对应 Tools 分类（`alertToolCategoryMap`）。
+- `components/canvas/TripCanvas.tsx` — live trip canvas 组合组件，渲染 Day 时间线（ButlerReminders 已在 v0.1.28 移除）。
+- `components/canvas/ButlerReminders.tsx` — 行程时间线下方的轻量提醒列表组件（文件保留，但已不在 TripCanvas 中渲染）。
 - `lib/visual/destinationBackground.ts` — 目的地到水墨背景场景的唯一映射入口。
 - `components/canvas/DayCard.tsx` — 单日行程摘要卡片。
 - `components/canvas/DayDetailDrawer.tsx` — 单日完整行程详情抽屉。
@@ -127,9 +130,17 @@
 - `lib/tools/types.ts` — Tools 域类型、`ToolsProvider` 接口和 `ToolsProviderStatus`；`ToolCategory` 包含 `tips`、`sections`、`offlineTips`、`apiPriority`。
 - `lib/tools/staticProvider.ts` — 静态 Tools provider 实现（签证入境/支付设置/翻译/汇率/地铁/eSIM-VPN/应急 7 个分类），包含结构化内容、离线提示、API 接入优先级和 provider readiness metadata。
 - `lib/tools/index.ts` — `getToolsProvider()` 工厂，组件唯一允许调用的入口。
-- `components/shell/NavTabs.tsx` — 顶部 Chat / Trips / Explore / Tools 导航，使用 `lucide-react` 图标。
-- `app/tools/page.tsx`、`components/tools/ToolsBoard.tsx` — Tools 页面入口和分类列表/详情看板组件，支持 `/tools?category=<tool-category-id>` 分类深链，并渲染出发前清单、离线 pocket notes、API priority，`ButlerReminders` 深链的目标页面。
-- `app/globals.css` — 当前视觉系统和响应式布局，含 `.butler-reminders` 样式和 `body[data-destination-scene]` 场景样式。
+- `components/shell/NavTabs.tsx` — 顶部 Chat / Trips / Explore / Tools / Translate 导航，使用 `lucide-react` 图标。
+- `app/tools/page.tsx`、`components/tools/ToolsBoard.tsx` — Tools 页面入口和分类列表/详情看板组件，支持 `/tools?category=<tool-category-id>` 分类深链，并渲染出发前清单、离线 pocket notes、API priority；Translate 分类有 CTA 链接到 `/translate`。
+- `app/translate/page.tsx`、`components/translate/TranslatorPage.tsx` — Translate 页面入口和三 Tab 布局（文字翻译 / 扫描翻译 / 短语词典）。
+- `components/translate/TextTranslator.tsx` — EN↔ZH 文字翻译，TTS，复制。
+- `components/translate/OcrTranslator.tsx` — 图片上传/拍照，Canvas API 缩放，OCR.space 识别，自动翻译，TTS。
+- `components/translate/PhraseBook.tsx` — 44 条常用短语 + 28 条特殊词语，每条有 TTS。
+- `lib/translate/types.ts` — `Phrase`/`SpecialTerm` 类型定义。
+- `lib/translate/phrases.ts` — 全量静态短语和特殊词语数据。
+- `app/api/translate/text/route.ts` — DeepSeek 翻译服务端代理（`DEEPSEEK_API_KEY`）。
+- `app/api/translate/ocr/route.ts` — OCR.space 扫描识别服务端代理（`OCR_SPACE_API_KEY` 或免费 key）。
+- `app/globals.css` — 当前视觉系统和响应式布局，含 `.butler-reminders`、`.translator-page`、`.text-translator`、`.ocr-translator`、`.phrase-book`、`.tools-category-cta` 样式和 `body[data-destination-scene]` 场景样式。
 - `public/ink-landscape.png` — MVP 水墨背景资产。
 - `tests/butler-reminders.test.tsx` — ButlerReminders 组件测试（映射/未映射类型渲染、空 alerts）。
 - `tests/canvas-components.test.tsx` — Canvas 组件综合测试，含 ButlerReminders 深链断言。

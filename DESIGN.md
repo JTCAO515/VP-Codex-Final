@@ -251,6 +251,30 @@ erDiagram
 - 方案对比：①直接在 provider 里 `fetch("https://v6.exchangerate-api.com/...")` 并把 Key 传进去 → Key 会出现在客户端 bundle，违反安全原则；②新增内部代理路由 `/api/exchange-rate` 和 `/api/explore/amap`，由 Next.js server 读取 `process.env.*` 并转发请求 → Key 永远不到达浏览器；provider 的客户端代码只调用同域的 `/api/*` 路由；③在 provider 里直接读 `process.env.EXCHANGE_RATE_API_KEY` → 该变量是服务端变量，客户端 bundle 里 `process.env` 不包含它，会返回 `undefined`。
 - 结论（方案②）：新增 `/api/exchange-rate/route.ts` 和 `/api/explore/amap/route.ts` 作为安全的服务端代理层；`lib/tools/liveToolsProvider.ts` 和 `lib/explore/amapProvider.ts` 从客户端调用这两个同域路由；路由未配置 key 时返回 503，provider 的 `try/catch` 捕获非 ok 响应，回落到 `createStaticToolsProvider()` / `createStaticExploreProvider()`，Vitest 测试中 fetch 到 `/api/*` 会抛出，同样被 catch 捕获，保证测试通过而不需要 mock。
 
+### ADR-029：翻译页面为什么是独立页面而不是嵌入 Tools（v0.1.28）
+
+- 背景：用户明确要求"将 translator 作为独立一个 page"，需要文字翻译、OCR 扫描翻译+TTS、常用短语词典，并规划 STT（语音转文字）为后续功能。
+- 方案对比：把翻译嵌入 Tools 分类 → 用户通过下拉/侧栏选中才能到达，层级深且与 Tools 的"静态参考清单"定位不符；独立 `/translate` 页面 → 可作为第五个主 Tab，和 Chat/Trips/Explore/Tools 平级，通过 NavTabs 直达。
+- 结论：新增 `/translate` 页面（`AppShell activeTab="translate"`）+ `TranslatorPage` 三 Tab 布局；Tools 的 Translate 分类保留现有内容并新增数据驱动的 CTA 链接（`cta?: { label; href }`），`ToolsBoard` 渲染时展示该链接，不在组件里硬编码跳转逻辑；`NavTabs` 新增第五个 Tab（`Languages` 图标）；DeepSeek 翻译和 OCR.space 识别都通过服务端代理路由（`/api/translate/text`、`/api/translate/ocr`），key 不暴露给浏览器。
+- TTS 方案：使用浏览器内置 `window.speechSynthesis`（lang `zh-CN`，rate 0.85），无需任何额外 API 或包，且在无网络环境下也可使用。
+- STT 规划：`SpeechRecognition` API 规划为后续任务（10.5），当前在 TranslatorPage footer 显示"语音转文字功能即将推出"占位。
+
+### ADR-030：为什么移除 TripCanvas 中的 ButlerReminders 渲染（v0.1.28）
+
+- 背景：用户请求"chat 页面的 butler remainder 这个部份可以移除"。
+- 结论：从 `TripCanvas.tsx` 移除 `ButlerReminders` 的 import 和 `<ButlerReminders alerts={...} />` JSX；`components/canvas/ButlerReminders.tsx` 文件保留（不删除），以备后续在其他位置复用或恢复；`tests/canvas-components.test.tsx` 中依赖 ButlerReminders 输出的断言（"Set up Alipay before arrival"、review payment setup 链接）同步移除，新增断言确认"Butler reminders"标题不在 DOM 中。
+
+## 社区页面规划（Phase 11，仅规划，暂不实现）
+
+独立 `/community` 页面。核心能力：
+1. 用户公开发布/浏览 trips（标题、目的地、天数、亮点图片）。
+2. 照片上传分享（Supabase Storage + CDN）。
+3. 景点/美食点评，与高德 POI / 美团评分数据联动。
+4. 城市维度热门榜单（景点/餐厅），每日更新。
+5. 点赞/收藏，Supabase Realtime 推送社区动态。
+
+技术依赖：`posts`/`photos`/`likes` Supabase 表、Supabase Storage、高德 POI API、美团餐饮 API（评分/评价，需申请企业资质）、Supabase Realtime。
+
 ## 路由/页面结构
 
 - `/`：重定向到 `/chat`
@@ -259,10 +283,13 @@ erDiagram
 - `/trips/[id]`：Trip Detail 页面，支持归档状态切换和分享链接管理
 - `/share/[token]`：公开只读分享页，无需登录即可查看已分享行程的 Canvas
 - `/explore`：Explore，按城市展示景点、美食、住宿（Amap 实时 POI，无 key 时回落 8 城静态数据）
-- `/tools`：Tools，按分类展示 7 类旅行工具（Currency 分类已接入实时汇率，其余仍为静态内容）；支持 `/tools?category=<tool-category-id>` 直接打开指定分类
+- `/tools`：Tools，按分类展示 7 类旅行工具（Currency 分类已接入实时汇率，其余仍为静态内容）；支持 `/tools?category=<tool-category-id>` 直接打开指定分类；Translate 分类带 CTA 链接跳转到 `/translate`
+- `/translate`：翻译工具页面 — 文字翻译（EN↔ZH）、OCR 扫描翻译、常用短语词典和特殊词语（景点/菜名/标识）
 - `/api/chat`：DeepSeek V4 Flash chat API，失败时返回 mock canvas patch
 - `/api/exchange-rate`：ExchangeRate-API 代理（服务端，需 `EXCHANGE_RATE_API_KEY`）
 - `/api/explore/amap`：高德 POI 搜索代理（服务端，需 `AMAP_API_KEY`；查询参数：`cityId` + `type`）
+- `/api/translate/text`：DeepSeek 翻译代理（服务端，需 `DEEPSEEK_API_KEY`；POST `{ text, from, to }` → `{ ok, translation, pinyin }`）
+- `/api/translate/ocr`：OCR.space 扫描识别代理（服务端，`OCR_SPACE_API_KEY` 或免费 key；POST `{ imageBase64, mimeType }` → `{ ok, text }`）
 - `/api/trips`：placeholder API
 - `/api/explore`：placeholder API（通用占位）
 - `/api/tools`：placeholder API
@@ -272,7 +299,9 @@ erDiagram
 - `app/`：Next.js routes、layout、global CSS、API routes。
 - `components/shell/`：AppShell、NavTabs（不再包含 account tab，AppShell 直接在头部渲染 `AccountMenu`；NavTabs 使用 lucide-react 图标）。
 - `components/chat/`：ButlerWorkspace（挂载时读取 `?trip=`、`?add=` URL 参数，分别用于恢复保存的画布和自动发送 Explore 的 Add to Trip 草稿消息）、ChatPanel。
-- `components/canvas/`：TripCanvas、TripSummary、DayCard、DayDetailDrawer、ButlerReminders（行程时间线下方的轻量提醒列表，按 `AlertType` 深链到对应 Tools 分类）、CanvasTaskStrip（保留文件但当前不在 TripCanvas 渲染）。
+- `components/canvas/`：TripCanvas、TripSummary、DayCard、DayDetailDrawer、ButlerReminders（文件保留，v0.1.28 已从 TripCanvas 移除渲染）、CanvasTaskStrip（保留文件但当前不在 TripCanvas 渲染）。
+- `components/translate/`：TranslatorPage（三 Tab 布局）、TextTranslator、OcrTranslator、PhraseBook。
+- `lib/translate/`：`types.ts`（Phrase/SpecialTerm 类型）、`phrases.ts`（44 条常用短语 + 28 条特殊词语静态数据）。
 - `lib/visual/destinationBackground.ts`：根据当前 trip destinations 推导目的地水墨背景场景。
 - `components/trips/`：TripsDashboard、TripDetail；Dashboard 和详情页共用 `lib/trips/mockTrips.ts` 的状态说明。
 - `components/placeholders/`：PlaceholderPage。

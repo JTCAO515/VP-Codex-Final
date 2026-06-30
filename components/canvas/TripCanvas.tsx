@@ -1,6 +1,5 @@
 "use client";
 
-import { ButlerReminders } from "@/components/canvas/ButlerReminders";
 import { DayDetailDrawer } from "@/components/canvas/DayDetailDrawer";
 import { DayCard } from "@/components/canvas/DayCard";
 import { TripSummary } from "@/components/canvas/TripSummary";
@@ -61,7 +60,6 @@ export function TripCanvas({ trip }: { trip: TripState }) {
           ))}
         </div>
       </div>
-      <ButlerReminders alerts={editableTrip.alerts} />
       {selectedDay ? (
         <div className="day-drawer-shell" role="presentation">
           <DayDetailDrawer day={selectedDay} onClose={() => setSelectedDayNumber(null)} onSave={handleSaveDay} />

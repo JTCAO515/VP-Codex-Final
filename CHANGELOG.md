@@ -1,5 +1,19 @@
 # VisePanda Changelog
 
+## v0.1.28 - 2026-06-30
+
+- Added a full-featured **Translator page** (`/translate`) as the fifth main navigation tab (Languages icon).
+- **Text translation** (`components/translate/TextTranslator.tsx`): bidirectional EN↔ZH text translation via `/api/translate/text` (DeepSeek server proxy, `DEEPSEEK_API_KEY`); returns translation + pinyin; supports Web Speech API TTS (zh-CN, rate 0.85) and clipboard copy; Ctrl+Enter shortcut.
+- **OCR scan translation** (`components/translate/OcrTranslator.tsx`): upload or camera-capture image → client-side Canvas API resize (max 1200 px) → `/api/translate/ocr` (OCR.space, `OCR_SPACE_API_KEY` or free "helloworld" key, language `chs`, engine 2) → auto-translates recognized Chinese text to English; TTS for Chinese output; drag-and-drop zone.
+- **Phrase book** (`components/translate/PhraseBook.tsx`): 44 static phrases across 6 categories (Greetings, Dining, Transport, Shopping, Emergency, Hotel) and 28 special terms across 3 categories (Attractions, Dishes, Signs); each item shows Chinese, pinyin, English, optional notes/context, and a TTS speak button.
+- New server routes: `app/api/translate/text/route.ts` and `app/api/translate/ocr/route.ts`; both keys are server-only, never exposed to the browser.
+- Static phrase data in `lib/translate/phrases.ts` and `lib/translate/types.ts`.
+- `ToolsBoard` Translate category gains a data-driven CTA link (`/translate`) via new optional `cta?: { label; href }` field on `ToolCategory`.
+- Removed `ButlerReminders` rendering from `TripCanvas` (component file kept); updated canvas tests accordingly.
+- Added CSS classes for `.translator-page`, `.translator-tabs`, `.text-translator`, `.ocr-translator`, `.phrase-book`, `.tools-category-cta`.
+- Community page planning added to PLAN.md (Phase 11), PRD.md, DESIGN.md, AGENTS.md, and HANDOFF.md — no implementation yet.
+- Added `tests/translate-api.test.ts` and `tests/phrase-book.test.tsx`; updated `tests/nav-tabs.test.tsx` to 5 tabs/SVGs and `tests/canvas-components.test.tsx` to remove ButlerReminders assertions. All 64 tests pass.
+
 ## v0.1.27 - 2026-06-30
 
 - Connected real-time exchange-rate data via ExchangeRate-API: new `/api/exchange-rate` server-side route fetches CNY-base rates hourly using `EXCHANGE_RATE_API_KEY` (env var, never exposed to browser); new `lib/tools/liveToolsProvider.ts` wraps the static provider and injects live rate rows into the `currency` category when the API is reachable, falling back to static text when it is not.

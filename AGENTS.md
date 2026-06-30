@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-VisePanda 是一个面向外国人来中国旅行的 AI 管家产品。当前主线是：右侧持续 Chat，左侧 Live Trip Canvas 实时刷新；Trip Canvas 会根据当前目的地自动切换水墨背景氛围；Trips 已从占位页升级为真实 Supabase persistence + 归档/分享流程，并有共享状态说明；Explore 已从占位页升级为静态 provider 驱动的城市/景点/美食/住宿骨架，预留真实第三方 provider 接入点，展示 provider readiness，并接入了 Add to Trip 流程（跳转 Chat 后走真实 AI pipeline 加入画布并重新平衡路线）；Account 已从独立页面改为头部图标 + 悬浮窗口，支持邮箱密码登录/注册和 Google 登录，登录后可改名/改密码/登出；Tools 已从占位页升级为静态 provider 驱动的签证入境/支付设置/翻译/汇率/地铁/eSIM-VPN/应急 7 个分类骨架，并支持 `/tools?category=<tool-category-id>` 分类深链、结构化分组、离线 pocket notes、API priority 和 provider readiness；Trip Canvas 行程时间线下方新增轻量 `ButlerReminders` 组件，将 butler alert 类型深链到对应 Tools 分类（如 `visa`→`/tools?category=visa-and-entry`）。
+VisePanda 是一个面向外国人来中国旅行的 AI 管家产品。当前主线是：右侧持续 Chat，左侧 Live Trip Canvas 实时刷新；Trip Canvas 会根据当前目的地自动切换水墨背景氛围；Trips 已从占位页升级为真实 Supabase persistence + 归档/分享流程，并有共享状态说明；Explore 已从占位页升级为静态 provider 驱动的城市/景点/美食/住宿骨架，预留真实第三方 provider 接入点，展示 provider readiness，并接入了 Add to Trip 流程（跳转 Chat 后走真实 AI pipeline 加入画布并重新平衡路线）；Account 已从独立页面改为头部图标 + 悬浮窗口，支持邮箱密码登录/注册和 Google 登录，登录后可改名/改密码/登出；Tools 已从占位页升级为静态 provider 驱动的签证入境/支付设置/翻译/汇率/地铁/eSIM-VPN/应急 7 个分类骨架，并支持 `/tools?category=<tool-category-id>` 分类深链、结构化分组、离线 pocket notes、API priority 和 provider readiness；Translate 已作为第五个主导航 Tab，支持文字翻译（DeepSeek）、OCR 扫描翻译（OCR.space）和常用短语/特殊词语词典（静态数据 + TTS）；`ButlerReminders` 已从 TripCanvas 移除（组件文件保留）。
 
 ## 核心技术栈
 
@@ -45,11 +45,12 @@ VisePanda 是一个面向外国人来中国旅行的 AI 管家产品。当前主
 - 不要在 Trip Canvas 主界面直接展开长篇每日详情；主界面保留 Day 时间线和 Morning / Afternoon / Evening 摘要，完整详情和编辑进入抽屉。
 - `/chat` 初始态不要放演示对话；真实 AI 接入后由用户第一句话开始对话。
 - 建议问题属于聊天 UI 状态，不要写入 `CanvasPatch`；每次 AI 回复后刷新为 2 个上下文相关问题。
-- 不要重新加入独立 Practical Reminder / Butler Rail 区块；管家提醒通过 `ButlerReminders`（`v0.1.26`，位于行程时间线下方）渲染，按 `ButlerAlert.type` 深链到对应 `/tools?category=<id>` 分类，不占据 Canvas 顶部，不允许做成恢复的顶部任务卡或固定 5 项布局。
+- 不要重新加入独立 Practical Reminder / Butler Rail 区块；`ButlerReminders` 组件（`v0.1.26`）文件保留但已在 `v0.1.28` 从 TripCanvas 移除；不允许做成恢复的顶部任务卡或固定 5 项布局。
 - 桌面横屏端优先保持一屏固定工作台；移动竖屏细节可以后续再精修。
 - 不要让移动导航遮挡核心内容。
-- 顶部 Chat / Trips / Explore / Tools 导航使用 lucide-react 线性图标，不要退回 C/T/E/X 字母占位。
-- 桌面端 Chat / Trips / Explore / Tools 必须保持一屏锁定；展示不下的内容放进内部滚动容器，不要让 `body` 或页面级主区域纵向滚动。
+- 顶部 Chat / Trips / Explore / Tools / Translate 导航使用 lucide-react 线性图标，不要退回字母占位；新增 Tab 时必须同步更新 `AppTab` 类型、`NavTabs` 的 tabs 数组，并在对应 `app/<page>/page.tsx` 传入 `activeTab="<key>"`。
+- 翻译工具 (`/translate`) 是第五个主 Tab，三 Tab 布局（文字翻译/扫描翻译/短语词典）；新增翻译相关 API 时必须通过服务端代理路由（`/api/translate/*`），不允许在客户端直接传 API key；TTS 使用 `window.speechSynthesis`（无需后端），STT 规划中（`SpeechRecognition`，当前显示"Coming soon"）。
+- 桌面端 Chat / Trips / Explore / Tools / Translate 必须保持一屏锁定；展示不下的内容放进内部滚动容器，不要让 `body` 或页面级主区域纵向滚动。
 - Trips/Chat 现在有真实 Supabase persistence 首个闭环（保存、读取、恢复），guest draft 登录后会自动迁移，且已有 trip detail 页面（`/trips/[id]`），支持归档/恢复状态切换和分享链接生成/撤销，分享链接对应只读公开页面 `/share/[token]`。
 - Trips 的 draft / ready / shared / archived 状态说明和下一步动作集中在 `lib/trips/mockTrips.ts`，Dashboard 和 Trip Detail 都要复用，不要在组件里各写一套状态语义。
 - 运行 `supabase/migrations/0002_trip_archive_and_share.sql` 之前，分享和归档相关数据库操作会因为 RLS policy 缺失而失败；该迁移必须在 0001 之后追加执行到真实 Supabase 项目。

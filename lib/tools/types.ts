@@ -9,6 +9,7 @@ export interface ToolCategory {
   }>;
   offlineTips: string[];
   apiPriority: string;
+  cta?: { label: string; href: string };
 }
 
 export interface ToolsProviderStatus {

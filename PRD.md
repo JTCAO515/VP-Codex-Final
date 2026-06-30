@@ -46,7 +46,8 @@ VisePanda 是一个面向外国人来中国旅行的英文原生 AI 管家。用
 | Tools 骨架 | P1 | `/tools` 通过 provider abstraction 展示签证入境、支付设置、翻译、汇率、地铁、eSIM/VPN、应急 7 个分类的静态参考清单，并支持分类深链、结构化分组、离线 pocket notes 和 API priority 说明。 | 用户打开 `/tools` 能看到 7 个分类按钮，点击切换分类后右侧更新该分类的摘要、实用建议、分组清单、离线可读提示和后续 API 接入优先级；打开 `/tools?category=payment-setup` 等 URL 时自动选中对应分类，无效分类回退默认；当前由 `lib/tools` 静态 provider 提供内容，不包含实时汇率/翻译/签证规则查询。 |
 | Tools Provider Readiness | P1 | Tools 展示当前 provider 模式、覆盖范围、候选真实数据源和下一步接入重点。 | 用户打开 `/tools` 能看到当前为 static travel tools provider，候选数据源包含 exchange-rate、machine translation、visa rules 和 transit data，并说明优先验证实时汇率 API。 |
 | Destination-aware Background | P1 | Trip Canvas 根据当前行程目的地自动切换水墨背景氛围。 | 当前行程包含 Beijing 时页面使用长城/故宫风格暖朱砂氛围；包含 Shanghai 时使用外滩/江南园林风格；Hangzhou/Suzhou 使用江南湖景氛围；Chongqing 使用山城江景氛围；未知目的地回落默认水墨背景。 |
-| Icon Navigation | P1 | 顶部 Chat / Trips / Explore / Tools 使用明确的线性图标辅助识别。 | 用户在任意页面顶部导航看到 Chat 气泡、Trips 行李、Explore 指南针、Tools 工具图标；不再显示 C/T/E/X 字母占位。 |
+| Translator 页面 | P1 | `/translate` 独立翻译页面，含文字翻译、OCR 扫描翻译、常用短语词典。 | 用户打开 `/translate` 能看到三 Tab 布局（文字翻译/扫描翻译/短语词典）；文字翻译支持 EN↔ZH 双向、翻译+拼音、TTS 朗读、一键复制；扫描翻译支持上传或拍照、Canvas 缩放、OCR 识别、自动翻译+TTS；短语词典展示 6 类常用短语和 3 类特殊词语（景点/菜名/标识），每条带 TTS；翻译 API 通过 DeepSeek (`DEEPSEEK_API_KEY`)，OCR 通过 OCR.space (`OCR_SPACE_API_KEY` 或免费 key)，均为服务端代理；语音转文字（STT）规划中，暂显示"Coming soon"。 |
+| Icon Navigation | P1 | 顶部 Chat / Trips / Explore / Tools / Translate 使用明确的线性图标辅助识别。 | 用户在任意页面顶部导航看到 Chat 气泡、Trips 行李、Explore 指南针、Tools 工具、Translate 语言图标；不再显示字母占位。 |
 | Warm New Chinese Visual | P1 | 使用暖纸色、水墨背景、朱砂、金色、墨棕、实底纸卡。 | 页面不使用半透明玻璃聊天框；背景不影响可读性。 |
 | 自动化测试 | P1 | 覆盖 DeepSeek provider、mock fallback、patch reducer、env、API、组件、e2e。 | `npm run test`、`npm run build`、`npm run test:e2e` 通过。 |
 
@@ -111,8 +112,18 @@ VisePanda 是一个面向外国人来中国旅行的英文原生 AI 管家。用
 - 归档与分享链接已完成基础版本：支持 draft/ready/archived 状态切换和只读公开分享链接；不做多人协作编辑、分享链接访问权限分级、分享链接过期时间设置。
 - Explore 已接入高德 POI API（`v0.1.27`）：`/api/explore/amap` 服务端路由通过 `AMAP_API_KEY` 调用高德地图 POI 搜索，返回景点/餐饮/住宿真实数据，API 不可达时回落 8 城静态数据；不做收藏、真实地图、预订能力或在 Explore 内直接预览/编辑画布；Trip.com / Meituan 尚未接入。
 - Tools Currency 分类已接入 ExchangeRate-API 实时汇率（`v0.1.27`）：`/api/exchange-rate` 服务端路由通过 `EXCHANGE_RATE_API_KEY` 获取 CNY 基准汇率，注入 Currency 分类内容（每小时 ISR 刷新）；翻译 API、签证规则 API、地铁数据 API 暂未接入。
-- 不恢复顶部五个任务框：Visa / Payment / Booking / Less tiring / Food-focused 已从 Canvas 顶部移除；butler alerts 通过行程时间线下方的 `ButlerReminders` 组件以链接形式呈现。
+- 不恢复顶部五个任务框：Visa / Payment / Booking / Less tiring / Food-focused 已从 Canvas 顶部移除；`ButlerReminders` 组件也已从 TripCanvas 移除（v0.1.28），文件保留。
 - 不在主界面展开长篇每日详情：当前主画布显示 Morning / Afternoon / Evening 摘要，完整详情和修改通过抽屉完成。
 - 不做后台管理：当前没有运营后台需求。
 - 不做支付或预订闭环：VisePanda 先做规划和管家，不做订单交易。
 - 目的地背景切换已完成第一版氛围切换，但不做按城市加载真实长城/故宫/外滩图片资产；当前通过同一水墨底图和目的地 CSS 场景层保持性能。
+
+## 7. 后续迭代规划（仅规划，暂不实现）
+
+### 社区页面（Phase 11）
+
+- 独立的 `/community` 页面，用户可以共享 trips、上传旅途照片、分享行程、景点、美食点评。
+- 与高德/美团 API 联动：景点信息、餐厅评分、票务价格可来自高德 POI 或美团数据接口。
+- 核心能力：公开 trip 发布与浏览、照片上传（Supabase Storage）、点赞/收藏、城市维度的热门榜单（景点/餐厅）。
+- 推荐第三方数据源：高德地图 POI 搜索 API、美团外卖/餐饮 API（评分/评价）、Supabase Realtime（社区动态推送）。
+- 前提依赖：Supabase auth 已接入；需新增 `posts`、`photos`、`likes` Supabase 表；需评估高德/美团 API 申请资质。

@@ -10,6 +10,7 @@ describe("NavTabs", () => {
     expect(screen.getByRole("link", { name: /trips/i })).toHaveAttribute("href", "/trips");
     expect(screen.getByRole("link", { name: /explore/i })).toHaveAttribute("href", "/explore");
     expect(screen.getByRole("link", { name: /tools/i })).toHaveAttribute("href", "/tools");
-    expect(container.querySelectorAll(".nav-tabs__link svg")).toHaveLength(4);
+    expect(screen.getByRole("link", { name: /translate/i })).toHaveAttribute("href", "/translate");
+    expect(container.querySelectorAll(".nav-tabs__link svg")).toHaveLength(5);
   });
 });

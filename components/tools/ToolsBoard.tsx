@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getToolsProvider } from "@/lib/tools";
 import type { ToolCategory, ToolsProviderStatus } from "@/lib/tools";
@@ -126,6 +127,11 @@ export function ToolsBoard() {
               <strong>API priority</strong>
               {activeCategory.apiPriority}
             </p>
+            {activeCategory.cta && (
+              <Link className="tools-category-cta" href={activeCategory.cta.href}>
+                {activeCategory.cta.label}
+              </Link>
+            )}
           </article>
         )}
       </div>
