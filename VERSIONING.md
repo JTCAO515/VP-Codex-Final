@@ -3,7 +3,7 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.28`
+- Current iteration: `v0.1.29`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -42,3 +42,4 @@
 - `v0.1.26`: added `ButlerReminders` — a lightweight alert list rendered below the day timeline that maps alert types (visa, payment, language, transport, risk, emergency) to Tools category deep-links (`/tools?category=<id>`), so canvas alerts become actionable without restoring the removed top task-card grid.
 - `v0.1.27`: connected real ExchangeRate-API for live CNY exchange rates in the Tools Currency category, and Amap POI search API for live attractions/food/stays data in Explore. Both providers fall back to static data gracefully when the API key is not configured or the upstream is unreachable.
 - `v0.1.28`: added full Translator page (`/translate`) — text translation (DeepSeek), OCR scan translation (OCR.space), phrase book (44 phrases + 28 special terms), TTS via Web Speech API. Removed ButlerReminders from TripCanvas. Community page planning added to docs (no implementation).
+- `v0.1.29`: added Community page (`/community`) framework — Feed (shared trips/tips), Hot Spots (city-level rankings with Add to Trip), Photos wall. Mock data with 6 posts, 12 hot spots, 8 photos. 6th main nav tab (Globe icon). Real Supabase/API integration planned for Phase 11.

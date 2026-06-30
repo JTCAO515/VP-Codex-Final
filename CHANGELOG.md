@@ -1,5 +1,16 @@
 # VisePanda Changelog
 
+## v0.1.29 - 2026-06-30
+
+- Added **Community page** (`/community`) as the 6th main navigation tab (Globe icon), implementing the Phase 11 framework.
+- Three-tab layout: **动态 Feed** (shared trip posts and tips), **热门 Hot Spots** (city-level attraction/food/hidden-gem rankings), **照片 Photos** (photo wall grid).
+- `CommunityFeed`: 6 mock posts (trips + tips) with author avatars, city tags, excerpts, hashtags, like/comment counts, and a "Share My Trip" CTA placeholder.
+- `CommunityHotSpots`: 12 community-rated hot spots across 5 cities (Beijing, Shanghai, Chengdu, Xi'an, Hangzhou) with star ratings, review counts, traveler tips, and "Add to Trip" buttons (routes to `/chat?add=…` via existing AI pipeline).
+- `CommunityPhotos`: 8 mock photo cards with emoji covers, location labels, captions, and like counts; upload CTA placeholder for future Supabase Storage integration.
+- Static data in `lib/community/types.ts` and `lib/community/mockData.ts`; no real API yet — community Supabase tables (`posts`, `photos`, `likes`) and high-de/美团 API integration planned for Phase 11.
+- Added CSS classes for `.community-board`, `.community-tabs`, `.community-feed`, `.community-post-card`, `.community-photos`, `.community-photo-card`, `.community-hotspots`, `.community-hotspot-card`.
+- Updated `tests/nav-tabs.test.tsx` to 6 tabs/SVGs. All 64 tests pass.
+
 ## v0.1.28 - 2026-06-30
 
 - Added a full-featured **Translator page** (`/translate`) as the fifth main navigation tab (Languages icon).

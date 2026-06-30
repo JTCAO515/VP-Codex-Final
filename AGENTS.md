@@ -50,6 +50,7 @@ VisePanda 是一个面向外国人来中国旅行的 AI 管家产品。当前主
 - 不要让移动导航遮挡核心内容。
 - 顶部 Chat / Trips / Explore / Tools / Translate 导航使用 lucide-react 线性图标，不要退回字母占位；新增 Tab 时必须同步更新 `AppTab` 类型、`NavTabs` 的 tabs 数组，并在对应 `app/<page>/page.tsx` 传入 `activeTab="<key>"`。
 - 翻译工具 (`/translate`) 是第五个主 Tab，三 Tab 布局（文字翻译/扫描翻译/短语词典）；新增翻译相关 API 时必须通过服务端代理路由（`/api/translate/*`），不允许在客户端直接传 API key；TTS 使用 `window.speechSynthesis`（无需后端），STT 规划中（`SpeechRecognition`，当前显示"Coming soon"）。
+- 社区 (`/community`) 是第六个主 Tab（Globe 图标），三 Tab 布局（动态 Feed / 热门 Hot Spots / 照片 Photos）；当前使用 `lib/community/mockData.ts` 静态 mock 数据；Hot Spots 的 Add to Trip 必须走 `/chat?add=…` → `ButlerWorkspace.handleSend` → `/api/chat` 路径，不允许绕开 AI pipeline；后续接入 Supabase posts/photos/likes 表和高德/美团 API 时，只在 provider 层替换数据源，不改 `CommunityBoard` 组件结构。
 - 桌面端 Chat / Trips / Explore / Tools / Translate 必须保持一屏锁定；展示不下的内容放进内部滚动容器，不要让 `body` 或页面级主区域纵向滚动。
 - Trips/Chat 现在有真实 Supabase persistence 首个闭环（保存、读取、恢复），guest draft 登录后会自动迁移，且已有 trip detail 页面（`/trips/[id]`），支持归档/恢复状态切换和分享链接生成/撤销，分享链接对应只读公开页面 `/share/[token]`。
 - Trips 的 draft / ready / shared / archived 状态说明和下一步动作集中在 `lib/trips/mockTrips.ts`，Dashboard 和 Trip Detail 都要复用，不要在组件里各写一套状态语义。

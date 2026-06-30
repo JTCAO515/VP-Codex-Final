@@ -4,7 +4,7 @@
 
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）。
 - 当前分支：`main`
-- 当前版本：`v0.1.28`
+- 当前版本：`v0.1.29`
 - 重要（已完成）：
   - `supabase/migrations/0002_trip_archive_and_share.sql`：用户已手动在 Supabase SQL Editor 执行，归档/分享 RLS policy 已生效。
   - Google OAuth：用户已在 Google Cloud 创建 OAuth 凭据并在 Supabase Authentication → Providers → Google 填入，Google 登录功能已配置就绪。
@@ -59,6 +59,7 @@
 - 桌面端密度优化：Chat / Trips / Explore / Tools 标题、摘要区、筛选区、卡片间距已压缩；桌面端页面本身保持一屏锁定，长内容在 `.trip-canvas__days`、`.trip-library`、`.explore-board__columns`、`.tools-category-detail` 内部滚动 ✅
 - 目的地感知背景切换（任务 6.1-6.4）：新增 `lib/visual/destinationBackground.ts`，`TripCanvas` 根据当前 `summary.destinations` 把 Beijing / Shanghai / Hangzhou / Suzhou / Chongqing 映射到不同水墨背景氛围；CSS 通过 `body[data-destination-scene]` 使用同一张 `ink-landscape.png` 叠加不同场景色层，未知目的地回落默认水墨背景 ✅
 - ButlerReminders 深链（任务 8.1，v0.1.26）：新增 `components/canvas/ButlerReminders.tsx`，渲染在 `TripCanvas` 行程时间线下方（不在顶部）；`alertToolCategoryMap` 把 `visa`→`visa-and-entry`、`payment`→`payment-setup`、`language`→`translate`、`transport`→`metro`、`risk`/`emergency`→`emergency`，有映射的 alert 渲染为 `<a href="/tools?category=<id>">` 链接，`booking`/`weather` 等无对应分类的渲染为纯文本；空 alerts 列表不渲染任何内容 ✅
+- 社区页面框架（Phase 11 初步实现，v0.1.29）：新增 `/community` 作为第六个主导航 Tab（Globe 图标）；`CommunityBoard` 三 Tab 布局（动态 Feed / 热门 Hot Spots / 照片 Photos）；`CommunityFeed` 展示 6 条 mock 行程/攻略帖，含作者信息、城市标签、摘要、hashtag、点赞/评论数；`CommunityHotSpots` 按 5 个城市（北京/上海/成都/西安/杭州）+类别（景点/美食/宝藏）筛选展示 12 条社区精选，含星级、点评数、旅行者贴士、Add to Trip 按钮（路由到 `/chat?add=…` 走既有 AI pipeline）；`CommunityPhotos` 展示 8 张 mock 照片卡，含标题、地点、点赞；所有数据来自 `lib/community/mockData.ts` 静态数据，`lib/community/types.ts` 定义类型；Supabase/API 接入留待 Phase 11 后续迭代 ✅
 - 翻译页面（任务 10.1-10.4，v0.1.28）：新增 `/translate` 作为第五个主导航 Tab（Languages 图标）；`TranslatorPage` 三 Tab 布局（文字翻译 / 扫描翻译 / 短语词典）；`TextTranslator` 支持 EN↔ZH 双向文字翻译（DeepSeek via `/api/translate/text`，返回翻译+拼音）、Web Speech API TTS（zh-CN rate 0.85）、剪贴板复制、Ctrl+Enter 快捷键；`OcrTranslator` 支持拖放/相机拍照/文件上传图片，Canvas API 本地缩放至 1200px 后调用 `/api/translate/ocr`（OCR.space，默认免费 key，optional `OCR_SPACE_API_KEY`），识别结果自动送入翻译接口并提供 TTS；`PhraseBook` 包含 44 条常用短语（6 分类：问候/餐饮/交通/购物/应急/酒店）和 28 条特殊词语（3 分类：景点/菜名/标识），每条带 TTS 按钮；`lib/translate/types.ts` 定义 `Phrase`/`SpecialTerm` 类型；`lib/translate/phrases.ts` 提供全量静态数据；`ToolCategory` 新增可选 `cta?: { label; href }` 字段，Translate 分类注入 CTA 链接到 `/translate`，`ToolsBoard` 渲染时展示该链接；`ButlerReminders` 从 `TripCanvas` 移除（组件文件保留），Canvas 测试已同步更新 ✅
 
 ## 未完成/待办
@@ -68,8 +69,9 @@
 - [x] ExchangeRate-API 接入：`EXCHANGE_RATE_API_KEY` 已配置到 Vercel，`/api/exchange-rate` 路由已连接，Tools Currency 分类展示实时 CNY 汇率。
 - [x] Amap POI API 接入：`AMAP_API_KEY` 已配置到 Vercel，`/api/explore/amap` 路由已连接，Explore 景点/美食/住宿来自高德实时搜索，未配置时回落静态数据。
 - [x] 翻译页面：`/translate` 已实现，含文字翻译、OCR 扫描、短语词典（v0.1.28）。
+- [x] 社区页面框架：`/community` 已实现，含 Feed/Hot Spots/Photos 三 Tab，静态 mock 数据（v0.1.29）。
 - [ ] 后续 Tools 真实数据源：签证规则查询 API、地铁路线 API。
-- [ ] 社区页面（规划中，Phase 11）：用户共享 trips、分享照片、分享行程景点美食，与高德/美团 API 联动。
+- [ ] 社区页面真实数据接入（Phase 11）：Supabase posts/photos/likes 表、Supabase Storage 照片上传、高德/美团 API 联动热榜。
 - [ ] 目的地背景切换当前是 CSS 氛围层；后续如需要更惊艳，可生成/接入城市级真实水墨背景资产。
 - [ ] 移动端竖屏端细节适配。
 

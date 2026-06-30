@@ -2669,3 +2669,527 @@ select:focus-visible {
 .tools-category-cta:hover {
   background: var(--cinnabar-deep);
 }
+
+/* ── Community page ──────────────────────────────────────────── */
+
+.community-board {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+.community-board__header {
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+
+.community-board__header h1 {
+  font-size: 2rem;
+  color: var(--ink);
+  margin: 0.25rem 0 0.5rem;
+}
+
+.community-board__body {
+  margin-top: 1.5rem;
+}
+
+.community-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid var(--stone-soft);
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.community-tabs__btn {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border: none;
+  background: none;
+  color: var(--ink-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.community-tabs__btn.active {
+  color: var(--cinnabar);
+  border-bottom-color: var(--cinnabar);
+  font-weight: 600;
+}
+
+/* Feed */
+
+.community-feed__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.community-feed__subtitle,
+.community-photos__subtitle,
+.community-hotspots__subtitle {
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.community-feed__share-btn,
+.community-photos__upload-btn {
+  padding: 0.45rem 1rem;
+  background: var(--cinnabar);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.community-feed__share-btn:hover,
+.community-photos__upload-btn:hover {
+  background: var(--cinnabar-deep);
+}
+
+.community-feed__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.community-feed__coming-soon,
+.community-photos__coming-soon,
+.community-hotspots__coming-soon {
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  margin-top: 1.5rem;
+}
+
+/* Post card */
+
+.community-post-card {
+  display: flex;
+  gap: 1rem;
+  background: var(--paper-soft);
+  border: 1.5px solid var(--stone-soft);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  transition: box-shadow 0.15s;
+}
+
+.community-post-card:hover {
+  box-shadow: var(--shadow-soft);
+}
+
+.community-post-card__cover {
+  font-size: 2.5rem;
+  flex-shrink: 0;
+  width: 3.5rem;
+  height: 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper-warm);
+  border-radius: var(--radius-sm);
+}
+
+.community-post-card__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.community-post-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.community-post-card__avatar {
+  width: 1.6rem;
+  height: 1.6rem;
+  background: var(--cinnabar);
+  color: #fff;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.community-post-card__author {
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+
+.community-post-card__date {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.community-post-card__type-badge {
+  font-size: 0.75rem;
+  padding: 0.1rem 0.5rem;
+  background: var(--paper-warm);
+  border: 1px solid var(--stone);
+  border-radius: 20px;
+  color: var(--ink-muted);
+}
+
+.community-post-card__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 0.4rem;
+  line-height: 1.35;
+}
+
+.community-post-card__cities {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.community-post-card__city-tag {
+  font-size: 0.75rem;
+  padding: 0.1rem 0.5rem;
+  background: var(--sage);
+  color: #fff;
+  border-radius: 20px;
+}
+
+.community-post-card__excerpt {
+  font-size: 0.875rem;
+  color: var(--ink-muted);
+  margin: 0 0 0.5rem;
+  line-height: 1.55;
+}
+
+.community-post-card__tags {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.6rem;
+}
+
+.community-post-card__tag {
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+
+.community-post-card__footer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.community-post-card__like-btn,
+.community-post-card__read-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0;
+  color: var(--ink-soft);
+  transition: color 0.15s;
+}
+
+.community-post-card__like-btn:hover { color: var(--cinnabar); }
+
+.community-post-card__read-btn {
+  color: var(--cinnabar);
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.community-post-card__comments {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+/* Photos */
+
+.community-photos__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.community-photos__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.community-photo-card {
+  background: var(--paper-soft);
+  border: 1.5px solid var(--stone-soft);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: box-shadow 0.15s;
+}
+
+.community-photo-card:hover {
+  box-shadow: var(--shadow-soft);
+}
+
+.community-photo-card__image {
+  height: 120px;
+  background: var(--paper-warm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.community-photo-card__emoji {
+  font-size: 2.5rem;
+}
+
+.community-photo-card__location {
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+
+.community-photo-card__info {
+  padding: 0.75rem;
+}
+
+.community-photo-card__caption {
+  font-size: 0.85rem;
+  color: var(--ink);
+  margin: 0 0 0.5rem;
+  line-height: 1.4;
+}
+
+.community-photo-card__footer {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.community-photo-card__avatar {
+  width: 1.4rem;
+  height: 1.4rem;
+  background: var(--gold);
+  color: #fff;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.community-photo-card__author {
+  font-size: 0.78rem;
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+
+.community-photo-card__city {
+  font-size: 0.75rem;
+  color: var(--sage);
+  margin-left: auto;
+}
+
+.community-photo-card__like {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  padding: 0;
+  transition: color 0.15s;
+}
+
+.community-photo-card__like:hover { color: var(--cinnabar); }
+
+/* Hot Spots */
+
+.community-hotspots__header {
+  margin-bottom: 0.75rem;
+}
+
+.community-hotspots__city-filters {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.community-hotspots__city-btn {
+  padding: 0.35rem 0.9rem;
+  border: 1.5px solid var(--stone);
+  border-radius: 20px;
+  background: var(--paper-soft);
+  color: var(--ink-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.community-hotspots__city-btn.active {
+  background: var(--cinnabar);
+  border-color: var(--cinnabar);
+  color: #fff;
+  font-weight: 600;
+}
+
+.community-hotspots__cat-filters {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.community-hotspots__cat-btn {
+  padding: 0.25rem 0.75rem;
+  border: 1.5px solid var(--stone);
+  border-radius: 20px;
+  background: var(--paper-soft);
+  color: var(--ink-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.community-hotspots__cat-btn.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #fff;
+}
+
+.community-hotspots__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.community-hotspots__empty {
+  color: var(--ink-soft);
+  text-align: center;
+  padding: 2rem;
+  font-size: 0.875rem;
+}
+
+.community-hotspot-card {
+  display: flex;
+  gap: 1rem;
+  background: var(--paper-soft);
+  border: 1.5px solid var(--stone-soft);
+  border-left: 4px solid var(--stone);
+  border-radius: var(--radius-md);
+  padding: 0.9rem 1.1rem;
+  transition: box-shadow 0.15s;
+}
+
+.community-hotspot-card--attraction { border-left-color: var(--cinnabar); }
+.community-hotspot-card--food { border-left-color: var(--gold); }
+.community-hotspot-card--hidden { border-left-color: var(--sage); }
+
+.community-hotspot-card:hover {
+  box-shadow: var(--shadow-soft);
+}
+
+.community-hotspot-card__emoji {
+  font-size: 2rem;
+  flex-shrink: 0;
+  width: 2.75rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 0.15rem;
+}
+
+.community-hotspot-card__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.community-hotspot-card__head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.community-hotspot-card__name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+
+.community-hotspot-card__chinese {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.community-hotspot-card__rating {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.community-hotspot__stars {
+  color: var(--gold);
+  font-size: 0.9rem;
+}
+
+.community-hotspot__rating-num {
+  color: var(--ink-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-left: 0.25rem;
+}
+
+.community-hotspot-card__review-count {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.community-hotspot-card__tip {
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+  margin: 0 0 0.6rem;
+  line-height: 1.5;
+}
+
+.community-hotspot-card__footer {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.community-hotspot-card__add-btn {
+  padding: 0.3rem 0.85rem;
+  border: 1.5px solid var(--cinnabar);
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--cinnabar);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.community-hotspot-card__add-btn:hover {
+  background: var(--cinnabar);
+  color: #fff;
+}
