@@ -26,7 +26,7 @@ export const savedTrips: SavedTrip[] = [
     updatedAt: "Updated today",
     alertCount: 3,
     summary: "A balanced first China itinerary with cultural anchors, food stops, and convenient hotel areas.",
-    highlights: ["Forbidden City", "Great Wall", "The Bund"],
+    highlights: ["Forbidden City (故宫)", "Great Wall (长城)", "The Bund (外滩)"],
   },
   {
     id: "chengdu-food-weekend",
@@ -39,7 +39,7 @@ export const savedTrips: SavedTrip[] = [
     updatedAt: "Updated yesterday",
     alertCount: 2,
     summary: "A slower weekend draft centered on Sichuan food, teahouses, pandas, and low-friction rides.",
-    highlights: ["Hotpot", "People's Park", "Kuanzhai Alley"],
+    highlights: ["Hotpot (火锅)", "People's Park (人民公园)", "Kuanzhai Alley (宽窄巷子)"],
   },
   {
     id: "shanghai-business-culture",
@@ -52,7 +52,7 @@ export const savedTrips: SavedTrip[] = [
     updatedAt: "Updated 3 days ago",
     alertCount: 1,
     summary: "A compact plan that fits meetings, river views, French Concession walks, and client dinners.",
-    highlights: ["Jing'an", "The Bund", "Yu Garden"],
+    highlights: ["Jing'an (静安)", "The Bund (外滩)", "Yu Garden (豫园)"],
   },
   {
     id: "kunming-quiet-archive",
@@ -65,7 +65,7 @@ export const savedTrips: SavedTrip[] = [
     updatedAt: "Updated 2 months ago",
     alertCount: 0,
     summary: "An archived slow-travel draft for Kunming's lakes and old town, kept for reference.",
-    highlights: ["Green Lake", "Old Town", "Stone Forest day trip"],
+    highlights: ["Green Lake (翠湖)", "Old Town (昆明古城)", "Stone Forest day trip (石林)"],
   },
 ];
 

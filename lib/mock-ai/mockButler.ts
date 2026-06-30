@@ -17,17 +17,17 @@ export const initialTripState: TripState = {
       blocks: [
         {
           time: "Morning",
-          title: "Forbidden City",
+          title: "Forbidden City (故宫)",
           description: "Start with the classic imperial axis and keep the morning focused.",
         },
         {
           time: "Afternoon",
-          title: "Great Wall (Mutianyu)",
+          title: "Great Wall · Mutianyu (长城·慕田峪)",
           description: "Use a private car or guided transfer to reduce friction.",
         },
         {
           time: "Evening",
-          title: "Temple of Heaven",
+          title: "Temple of Heaven (天坛)",
           description: "Keep the evening iconic but simple if energy is low.",
         },
       ],
@@ -44,17 +44,17 @@ export const initialTripState: TripState = {
       blocks: [
         {
           time: "Morning",
-          title: "The Bund",
+          title: "The Bund (外滩)",
           description: "Start with an easy riverfront orientation.",
         },
         {
           time: "Afternoon",
-          title: "Yu Garden",
+          title: "Yu Garden (豫园)",
           description: "Pair old Shanghai lanes with a classic garden stop.",
         },
         {
           time: "Evening",
-          title: "Nanjing Road",
+          title: "Nanjing Road (南京路)",
           description: "Use a central evening walk with simple food options nearby.",
         },
       ],
@@ -71,12 +71,12 @@ export const initialTripState: TripState = {
       blocks: [
         {
           time: "Morning",
-          title: "Summer Palace",
+          title: "Summer Palace (颐和园)",
           description: "Use a slower scenic morning with lake views.",
         },
         {
           time: "Afternoon",
-          title: "Hutong walk",
+          title: "Hutong walk (胡同)",
           description: "Add a neighborhood walk and tea break.",
         },
         {
@@ -113,16 +113,16 @@ const firstTripDays: TripDay[] = [
       {
         time: "Morning",
         title: "Arrival and check-in",
-        description: "Stay near Wangfujing or Dongcheng for convenient metro access.",
+        description: "Stay near Wangfujing (王府井) or Dongcheng for convenient metro access.",
       },
       {
         time: "Afternoon",
-        title: "Temple of Heaven",
+        title: "Temple of Heaven (天坛)",
         description: "Begin with a spacious, iconic site that is easier after a flight.",
       },
       {
         time: "Evening",
-        title: "Easy hutong dinner",
+        title: "Easy hutong (胡同) dinner",
         description: "Choose a low-friction dinner close to the hotel.",
       },
     ],
@@ -139,12 +139,12 @@ const firstTripDays: TripDay[] = [
     blocks: [
       {
         time: "Morning",
-        title: "Forbidden City",
+        title: "Forbidden City (故宫)",
         description: "Book ahead and enter early to avoid the busiest flow.",
       },
       {
         time: "Afternoon",
-        title: "Jingshan and hutongs",
+        title: "Jingshan Park (景山公园) and hutongs (胡同)",
         description: "Pair one classic viewpoint with a slower neighborhood walk.",
       },
     ],
@@ -161,12 +161,12 @@ const firstTripDays: TripDay[] = [
     blocks: [
       {
         time: "Morning",
-        title: "High-speed train to Shanghai",
+        title: "High-speed train to Shanghai (高铁)",
         description: "Use the train if you want city-center arrival and fewer airport steps.",
       },
       {
         time: "Evening",
-        title: "The Bund",
+        title: "The Bund (外滩)",
         description: "Make the first Shanghai moment visually memorable but simple.",
       },
     ],

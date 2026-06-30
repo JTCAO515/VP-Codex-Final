@@ -71,7 +71,7 @@ export function CommunityPhotos() {
   const [caption, setCaption] = useState("");
   const [city, setCity] = useState("Beijing");
   const [locationName, setLocationName] = useState("");
-  const [emoji, setEmoji] = useState("景");
+  const [emoji, setEmoji] = useState("📸");
 
   useEffect(() => {
     setLocalPhotos(readJson<CommunityPhoto[]>(COMMUNITY_PHOTOS_KEY, []));
@@ -98,7 +98,7 @@ export function CommunityPhotos() {
       caption: caption.trim(),
       city,
       locationName: locationName.trim(),
-      emoji: emoji.trim() || "景",
+      emoji: emoji.trim() || "📸",
       likes: 0,
       createdAt: "Just now",
     };
@@ -107,7 +107,7 @@ export function CommunityPhotos() {
     window.localStorage.setItem(COMMUNITY_PHOTOS_KEY, JSON.stringify(nextPhotos));
     setCaption("");
     setLocationName("");
-    setEmoji("景");
+    setEmoji("📸");
     setComposerOpen(false);
   }
 

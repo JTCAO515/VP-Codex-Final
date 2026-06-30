@@ -15,12 +15,12 @@ import type { ToolCategory } from "@/lib/tools";
 type ToolMeta = { Icon: React.ElementType; accent: string; bg: string; badge: string };
 
 const TOOL_META: Record<string, ToolMeta> = {
-  "visa-and-entry":  { Icon: FileCheck,     accent: "#a33a2d", bg: "rgba(163,58,45,0.07)",   badge: "必须" },
-  "payment-setup":   { Icon: CreditCard,    accent: "#b68634", bg: "rgba(182,134,52,0.07)",  badge: "到前" },
-  "currency":        { Icon: DollarSign,    accent: "#667b5c", bg: "rgba(102,123,92,0.07)",  badge: "实时" },
-  "metro":           { Icon: Train,         accent: "#4a6080", bg: "rgba(74,96,128,0.07)",   badge: "交通" },
-  "esim-vpn":        { Icon: Tv,            accent: "#7a5c8a", bg: "rgba(122,92,138,0.07)",  badge: "连网" },
-  "emergency":       { Icon: AlertTriangle, accent: "#9d2f24", bg: "rgba(157,47,36,0.07)",   badge: "紧急" },
+  "visa-and-entry":  { Icon: FileCheck,     accent: "#a33a2d", bg: "rgba(163,58,45,0.07)",   badge: "Required" },
+  "payment-setup":   { Icon: CreditCard,    accent: "#b68634", bg: "rgba(182,134,52,0.07)",  badge: "Pre-trip" },
+  "currency":        { Icon: DollarSign,    accent: "#667b5c", bg: "rgba(102,123,92,0.07)",  badge: "Live" },
+  "metro":           { Icon: Train,         accent: "#4a6080", bg: "rgba(74,96,128,0.07)",   badge: "Transit" },
+  "esim-vpn":        { Icon: Tv,            accent: "#7a5c8a", bg: "rgba(122,92,138,0.07)",  badge: "Connectivity" },
+  "emergency":       { Icon: AlertTriangle, accent: "#9d2f24", bg: "rgba(157,47,36,0.07)",   badge: "Emergency" },
 };
 
 const FALLBACK_META: ToolMeta = { Icon: FileCheck, accent: "#6f5b49", bg: "rgba(111,91,73,0.07)", badge: "" };

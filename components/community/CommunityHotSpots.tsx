@@ -7,10 +7,10 @@ import type { CityHotSpot } from "@/lib/community/types";
 type CategoryFilter = "all" | "attraction" | "food" | "hidden";
 
 const CATEGORY_LABELS: Record<CategoryFilter, string> = {
-  all: "全部 All",
-  attraction: "景点 Attractions",
-  food: "美食 Food",
-  hidden: "宝藏 Hidden Gems",
+  all: "All",
+  attraction: "Attractions",
+  food: "Food",
+  hidden: "Hidden Gems",
 };
 
 function StarRating({ rating }: { rating: number }) {
@@ -56,7 +56,7 @@ function HotSpotCard({ spot }: { spot: CityHotSpot }) {
               )}`;
             }}
           >
-            + 加入行程 Add to Trip
+            + Add to Trip
           </button>
         </div>
       </div>
@@ -75,10 +75,10 @@ export function CommunityHotSpots() {
   return (
     <div className="community-hotspots">
       <div className="community-hotspots__header">
-        <p className="community-hotspots__subtitle">社区精选 · 旅行者点评</p>
+        <p className="community-hotspots__subtitle">Community picks · Traveler reviews</p>
       </div>
 
-      <div className="community-hotspots__city-filters" aria-label="城市筛选">
+      <div className="community-hotspots__city-filters" aria-label="City filters">
         {HOT_SPOT_CITIES.map((city) => (
           <button
             className={`community-hotspots__city-btn${activeCityId === city.id ? " active" : ""}`}
@@ -91,7 +91,7 @@ export function CommunityHotSpots() {
         ))}
       </div>
 
-      <div className="community-hotspots__cat-filters" role="group" aria-label="类别筛选">
+      <div className="community-hotspots__cat-filters" role="group" aria-label="Category filters">
         {(Object.keys(CATEGORY_LABELS) as CategoryFilter[]).map((cat) => (
           <button
             className={`community-hotspots__cat-btn${category === cat ? " active" : ""}`}
@@ -105,7 +105,7 @@ export function CommunityHotSpots() {
       </div>
 
       {citySpots.length === 0 ? (
-        <p className="community-hotspots__empty">该城市暂无此类别推荐 / No spots in this category yet</p>
+        <p className="community-hotspots__empty">No spots in this category yet.</p>
       ) : (
         <div className="community-hotspots__list" aria-label="Hot spots">
           {citySpots.map((spot) => (
@@ -115,7 +115,7 @@ export function CommunityHotSpots() {
       )}
 
       <p className="community-hotspots__coming-soon">
-        数据来源：社区旅行者点评 + 高德/美团联动（即将开放）
+        Source: Community traveler reviews + Amap/Meituan integration (coming soon)
       </p>
     </div>
   );
