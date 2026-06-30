@@ -68,6 +68,11 @@
 
 - [x] 任务 8.1：为 Trip Canvas 添加轻量 `ButlerReminders` 提醒列表，位于 Day 时间线下方（不在顶部），每个 `ButlerAlert` 类型映射到对应 Tools 分类深链（`visa`→`visa-and-entry` 等）。
 
+## 阶段九：真实数据源接入
+
+- [x] 任务 9.1：接入 ExchangeRate-API 实时汇率数据。新增 `/api/exchange-rate` 服务端路由（通过 `EXCHANGE_RATE_API_KEY` 环境变量调用，不暴露给浏览器）；新增 `lib/tools/liveToolsProvider.ts`，包装静态 provider 并在 currency 分类注入实时 CNY 汇率行（每小时 ISR 刷新），API 不可达时优雅回落到静态文案；`lib/tools/index.ts` 工厂切换为 `createLiveToolsProvider()`。
+- [x] 任务 9.2：接入高德地图 POI 搜索 API。新增 `/api/explore/amap` 服务端路由（通过 `AMAP_API_KEY` 环境变量调用，支持 `cityId` + `type` 查询参数，类型码：景点 `110000`/餐饮 `050000`/住宿 `100000`）；新增 `lib/explore/amapProvider.ts`，按城市按分类请求高德 POI，每个方法在返回空列表时回落到对应城市的静态数据；`lib/explore/index.ts` 工厂切换为 `createAmapExploreProvider()`。
+
 ## 关键约束
 
 - 技术选型：Next.js App Router、React、TypeScript、Vercel、Supabase 预留。
@@ -107,6 +112,7 @@
 - M7：目的地感知背景切换完成（2026-06-30，v0.1.23）。
 - M8：Explore/Tools provider readiness metadata 完成（2026-06-30，v0.1.24-v0.1.25）。
 - M9：Canvas ButlerReminders 深链 Tools 分类完成（2026-06-30，v0.1.26）。
+- M10：真实数据源接入完成（2026-06-30，v0.1.27）：ExchangeRate-API 实时汇率 + 高德地图 POI 搜索，两者均含静态 fallback。
 
 ## 风险
 

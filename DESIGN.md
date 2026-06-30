@@ -245,6 +245,12 @@ erDiagram
 - 方案对比：恢复 `CanvasTaskStrip` 并加上深链实现最快，但直接违反既有约束，且五张固定任务卡和真实 `alerts` 数组的语义并不一致（卡片是固定 5 类，`alerts` 是可变长度、可变类型的列表）；把提醒塞进 Chat 消息流里语义不清晰（alerts 来自 canvas patch，不是某一条具体消息）。改为在行程时间线下方新增一个不占首屏空间的轻量列表，按 `AlertType` 映射到对应 Tools 分类 id（`visa`→`visa-and-entry`、`payment`→`payment-setup`、`language`→`translate`、`transport`→`metro`、`risk`/`emergency`→`emergency`），点击即跳转 `/tools?category=<id>`；无对应分类的提醒类型（如 `booking`、`weather`）渲染为纯文本 action，不生成链接。
 - 结论：新增 `components/canvas/ButlerReminders.tsx`，渲染在 `TripCanvas` 的 `.trip-canvas__days` 之后；映射表 `alertToolCategoryMap` 集中在该组件，后续如有新 alert 类型或新 Tools 分类只修改映射表，不改 `TripCanvas` 或 `ToolsBoard`；`CanvasTaskStrip.tsx` 文件继续保留但不被引用，作为已废弃的历史实现。
 
+### ADR-028：为什么通过内部代理路由接入第三方 API 而不是直接在 provider 里 fetch 外部 URL（v0.1.27）
+
+- 背景：`ExchangeRate-API` 和 `Amap` 都需要 API Key。Tools/Explore provider 的工厂函数在客户端 `useEffect` 里被调用，客户端 JavaScript 不能安全持有任何私密 Key。同时现有测试（Vitest/jsdom）没有运行中的 Next.js server，需要不破坏现有测试的方式接入。
+- 方案对比：①直接在 provider 里 `fetch("https://v6.exchangerate-api.com/...")` 并把 Key 传进去 → Key 会出现在客户端 bundle，违反安全原则；②新增内部代理路由 `/api/exchange-rate` 和 `/api/explore/amap`，由 Next.js server 读取 `process.env.*` 并转发请求 → Key 永远不到达浏览器；provider 的客户端代码只调用同域的 `/api/*` 路由；③在 provider 里直接读 `process.env.EXCHANGE_RATE_API_KEY` → 该变量是服务端变量，客户端 bundle 里 `process.env` 不包含它，会返回 `undefined`。
+- 结论（方案②）：新增 `/api/exchange-rate/route.ts` 和 `/api/explore/amap/route.ts` 作为安全的服务端代理层；`lib/tools/liveToolsProvider.ts` 和 `lib/explore/amapProvider.ts` 从客户端调用这两个同域路由；路由未配置 key 时返回 503，provider 的 `try/catch` 捕获非 ok 响应，回落到 `createStaticToolsProvider()` / `createStaticExploreProvider()`，Vitest 测试中 fetch 到 `/api/*` 会抛出，同样被 catch 捕获，保证测试通过而不需要 mock。
+
 ## 路由/页面结构
 
 - `/`：重定向到 `/chat`
@@ -252,11 +258,13 @@ erDiagram
 - `/trips`：Saved Trips Dashboard 骨架
 - `/trips/[id]`：Trip Detail 页面，支持归档状态切换和分享链接管理
 - `/share/[token]`：公开只读分享页，无需登录即可查看已分享行程的 Canvas
-- `/explore`：Explore 骨架，按城市展示景点、美食、住宿（静态 provider 驱动）
-- `/tools`：Tools 骨架，按分类展示签证入境、支付设置、翻译、汇率、地铁、eSIM/VPN、应急的静态参考清单（静态 provider 驱动）；支持 `/tools?category=<tool-category-id>` 直接打开指定分类
+- `/explore`：Explore，按城市展示景点、美食、住宿（Amap 实时 POI，无 key 时回落 8 城静态数据）
+- `/tools`：Tools，按分类展示 7 类旅行工具（Currency 分类已接入实时汇率，其余仍为静态内容）；支持 `/tools?category=<tool-category-id>` 直接打开指定分类
 - `/api/chat`：DeepSeek V4 Flash chat API，失败时返回 mock canvas patch
+- `/api/exchange-rate`：ExchangeRate-API 代理（服务端，需 `EXCHANGE_RATE_API_KEY`）
+- `/api/explore/amap`：高德 POI 搜索代理（服务端，需 `AMAP_API_KEY`；查询参数：`cityId` + `type`）
 - `/api/trips`：placeholder API
-- `/api/explore`：placeholder API
+- `/api/explore`：placeholder API（通用占位）
 - `/api/tools`：placeholder API
 
 ## 代码结构

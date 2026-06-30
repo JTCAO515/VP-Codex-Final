@@ -1,8 +1,8 @@
-import { createStaticExploreProvider } from "@/lib/explore/staticProvider";
+import { createAmapExploreProvider } from "@/lib/explore/amapProvider";
 import type { ExploreProvider } from "@/lib/explore/types";
 
 export function getExploreProvider(): ExploreProvider {
-  return createStaticExploreProvider();
+  return createAmapExploreProvider();
 }
 
 export type {

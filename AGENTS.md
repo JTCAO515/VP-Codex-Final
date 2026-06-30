@@ -53,10 +53,10 @@ VisePanda 是一个面向外国人来中国旅行的 AI 管家产品。当前主
 - Trips/Chat 现在有真实 Supabase persistence 首个闭环（保存、读取、恢复），guest draft 登录后会自动迁移，且已有 trip detail 页面（`/trips/[id]`），支持归档/恢复状态切换和分享链接生成/撤销，分享链接对应只读公开页面 `/share/[token]`。
 - Trips 的 draft / ready / shared / archived 状态说明和下一步动作集中在 `lib/trips/mockTrips.ts`，Dashboard 和 Trip Detail 都要复用，不要在组件里各写一套状态语义。
 - 运行 `supabase/migrations/0002_trip_archive_and_share.sql` 之前，分享和归档相关数据库操作会因为 RLS policy 缺失而失败；该迁移必须在 0001 之后追加执行到真实 Supabase 项目。
-- Explore 数据必须只通过 `lib/explore/index.ts` 的 `getExploreProvider()` 获取，不要在组件里直接 import `staticProvider.ts` 或硬编码城市数据；后续接入真实 Amap/Trip.com/Meituan 时只新增一个实现 `ExploreProvider` 接口的模块并在工厂里切换。
+- Explore 数据必须只通过 `lib/explore/index.ts` 的 `getExploreProvider()` 获取，不要在组件里直接 import `staticProvider.ts` 或硬编码城市数据。`v0.1.27` 起工厂返回 `createAmapExploreProvider()`（`lib/explore/amapProvider.ts`），该 provider 通过内部 `/api/explore/amap` 路由调用高德 POI 搜索，每个城市/分类请求返回空时回落到 staticProvider；后续接入 Trip.com/Meituan 时只新增模块并在工厂里切换，不改 `ExploreBoard` 组件。
 - Explore provider 必须实现 `getProviderStatus()`；页面展示的 provider mode、coverage、candidate providers、next integration 和 limitations 应来自 provider 层，不要在 `ExploreBoard` 里硬编码。
 - Explore 的 Add to Trip 必须通过「跳转 `/chat?add=<草稿消息>` 并由 `ButlerWorkspace` 调用既有 `handleSend` → `/api/chat` → `CanvasPatch` → `applyCanvasPatch`」流程加入画布，不允许在 `ExploreBoard` 或其他非 Chat 组件里直接拼装/合并 `TripDay`、`TripState` 或绕开 AI pipeline 写入画布；Add to Trip 文案应明确由 VisePanda 重新平衡路线。
-- Tools 数据必须只通过 `lib/tools/index.ts` 的 `getToolsProvider()` 获取，不要在组件里直接 import `staticProvider.ts` 或硬编码分类数据；当前内容均为静态参考清单，不要在没有真实数据源前声称提供实时汇率、实时翻译或实时签证规则查询，后续接入真实数据源时只新增一个实现 `ToolsProvider` 接口的模块并在工厂里切换。
+- Tools 数据必须只通过 `lib/tools/index.ts` 的 `getToolsProvider()` 获取，不要在组件里直接 import `staticProvider.ts` 或硬编码分类数据。`v0.1.27` 起工厂返回 `createLiveToolsProvider()`（`lib/tools/liveToolsProvider.ts`），该 provider 通过内部 `/api/exchange-rate` 路由获取实时 CNY 汇率注入 currency 分类，API 不可达时回落到 staticProvider；翻译/签证规则/交通数据暂时仍为静态清单，后续接入时只新增实现 `ToolsProvider` 接口的模块并在工厂里切换，不改 `ToolsBoard` 组件。
 - Tools `ToolCategory` 必须包含 `tips`、`sections`、`offlineTips`、`apiPriority`；组件只渲染这些字段，不要在 `ToolsBoard` 里新增分类专属硬编码文案。
 - Tools provider 必须实现 `getProviderStatus()`；页面展示的 provider mode、coverage、candidate sources、next integration 和 limitations 应来自 provider 层，不要在 `ToolsBoard` 里硬编码。
 - Tools 分类深链必须使用 `/tools?category=<tool-category-id>`；`ToolsBoard` 会读取该参数并在无效时回退默认分类；点击分类时用 `history.replaceState` 更新 URL。后续 Chat/Canvas/提醒入口需要跳 Tools 时复用这个参数，不要为了入口恢复 Canvas 顶部五个任务框。

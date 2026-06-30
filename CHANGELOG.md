@@ -1,5 +1,12 @@
 # VisePanda Changelog
 
+## v0.1.27 - 2026-06-30
+
+- Connected real-time exchange-rate data via ExchangeRate-API: new `/api/exchange-rate` server-side route fetches CNY-base rates hourly using `EXCHANGE_RATE_API_KEY` (env var, never exposed to browser); new `lib/tools/liveToolsProvider.ts` wraps the static provider and injects live rate rows into the `currency` category when the API is reachable, falling back to static text when it is not.
+- Connected Amap live POI data for Explore: new `/api/explore/amap` server-side route fetches tourist attractions (`types=110000`), restaurants (`050000`), and hotels (`100000`) per city using `AMAP_API_KEY`; new `lib/explore/amapProvider.ts` wraps the static provider and falls back city-by-city to static data when the API is unreachable.
+- `lib/tools/index.ts` now returns `createLiveToolsProvider()` instead of `createStaticToolsProvider()`; `lib/explore/index.ts` now returns `createAmapExploreProvider()` instead of `createStaticExploreProvider()`. Static providers are fully preserved as fallbacks.
+- All 53 existing tests continue to pass because live API calls fail gracefully (try/catch → null/empty) in the Vitest environment, leaving static data as the result.
+
 ## v0.1.26 - 2026-06-30
 
 - Added `ButlerReminders` — a lightweight alert list rendered below the day timeline in `TripCanvas` (not at the top, not the removed five-card grid).

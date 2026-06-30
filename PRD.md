@@ -109,9 +109,8 @@ VisePanda 是一个面向外国人来中国旅行的英文原生 AI 管家。用
 - 不做没有 fallback 的真实 AI：DeepSeek 已接入，但任何真实模型错误都必须回落到 mock。
 - 不做完整账号体系：当前只做 Supabase 邮箱密码登录、Google OAuth 登录和 guest draft 自动迁移，不做找回密码邮件、其他第三方登录（Apple/微信等）、多设备草稿合并。
 - 归档与分享链接已完成基础版本：支持 draft/ready/archived 状态切换和只读公开分享链接；不做多人协作编辑、分享链接访问权限分级、分享链接过期时间设置。
-- 不做真实 Trip.com / Meituan / Amap API：Explore 当前用扩展后的静态 provider 和 provider readiness metadata 验证信息架构，真实第三方能力边界必须先验证。
-- Explore 已有静态骨架（城市、景点、美食、住宿）和基础 Add to Trip 入口（跳转 Chat 并通过 AI pipeline 加入画布），但不做收藏、真实地图、预订能力或在 Explore 内直接预览/编辑画布。
-- Tools 已有静态骨架（签证入境/支付设置/翻译/汇率/地铁/eSIM-VPN/应急 7 个分类的参考清单）、分类深链、结构化分组和离线 pocket notes，但不做实时汇率换算、实时翻译、实时签证规则查询或预订/支付闭环。
+- Explore 已接入高德 POI API（`v0.1.27`）：`/api/explore/amap` 服务端路由通过 `AMAP_API_KEY` 调用高德地图 POI 搜索，返回景点/餐饮/住宿真实数据，API 不可达时回落 8 城静态数据；不做收藏、真实地图、预订能力或在 Explore 内直接预览/编辑画布；Trip.com / Meituan 尚未接入。
+- Tools Currency 分类已接入 ExchangeRate-API 实时汇率（`v0.1.27`）：`/api/exchange-rate` 服务端路由通过 `EXCHANGE_RATE_API_KEY` 获取 CNY 基准汇率，注入 Currency 分类内容（每小时 ISR 刷新）；翻译 API、签证规则 API、地铁数据 API 暂未接入。
 - 不恢复顶部五个任务框：Visa / Payment / Booking / Less tiring / Food-focused 已从 Canvas 顶部移除；butler alerts 通过行程时间线下方的 `ButlerReminders` 组件以链接形式呈现。
 - 不在主界面展开长篇每日详情：当前主画布显示 Morning / Afternoon / Evening 摘要，完整详情和修改通过抽屉完成。
 - 不做后台管理：当前没有运营后台需求。

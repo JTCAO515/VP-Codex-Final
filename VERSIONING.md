@@ -3,7 +3,7 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.26`
+- Current iteration: `v0.1.27`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -40,3 +40,4 @@
 - `v0.1.24`: added Explore provider readiness metadata and UI status for future POI/place-detail API validation.
 - `v0.1.25`: added Tools provider readiness metadata and UI status for future exchange-rate, translation, visa-rule, and transit API validation.
 - `v0.1.26`: added `ButlerReminders` — a lightweight alert list rendered below the day timeline that maps alert types (visa, payment, language, transport, risk, emergency) to Tools category deep-links (`/tools?category=<id>`), so canvas alerts become actionable without restoring the removed top task-card grid.
+- `v0.1.27`: connected real ExchangeRate-API for live CNY exchange rates in the Tools Currency category, and Amap POI search API for live attractions/food/stays data in Explore. Both providers fall back to static data gracefully when the API key is not configured or the upstream is unreachable.

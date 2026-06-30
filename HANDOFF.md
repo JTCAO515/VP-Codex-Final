@@ -2,10 +2,14 @@
 
 ## 当前状态
 
-- 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为静态 provider 驱动的 8 城骨架，完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority 和 provider readiness metadata（任务 5.1-5.3、7.3-7.4）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）。
+- 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）。
 - 当前分支：`main`
-- 当前版本：`v0.1.26`
-- 重要：用户已创建真实 Supabase 项目、跑过 `0001_init_trip_schema.sql` migration，并在 Vercel 配置了三个 Supabase 环境变量。**`supabase/migrations/0002_trip_archive_and_share.sql` 需要用户在 Supabase SQL Editor 里手动追加执行，否则归档/分享相关的状态更新会因 RLS 缺失而失败。** **本轮（v0.1.16）登录方式从 magic link 改为邮箱密码 + Google 登录：Google 登录需要用户在 Supabase 项目的 Authentication → Providers 里启用 Google provider 并配置 OAuth Client ID/Secret，否则点击 Continue with Google 会报错；邮箱密码登录不需要额外配置即可使用。**
+- 当前版本：`v0.1.27`
+- 重要（已完成）：
+  - `supabase/migrations/0002_trip_archive_and_share.sql`：用户已手动在 Supabase SQL Editor 执行，归档/分享 RLS policy 已生效。
+  - Google OAuth：用户已在 Google Cloud 创建 OAuth 凭据并在 Supabase Authentication → Providers → Google 填入，Google 登录功能已配置就绪。
+  - ExchangeRate-API：用户已获取 API Key，已配置 `EXCHANGE_RATE_API_KEY` 到 Vercel 环境变量；`/api/exchange-rate` 路由已连接，Tools Currency 分类展示实时 CNY 汇率（每小时刷新）。
+  - 高德地图 API：用户已获取 Web Service API Key，已配置 `AMAP_API_KEY` 到 Vercel 环境变量；`/api/explore/amap` 路由已连接，Explore 景点/美食/住宿来自高德 POI 实时搜索。
 - 最新实现 commit：本轮提交后以 `git log -1 --oneline` 为准
 - 当前远端：`https://github.com/JTCAO515/VP-Codex-Final.git`
 - 部署地址：`https://go2china.space`
@@ -58,10 +62,11 @@
 
 ## 未完成/待办
 
-- [ ] 真实 Supabase 项目已创建（用户已完成部署），需要提醒用户在 Supabase SQL Editor 里手动追加执行 `0002_trip_archive_and_share.sql`，否则归档/分享功能会因 RLS policy 缺失而报错。
-- [ ] 需要提醒用户在 Supabase 项目的 Authentication → Providers 里启用并配置 Google OAuth provider，否则悬浮窗口里的 Continue with Google 会报错；邮箱密码登录不需要额外配置。
-- [ ] 接入静态 provider 之外的真实第三方 Explore API（Amap/Trip.com/Meituan/Tripadvisor 等），当前已完成 8 城静态 provider、provider readiness 和 Add to Trip rebalancing 流程。
-- [ ] Tools 接入真实第三方数据源（实时汇率换算、机器翻译、签证规则查询、地铁/应急信息等），当前已完成结构化静态内容、离线 pocket notes、API priority 和 provider readiness 说明。
+- [x] 真实 Supabase 项目已创建（用户已完成部署），`0002_trip_archive_and_share.sql` 已在 Supabase SQL Editor 手动执行，归档/分享 RLS policy 已生效。
+- [x] Google OAuth：已在 Supabase Authentication → Providers → Google 配置完毕。
+- [x] ExchangeRate-API 接入：`EXCHANGE_RATE_API_KEY` 已配置到 Vercel，`/api/exchange-rate` 路由已连接，Tools Currency 分类展示实时 CNY 汇率。
+- [x] Amap POI API 接入：`AMAP_API_KEY` 已配置到 Vercel，`/api/explore/amap` 路由已连接，Explore 景点/美食/住宿来自高德实时搜索，未配置时回落静态数据。
+- [ ] 后续 Tools 真实数据源：机器翻译 API（目前仍为静态清单）、签证规则查询 API、地铁路线 API。
 - [ ] 目的地背景切换当前是 CSS 氛围层；后续如需要更惊艳，可生成/接入城市级真实水墨背景资产。
 - [ ] 移动端竖屏端细节适配。
 
