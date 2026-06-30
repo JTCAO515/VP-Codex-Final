@@ -125,6 +125,7 @@ export function ButlerWorkspace() {
       const result = await saveTripCanvas({
         tripId: tripId ?? undefined,
         ownerId: session.user.id,
+        ownerEmail: session.user.email ?? undefined,
         title: trip.summary.title,
         status: confidenceToTripStatus(trip.summary.confidence),
         trip,
@@ -142,7 +143,8 @@ export function ButlerWorkspace() {
       persistedMessageCount.current = messages.length;
 
       setStatus(successMessage);
-    } catch {
+    } catch (err) {
+      console.error("[Save to Trips] failed:", err);
       setStatus("Saving failed. Please try again.");
     } finally {
       setSaving(false);

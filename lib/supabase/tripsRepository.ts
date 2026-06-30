@@ -5,6 +5,7 @@ import type { ChatMessage, TripState } from "@/lib/types/trip";
 export interface SaveTripCanvasInput {
   tripId?: string;
   ownerId: string;
+  ownerEmail?: string;
   title: string;
   status: TripRow["status"];
   trip: TripState;
@@ -23,6 +24,18 @@ export interface RemoteTrip {
 export async function saveTripCanvas(input: SaveTripCanvasInput): Promise<SaveTripCanvasResult> {
   const client = getSupabaseBrowserClient();
   if (!client) throw new Error("Supabase is not configured.");
+
+  // Ensure the user row exists in public.users before writing to trips (which
+  // has a FK → public.users). New auth users don't have a public.users row
+  // until migration 0003 trigger fires; this upsert handles existing users too.
+  if (input.ownerEmail) {
+    const { error: upsertError } = await client
+      .from("users")
+      .upsert({ id: input.ownerId, email: input.ownerEmail }, { onConflict: "id" });
+    if (upsertError) {
+      console.warn("[saveTripCanvas] user upsert failed (continuing):", upsertError.message);
+    }
+  }
 
   let tripId = input.tripId;
 
@@ -152,15 +165,15 @@ export async function loadSharedTrip(shareToken: string): Promise<RemoteTrip | n
   return { trip: trip as TripRow, canvas: (version as CanvasVersionRow).canvas };
 }
 
-export async function appendMessage(tripId: string, message: ChatMessage): Promise<MessageRow> {
+// Messages are supplementary — failure should not block the trip canvas save.
+export async function appendMessage(tripId: string, message: ChatMessage): Promise<void> {
   const client = getSupabaseBrowserClient();
-  if (!client) throw new Error("Supabase is not configured.");
+  if (!client) return;
 
-  const { data, error } = await client
+  const { error } = await client
     .from("messages")
-    .insert({ trip_id: tripId, role: message.role, content: message.content })
-    .select("*")
-    .single();
-  if (error) throw error;
-  return data as MessageRow;
+    .insert({ trip_id: tripId, role: message.role, content: message.content });
+  if (error) {
+    console.warn("[appendMessage] failed to persist message:", error.message);
+  }
 }

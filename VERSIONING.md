@@ -3,7 +3,7 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.39`
+- Current iteration: `v0.1.41`
 - Production domain: `go2china.space`
 
 ## Rule

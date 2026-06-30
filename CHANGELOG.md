@@ -1,5 +1,14 @@
 # VisePanda Changelog
 
+## v0.1.41 - 2026-07-01
+
+- Fixed "Saving failed" error on Save to Trips in Chat.
+- Root cause: `trips.owner_id` FK references `public.users(id)`, but Supabase Auth users only exist in `auth.users` — no `public.users` row → FK violation on every insert.
+- Fix 1 (DB): migration `0003_fix_auth_user_sync.sql` adds a trigger that auto-upserts a `public.users` row whenever a new `auth.users` entry is created, plus INSERT/UPDATE RLS policies so existing users can upsert their own row.
+- Fix 2 (code): `saveTripCanvas` now upserts the caller's `public.users` row (using `ownerEmail` from the session) before inserting the trip, covering users who signed up before the trigger was applied.
+- Fix 3 (code): `appendMessage` failures are now non-fatal (logged as warnings, don't block the save success message).
+- Added `console.error` logging in the save catch block for easier diagnosis of future failures.
+
 ## v0.1.39 - 2026-07-01
 
 - Replaced background image with new golden-line Chinese landscape (mountains, pagodas, traditional buildings on warm cream paper).
