@@ -122,3 +122,14 @@ npm.cmd run test:e2e
 - `getProviderStatus()` and `apiPriority` may remain in the provider/data layer for internal planning, but user-facing Tools copy should stay practical and non-technical.
 - The retained `ButlerReminders` helper must route `language` alerts to `/translate`, not `/tools?category=translate`.
 - When changing Tools categories, update `tests/tools-provider.test.ts`, `tests/tools-board.test.tsx`, and any deep-link mappings such as `ButlerReminders`.
+
+## v0.1.33 Agent Update - Visual Layout Rules
+
+- Preserve the v0.1.33 desktop-first visual-system layer in `app/globals.css` unless a later design pass replaces it intentionally.
+- Desktop landscape pages should stay one viewport tall; use internal scroll regions for Chat logs, day cards, Trips lists, Explore columns, Tools drawers, Translator bodies, and Community content.
+- Keep page headers compact. Avoid large hero-style titles inside product workspaces.
+- Chat prompt suggestions must stay two compact rows; do not let prompt buttons stretch into tall cards.
+- Chat composer, Save to Trips, and workspace status must remain separated and non-overlapping.
+- Use solid paper-style inputs and fine ink dividers; do not introduce glassmorphism panels.
+- If visible mojibake appears in primary labels, clean it during the same iteration that touches that page.
+- For design-only work, avoid changing provider routes, Supabase persistence, or AI model behavior.

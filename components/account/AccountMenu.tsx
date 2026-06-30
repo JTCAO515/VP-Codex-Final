@@ -118,7 +118,7 @@ export function AccountMenu() {
             <img alt="" className="account-menu__profile-avatar" src={activeAvatar.src} />
             <div>
               <p className="account-menu__profile-title">{displayName || "Guest traveler"}</p>
-              <p className="account-menu__profile-subtitle">Panda avatar · stored locally</p>
+              <p className="account-menu__profile-subtitle">Panda avatar, stored locally</p>
             </div>
           </div>
 

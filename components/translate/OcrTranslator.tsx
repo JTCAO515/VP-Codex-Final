@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
+import type { DragEvent } from "react";
 import { speakWithQwen } from "@/components/translate/qwenSpeech";
 
 function resizeImageToBase64(file: File, maxPx = 1200): Promise<{ base64: string; mimeType: string }> {
@@ -14,7 +15,10 @@ function resizeImageToBase64(file: File, maxPx = 1200): Promise<{ base64: string
       canvas.width = Math.round(img.width * scale);
       canvas.height = Math.round(img.height * scale);
       const ctx = canvas.getContext("2d");
-      if (!ctx) { reject(new Error("canvas_ctx")); return; }
+      if (!ctx) {
+        reject(new Error("canvas_ctx"));
+        return;
+      }
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
       resolve({ base64: dataUrl.split(",")[1], mimeType: "image/jpeg" });
@@ -35,7 +39,7 @@ export function OcrTranslator() {
 
   async function handleFile(file: File) {
     if (!file.type.startsWith("image/")) {
-      setError("请上传图片文件 / Please upload an image file");
+      setError("Please upload an image file.");
       return;
     }
     setError("");
@@ -70,31 +74,35 @@ export function OcrTranslator() {
 
       setTranslation(transData.translation ?? "");
       setPinyin(transData.pinyin ?? "");
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "unknown";
-      setError(msg === "ocr_empty" ? "未能识别图片中的文字 / No text found in image" : "处理失败，请重试 / Processing failed");
+    } catch (errorValue) {
+      const message = errorValue instanceof Error ? errorValue.message : "unknown";
+      setError(message === "ocr_empty" ? "No text found in this image." : "Processing failed. Please try again.");
     } finally {
       setLoading(false);
     }
   }
 
-  function handleDrop(e: React.DragEvent) {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (file) handleFile(file);
+  function handleDrop(event: DragEvent) {
+    event.preventDefault();
+    const file = event.dataTransfer.files[0];
+    if (file) void handleFile(file);
+  }
+
+  function resetScan() {
+    setPreview(null);
+    setOcrText("");
+    setTranslation("");
+    setPinyin("");
+    setError("");
   }
 
   return (
     <div className="ocr-translator">
-      <div
-        className="ocr-translator__drop-zone"
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={handleDrop}
-      >
+      <div className="ocr-translator__drop-zone" onDragOver={(event) => event.preventDefault()} onDrop={handleDrop}>
         {preview ? (
-          <img alt="扫描图片" className="ocr-translator__preview" src={preview} />
+          <img alt="Scanned travel text" className="ocr-translator__preview" src={preview} />
         ) : (
-          <p>拖放图片至此 / Drag & drop image here</p>
+          <p>Drag a menu, sign, or label image here.</p>
         )}
       </div>
 
@@ -102,42 +110,62 @@ export function OcrTranslator() {
         <input
           accept="image/*"
           capture="environment"
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (file) void handleFile(file);
+          }}
           ref={fileRef}
           style={{ display: "none" }}
           type="file"
         />
         <button onClick={() => fileRef.current?.click()} type="button">
-          📷 拍照 / 选择图片
+          Choose image
         </button>
         {preview && !loading && (
-          <button onClick={() => { setPreview(null); setOcrText(""); setTranslation(""); setPinyin(""); setError(""); }} type="button">
-            重置 Reset
+          <button onClick={resetScan} type="button">
+            Reset
           </button>
         )}
       </div>
 
-      {loading && <p className="ocr-translator__loading" role="status">识别并翻译中... Processing...</p>}
-      {error && <p className="ocr-translator__error" role="alert">{error}</p>}
+      {loading && (
+        <p className="ocr-translator__loading" role="status">
+          Reading and translating with Qwen...
+        </p>
+      )}
+      {error && (
+        <p className="ocr-translator__error" role="alert">
+          {error}
+        </p>
+      )}
 
       {ocrText && (
         <div className="ocr-translator__results">
           <section>
-            <h3>识别文字 Recognized text</h3>
+            <h3>Recognized text</h3>
             <p>{ocrText}</p>
           </section>
           {translation && (
             <section>
-              <h3>英文翻译 English translation</h3>
+              <h3>English translation</h3>
               <p>{translation}</p>
               {pinyin && <p className="ocr-translator__pinyin">{pinyin}</p>}
-              <button onClick={() => speakWithQwen(ocrText, { language: "Chinese" }).catch(() => setError("朗读失败，请稍后再试 / TTS failed"))} type="button">🔊 朗读中文 Speak Chinese</button>
+              <button
+                onClick={() =>
+                  speakWithQwen(ocrText, { language: "Chinese" }).catch(() =>
+                    setError("TTS failed. Please try again later."),
+                  )
+                }
+                type="button"
+              >
+                Speak Chinese
+              </button>
             </section>
           )}
         </div>
       )}
 
-      <p className="ocr-translator__hint">适用于菜单、路牌、标识的扫描翻译 / For menus, signs, and labels</p>
+      <p className="ocr-translator__hint">Built for menus, signs, tickets, and labels.</p>
     </div>
   );
 }

@@ -175,3 +175,14 @@ Next translator priorities:
 - [x] Update retained `ButlerReminders` language alerts to link `/translate` instead of the removed `/tools?category=translate` path.
 - [x] Update Tools tests for the six-category provider, drawer interaction, Translate removal, and hidden provider metadata.
 - [ ] Future: decide whether Tools provider status should remain internal-only or move to an admin/debug surface.
+
+## v0.1.33 Addendum - Desktop Visual Layout Refresh
+
+- [x] Create a lightweight approved visual-refresh spec in `docs/superpowers/specs/2026-06-30-visual-layout-refresh-design.md`.
+- [x] Refresh the global Warm New Chinese visual system: warmer paper base, ink-line structure, restrained cinnabar accents, smaller serif headings, and compact UI text scale.
+- [x] Tighten the app shell, logo, nav, page headers, card spacing, and one-page desktop workspace behavior.
+- [x] Rebalance Chat: compact Live Trip Canvas title, two-row prompt chips, internal chat scroll, and separated composer / Save to Trips / status controls.
+- [x] Give Trips, Explore, Tools, Translate, and Community more usable content area by reducing header/filter height and keeping long content inside internal scroll regions.
+- [x] Normalize visible Translator and Community page labels, and clean Translator Text/OCR/Voice control copy while preserving the existing Qwen API routes.
+- [x] Verify 1440x900 desktop pages for `/chat`, `/trips`, `/explore`, `/tools`, `/translate`, and `/community` with Playwright screenshots and body/main overflow metrics.
+- [ ] Future: run a dedicated mobile portrait design pass; current v0.1.33 remains desktop-landscape first.

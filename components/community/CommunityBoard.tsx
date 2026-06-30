@@ -2,16 +2,16 @@
 
 import { useState } from "react";
 import { CommunityFeed } from "@/components/community/CommunityFeed";
-import { CommunityPhotos } from "@/components/community/CommunityPhotos";
 import { CommunityHotSpots } from "@/components/community/CommunityHotSpots";
+import { CommunityPhotos } from "@/components/community/CommunityPhotos";
 import { memberTiers } from "@/lib/community/membership";
 
 type CommunityTab = "feed" | "hotspots" | "photos";
 
 const TABS: Array<{ key: CommunityTab; label: string }> = [
-  { key: "feed", label: "动态 Feed" },
-  { key: "hotspots", label: "热门 Hot Spots" },
-  { key: "photos", label: "照片 Photos" },
+  { key: "feed", label: "Feed" },
+  { key: "hotspots", label: "Hot Spots" },
+  { key: "photos", label: "Photos" },
 ];
 
 export function CommunityBoard() {
@@ -20,9 +20,9 @@ export function CommunityBoard() {
   return (
     <section className="community-board" aria-labelledby="community-title">
       <header className="community-board__header">
-        <p className="section-kicker">社区 / Community</p>
-        <h1 id="community-title">旅行者社区</h1>
-        <p>Share trips, photos, travel tips, and trusted China discoveries.</p>
+        <p className="section-kicker">Community</p>
+        <h1 id="community-title">Traveler community</h1>
+        <p>Share trips, photos, practical tips, and trusted China discoveries.</p>
       </header>
 
       <div className="community-membership-strip" aria-label="VisePanda membership levels">
@@ -34,7 +34,7 @@ export function CommunityBoard() {
         ))}
       </div>
 
-      <div className="community-tabs" role="tablist" aria-label="社区板块">
+      <div className="community-tabs" role="tablist" aria-label="Community sections">
         {TABS.map((tab) => (
           <button
             aria-selected={tab.key === activeTab}

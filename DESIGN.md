@@ -382,3 +382,19 @@ ADR-033: Keep Tools provider status internal-only for the traveler UI.
 - Background: The previous Tools page displayed provider labels, coverage, next integration, and candidate API-source strings. The user asked to remove these words from the Tools page and make the surface card/drawer based.
 - Decision: Remove provider status and API-priority rendering from `ToolsBoard`, while preserving provider metadata in the data layer for future implementation planning.
 - Reason: Travelers need practical checklists, not integration roadmap copy. Keeping metadata internal preserves future provider-switching context without adding visual noise.
+
+## v0.1.33 Design Update - Desktop Visual Layout System
+
+This iteration adds a visual-system layer without changing the product data flow.
+
+- `docs/superpowers/specs/2026-06-30-visual-layout-refresh-design.md` records the approved layout direction.
+- `app/globals.css` now ends with a v0.1.33 override layer for the global shell, Warm New Chinese palette, compact serif headings, page frames, paper cards, input styling, and desktop one-page internal scrolling.
+- Chat keeps the same `ButlerWorkspace`, `TripCanvas`, and `ChatPanel` component boundaries, but CSS now controls a tighter two-column desktop layout, smaller canvas heading, compact prompt chips, scrollable chat log, and separated composer/save/status rows.
+- Trips, Explore, Tools, Translate, and Community keep their existing component/data/provider contracts, but share the same compact header, card, tab, and internal-scroll treatment.
+- Translator and Community page components were cleaned at the page-label level to remove visible mojibake from primary headers/tabs. The Qwen API route contract is unchanged.
+
+ADR-034: Add a CSS visual-system layer instead of refactoring UI primitives.
+
+- Background: The user asked for a design-led pass focused on typography, spacing, page layout, and text boxes across multiple already-working pages.
+- Decision: Keep functional component boundaries stable and apply a scoped v0.1.33 CSS override layer, with only small component text cleanups where visible labels were broken.
+- Reason: This reduces regression risk, preserves existing tests and provider flows, and creates a clear place for future design refinements before a larger component-system refactor.

@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { speakWithQwen } from "@/components/translate/qwenSpeech";
 
-type VoiceDirection = "zh→en" | "en→zh";
+type VoiceDirection = "zh-en" | "en-zh";
 
 function blobToDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -15,7 +15,7 @@ function blobToDataUrl(blob: Blob): Promise<string> {
 }
 
 export function VoiceTranslator() {
-  const [direction, setDirection] = useState<VoiceDirection>("zh→en");
+  const [direction, setDirection] = useState<VoiceDirection>("zh-en");
   const [audioUrlInput, setAudioUrlInput] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
   const [transcript, setTranscript] = useState("");
@@ -28,9 +28,9 @@ export function VoiceTranslator() {
   const chunksRef = useRef<BlobPart[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const sourceLang = direction === "zh→en" ? "zh" : "en";
-  const targetLang = direction === "zh→en" ? "en" : "zh";
-  const outputLanguage = direction === "zh→en" ? "English" : "Chinese";
+  const sourceLang = direction === "zh-en" ? "zh" : "en";
+  const targetLang = direction === "zh-en" ? "en" : "zh";
+  const outputLanguage = direction === "zh-en" ? "English" : "Chinese";
 
   async function translateText(text: string) {
     const res = await fetch("/api/translate/text", {
@@ -61,7 +61,7 @@ export function VoiceTranslator() {
       setTranscript(data.text);
       await translateText(data.text);
     } catch {
-      setError("语音识别失败，请换一段更清晰的音频 / Speech recognition failed");
+      setError("Speech recognition failed. Try a clearer recording or upload.");
     } finally {
       setLoading(false);
     }
@@ -75,7 +75,7 @@ export function VoiceTranslator() {
 
   async function startRecording() {
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
-      setError("当前浏览器不支持录音，请上传音频文件 / Recording is not supported in this browser");
+      setError("Recording is not supported in this browser. Upload an audio file instead.");
       return;
     }
     setError("");
@@ -107,16 +107,16 @@ export function VoiceTranslator() {
       <section className="voice-translator__panel" aria-labelledby="voice-translator-title">
         <div>
           <p className="section-kicker">Qwen STT / TTS</p>
-          <h2 id="voice-translator-title">Voice Translation</h2>
-          <p>Speak, upload audio, or paste a public audio file URL. VisePanda will transcribe it with Qwen and translate it.</p>
+          <h2 id="voice-translator-title">Voice translation</h2>
+          <p>Speak, upload audio, or paste a public audio URL. VisePanda transcribes it with Qwen and translates it.</p>
         </div>
 
         <div className="voice-translator__direction">
-          <button className={direction === "zh→en" ? "active" : ""} onClick={() => setDirection("zh→en")} type="button">
-            中文语音 → English
+          <button className={direction === "zh-en" ? "active" : ""} onClick={() => setDirection("zh-en")} type="button">
+            Chinese voice to English
           </button>
-          <button className={direction === "en→zh" ? "active" : ""} onClick={() => setDirection("en→zh")} type="button">
-            English voice → 中文
+          <button className={direction === "en-zh" ? "active" : ""} onClick={() => setDirection("en-zh")} type="button">
+            English voice to Chinese
           </button>
         </div>
 
@@ -124,12 +124,14 @@ export function VoiceTranslator() {
           <button onClick={recording ? stopRecording : startRecording} type="button">
             {recording ? "Stop recording" : "Record voice"}
           </button>
-          <button onClick={() => fileRef.current?.click()} type="button">Upload audio</button>
+          <button onClick={() => fileRef.current?.click()} type="button">
+            Upload audio
+          </button>
           <input
             accept="audio/*"
             onChange={(event) => {
               const file = event.target.files?.[0];
-              if (file) handleFile(file);
+              if (file) void handleFile(file);
             }}
             ref={fileRef}
             style={{ display: "none" }}
@@ -145,15 +147,27 @@ export function VoiceTranslator() {
               value={audioUrlInput}
               onChange={(event) => setAudioUrlInput(event.target.value)}
             />
-            <button disabled={!audioUrlInput.trim() || loading} onClick={() => transcribe({ audioUrl: audioUrlInput.trim() })} type="button">
+            <button
+              disabled={!audioUrlInput.trim() || loading}
+              onClick={() => transcribe({ audioUrl: audioUrlInput.trim() })}
+              type="button"
+            >
               Transcribe URL
             </button>
           </div>
         </label>
 
         {previewUrl && <audio className="voice-translator__audio" controls src={previewUrl} />}
-        {loading && <p className="voice-translator__status" role="status">Recognizing with Qwen...</p>}
-        {error && <p className="voice-translator__error" role="alert">{error}</p>}
+        {loading && (
+          <p className="voice-translator__status" role="status">
+            Recognizing with Qwen...
+          </p>
+        )}
+        {error && (
+          <p className="voice-translator__error" role="alert">
+            {error}
+          </p>
+        )}
       </section>
 
       {(transcript || translation) && (
@@ -169,7 +183,14 @@ export function VoiceTranslator() {
               <h3>Translation</h3>
               <p>{translation}</p>
               {pinyin && <p className="voice-translator__pinyin">{pinyin}</p>}
-              <button onClick={() => speakWithQwen(translation, { language: outputLanguage }).catch(() => setError("朗读失败，请稍后再试 / TTS failed"))} type="button">
+              <button
+                onClick={() =>
+                  speakWithQwen(translation, { language: outputLanguage }).catch(() =>
+                    setError("TTS failed. Please try again later."),
+                  )
+                }
+                type="button"
+              >
                 Speak translation
               </button>
             </div>

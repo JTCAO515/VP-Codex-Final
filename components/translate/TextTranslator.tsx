@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import { speakWithQwen } from "@/components/translate/qwenSpeech";
 
-type Direction = "en→zh" | "zh→en";
+type Direction = "en-zh" | "zh-en";
 
 export function TextTranslator() {
-  const [direction, setDirection] = useState<Direction>("en→zh");
+  const [direction, setDirection] = useState<Direction>("en-zh");
   const [input, setInput] = useState("");
   const [translation, setTranslation] = useState("");
   const [pinyin, setPinyin] = useState("");
@@ -22,7 +22,7 @@ export function TextTranslator() {
     setTranslation("");
     setPinyin("");
     try {
-      const [from, to] = direction === "en→zh" ? ["en", "zh"] : ["zh", "en"];
+      const [from, to] = direction === "en-zh" ? ["en", "zh"] : ["zh", "en"];
       const res = await fetch("/api/translate/text", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -33,7 +33,7 @@ export function TextTranslator() {
       setTranslation(data.translation ?? "");
       setPinyin(data.pinyin ?? "");
     } catch {
-      setError("翻译失败，请重试。Translation failed, please try again.");
+      setError("Translation failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -46,35 +46,35 @@ export function TextTranslator() {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  const outputLanguage = direction === "en→zh" ? "Chinese" : "English";
+  const outputLanguage = direction === "en-zh" ? "Chinese" : "English";
+
+  function setNextDirection(nextDirection: Direction) {
+    setDirection(nextDirection);
+    setTranslation("");
+    setPinyin("");
+  }
 
   return (
     <div className="text-translator">
       <div className="text-translator__direction">
-        <button
-          className={direction === "en→zh" ? "active" : ""}
-          onClick={() => { setDirection("en→zh"); setTranslation(""); setPinyin(""); }}
-          type="button"
-        >
-          English → 中文
+        <button className={direction === "en-zh" ? "active" : ""} onClick={() => setNextDirection("en-zh")} type="button">
+          English to Chinese
         </button>
-        <button
-          className={direction === "zh→en" ? "active" : ""}
-          onClick={() => { setDirection("zh→en"); setTranslation(""); setPinyin(""); }}
-          type="button"
-        >
-          中文 → English
+        <button className={direction === "zh-en" ? "active" : ""} onClick={() => setNextDirection("zh-en")} type="button">
+          Chinese to English
         </button>
       </div>
 
       <div className="text-translator__input-area">
         <textarea
           className="text-translator__input"
-          placeholder={direction === "en→zh" ? "输入英文..." : "输入中文..."}
+          placeholder={direction === "en-zh" ? "Enter English travel text..." : "Enter Chinese travel text..."}
           rows={4}
           value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) translate(); }}
+          onChange={(event) => setInput(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) void translate();
+          }}
         />
         <button
           className="text-translator__btn-translate"
@@ -82,11 +82,15 @@ export function TextTranslator() {
           onClick={translate}
           type="button"
         >
-          {loading ? "翻译中..." : "翻译 Translate"}
+          {loading ? "Translating..." : "Translate"}
         </button>
       </div>
 
-      {error && <p className="text-translator__error" role="alert">{error}</p>}
+      {error && (
+        <p className="text-translator__error" role="alert">
+          {error}
+        </p>
+      )}
 
       {translation && (
         <div className="text-translator__output">
@@ -94,19 +98,23 @@ export function TextTranslator() {
           {pinyin && <p className="text-translator__pinyin">{pinyin}</p>}
           <div className="text-translator__actions">
             <button
-              onClick={() => speakWithQwen(translation, { language: outputLanguage }).catch(() => setError("朗读失败，请稍后再试 / TTS failed"))}
+              onClick={() =>
+                speakWithQwen(translation, { language: outputLanguage }).catch(() =>
+                  setError("TTS failed. Please try again later."),
+                )
+              }
               type="button"
             >
-              🔊 朗读 Speak
+              Speak
             </button>
             <button onClick={handleCopy} type="button">
-              {copied ? "✓ 已复制" : "复制 Copy"}
+              {copied ? "Copied" : "Copy"}
             </button>
           </div>
         </div>
       )}
 
-      <p className="text-translator__hint">Ctrl+Enter 快速翻译 / Ctrl+Enter to translate</p>
+      <p className="text-translator__hint">Ctrl+Enter to translate.</p>
     </div>
   );
 }

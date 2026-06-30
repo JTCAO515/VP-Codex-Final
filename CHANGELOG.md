@@ -1,5 +1,15 @@
 # VisePanda Changelog
 
+## v0.1.33 - 2026-06-30
+
+- Added a desktop-first visual layout refresh across Chat, Trips, Explore, Tools, Translate, Community, and Account.
+- Tightened the global shell, header, navigation, page titles, card rhythm, and one-page desktop workspace behavior.
+- Added a Warm New Chinese visual-system override with warmer paper tones, ink-line dividers, smaller serif headings, compact cards, and unified paper-style inputs.
+- Rebalanced Chat so the Live Trip Canvas title is smaller, the right prompt chips stay in two compact rows, the composer/save/status controls no longer overlap, and the page stays locked to one viewport.
+- Improved Trips, Explore, Tools, Translate, and Community content areas so headers and filters take less vertical space while long content scrolls inside each page.
+- Cleaned visible mojibake from Translator and Community page-level labels, and normalized Translator Text/OCR/Voice controls to stable English labels without changing the Qwen API flow.
+- Added `docs/superpowers/specs/2026-06-30-visual-layout-refresh-design.md` to record the approved visual refresh direction.
+
 ## v0.1.32 - 2026-06-30
 
 - Removed the old Translate category from `/tools`; translation now remains a dedicated `/translate` main navigation page.

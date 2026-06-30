@@ -180,3 +180,22 @@ Explicit exclusions:
 
 - Do not restore a Translate category inside `/tools`.
 - Do not show internal API/provider roadmap strings in user-facing Tools UI.
+
+## v0.1.33 Visual Layout Requirement Update
+
+The product must feel more like a polished AI China travel desk than a generic dashboard.
+
+MVP acceptance additions:
+
+- Desktop landscape remains the primary target for this phase.
+- Chat, Trips, Explore, Tools, Translate, and Community stay inside one viewport; long lists and page bodies scroll internally.
+- Page titles, summaries, filters, and metadata are compact enough to leave more room for itinerary/cards/content.
+- The visual language uses warm paper, ink-line dividers, cinnabar accents, compact serif headings, and solid paper inputs.
+- Chat prompt suggestions render as compact two-column rows, not tall cards.
+- Chat composer, Save to Trips, and status copy remain visually separated and do not overlap.
+- Translator and Community page-level labels are clean and readable; no visible mojibake should appear in primary page headers or tab labels.
+
+Explicit exclusions:
+
+- No new business logic, AI provider changes, Supabase schema changes, or provider API changes in this iteration.
+- Mobile portrait polish remains deferred to a later dedicated pass.

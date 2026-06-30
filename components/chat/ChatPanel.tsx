@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { useState } from "react";
+import type { ChangeEvent, FormEvent } from "react";
 import type { ChatMessage } from "@/lib/types/trip";
 
 interface ChatPanelProps {
@@ -23,6 +24,10 @@ export function ChatPanel({ messages, onSend, suggestions, busy = false }: ChatP
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     submitMessage(draft);
+  }
+
+  function handleDraftChange(event: ChangeEvent<HTMLTextAreaElement> | FormEvent<HTMLTextAreaElement>) {
+    setDraft(event.currentTarget.value);
   }
 
   return (
@@ -50,7 +55,8 @@ export function ChatPanel({ messages, onSend, suggestions, busy = false }: ChatP
         <textarea
           id="butler-message"
           value={draft}
-          onChange={(event) => setDraft(event.target.value)}
+          onChange={handleDraftChange}
+          onInput={handleDraftChange}
           placeholder="Tell me your days, cities, budget, pace, or worries..."
           rows={3}
         />
