@@ -1,5 +1,13 @@
 # VisePanda Changelog
 
+## v0.1.38 - 2026-06-30
+
+- New landing home page (`/`) replaces the redirect-to-chat default — brand hero with "Start Planning →" CTA and 6 feature cards (Chat, Trips, Explore, Tools, Translate, Community).
+- Home page is standalone (no AppShell/NavTabs); has its own minimal top bar with LanguageSwitcher and AccountMenu.
+- Brand-mark in AppShell now links to `/` instead of `/chat`.
+- Compact interior page headers: section kicker/h1/subtitle made tighter across Trips, Explore, Tools, Community, and Translator via CSS overrides.
+- Feature cards on home page each show icon, translated nav label, and one-line description; responsive 3→2→1 column grid.
+
 ## v0.1.37 - 2026-06-30
 
 - Added multi-language (i18n) system supporting English, Spanish, Arabic, Japanese, Korean, and French.

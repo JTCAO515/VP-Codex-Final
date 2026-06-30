@@ -12,7 +12,7 @@ export function AppShell({ activeTab, children }: AppShellProps) {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <a className="brand-mark" href="/chat" aria-label="VisePanda home">
+        <a className="brand-mark" href="/" aria-label="VisePanda home">
           <img className="brand-mark__logo" src="/visepanda-logo-icon.jpg" alt="" aria-hidden="true" />
           <span>
             <strong>VisePanda</strong>

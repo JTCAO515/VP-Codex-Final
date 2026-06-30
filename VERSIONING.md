@@ -3,7 +3,7 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.37`
+- Current iteration: `v0.1.38`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -51,3 +51,4 @@
 - `v0.1.35`: English-only UI pass — all Chinese-only labels replaced with English; place/attraction names updated to "English (中文)" bilingual format.
 - `v0.1.36`: mobile layout overhaul — 6-tab icon nav, scrollable pages, translator 1-column on mobile, trip status guide and meta hidden on mobile, community strip scrollable, late-cascade CSS override pattern.
 - `v0.1.37`: multi-language i18n system — Spanish, Arabic, Japanese, Korean, French plus English; LanguageSwitcher in header; RTL support for Arabic with `[dir="rtl"]` CSS overrides; locale stored in localStorage.
+- `v0.1.38`: new standalone landing home page at `/` with hero CTA and 6 feature cards; brand-mark links to home; interior page headers made more compact.

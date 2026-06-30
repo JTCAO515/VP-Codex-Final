@@ -5086,3 +5086,232 @@ select {
     font-family: "Noto Sans Arabic", system-ui, sans-serif;
   }
 }
+
+/* ============================================================
+   HOME PAGE — Landing / default route
+   ============================================================ */
+
+.home-page {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 5vw, 64px);
+}
+
+/* ── Top bar ── */
+.home-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 0 0;
+  border-bottom: 1px solid rgba(111, 91, 73, 0.14);
+  padding-bottom: 16px;
+}
+
+.home-header__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ── Hero ── */
+.home-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: clamp(48px, 8vh, 96px) 0 clamp(40px, 6vh, 72px);
+  gap: 0;
+}
+
+.home-hero__kicker {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cinnabar);
+  margin: 0 0 18px;
+  opacity: 0.85;
+}
+
+.home-hero__headline {
+  margin: 0 0 20px;
+  font-size: clamp(2.4rem, 5.5vw, 4.2rem);
+  line-height: 1.08;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.home-hero__sub {
+  margin: 0 0 36px;
+  max-width: 520px;
+  font-size: clamp(0.95rem, 1.6vw, 1.08rem);
+  line-height: 1.65;
+  color: var(--ink-muted);
+}
+
+.home-hero__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--cinnabar);
+  color: #fff;
+  border-radius: 32px;
+  padding: 14px 36px;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  box-shadow: 0 8px 28px rgba(163, 58, 45, 0.32);
+  transition: background 0.15s, transform 0.12s, box-shadow 0.15s;
+}
+
+.home-hero__cta:hover {
+  background: var(--cinnabar-deep);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 36px rgba(163, 58, 45, 0.38);
+}
+
+/* ── Feature grid ── */
+.home-features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  padding-bottom: clamp(40px, 6vh, 80px);
+}
+
+.home-feature-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px 20px 22px;
+  background: rgba(251, 244, 232, 0.7);
+  border: 1px solid rgba(111, 91, 73, 0.14);
+  border-top: 3px solid var(--feat-accent, var(--cinnabar));
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--ink);
+  backdrop-filter: blur(4px);
+  transition: background 0.15s, box-shadow 0.15s, transform 0.12s;
+}
+
+.home-feature-card:hover {
+  background: rgba(251, 244, 232, 0.92);
+  box-shadow: var(--shadow-soft);
+  transform: translateY(-2px);
+}
+
+.home-feature-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  background: var(--feat-bg, rgba(163, 58, 45, 0.07));
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.home-feature-card__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.home-feature-card__desc {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--ink-muted);
+}
+
+/* ── Footer ── */
+.home-footer {
+  margin-top: auto;
+  padding: 20px 0;
+  border-top: 1px solid rgba(111, 91, 73, 0.12);
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+/* ── Mobile ── */
+@media (max-width: 760px) {
+  .home-features {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .home-hero__headline {
+    font-size: clamp(2rem, 8vw, 2.6rem);
+  }
+
+  .home-hero__sub {
+    font-size: 0.9rem;
+  }
+
+  .home-hero__cta {
+    padding: 12px 28px;
+    font-size: 0.95rem;
+  }
+
+  .home-feature-card {
+    padding: 14px 14px 16px;
+    gap: 8px;
+  }
+
+  .home-feature-card__icon {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 420px) {
+  .home-features {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
+   COMPACT PAGE HEADERS — tighter kicker/h1/subtitle on interior pages
+   ============================================================ */
+
+.trips-dashboard__header,
+.explore-board__header,
+.tools-board__header,
+.community-board__header,
+.translator-page__header {
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.trips-dashboard__header h1,
+.explore-board__header h1,
+.tools-board__header h1,
+.community-board__header h1,
+.translator-page__header h1 {
+  font-size: clamp(1.3rem, 2.5vw, 1.8rem);
+  margin: 0 0 4px;
+  line-height: 1.15;
+}
+
+.trips-dashboard__header p:not(.section-kicker),
+.explore-board__header p:not(.section-kicker),
+.tools-board__header p:not(.section-kicker),
+.community-board__header p:not(.section-kicker),
+.translator-page__header p:not(.section-kicker) {
+  font-size: 0.82rem;
+  margin: 0;
+  opacity: 0.75;
+}
+
+.section-kicker {
+  font-size: 0.68rem;
+  margin-bottom: 4px;
+  letter-spacing: 0.12em;
+}
