@@ -2,25 +2,54 @@
 
 import { useEffect, useState } from "react";
 import { getToolsProvider } from "@/lib/tools";
-import type { ToolCategory } from "@/lib/tools";
+import type { ToolCategory, ToolsProviderStatus } from "@/lib/tools";
+
+function readCategoryParam() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  return new URLSearchParams(window.location.search).get("category");
+}
+
+function writeCategoryParam(categoryId: string) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const nextUrl = new URL(window.location.href);
+  nextUrl.searchParams.set("category", categoryId);
+  window.history.replaceState(null, "", `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`);
+}
+
+function toDomId(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
 
 export function ToolsBoard() {
   const [categories, setCategories] = useState<ToolCategory[]>([]);
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
+  const [providerStatus, setProviderStatus] = useState<ToolsProviderStatus | null>(null);
 
   useEffect(() => {
     const provider = getToolsProvider();
-    const requestedCategoryId =
-      typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("category");
-
+    provider.getProviderStatus().then(setProviderStatus);
     provider.listCategories().then((loaded) => {
+      const requestedCategoryId = readCategoryParam();
+      const initialCategoryId =
+        loaded.find((category) => category.id === requestedCategoryId)?.id ?? loaded[0]?.id ?? null;
+
       setCategories(loaded);
-      const requested = loaded.find((category) => category.id === requestedCategoryId);
-      setActiveCategoryId((current) => current ?? requested?.id ?? loaded[0]?.id ?? null);
+      setActiveCategoryId((current) => current ?? initialCategoryId);
     });
   }, []);
 
   const activeCategory = categories.find((category) => category.id === activeCategoryId) ?? null;
+
+  function handleCategorySelect(categoryId: string) {
+    setActiveCategoryId(categoryId);
+    writeCategoryParam(categoryId);
+  }
 
   return (
     <section className="tools-board" aria-labelledby="tools-title">
@@ -37,7 +66,8 @@ export function ToolsBoard() {
               <button
                 aria-pressed={category.id === activeCategoryId}
                 data-active={category.id === activeCategoryId ? "true" : "false"}
-                onClick={() => setActiveCategoryId(category.id)}
+                data-category-id={category.id}
+                onClick={() => handleCategorySelect(category.id)}
                 type="button"
               >
                 {category.name}
@@ -47,7 +77,12 @@ export function ToolsBoard() {
         </ul>
 
         {activeCategory && (
-          <article className="tools-category-detail" aria-labelledby="tools-category-title">
+          <article
+            className="tools-category-detail"
+            aria-labelledby="tools-category-title"
+            data-category-id={activeCategory.id}
+            id={`tool-${activeCategory.id}`}
+          >
             <h2 id="tools-category-title">{activeCategory.name}</h2>
             <p>{activeCategory.summary}</p>
             <ul aria-label={`${activeCategory.name} tips`}>
@@ -55,6 +90,42 @@ export function ToolsBoard() {
                 <li key={tip}>{tip}</li>
               ))}
             </ul>
+            {providerStatus && (
+              <aside className="provider-status" aria-label="Tools provider status">
+                <strong>{providerStatus.label}</strong>
+                <span>{providerStatus.coverage}</span>
+                <p>{providerStatus.nextIntegration}</p>
+                <small>{providerStatus.candidates.join(" / ")}</small>
+              </aside>
+            )}
+            <div className="tools-category-sections">
+              {activeCategory.sections.map((section) => {
+                const sectionId = `tool-section-${activeCategory.id}-${toDomId(section.title)}`;
+
+                return (
+                  <section key={section.title} aria-labelledby={sectionId}>
+                    <h3 id={sectionId}>{section.title}</h3>
+                    <ul>
+                      {section.items.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </section>
+                );
+              })}
+            </div>
+            <section className="tools-offline-notes" aria-labelledby={`offline-notes-${activeCategory.id}`}>
+              <h3 id={`offline-notes-${activeCategory.id}`}>Offline pocket notes</h3>
+              <ul>
+                {activeCategory.offlineTips.map((tip) => (
+                  <li key={tip}>{tip}</li>
+                ))}
+              </ul>
+            </section>
+            <p className="tools-api-priority">
+              <strong>API priority</strong>
+              {activeCategory.apiPriority}
+            </p>
           </article>
         )}
       </div>

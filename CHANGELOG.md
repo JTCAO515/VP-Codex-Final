@@ -1,12 +1,61 @@
 # VisePanda Changelog
 
-## v0.1.19 - 2026-06-29
+## v0.1.26 - 2026-06-30
 
-- Implemented task 5.2: deep-link butler reminders to the matching Tools category.
-- Added `components/canvas/ButlerReminders.tsx`: a lightweight list rendered below the day timeline in `TripCanvas` (not at the top, not the removed five-card grid). Each `ButlerAlert` maps by `type` to a Tools category id (`visa`→`visa-and-entry`, `payment`→`payment-setup`, `language`→`translate`, `transport`→`metro`, `risk`/`emergency`→`emergency`) and renders as a link to `/tools?category=<id>`; unmapped types (`booking`, `weather`) render as plain text.
-- `components/tools/ToolsBoard.tsx` now reads a `?category=` URL param on mount and preselects that category if it exists, falling back to the first category otherwise.
-- `CanvasTaskStrip.tsx` remains unused/unreferenced — explicitly not restored, per the existing constraint against the removed top task-card grid.
-- Added `tests/butler-reminders.test.tsx` covering the mapped/unmapped alert rendering, a new test in `tests/tools-board.test.tsx` covering the `?category=` preselect, and updated `tests/canvas-components.test.tsx` since reminders are now intentionally rendered (with a working deep link) rather than absent.
+- Added `ButlerReminders` — a lightweight alert list rendered below the day timeline in `TripCanvas` (not at the top, not the removed five-card grid).
+- Each `ButlerAlert` maps by `type` to a Tools category id (`visa`→`visa-and-entry`, `payment`→`payment-setup`, `language`→`translate`, `transport`→`metro`, `risk`/`emergency`→`emergency`) and renders as an `<a href="/tools?category=<id>">` link; unmapped types (`booking`, `weather`) render as plain text.
+- `CanvasTaskStrip.tsx` remains unused — not restored, per the existing constraint against the removed top task-card grid.
+- Added `tests/butler-reminders.test.tsx` covering mapped/unmapped alert rendering and updated `tests/canvas-components.test.tsx` since reminders are now intentionally rendered with working deep links.
+
+## v0.1.25 - 2026-06-30
+
+- Added Tools provider readiness metadata so the Tools layer documents static mode, coverage, candidate live data sources, limitations, and the first integration priority.
+- `ToolsBoard` now renders the provider status alongside category content without hardcoding provider-specific copy in the component.
+- Added provider status tests for the Tools abstraction.
+
+## v0.1.24 - 2026-06-30
+
+- Added Explore provider readiness metadata for static mode, current coverage, candidate data providers, limitations, and the next integration target.
+- `ExploreBoard` now shows the provider status so users and future agents can see that the page is static today and prepared for POI/place-detail provider validation.
+- Added provider status tests for the Explore abstraction.
+
+## v0.1.23 - 2026-06-30
+
+- Added destination-aware background scene selection for the Trip Canvas route.
+- `TripCanvas` now syncs the active destination scene to the document body, and CSS switches the ink-wash atmosphere for Beijing, Shanghai/Jiangnan, Hangzhou/Suzhou, Chongqing, or the default China ink landscape.
+- Added tests for the destination-to-scene mapper.
+
+## v0.1.22 - 2026-06-30
+
+- Implemented the Tools practicalization pass: every static Tools category now has structured sections, offline pocket notes, and an API priority note.
+- `lib/tools/types.ts` and `lib/tools/staticProvider.ts` now model `sections`, `offlineTips`, and `apiPriority` so future real providers can fill the same fields without changing `ToolsBoard`.
+- `components/tools/ToolsBoard.tsx` renders category tips, grouped checklist sections, offline-readable notes, and the next API integration priority.
+- Expanded Tools tests to require structured sections, offline content, and API priority metadata.
+
+## v0.1.21 - 2026-06-30
+
+- Expanded Explore static data with Guangzhou, Hangzhou, Suzhou, and Chongqing across city summaries, attractions, food, and stays.
+- Updated Explore Add to Trip messaging so every item sends the user back to Chat with a request for VisePanda to rebalance the route around the selected place.
+- Added a visible note explaining that Add to Trip reopens Chat and updates the canvas through the AI planning pipeline.
+- Expanded Explore provider and board tests for the new cities and rebalanced Add to Trip message.
+
+## v0.1.20 - 2026-06-30
+
+- Added a Trips status guide that explains Draft, Ready, Shared, and Archived states in plain language.
+- Trip Detail now shows the current status meaning and next recommended action for both real Supabase-backed trips and example trips.
+- Shared status copy now lives in `lib/trips/mockTrips.ts` so dashboard cards and detail pages use the same language.
+- Expanded Trips Dashboard and Trip Detail tests for the status guide behavior.
+
+## v0.1.19 - 2026-06-30
+
+- Implemented task 5.2: Tools category deep links.
+- `components/tools/ToolsBoard.tsx` now reads `/tools?category=<tool-category-id>` on mount and opens the matching category, falling back to the default category for invalid values.
+- Category clicks now update the URL with `history.replaceState`, making selected Tools categories copyable and reusable from future Chat/Canvas reminder entry points.
+- Added a subtle active background highlight for the selected Tools category.
+- Expanded `tests/tools-board.test.tsx` to cover URL-selected categories and invalid-category fallback.
+- Replaced the letter placeholders in the top navigation with Lucide icons for Chat, Trips, Explore, and Tools.
+- Tightened desktop page density across Chat, Trips, Explore, and Tools: smaller headers, slimmer summary cards, tighter spacing, and internal scroll containers so the page itself stays locked to one viewport.
+- Added `tests/nav-tabs.test.tsx` to cover the icon-backed primary navigation.
 
 ## v0.1.18 - 2026-06-29
 
