@@ -143,3 +143,21 @@ Explicit exclusions for this iteration:
 
 - No direct client-side DashScope calls.
 - No permanent audio storage yet; longer production-grade recordings should later upload to Supabase Storage or OSS before recognition.
+
+## v0.1.31 Community Requirement Update
+
+Community is now a local interactive MVP rather than a static placeholder.
+
+MVP acceptance additions:
+
+- `/community` shows a compact membership strip with five levels: Bamboo Guest, Panda Explorer, Silk Road Insider, Dragon Pass, and VisePanda Concierge.
+- Feed supports local posting, type filters, city filter, likes, saves, comments, and read-more detail. Current state is stored in browser `localStorage`.
+- Photos supports local photo-card publishing and likes. It does not upload real image files yet.
+- Hot Spots keeps city/category filters and Add to Trip behavior, routing through `/chat?add=` and the existing AI planning pipeline.
+- Account displays a panda avatar and lets the user choose from six bundled panda avatars. The selected avatar is stored locally and reused by local community posts/photos.
+
+Explicit exclusions:
+
+- No Supabase community persistence in this iteration.
+- No real avatar upload or photo file upload in this iteration.
+- No paid membership, points ledger, payment, or entitlement enforcement yet.

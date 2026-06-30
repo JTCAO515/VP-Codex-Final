@@ -170,6 +170,27 @@ npm.cmd run test:e2e  # 2 Playwright tests passed
 npm run test      # all tests pass (including butler-reminders.test.tsx)
 npm run build     # production build passes
 ```
+## v0.1.31 Handoff Update - Community MVP, Membership, and Avatars
+
+Current version: `v0.1.31`.
+
+Completed in this iteration:
+
+- Upgraded `/community` from static mock display to local interactive MVP.
+- Feed now supports local post publishing, type/city filters, likes, saves, comments, read-more details, and localStorage persistence.
+- Photos now supports local photo-card publishing and local likes. Real image upload is still deferred.
+- Added membership system with five tiers: Bamboo Guest, Panda Explorer, Silk Road Insider, Dragon Pass, and VisePanda Concierge.
+- Community authors now show panda avatars and membership badges.
+- Account trigger now shows the selected panda avatar. Account popover includes a six-avatar picker and stores the choice in `localStorage`.
+- Added six local panda avatar SVG assets under `public/avatars/`.
+- Added `tests/community-board.test.tsx` and expanded Account guest tests for avatar selection.
+
+Known follow-up:
+
+- Add Supabase community tables and repository layer for cross-device posts, comments, likes, saves, and photos.
+- Add Supabase Storage avatar/photo upload, cropping, content moderation, and profile sync.
+- Add real membership progression, points ledger, paid entitlement rules, and admin moderation tools.
+
 ## v0.1.30 Handoff Update - Translator Qwen Stack
 
 Current version: `v0.1.30`.

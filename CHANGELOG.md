@@ -1,5 +1,16 @@
 # VisePanda Changelog
 
+## v0.1.31 - 2026-06-30
+
+- Upgraded the Community page from static mock display to a local interactive MVP.
+- Feed now supports local post publishing, type/city filters, likes, saves, comments, read-more detail, and localStorage persistence.
+- Photos now supports local photo-card publishing and local likes; real image upload remains planned for Supabase Storage.
+- Added a five-level membership system: Bamboo Guest, Panda Explorer, Silk Road Insider, Dragon Pass, and VisePanda Concierge.
+- Community authors now show panda avatars and membership badges.
+- Added six bundled panda avatar SVG assets and a reusable avatar registry in `lib/account/avatars.ts`.
+- Account trigger now displays the selected panda avatar, and the Account popover lets users choose a panda avatar stored in localStorage.
+- Added tests for Community MVP interactions and Account avatar selection.
+
 ## v0.1.30 - 2026-06-30
 
 - Upgraded the Translator stack to **Aliyun Bailian Qwen** across text translation, OCR, TTS, and STT.

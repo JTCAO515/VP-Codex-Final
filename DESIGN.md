@@ -345,3 +345,22 @@ ADR-031: Translator uses Qwen across text/OCR/TTS/STT instead of mixed providers
 - Background: The previous Translator path mixed DeepSeek translation, OCR.space OCR, and browser Web Speech TTS, while STT was only planned. The user asked to consolidate OCR scan translation, TTS, and STT on Aliyun Bailian Qwen.
 - Decision: Keep all external provider calls behind Next.js API routes and use model-specific Qwen routes for each capability. Frontend components never receive API keys.
 - Consequence: Translator behavior is more consistent and easier to configure on Vercel. Audio files are currently passed as data URLs or public URLs; later storage-backed uploads can be added without changing the STT route contract.
+
+## v0.1.31 Design Update - Community Local MVP and Membership
+
+Community remains frontend-first for this iteration.
+
+- `lib/community/types.ts` now includes `MemberTierId`, `MemberTier`, author `avatarId`, and author `memberTierId`.
+- `lib/community/membership.ts` defines the five-level membership system used by Community UI.
+- `lib/account/avatars.ts` defines six bundled panda avatars and the `visepanda:selected-avatar` localStorage key.
+- `public/avatars/*.svg` stores local panda avatar assets so Account and Community do not depend on external image delivery.
+- `CommunityFeed` stores local posts, likes, saves, and comments in `localStorage`.
+- `CommunityPhotos` stores local photo cards and photo likes in `localStorage`.
+- `AccountMenu` stores avatar selection in `localStorage`; future Supabase profile sync can read the same avatar id.
+
+ADR-032: Community uses localStorage before Supabase tables.
+
+- Background: The user asked to finish Community and add member levels, while the current repo only has mock community data and no community schema.
+- Decision: Finish the product experience first with localStorage-backed interactions and document Supabase persistence as the next backend step.
+- Reason: This keeps the MVP usable on Vercel immediately, avoids introducing half-built storage/moderation flows, and preserves the existing provider/fallback style.
+- Future migration: Add `community_posts`, `community_media`, `community_likes`, `community_comments`, `community_bookmarks`, profile avatar fields, Supabase Storage buckets, and moderation queues.

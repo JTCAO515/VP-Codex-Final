@@ -102,3 +102,12 @@ npm.cmd run test:e2e
 - Server-side key variables: `DASHSCOPE_API_KEY` preferred, `ALIYUN_BAILIAN_API_KEY` accepted as alias. Optional overrides: `DASHSCOPE_COMPATIBLE_BASE_URL`, `DASHSCOPE_BASE_URL`, `QWEN_TRANSLATE_MODEL`, `QWEN_OCR_MODEL`, `QWEN_TTS_MODEL`, `QWEN_STT_MODEL`.
 - Do not restore browser `speechSynthesis` as the primary Translator TTS path. It may only be considered as a future fallback if product requirements explicitly ask for offline speech.
 - STT now supports recording/uploaded audio data URLs and public audio URLs. If future work adds durable audio upload, prefer Supabase Storage or OSS before calling `/api/translate/stt`.
+
+## v0.1.31 Agent Update - Community, Membership, and Avatar Rules
+
+- Community MVP is local-first: do not imply posts, comments, photo cards, likes, or saves are synced across devices until Supabase community persistence is added.
+- Preserve `/community` as a one-page desktop workspace with internal scrolling.
+- Community Hot Spots Add to Trip must continue to route through `/chat?add=` and the existing AI pipeline.
+- Membership levels are defined in `lib/community/membership.ts`; do not duplicate tier names or benefits inside components.
+- Panda avatars are defined in `lib/account/avatars.ts` and stored under `public/avatars/`. Account avatar selection uses `visepanda:selected-avatar` in `localStorage`.
+- Do not implement real avatar upload or photo file upload until the project adds Supabase Storage buckets, upload validation, image moderation, and profile/media persistence.

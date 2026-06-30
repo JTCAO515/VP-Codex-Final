@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import { getPandaAvatar, PANDA_AVATAR_STORAGE_KEY, pandaAvatars } from "@/lib/account/avatars";
 import {
   signInWithGoogle,
   signInWithPassword,
@@ -25,6 +26,12 @@ export function AccountMenu() {
   const [newPassword, setNewPassword] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [avatarId, setAvatarId] = useState(pandaAvatars[0].id);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem(PANDA_AVATAR_STORAGE_KEY);
+    if (stored) setAvatarId(getPandaAvatar(stored).id);
+  }, []);
 
   function toggleOpen() {
     setOpen((current) => !current);
@@ -81,8 +88,16 @@ export function AccountMenu() {
     setProfileForm("none");
   }
 
+  function handleAvatarSelect(nextAvatarId: string) {
+    const nextAvatar = getPandaAvatar(nextAvatarId);
+    setAvatarId(nextAvatar.id);
+    window.localStorage.setItem(PANDA_AVATAR_STORAGE_KEY, nextAvatar.id);
+    setStatus(`${nextAvatar.name} selected.`);
+  }
+
   const displayName =
     (session?.user.user_metadata?.full_name as string | undefined)?.trim() || session?.user.email || "";
+  const activeAvatar = getPandaAvatar(avatarId);
 
   return (
     <div className="account-menu">
@@ -94,11 +109,34 @@ export function AccountMenu() {
         onClick={toggleOpen}
         type="button"
       >
-        <span aria-hidden="true">A</span>
+        <img alt="" className="account-menu__trigger-avatar" src={activeAvatar.src} />
       </button>
 
       {open && (
         <div className="account-menu__popover" role="dialog" aria-label="Account menu">
+          <div className="account-menu__profile-head">
+            <img alt="" className="account-menu__profile-avatar" src={activeAvatar.src} />
+            <div>
+              <p className="account-menu__profile-title">{displayName || "Guest traveler"}</p>
+              <p className="account-menu__profile-subtitle">Panda avatar · stored locally</p>
+            </div>
+          </div>
+
+          <div className="account-menu__avatar-picker" aria-label="Choose panda avatar">
+            {pandaAvatars.map((avatar) => (
+              <button
+                aria-pressed={avatar.id === activeAvatar.id}
+                className="account-menu__avatar-option"
+                key={avatar.id}
+                onClick={() => handleAvatarSelect(avatar.id)}
+                type="button"
+              >
+                <img alt="" src={avatar.src} />
+                <span>{avatar.name}</span>
+              </button>
+            ))}
+          </div>
+
           {!configured && (
             <p>
               Supabase is not configured for this deployment yet. Guest mode stays available, and sign-in will

@@ -155,3 +155,12 @@ Next translator priorities:
 
 - [ ] Add optional Supabase Storage or OSS upload for recorded audio before STT when longer recordings need durable public URLs.
 - [ ] Add language auto-detection and more source-language presets after the Qwen path is stable in production.
+
+## v0.1.31 Addendum - Community MVP, Membership, and Avatars
+
+- [x] Upgrade `/community` from static framework to local interactive MVP: local posting, type/city filters, likes, saves, comments, read-more detail, and localStorage persistence.
+- [x] Add a compact membership level system: Bamboo Guest, Panda Explorer, Silk Road Insider, Dragon Pass, and VisePanda Concierge.
+- [x] Show membership badges on community authors and a compact membership strip on the Community page.
+- [x] Upgrade Photos tab to local photo-card publishing and local likes.
+- [x] Add reusable panda avatar assets and Account avatar picker with localStorage persistence.
+- [ ] Future: connect community posts/photos/likes/comments to Supabase and add Supabase Storage avatar/photo uploads, moderation, and real member progression.

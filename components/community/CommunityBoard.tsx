@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CommunityFeed } from "@/components/community/CommunityFeed";
 import { CommunityPhotos } from "@/components/community/CommunityPhotos";
 import { CommunityHotSpots } from "@/components/community/CommunityHotSpots";
+import { memberTiers } from "@/lib/community/membership";
 
 type CommunityTab = "feed" | "hotspots" | "photos";
 
@@ -21,8 +22,17 @@ export function CommunityBoard() {
       <header className="community-board__header">
         <p className="section-kicker">社区 / Community</p>
         <h1 id="community-title">旅行者社区</h1>
-        <p>分享行程、照片和旅行心得 · Share trips, photos, and travel tips with fellow travelers</p>
+        <p>Share trips, photos, travel tips, and trusted China discoveries.</p>
       </header>
+
+      <div className="community-membership-strip" aria-label="VisePanda membership levels">
+        {memberTiers.map((tier) => (
+          <article className="community-membership-strip__tier" key={tier.id}>
+            <strong>{tier.name}</strong>
+            <span>{tier.requirement}</span>
+          </article>
+        ))}
+      </div>
 
       <div className="community-tabs" role="tablist" aria-label="社区板块">
         {TABS.map((tab) => (
