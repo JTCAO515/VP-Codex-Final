@@ -143,3 +143,15 @@
 - 已知风险 6：水墨背景如果过重，会影响文字可读性和移动端性能。
 - 待验证假设 1：用户会更喜欢"右侧持续聊天 + 左侧实时画布"而不是传统单列聊天。
 - 待验证假设 2：Trips 行程库先以 dashboard 管理草稿/已确认/已分享状态，能自然承接 Chat 生成的行程。
+## v0.1.30 Addendum - Translator Qwen Upgrade
+
+- [x] Replace Translator text translation provider with Aliyun Bailian Qwen `qwen-mt-flash`.
+- [x] Replace OCR.space scan translation with Aliyun Bailian Qwen OCR `qwen3.5-ocr`.
+- [x] Replace browser Web Speech TTS with server-side Aliyun Bailian Qwen `qwen3-tts-instruct-flash`.
+- [x] Implement Voice tab and `/api/translate/stt` with Aliyun Bailian Qwen `qwen3-asr-flash`, supporting recording/uploaded audio data URLs and public audio URLs.
+- [x] Add shared `lib/aliyun/qwen.ts` helper, tests for Qwen routes, and Translator page test for the Voice tab.
+
+Next translator priorities:
+
+- [ ] Add optional Supabase Storage or OSS upload for recorded audio before STT when longer recordings need durable public URLs.
+- [ ] Add language auto-detection and more source-language presets after the Qwen path is stable in production.

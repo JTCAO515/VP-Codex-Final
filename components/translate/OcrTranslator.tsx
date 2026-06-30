@@ -1,15 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-
-function speak(text: string) {
-  if (typeof window === "undefined" || !window.speechSynthesis) return;
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "zh-CN";
-  utterance.rate = 0.85;
-  window.speechSynthesis.speak(utterance);
-}
+import { speakWithQwen } from "@/components/translate/qwenSpeech";
 
 function resizeImageToBase64(file: File, maxPx = 1200): Promise<{ base64: string; mimeType: string }> {
   return new Promise((resolve, reject) => {
@@ -139,7 +131,7 @@ export function OcrTranslator() {
               <h3>英文翻译 English translation</h3>
               <p>{translation}</p>
               {pinyin && <p className="ocr-translator__pinyin">{pinyin}</p>}
-              <button onClick={() => speak(ocrText)} type="button">🔊 朗读中文 Speak Chinese</button>
+              <button onClick={() => speakWithQwen(ocrText, { language: "Chinese" }).catch(() => setError("朗读失败，请稍后再试 / TTS failed"))} type="button">🔊 朗读中文 Speak Chinese</button>
             </section>
           )}
         </div>

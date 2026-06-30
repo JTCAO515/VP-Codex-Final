@@ -1,5 +1,17 @@
 # VisePanda Changelog
 
+## v0.1.30 - 2026-06-30
+
+- Upgraded the Translator stack to **Aliyun Bailian Qwen** across text translation, OCR, TTS, and STT.
+- `/api/translate/text` now uses `qwen-mt-flash` via the DashScope OpenAI-compatible chat completions endpoint, returning translation and optional pinyin JSON.
+- `/api/translate/ocr` now uses `qwen3.5-ocr` via the DashScope OpenAI-compatible multimodal endpoint; OCR.space is no longer used.
+- Added `/api/translate/tts`, using `qwen3-tts-instruct-flash` through the DashScope multimodal generation endpoint and returning a temporary Qwen audio URL.
+- Added `/api/translate/stt`, using `qwen3-asr-flash` with `input_audio` through the DashScope OpenAI-compatible chat completions endpoint.
+- Added a **Voice** tab to `/translate` for recording, uploading audio, or pasting a public audio URL; recognized speech is automatically sent through the text translation route.
+- Replaced browser `speechSynthesis` in Text, OCR, and Phrase Book with server-side Qwen TTS requests so API keys remain server-only.
+- Added `lib/aliyun/qwen.ts` as the shared Bailian/Qwen helper and updated environment placeholders for `DASHSCOPE_API_KEY`, endpoint overrides, and optional model overrides.
+- Added tests for the Qwen translator API routes and the Voice tab; full Vitest suite now covers 30 files and 69 tests.
+
 ## v0.1.29 - 2026-06-30
 
 - Added **Community page** (`/community`) as the 6th main navigation tab (Globe icon), implementing the Phase 11 framework.

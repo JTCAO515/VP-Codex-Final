@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ALIYUN_PROVIDER, QWEN_MODELS, callQwenChatCompletions, parseJsonObject } from "@/lib/aliyun/qwen";
 
 export async function POST(req: Request) {
   const { text, from = "en", to = "zh" } = await req.json();
@@ -6,37 +7,40 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "missing_text" }, { status: 400 });
   }
 
-  const apiKey = process.env.DEEPSEEK_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json({ ok: false, error: "not_configured" }, { status: 503 });
-  }
+  const model = process.env.QWEN_TRANSLATE_MODEL?.trim() || QWEN_MODELS.translate;
+  const targetName = to === "zh" ? "Simplified Chinese" : "natural English";
+  const sourceName = from === "zh" ? "Chinese" : "the source language";
 
-  const systemPrompt =
-    to === "zh"
-      ? `You are a professional English-to-Chinese translator. Translate the user's text into Simplified Chinese. Also provide pinyin romanization. Respond ONLY with valid JSON in this format: {"translation":"...","pinyin":"..."}`
-      : `You are a professional Chinese-to-English translator. Translate the user's text into natural English. Respond ONLY with valid JSON in this format: {"translation":"..."}`;
-
-  const res = await fetch("https://api.deepseek.com/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
-      model: "deepseek-chat",
-      temperature: 0.1,
-      response_format: { type: "json_object" },
+  try {
+    const content = await callQwenChatCompletions({
+      model,
+      responseFormatJson: true,
       messages: [
-        { role: "system", content: systemPrompt },
+        {
+          role: "system",
+          content:
+            `You are VisePanda's travel translator. Translate ${sourceName} to ${targetName}. ` +
+            `Return only valid JSON: {"translation":"...","pinyin":"..."}; use an empty pinyin string unless the output is Chinese.`,
+        },
         { role: "user", content: text },
       ],
-    }),
-  });
+    });
+    const parsed = parseJsonObject(content);
+    const translation = typeof parsed.translation === "string" ? parsed.translation : content;
+    const pinyin = typeof parsed.pinyin === "string" ? parsed.pinyin : "";
 
-  if (!res.ok) {
-    return NextResponse.json({ ok: false, error: "upstream_error" }, { status: 502 });
+    return NextResponse.json({
+      ok: true,
+      provider: ALIYUN_PROVIDER,
+      model,
+      from,
+      to,
+      translation,
+      pinyin,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "translation_failed";
+    const status = message === "not_configured" ? 503 : 502;
+    return NextResponse.json({ ok: false, error: message }, { status });
   }
-
-  const data = await res.json();
-  const content = data.choices?.[0]?.message?.content ?? "{}";
-  const parsed = JSON.parse(content);
-
-  return NextResponse.json({ ok: true, from, to, ...parsed });
 }

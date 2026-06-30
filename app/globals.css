@@ -2525,6 +2525,144 @@ select:focus-visible {
   margin: 0;
 }
 
+/* Voice Translator */
+
+.voice-translator {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.voice-translator__panel,
+.voice-translator__result {
+  background: var(--paper-warm);
+  border: 1.5px solid var(--stone-soft);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+}
+
+.voice-translator__panel h2 {
+  margin: 0.15rem 0 0.35rem;
+  color: var(--ink);
+  font-size: 1.25rem;
+}
+
+.voice-translator__panel p {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.9rem;
+}
+
+.voice-translator__direction,
+.voice-translator__controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.voice-translator__direction button,
+.voice-translator__controls button,
+.voice-translator__url button,
+.voice-translator__result button {
+  padding: 0.45rem 0.9rem;
+  border: 1.5px solid var(--stone);
+  border-radius: var(--radius-sm);
+  background: var(--paper-soft);
+  color: var(--ink-muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.15s;
+}
+
+.voice-translator__direction button {
+  flex: 1;
+}
+
+.voice-translator__direction button.active,
+.voice-translator__controls button:first-child,
+.voice-translator__url button {
+  background: var(--cinnabar);
+  border-color: var(--cinnabar);
+  color: #fff;
+  font-weight: 600;
+}
+
+.voice-translator__url {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 1rem;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+}
+
+.voice-translator__url div {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.voice-translator__url input {
+  flex: 1;
+  min-width: 0;
+  border: 1.5px solid var(--stone);
+  border-radius: var(--radius-sm);
+  background: var(--paper-soft);
+  color: var(--ink);
+  font: inherit;
+  padding: 0.45rem 0.65rem;
+}
+
+.voice-translator__url input:focus {
+  outline: none;
+  border-color: var(--cinnabar);
+}
+
+.voice-translator__url button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.voice-translator__audio {
+  display: block;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.voice-translator__status,
+.voice-translator__error {
+  margin-top: 0.75rem !important;
+  font-size: 0.85rem !important;
+}
+
+.voice-translator__error {
+  color: var(--danger) !important;
+}
+
+.voice-translator__result {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.voice-translator__result h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+
+.voice-translator__result p {
+  margin: 0 0 0.55rem;
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.voice-translator__pinyin {
+  color: var(--cinnabar) !important;
+  font-size: 0.86rem !important;
+}
+
 /* Phrase Book */
 
 .phrase-book {

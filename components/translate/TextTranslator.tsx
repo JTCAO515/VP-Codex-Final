@@ -1,17 +1,9 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { speakWithQwen } from "@/components/translate/qwenSpeech";
 
 type Direction = "en→zh" | "zh→en";
-
-function speak(text: string, lang: string) {
-  if (typeof window === "undefined" || !window.speechSynthesis) return;
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = lang;
-  utterance.rate = 0.85;
-  window.speechSynthesis.speak(utterance);
-}
 
 export function TextTranslator() {
   const [direction, setDirection] = useState<Direction>("en→zh");
@@ -54,7 +46,7 @@ export function TextTranslator() {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  const outputLang = direction === "en→zh" ? "zh-CN" : "en-US";
+  const outputLanguage = direction === "en→zh" ? "Chinese" : "English";
 
   return (
     <div className="text-translator">
@@ -101,7 +93,10 @@ export function TextTranslator() {
           <p className="text-translator__result">{translation}</p>
           {pinyin && <p className="text-translator__pinyin">{pinyin}</p>}
           <div className="text-translator__actions">
-            <button onClick={() => speak(translation, outputLang)} type="button">
+            <button
+              onClick={() => speakWithQwen(translation, { language: outputLanguage }).catch(() => setError("朗读失败，请稍后再试 / TTS failed"))}
+              type="button"
+            >
               🔊 朗读 Speak
             </button>
             <button onClick={handleCopy} type="button">

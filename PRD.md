@@ -127,3 +127,19 @@ VisePanda 是一个面向外国人来中国旅行的英文原生 AI 管家。用
 - 核心能力：公开 trip 发布与浏览、照片上传（Supabase Storage）、点赞/收藏、城市维度的热门榜单（景点/餐厅）。
 - 推荐第三方数据源：高德地图 POI 搜索 API、美团外卖/餐饮 API（评分/评价）、Supabase Realtime（社区动态推送）。
 - 前提依赖：Supabase auth 已接入；需新增 `posts`、`photos`、`likes` Supabase 表；需评估高德/美团 API 申请资质。
+## v0.1.30 Translator Requirement Update
+
+Translator is now a four-tab travel translation tool: Text, Scan, Voice, and Phrases.
+
+MVP acceptance additions:
+
+- Text translation uses Aliyun Bailian Qwen `qwen-mt-flash` through `/api/translate/text`, returning translation plus pinyin when the target is Chinese.
+- Scan translation uses Aliyun Bailian Qwen `qwen3.5-ocr` through `/api/translate/ocr`; OCR.space is no longer part of the product path.
+- TTS playback uses `/api/translate/tts` with `qwen3-tts-instruct-flash`; browser `speechSynthesis` is no longer the primary playback path.
+- Voice translation uses `/api/translate/stt` with `qwen3-asr-flash`; users can record, upload audio, or paste a public audio file URL, then the transcript is automatically translated.
+- All Bailian/Qwen keys remain server-side in environment variables. The browser only calls internal `/api/translate/*` routes.
+
+Explicit exclusions for this iteration:
+
+- No direct client-side DashScope calls.
+- No permanent audio storage yet; longer production-grade recordings should later upload to Supabase Storage or OSS before recognition.

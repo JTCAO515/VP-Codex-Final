@@ -4,7 +4,7 @@
 
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）。
 - 当前分支：`main`
-- 当前版本：`v0.1.29`
+- 当前版本：`v0.1.30`
 - 重要（已完成）：
   - `supabase/migrations/0002_trip_archive_and_share.sql`：用户已手动在 Supabase SQL Editor 执行，归档/分享 RLS policy 已生效。
   - Google OAuth：用户已在 Google Cloud 创建 OAuth 凭据并在 Supabase Authentication → Providers → Google 填入，Google 登录功能已配置就绪。
@@ -170,3 +170,27 @@ npm.cmd run test:e2e  # 2 Playwright tests passed
 npm run test      # all tests pass (including butler-reminders.test.tsx)
 npm run build     # production build passes
 ```
+## v0.1.30 Handoff Update - Translator Qwen Stack
+
+Current version: `v0.1.30`.
+
+Completed in this iteration:
+
+- Replaced mixed Translator providers with Aliyun Bailian Qwen across text translation, OCR, TTS, and STT.
+- Added `lib/aliyun/qwen.ts` shared helper.
+- Updated `/api/translate/text` to `qwen-mt-flash`.
+- Updated `/api/translate/ocr` to `qwen3.5-ocr`.
+- Added `/api/translate/tts` using `qwen3-tts-instruct-flash`.
+- Added `/api/translate/stt` using `qwen3-asr-flash`.
+- Added `VoiceTranslator` tab with record/upload/public URL input and automatic translation after transcription.
+- Replaced browser `speechSynthesis` calls in Text, OCR, and Phrase Book with server-side Qwen TTS playback.
+- Added tests: `tests/qwen-translate-api.test.ts` and `tests/translator-page.test.tsx`.
+
+Known deployment requirement:
+
+- Vercel must set `DASHSCOPE_API_KEY` (or `ALIYUN_BAILIAN_API_KEY`) for the Translator Qwen routes to work in production.
+- Optional endpoint/model overrides are documented in `lib/env/placeholders.ts`.
+
+Known follow-up:
+
+- Longer production voice recordings should later upload to Supabase Storage or OSS before STT if data URL payload size becomes a problem.

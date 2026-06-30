@@ -3,15 +3,7 @@
 import { useState } from "react";
 import { phrases, specialTerms, PHRASE_CATEGORY_LABELS, SPECIAL_TERM_CATEGORY_LABELS } from "@/lib/translate/phrases";
 import type { PhraseCategory, SpecialTermCategory } from "@/lib/translate/types";
-
-function speak(text: string) {
-  if (typeof window === "undefined" || !window.speechSynthesis) return;
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "zh-CN";
-  utterance.rate = 0.85;
-  window.speechSynthesis.speak(utterance);
-}
+import { speakWithQwen } from "@/components/translate/qwenSpeech";
 
 type BookTab = "phrases" | "terms";
 type PhraseTab = PhraseCategory;
@@ -73,7 +65,7 @@ export function PhraseBook() {
                 <button
                   aria-label={`朗读 ${phrase.chinese}`}
                   className="phrase-book__speak"
-                  onClick={() => speak(phrase.chinese)}
+                  onClick={() => speakWithQwen(phrase.chinese, { language: "Chinese" }).catch(() => undefined)}
                   type="button"
                 >
                   🔊
@@ -113,7 +105,7 @@ export function PhraseBook() {
                 <button
                   aria-label={`朗读 ${term.chinese}`}
                   className="phrase-book__speak"
-                  onClick={() => speak(term.chinese)}
+                  onClick={() => speakWithQwen(term.chinese, { language: "Chinese" }).catch(() => undefined)}
                   type="button"
                 >
                   🔊

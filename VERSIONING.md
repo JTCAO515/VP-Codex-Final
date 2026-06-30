@@ -3,7 +3,7 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.29`
+- Current iteration: `v0.1.30`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -43,3 +43,4 @@
 - `v0.1.27`: connected real ExchangeRate-API for live CNY exchange rates in the Tools Currency category, and Amap POI search API for live attractions/food/stays data in Explore. Both providers fall back to static data gracefully when the API key is not configured or the upstream is unreachable.
 - `v0.1.28`: added full Translator page (`/translate`) — text translation (DeepSeek), OCR scan translation (OCR.space), phrase book (44 phrases + 28 special terms), TTS via Web Speech API. Removed ButlerReminders from TripCanvas. Community page planning added to docs (no implementation).
 - `v0.1.29`: added Community page (`/community`) framework — Feed (shared trips/tips), Hot Spots (city-level rankings with Add to Trip), Photos wall. Mock data with 6 posts, 12 hot spots, 8 photos. 6th main nav tab (Globe icon). Real Supabase/API integration planned for Phase 11.
+- `v0.1.30`: upgraded Translator to Aliyun Bailian Qwen for text translation (`qwen-mt-flash`), OCR (`qwen3.5-ocr`), TTS (`qwen3-tts-instruct-flash`), and STT (`qwen3-asr-flash`); added `/api/translate/tts`, `/api/translate/stt`, a Voice tab, and server-side Qwen TTS playback across Translator components.

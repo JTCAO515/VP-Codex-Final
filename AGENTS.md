@@ -94,3 +94,11 @@ npm.cmd run test:e2e
 - [ ] `npm.cmd run build` 已通过，或失败原因已记录。
 - [ ] `npm.cmd run test:e2e` 已通过，或失败原因已记录。
 - [ ] 没有把真实密钥、临时截图、`node_modules`、`.next` 提交进仓库。
+## v0.1.30 Agent Update - Translator Rules
+
+- Translator external calls must go through server-side `/api/translate/*` routes. Do not call DashScope/Bailian directly from client components.
+- Text translation uses Aliyun Bailian Qwen `qwen-mt-flash`; OCR uses `qwen3.5-ocr`; TTS uses `qwen3-tts-instruct-flash`; STT uses `qwen3-asr-flash`.
+- Use `lib/aliyun/qwen.ts` for shared Qwen endpoint/key/model helpers instead of duplicating provider setup in routes.
+- Server-side key variables: `DASHSCOPE_API_KEY` preferred, `ALIYUN_BAILIAN_API_KEY` accepted as alias. Optional overrides: `DASHSCOPE_COMPATIBLE_BASE_URL`, `DASHSCOPE_BASE_URL`, `QWEN_TRANSLATE_MODEL`, `QWEN_OCR_MODEL`, `QWEN_TTS_MODEL`, `QWEN_STT_MODEL`.
+- Do not restore browser `speechSynthesis` as the primary Translator TTS path. It may only be considered as a future fallback if product requirements explicitly ask for offline speech.
+- STT now supports recording/uploaded audio data URLs and public audio URLs. If future work adds durable audio upload, prefer Supabase Storage or OSS before calling `/api/translate/stt`.

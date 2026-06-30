@@ -322,3 +322,26 @@ erDiagram
 - `lib/env/`：环境变量状态 registry。
 - `tests/`：Vitest 和 Playwright 测试。
 - `public/`：项目静态资产。
+## v0.1.30 Design Update - Translator Qwen Stack
+
+Translator provider architecture now uses one server-side Aliyun Bailian helper:
+
+- `lib/aliyun/qwen.ts` centralizes API key lookup, DashScope endpoint defaults, model constants, chat-completions calls, JSON parsing, and data URL normalization.
+- API key lookup order: `DASHSCOPE_API_KEY`, then `ALIYUN_BAILIAN_API_KEY`.
+- OpenAI-compatible default endpoint: `https://dashscope.aliyuncs.com/compatible-mode/v1`.
+- DashScope HTTP default endpoint for TTS: `https://dashscope.aliyuncs.com/api/v1`.
+
+Model routing:
+
+| Capability | Route | Model | Endpoint style |
+| --- | --- | --- | --- |
+| Text translation | `/api/translate/text` | `qwen-mt-flash` | OpenAI-compatible chat completions |
+| OCR | `/api/translate/ocr` | `qwen3.5-ocr` | OpenAI-compatible multimodal chat completions |
+| TTS | `/api/translate/tts` | `qwen3-tts-instruct-flash` | DashScope multimodal generation |
+| STT | `/api/translate/stt` | `qwen3-asr-flash` | OpenAI-compatible chat completions with `input_audio` |
+
+ADR-031: Translator uses Qwen across text/OCR/TTS/STT instead of mixed providers.
+
+- Background: The previous Translator path mixed DeepSeek translation, OCR.space OCR, and browser Web Speech TTS, while STT was only planned. The user asked to consolidate OCR scan translation, TTS, and STT on Aliyun Bailian Qwen.
+- Decision: Keep all external provider calls behind Next.js API routes and use model-specific Qwen routes for each capability. Frontend components never receive API keys.
+- Consequence: Translator behavior is more consistent and easier to configure on Vercel. Audio files are currently passed as data URLs or public URLs; later storage-backed uploads can be added without changing the STT route contract.
