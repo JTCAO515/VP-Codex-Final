@@ -623,6 +623,55 @@ select:focus-visible {
   padding-right: 2px;
 }
 
+.butler-reminders {
+  flex-shrink: 0;
+  border-top: 1px solid rgba(111, 91, 73, 0.18);
+  padding-top: 10px;
+}
+
+.butler-reminders h3 {
+  margin: 0 0 6px;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.butler-reminders ul {
+  display: grid;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.butler-reminders li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.84rem;
+}
+
+.butler-reminders li[data-priority="high"] span:first-child {
+  color: var(--cinnabar);
+}
+
+.butler-reminders a,
+.butler-reminders__action {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+}
+
+.butler-reminders a {
+  color: var(--cinnabar);
+  text-decoration: underline;
+}
+
+.butler-reminders__action {
+  color: var(--ink-muted);
+}
+
 .day-card {
   position: relative;
   display: grid;

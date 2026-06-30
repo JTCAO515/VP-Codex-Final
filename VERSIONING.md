@@ -3,7 +3,7 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.25`
+- Current iteration: `v0.1.19`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -32,10 +32,4 @@
 - `v0.1.16`: replaced the standalone `/account` page with a header icon + popover (task 2.5) — `AccountMenu` handles email/password sign-in/sign-up, Google OAuth sign-in, and post-login change-name/change-password/log-out, all without leaving the current page.
 - `v0.1.17`: implemented the Explore "Add to Trip" flow (task 4.4) — every Explore attraction/food/stay item has an Add to Trip button that navigates to `/chat?add=<draft message>`, and `ButlerWorkspace` auto-sends that draft through the existing `/api/chat` → `CanvasPatch` pipeline on mount, keeping all canvas writes flowing through the AI pipeline.
 - `v0.1.18`: upgraded `/tools` from a placeholder into a static-provider-driven skeleton (task 5.1) covering Visa and entry, Payment setup, Translate, Currency, Metro, eSIM/VPN, and Emergency, following the same provider-abstraction pattern as Explore.
-- `v0.1.19`: implemented Tools category deep links (task 5.2), added icon-backed top navigation for Chat/Trips/Explore/Tools, and tightened desktop page density so Chat, Trips, Explore, and Tools stay locked to one viewport with internal scrolling.
-- `v0.1.20`: improved Trips status clarity with a shared Draft/Ready/Shared/Archived guide on the dashboard and matching status guidance on Trip Detail.
-- `v0.1.21`: expanded Explore static coverage to Guangzhou, Hangzhou, Suzhou, and Chongqing, and clarified that Add to Trip reopens Chat for AI route rebalancing.
-- `v0.1.22`: practicalized Tools with structured checklist sections, offline pocket notes, and API priority metadata for every category.
-- `v0.1.23`: added destination-aware ink-wash scene switching based on the active Trip Canvas route.
-- `v0.1.24`: added Explore provider readiness metadata and UI status for future POI/place-detail API validation.
-- `v0.1.25`: added Tools provider readiness metadata and UI status for future exchange-rate, translation, visa-rule, and transit API validation.
+- `v0.1.19`: implemented task 5.2 — butler reminders now deep-link to the matching Tools category. A new lightweight `ButlerReminders` list under the day timeline (not the removed top task-card grid) maps each alert type to a Tools category and links to `/tools?category=<id>`, which `ToolsBoard` now reads on mount to preselect that category.
