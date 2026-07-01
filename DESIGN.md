@@ -410,6 +410,23 @@ ADR-034: Add a CSS visual-system layer instead of refactoring UI primitives.
 - Visual treatment is background-forward: heavy translucent panels are avoided; text floats on the ink landscape with hairline dividers and very low-opacity paper backing.
 - Account avatar selection now points the existing six stable avatar IDs to six new PNG assets in `public/avatars`, preserving existing localStorage/community references while replacing the visible artwork.
 
+## v0.1.44 Design Update - Mobile Portrait Layout
+
+All changes are CSS-only in `app/globals.css`, appended as a final `@media (max-width: 760px)` block that wins the cascade over all earlier blocks.
+
+- `.nav-tabs` gets `position: fixed; bottom: 0; left: 0; right: 0; z-index: 50` on mobile. The tab bar is removed from the normal document flow; the header becomes a compact top strip showing only brand mark, LanguageSwitcher, and AccountMenu.
+- `.day-drawer-shell` on mobile: `inset: auto 0 56px 0; height: 80dvh; width: 100%; border-radius: 16px 16px 0 0`. The 56px bottom offset clears the fixed nav. A CSS `::before` pseudo-element provides a drag-handle hint.
+- `.account-menu__popover` on mobile: `width: calc(100vw - 28px); right: -10px; max-height: 82dvh; overflow-y: auto`.
+- `.explore-city-filters` scrolls horizontally on mobile (`overflow-x: auto; flex-wrap: nowrap`).
+- `.explore-board__columns` forced to `grid-template-columns: 1fr` on mobile.
+- `.app-shell` gets `padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px))` to prevent content hiding behind the fixed nav on any device including notch phones.
+
+ADR-036: CSS-only mobile layout — fixed bottom nav + bottom-sheet drawer.
+
+- Background: On mobile portrait, the 6-icon nav at the top requires stretching to reach; the day drawer at 34vw is ~133px on a 390px phone and is unusable.
+- Decision: Use CSS `position: fixed` to reposition nav to the bottom (no component changes needed — fixed elements leave the document flow, so the header naturally collapses to brand + utils). Use CSS to reposition `.day-drawer-shell` as a bottom sheet (full width, 80dvh, slides up from bottom).
+- Reason: Pure CSS changes minimize regression risk, require no new component logic, and are easy to override or extend in future iterations. The established late-cascade pattern (v0.1.36) is already used in this project and documented as the correct approach.
+
 ## v0.1.43 Design Update - Repair Fallbacks and Detail Hierarchy
 
 - `/api/translate/text` now uses provider fallback routing: try Qwen/DashScope first, normalize its JSON/plain response, then fall back to DeepSeek chat completions with the same JSON response contract if Qwen is missing or fails.

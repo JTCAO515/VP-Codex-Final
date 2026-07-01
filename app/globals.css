@@ -5885,3 +5885,195 @@ select {
     background: rgba(255, 250, 241, 0.28);
   }
 }
+
+/* ============================================================
+   v0.1.44 — MOBILE PORTRAIT OPTIMIZATION
+   All rules are scoped to max-width: 760px and sit at the end
+   of the file so they win the cascade over every earlier block.
+   ============================================================ */
+
+@media (max-width: 760px) {
+
+  /* ── 1. Bottom sticky navigation bar ─────────────────────────
+     On mobile, thumbs don't reach the top. Pull the nav to the
+     bottom with position:fixed so it floats free of the header.
+     The header then shows only brand mark + lang + account.     */
+
+  .nav-tabs {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--paper-soft) 96%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(111, 91, 73, 0.18);
+    box-shadow: 0 -3px 14px rgba(55, 36, 18, 0.07);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Remove the circular icon border inside the bottom tab bar */
+  .nav-tabs__link span {
+    border: 0;
+    border-radius: 0;
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Active underline moves to the top of the link in the bottom bar */
+  .nav-tabs__link[data-active="true"]::after {
+    top: 0;
+    bottom: auto;
+    height: 2px;
+  }
+
+  /* Shrink the brand mark on mobile — saves header height */
+  .brand-mark__logo {
+    width: 36px;
+    height: 36px;
+  }
+
+  .brand-mark strong {
+    font-size: 1.1rem;
+  }
+
+  /* Body padding so page content is never hidden behind the fixed nav */
+  .app-shell {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* ── 2. Day detail drawer → full-width bottom sheet ──────────
+     min(430px, 34vw) = ~133px on a 390px phone — completely
+     unusable. Replace with a full-width slide-up bottom sheet.  */
+
+  .day-drawer-shell {
+    inset: auto 0 56px 0;   /* 56px clears the bottom nav bar */
+    width: 100%;
+    height: 80dvh;
+    border-left: 0;
+    border-top: 1px solid rgba(111, 91, 73, 0.22);
+    border-radius: 16px 16px 0 0;
+    justify-content: flex-start;
+    box-shadow: 0 -10px 32px rgba(55, 36, 18, 0.14);
+    background:
+      linear-gradient(180deg, rgba(251, 244, 232, 0.72), rgba(245, 234, 210, 0.68)),
+      url("/ink-landscape.png") center / cover fixed;
+  }
+
+  .day-drawer {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: 0;
+    padding: 6px 18px 28px;
+    overflow-y: auto;
+    background: color-mix(in srgb, var(--paper-soft) 86%, transparent);
+  }
+
+  /* Drag-handle hint at top of the bottom sheet */
+  .day-drawer::before {
+    content: "";
+    display: block;
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(111, 91, 73, 0.2);
+    margin: 6px auto 14px;
+  }
+
+  /* ── 3. Account menu popover → bounded width ─────────────────
+     340px popover with right:0 nearly fills a 390px screen and
+     can clip on the left. Constrain to viewport width.          */
+
+  .account-menu__popover {
+    width: calc(100vw - 28px);
+    right: -10px;
+    max-height: 82dvh;
+    overflow-y: auto;
+  }
+
+  /* ── 4. Trip summary actions → left-aligned on mobile ────────
+     These are the compact controls on Trip Detail pages.        */
+
+  .trip-summary-actions {
+    justify-items: start;
+    width: 100%;
+  }
+
+  .trip-summary-actions__links,
+  .trip-summary-actions__buttons {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .trip-summary-actions__status {
+    text-align: left;
+    max-width: 100%;
+  }
+
+  .trip-summary-actions__share {
+    max-width: 100%;
+  }
+
+  /* ── 5. Explore city filters → horizontal scroll pill row ──── */
+
+  .explore-city-filters {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+
+  .explore-city-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .explore-city-filters button {
+    flex: 0 0 auto;
+  }
+
+  /* ── 6. Explore columns → single column ───────────────────── */
+
+  .explore-board__columns {
+    grid-template-columns: 1fr;
+    overflow: visible;
+    max-height: none;
+  }
+
+  /* ── 7. Trip detail header → stack vertically ──────────────── */
+
+  .trip-detail__header {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .trip-detail__actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* ── 8. Community post cards → adapt for narrow width ──────── */
+
+  .community-post-card__cover {
+    width: 2.8rem;
+    height: 2.8rem;
+    font-size: 1.9rem;
+  }
+
+  /* ── 9. Tool cards → larger touch targets ──────────────────── */
+
+  .tool-card {
+    min-height: 52px;
+    padding: 14px 16px;
+  }
+
+  /* ── 10. Explore body → natural height on mobile ────────────── */
+
+  .explore-board__body {
+    grid-template-rows: auto;
+    overflow: visible;
+    min-height: 0;
+  }
+}

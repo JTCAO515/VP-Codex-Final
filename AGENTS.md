@@ -145,6 +145,14 @@ npm.cmd run test:e2e
 - Voice UI should remain one Record button unless the user explicitly asks to restore audio upload or URL transcription controls.
 - Preserve existing avatar IDs in `lib/account/avatars.ts` unless there is a migration plan, because community mock data and localStorage may reference them.
 
+## v0.1.44 Agent Update - Mobile Layout Rules
+
+- The 6-tab navigation is `position: fixed; bottom: 0` on mobile (`max-width: 760px`). Do not add inline `style` or component-level classes that conflict with this. If NavTabs layout needs to change, update the CSS rule in `app/globals.css`.
+- `.day-drawer-shell` on mobile is a full-width bottom sheet. Do not reintroduce `width: min(430px, 34vw)` or any right-side positioning for the drawer on mobile; it must remain a bottom sheet until a user decision changes the pattern.
+- Do not add `padding-bottom` overrides to `.app-shell` from component code; the fixed-nav bottom padding is controlled by the CSS cascade in `globals.css` to avoid conflicts.
+- When adding new page sections or modals on mobile, account for the fixed 56–64px bottom nav height. Use `env(safe-area-inset-bottom, 0px)` for notch devices.
+- Mobile nav active-state indicator is a 2px top border on the active tab (not the bottom border used on desktop). If changing the active indicator, update both the desktop `::after` rule and the mobile override.
+
 ## v0.1.43 Agent Update - Repair Rules
 
 - `/api/translate/text` should keep Qwen/DashScope as the first provider but must preserve the DeepSeek fallback path unless the user explicitly removes it.

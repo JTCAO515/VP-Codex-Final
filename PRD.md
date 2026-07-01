@@ -221,6 +221,21 @@ Explicit exclusions:
 - No translation history, account sync, Supabase persistence, or uploaded audio storage.
 - No full mobile redesign beyond preserving functional stacked layout and mobile camera capture affordance.
 
+## v0.1.44 Mobile Portrait Requirement Update
+
+MVP acceptance additions:
+
+- On screens ≤ 760px, the 6-tab navigation must appear as a fixed bottom bar so all tabs are reachable by thumbs without extending to the top of the screen.
+- The day detail drawer must appear as a full-width bottom sheet on mobile (not a narrow right-side panel); it should cover ~80dvh and have rounded top corners.
+- The account popover must not overflow the left edge of narrow mobile screens; it must be bounded to the viewport width.
+- Explore city filter pills must scroll horizontally on mobile instead of wrapping into multiple rows.
+- Page content must never be hidden behind the fixed bottom navigation; the app shell must add enough bottom padding to account for the nav height plus device safe-area insets.
+
+Explicit exclusions:
+
+- No gesture-based dismiss or swipe-to-close for the bottom sheet (tap the close button).
+- No design changes for tablet or wide-mobile breakpoints in this iteration.
+
 ## v0.1.43 Repair Requirement Update
 
 MVP acceptance additions:

@@ -213,6 +213,18 @@ Next translator priorities:
 - [x] Lock `/translate` to a single desktop landscape viewport with internal overflow only.
 - [x] Verify `/translate` at 1440x900 with Playwright metrics: body/html page scroll is zero and the translator surface uses hidden/internal overflow.
 
+## v0.1.44 Addendum - Mobile Portrait Optimization
+
+- [x] Move the 6-tab navigation to a fixed bottom bar on mobile; header shows only brand + lang + account.
+- [x] Convert day detail drawer from a right-side narrow panel to a full-width bottom sheet on mobile.
+- [x] Constrain account popover to viewport width on mobile.
+- [x] Make explore city filter pills scroll horizontally on mobile.
+- [x] Stack explore POI columns to a single column on mobile.
+- [x] Stack trip detail header vertically on mobile.
+- [x] Left-align trip summary actions on mobile.
+- [x] Add shell bottom padding to prevent content hiding behind fixed bottom nav.
+- [x] Enlarge tool card touch targets on mobile.
+
 ## v0.1.43 Addendum - Translator and Trip Detail Repair
 
 - [x] Fix text translation availability by adding a DeepSeek fallback behind `/api/translate/text` when Qwen/DashScope is unavailable.

@@ -1,5 +1,19 @@
 # VisePanda Changelog
 
+## v0.1.44 - 2026-07-01
+
+- Moved the 6-tab navigation to a **fixed bottom bar** on mobile (`position: fixed; bottom: 0`), so thumbs can reach tabs without stretching to the top of the screen. The header now shows only the brand mark, language switcher, and account icon on mobile.
+- Converted the day detail drawer from a narrow right-side panel (`min(430px, 34vw)` = ~133px on a 390px phone) into a **full-width bottom sheet** (80dvh, slides up from the bottom with rounded top corners and a drag-handle hint).
+- Constrained the **account menu popover** to `calc(100vw - 28px)` on mobile, preventing it from overflowing the left edge of narrow screens.
+- Made **explore city filter pills** scroll horizontally on mobile instead of wrapping into multiple rows.
+- Forced **explore POI columns** (Attractions / Food / Stays) to a single column on mobile instead of the auto-fit multi-column grid.
+- **Trip detail header** now stacks vertically on mobile (title above action links) instead of trying to fit both on one row.
+- **Trip summary actions** (compact controls inside the Live Trip Canvas on Trip Detail) switch to left-aligned and wrap freely on mobile.
+- Enlarged **tool card** touch targets on mobile (`min-height: 52px`).
+- Added `padding-bottom: calc(64px + env(safe-area-inset-bottom))` to `.app-shell` so page content is never hidden behind the fixed bottom nav on any screen, including notch devices.
+- Removed the circular border from nav icons inside the bottom bar; added a 2px active-state line at the top of the active tab for visual feedback.
+- Shrunk brand mark logo and title text slightly on mobile to free header height.
+
 ## v0.1.43 - 2026-07-01
 
 - Fixed `/api/translate/text` so text translation no longer fails outright when the Qwen/DashScope route is unavailable; the route now falls back to the existing DeepSeek server-side provider before returning a provider-unavailable error.

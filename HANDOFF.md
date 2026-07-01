@@ -4,7 +4,7 @@
 
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）；v0.1.34 桌面横屏前端优化：Tools 6 个模态卡片 + 浮层对话框、Trips 筛选按钮布局修复（过滤器始终可见）、Translator 单页 2×2 网格布局（同时展示四个功能面板无需切换 tab）。
 - 当前分支：`main`
-- 当前版本：`v0.1.43`
+- 当前版本：`v0.1.44`
 - 重要（已完成）：
   - `supabase/migrations/0002_trip_archive_and_share.sql`：用户已手动在 Supabase SQL Editor 执行，归档/分享 RLS policy 已生效。
   - Google OAuth：用户已在 Google Cloud 创建 OAuth 凭据并在 Supabase Authentication → Providers → Google 填入，Google 登录功能已配置就绪。
@@ -40,6 +40,20 @@
 - Voice input has one Record button. The old audio upload and public audio URL controls are no longer shown in the traveler UI.
 - Desktop 1440x900 Playwright check should be rerun before final handoff to confirm body/html page scroll remains zero after the final visual pass.
 - Account avatar selection now uses six new panda PNG assets under `public/avatars` while preserving the existing six avatar IDs for localStorage and community compatibility.
+
+## v0.1.44 Handoff Update - Mobile Portrait Optimization
+
+- Current version after this iteration: `v0.1.44`.
+- All changes are CSS-only in `app/globals.css`; no component logic was modified.
+- Bottom nav is now `position: fixed; bottom: 0` on mobile (`max-width: 760px`), turning the 6-icon tab strip into a thumb-friendly bottom bar. The app-header on mobile shows only brand mark, LanguageSwitcher, and AccountMenu.
+- `.day-drawer-shell` on mobile becomes a full-width bottom sheet (`inset: auto 0 56px 0; height: 80dvh`) with rounded top corners and a drag-handle hint, replacing the 34vw right-side panel that was ~133px on a 390px phone.
+- `.account-menu__popover` on mobile is constrained to `calc(100vw - 28px)` and `max-height: 82dvh` with `overflow-y: auto`, preventing clip on narrow screens.
+- Explore city filter pills now scroll horizontally on mobile (`overflow-x: auto; flex-wrap: nowrap`); explore columns stack to a single column.
+- `.app-shell` gets `padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px))` to prevent the fixed bottom nav from covering page content.
+- Trip detail header stacks vertically; trip summary actions (compact Trip Detail controls) switch to left-aligned.
+- Tool cards get `min-height: 52px` for better touch targets.
+- Key file: `app/globals.css` (v0.1.44 mobile optimization block at end of file).
+- Verification: `npm run test` passed (31 files, 79 tests); `npm run build` passed with 20 static pages generated.
 
 ## v0.1.43 Handoff Update - Translator and Trip Detail Repair
 
