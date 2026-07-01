@@ -1,21 +1,37 @@
 # VisePanda — 交接文档
-
+ 
 ## 当前状态
-
+ 
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）；v0.1.34 桌面横屏前端优化：Tools 6 个模态卡片 + 浮层对话框、Trips 筛选按钮布局修复（过滤器始终可见）、Translator 单页 2×2 网格布局（同时展示四个功能面板无需切换 tab）。
 - 当前分支：`main`（本地当前领先 `origin/main`；用户说明稍后手动 push）
-- 当前版本：`v0.1.52`
+- 当前版本：`v0.1.53`
 - 重要（已完成）：
   - `supabase/migrations/0002_trip_archive_and_share.sql`：用户已手动在 Supabase SQL Editor 执行，归档/分享 RLS policy 已生效。
   - Google OAuth：用户已在 Google Cloud 创建 OAuth 凭据并在 Supabase Authentication → Providers → Google 填入，Google 登录功能已配置就绪。
   - ExchangeRate-API：用户已获取 API Key，已配置 `EXCHANGE_RATE_API_KEY` 到 Vercel 环境变量；`/api/exchange-rate` 路由已连接，Tools Currency 分类展示实时 CNY 汇率（每小时刷新）。
   - 高德地图 API：用户已获取 Web Service API Key，已配置 `AMAP_API_KEY` 到 Vercel 环境变量；`/api/explore/amap` 路由已连接，Explore 景点/美食/住宿来自高德 POI 实时搜索。
   - v0.1.52 是纯文档产品策略/交互规划迭代：新增 `docs/planning/v0.1.52-product-interaction-blueprint.md`，把产品定位、用户旅程、页面职责、功能联动、v0.1.53-v0.1.60 路线、UX writing 和指标体系定为后续实施依据。
+  - v0.1.53 是纯文档战略规划迭代：细化了“中国旅行操作系统”产品方向，设计了离线保险库（Offline Vault）、文化背景解读器（Cultural Context Interpreter）、信用卡智能支付路由（Payment Card Routing）、上下文工具推荐（Contextual Tool Promotion）和双语打印包（Bilingual Export & Print Kit）五大模块及系统关联。
 - 最新实现 commit：本轮提交后以 `git log -1 --oneline` 为准
 - 当前远端：`https://github.com/JTCAO515/VP-Codex-Final.git`
 - 部署地址：`https://go2china.space`
-
+ 
+## v0.1.53 Handoff Update - Strategic Handoff Snapshot
+ 
+- Current version: `v0.1.53` in `package.json` and `VERSIONING.md`.
+- Completed since v0.1.52:
+  - Brainstormed and established core architecture for 5 travel-facing enhancements (Offline Vault, Cultural Interpreter, Payment Routing, Contextual Promotion, Bilingual Export).
+  - Drafted ADR-060 through ADR-063 in `DESIGN.md`.
+  - Added implementation details and roadmap checks in `PLAN.md`, `PRD.md`, and `AGENTS.md`.
+- Active development status on MacBook:
+  - Repository cloned to `/Users/jtcao/Documents/Antigravity/VP-Codex-Final`.
+  - Node dependencies installed successfully via `npm install`.
+  - Dev server running in background.
+  - All 98 unit/component tests passing (100% green).
+- Next recommended iteration: `v0.1.53` code changes. Implement Home archetype routes, first-run empty state suggestions, dynamic `nextStep` buttons, and traveler-facing status copy mapping.
+ 
 ## v0.1.41 Handoff Update - Documentation Alignment Snapshot
+
 
 - Current source-of-truth version: `v0.1.41` in `VERSIONING.md` and `package.json`.
 - Completed since v0.1.34:

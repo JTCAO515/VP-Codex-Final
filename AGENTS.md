@@ -321,5 +321,14 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 - Every personal or sensitive question must explain why it matters to the trip.
 
 **Recommended order**
-
+ 
 - Next implementation should start with `v0.1.53` Interaction Shell I, then proceed through Canvas Action Layer, Inline Tool Cards, TripBlock POI Embedding, Translate Everywhere, Tools Widgets, Account Center, and Admin/Customer Brief work as recorded in `PLAN.md`.
+ 
+## v0.1.53 Agent Update - Offline Vault, Context Interpretation, Payment Cards, Contextual Tool Promotion, and Bilingual Handoff
+
+- **Offline-First Vault Integrity**: When editing client state or adding new local storage dependencies, ensure all critical data models (`TripState`, `UserPreferenceProfile`, offline phrasebooks, emergency cards) are cached locally and fall back gracefully in offline mode. Keep the offline checking code unified.
+- **Cultural and Operational Interpretation**: AI Butler prompts must remain grounded in China travel constraints. Do not let the Butler output names without validating booking constraints (e.g. passport reservation requirements for museums, train ticket release schedules, holiday crowd advisories).
+- **Payment Wizard Logic**: When implementing payments setup, ensure the credit card routing matches the specific card rules: e.g., Alipay transaction limits (3% fee on purchases above 200 CNY), linking credit cards, WeChat Pay limits, and locating international cash networks.
+- **Contextual Tool Rendering**: Components on the active workspace must watch the current day/city route. Ensure tool priority changes dynamically (e.g., floating metro and Alipay cards for Shanghai, currency convert calculators for shopping).
+- **Bilingual Handoff Guidelines**: Ensure every POI and day block exposes a "Show Taxi Driver" trigger, rendering Chinese name and address in large-font bilingual text cards for drivers. Itinerary export should produce clean, compact EN/ZH print sheets.
+

@@ -2,18 +2,17 @@
 
 ## 1. 产品定位
 
-VisePanda 是一个面向外国人来中国旅行的英文原生 AI 管家。用户不需要学习中文 App，也不需要反复问当地人；他们可以通过持续对话，让 VisePanda 实时生成、修改、解释并保存可执行的中国旅行计划。
+VisePanda 是一个专为**非跟团自由行（FIT）外国来华游客**打造的一站式英文原生 AI 旅游管家。它打破了传统旅行工具与中文本土应用的隔阂，集成了**行程规划、酒店预订、景点/餐饮选择、实时翻译**等功能，并深度打通了**交通、支付、地图**等多插件能力。用户无需在各类中文 App 之间低效跳转，通过与 VisePanda 的持续对话即可实时生成、修改、执行完整的中国自由行计划。
 
 一句话定位：
 
-> VisePanda is an AI China travel butler that turns conversation into a live, practical trip canvas.
+> VisePanda is a one-stop AI travel butler for independent foreign travelers in China, integrating itinerary planning, booking, translation, and local utility plugins (transit, payment, maps) into a live, actionable trip canvas.
 
 ## 2. 目标用户
 
-- 第一次来中国的国际游客：需要路线、签证、支付、交通、翻译、住宿位置建议。
-- 高意向自由行用户：不想跟团，但希望快速得到靠谱行程。
-- 在中国的外国人、留学生、商务访客：需要周末游、短途游、落地工具。
-- 英文旅行规划者：替朋友、客户、家人快速制作中国旅行草案。
+- **独立自由行外国游客（FIT）**：不希望跟团，渴望自由探索中国，但面临信息壁垒（如景点实名预约、复杂的国内地铁与支付配置等）的国际游客。
+- **首次来华探索者**：需要一站式集成方案来解决签证、Alipay/WeChat Pay 支付绑定、eSIM 联网、以及乘车打车的痛点。
+- **在华常驻外籍人士**：需要深度定制化周末游、短途游，并需要强大的本地餐饮/娱乐插件推荐。
 
 核心场景：
 
@@ -519,7 +518,53 @@ The required experience loop is:
 - Track time to first canvas, meaningful edits/session, save-to-Trips rate, prep item completion, Translate quick-action usage, share-link creation, lead CTA completion, and the percentage of replies grounded in live tool/POI context.
 
 ### Explicit exclusions for v0.1.52
-
+ 
 - No product code changes in this iteration.
 - No provider/API/Supabase schema changes.
 - The blueprint sets the next implementation order but does not mark those future features as complete.
+ 
+## v0.1.53 Strategic Requirement Update
+
+This iteration establishes requirements for deeper travel assistance capabilities (resilience, context interpretation, card routing, contextual layout promotion, and bilingual offline handoff) to guide the next phases of development.
+
+### 1. Offline-First Travel Vault (Offline Resilience)
+* **Goal**: Enable the traveler to view and operate their trip details in China when network connectivity (Wi-Fi, cellular, or VPN) is lost.
+* **Requirements**:
+  - Automatically cache the active `TripState` (JSON snapshot), offline pocket notes, emergency contacts, local bilingual addresses, and translator phrasebooks locally in the browser (`localStorage` or IndexedDB).
+  - When connection is lost (`window.navigator.onLine === false` or API fetch timeout), automatically toggle an "Offline Desk" layout banner.
+  - In Offline Desk mode, all main navigation is disabled except Trip Canvas, Tools, and Translate. They render exclusively using cached local data.
+  - Show a prominent "Cached version - Last updated [time]" badge.
+
+### 2. Cultural Context Interpreter
+* **Goal**: AI Butler should act as a cultural and operational interpreter rather than just outputting generic tourism names.
+* **Requirements**:
+  - Ground the Butler's reasoning in Chinese digital rules: e.g., flag that certain museums (like the Forbidden City or Shaanxi History Museum) require real-name passport reservation 7 days in advance.
+  - Warn travelers about local holiday congestions (e.g. National Day Golden Week, Golden Week crowd levels, and train ticket release policies).
+  - Explain why specific spots require Cash/WeChat Pay (e.g. street food) and why other spots are cashless.
+
+### 3. Intelligent Payment Card Routing
+* **Goal**: Provide a payment wizard resolving credit card integration anxieties.
+* **Requirements**:
+  - A multi-step questionnaire card in Chat/Tools where users select their credit card brand (Visa, Mastercard, Amex, Discover).
+  - The tool outputs a personalized setup flow detailing:
+    - Transaction fee structure (e.g. Alipay 3% fee waiver threshold for transactions under 200 CNY).
+    - Setup steps for linking international cards directly to Alipay and WeChat Pay.
+    - Cash backup strategy: locating UnionPay-compatible ATMs for cash withdrawal.
+
+### 4. Contextual Tool Promotion
+* **Goal**: Dynamically promote relevant tools on the active layout based on the traveler's context.
+* **Requirements**:
+  - Detect current trip day/city context. For example, if the active day is set to "Shanghai", tools like "Metro Route Planner" and "Alipay Guide" are floated to the top of the Tools drawer, and Translate menu-recognition prompts are pre-loaded.
+  - Display helpful warnings (e.g. "Prepare Alipay for transit in Shanghai") directly on the Day Card in the Trip Canvas.
+
+### 5. Bilingual Export & Print Kit
+* **Goal**: Provide an offline handoff tool for local drivers and hotel staff who do not read English.
+* **Requirements**:
+  - Generate a "Bilingual Handoff Page" layout for print or mobile display.
+  - Every Day card and POI should have a "Show Taxi Driver (显示给司机)" button that renders the Chinese name, address, and an offline map block in large, clear text.
+  - Support exporting the full Trip Canvas as a clean, compact bilingual PDF/PNG card.
+
+### Explicit exclusions for v0.1.53
+- No product runtime code changes.
+- No Supabase or database schema migrations.
+

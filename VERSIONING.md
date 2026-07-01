@@ -3,7 +3,7 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.52`
+- Current iteration: `v0.1.53`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -63,6 +63,7 @@
 - `v0.1.47`: first code iteration of the multi-model track (阶段十三). Adds a provider-agnostic multi-LLM Butler orchestrator: `ChatCompletionProvider` interface, an OpenAI-compatible provider, a six-provider model registry (DeepSeek/Qwen/GLM/Kimi/ERNIE/MiniMax), a local intent classifier, intent-based routing, a high-stakes parallel ensemble, and a full fallback chain ending at the mock Butler. `/api/chat` now uses the orchestrator; behavior is unchanged with zero keys (mock) and upgrades automatically as keys are added. Also adds `docs/planning/mock-inventory.md` (every mock/placeholder + real-replacement plan), `CLAUDE.md` project memory (VPCC runs on explicit request only; docs updated + pushed every iteration; beginner tutorials for manual steps), and 16 new server-side env keys. ADR-050. 95 tests pass; production build succeeds.
 - `v0.1.48`: Chat quality activation after provider keys were configured in Vercel. Aligns default Butler models to DeepSeek v4 flash, Qwen 3.6 Flash, Zhipu GLM5, and Moonshot Kimi 2.5; adds optional structured Butler replies (`headline/body/highlights/watchOut/nextStep`) to the canvas/chat contract and renders them in Chat while preserving plain `assistantMessage` compatibility.
 - `v0.1.49`: Amap rich POI enrichment. `/api/explore/amap` uses `extensions=all`; Explore models/cards can show optional rating, price, phone, opening hours, photos, business area, source, and location metadata while static fallback remains valid.
-- `v0.1.50`: first Chat tool-context Butler. Relevant Chat intents now prefetch bounded Amap POI candidates and inject them into the multi-model prompt, so live providers can plan with real POI data before later full function-calling loops.
-- `v0.1.51`: lightweight preference memory. Guest Chat extracts pace, budget, party, dietary, cuisine, and interest signals from natural messages, persists them in localStorage, sends them to `/api/chat`, and shows compact remembered-preference chips.
-- `v0.1.52`: documentation-only product interaction blueprint. Repositions VisePanda as a China travel operating system, defines the five traveler anxieties, journey-stage model, page roles, feature linkage matrix, UX writing rules, metrics, and the `v0.1.53-v0.1.60` implementation roadmap. No runtime product code changes.
+- **v0.1.50**: first Chat tool-context Butler. Relevant Chat intents now prefetch bounded Amap POI candidates and inject them into the multi-model prompt, so live providers can plan with real POI data before later full function-calling loops.
+- **v0.1.51**: lightweight preference memory. Guest Chat extracts pace, budget, party, dietary, cuisine, and interest signals from natural messages, persists them in localStorage, sends them to `/api/chat`, and shows compact remembered-preference chips.
+- **v0.1.52**: documentation-only product interaction blueprint. Repositions VisePanda as a China travel operating system, defines the five traveler anxieties, journey-stage model, page roles, feature linkage matrix, UX writing rules, metrics, and the `v0.1.53-v0.1.60` implementation roadmap. No runtime product code changes.
+- **v0.1.53**: documentation-only strategic planning pass. Elevates VisePanda from a general travel tool to a cohesive "China Travel Operating System" with detailed requirements for an Offline-First Travel Vault, Cultural Context Interpreter, Intelligent Payment Card Routing, Contextual Tool Promotion, and Bilingual Export and Print Kits. Adds ADR-051 through ADR-053. No code changes.

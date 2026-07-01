@@ -1,4 +1,16 @@
 # VisePanda Changelog
+ 
+## v0.1.53 - 2026-07-01
+
+**Documentation-only strategic planning pass.** No product runtime code changes. This iteration refines VisePanda's architectural design and product goals from a comprehensive traveler-first experience angle, detailing new features and linkages.
+
+- **Offline-First Travel Vault**: Added requirements and designs for a local storage caching architecture. The vault caches the current active Trip Canvas, offline pocket notes, emergency contacts, local bilingual addresses, and essential translate phrasebooks. When the network is lost, the application seamlessly enters "Offline Desk" mode.
+- **Cultural Context Interpreter**: Upgraded AI Butler requirements to provide cultural context for travelers (e.g., explaining why reservations must be booked 7 days in advance for certain museums, local holiday crowd advisories, and ticketing rules).
+- **Intelligent Payment Card Routing**: Added a structural payments wizard requirement mapping foreign credit cards (Visa/Mastercard/Amex) to optimized WeChat Pay and Alipay setup procedures, identifying transaction limits, local ID verifications, and ATMs/cash backups.
+- **Contextual Tool Promotion**: Outlined page linkage rules to promote relevant tools in real-time context (e.g., if a user is in Shanghai on Day 2, automatically float the Metro and Alipay guides, and prioritize menu translation).
+- **Bilingual Export & Print Kit**: Added design specification to export itineraries as compact, clean bilingual (EN/ZH) cards, maps, and offline print sheets, specifically tailored for taxi drivers and hotel staff.
+- Added design documents **ADR-051** (Offline Travel Vault), **ADR-052** (Contextual Tool Promotion), and **ADR-053** (Bilingual Export and Print Kit) to `DESIGN.md`.
+- Updated `PRD.md`, `PLAN.md`, `AGENTS.md`, and `HANDOFF.md` to establish the new execution baseline.
 
 ## v0.1.52 - 2026-07-01
 

@@ -683,7 +683,32 @@ ADR-058: Keep operational trip data optional but persistent once available.
 - Reason: The product promise is practical travel, not pretty text. Persisting operational data lets Trips detail, share pages, Translate shortcuts, and future mobile/in-China flows work from the same source of truth.
 
 ADR-059: Traveler-facing language must hide internal implementation status.
-
+ 
 - Background: Some existing surfaces still expose internal words such as provider status, confidence, draft/refined, or implementation readiness.
 - Decision: Traveler UI should use status language based on the user's task: Taking shape, Looking good, Travel-ready, Needs payment setup, Missing hotel area, Ready for review. Internal provider/model/API metadata belongs in docs, logs, admin/debug tools, or subtle support copy.
 - Reason: Trust improves when the product speaks in terms of the traveler's next decision instead of the stack's current state.
+
+## v0.1.53 Design Update - One-Stop FIT Travel Butler (Offline Vault, Cultural Context, Payment Routing, Contextual Promotion, Bilingual Export)
+
+We have refined the architectural specifications for VisePanda as a one-stop AI travel butler for independent foreign travelers (FITs), integrating planning, booking, dining, translation, transit, payment, and maps, with detailed strategic designs for offline resilience, payment card routing, cultural context interpretation, contextual tool promotion, and bilingual export.
+
+ADR-060: Offline-First Travel Vault and Local Storage Cache Strategy.
+- Background: Internet reliability in China is a major traveler anxiety. High network latency, VPN blockages, and roaming data limits can render online trip tools unusable.
+- Decision: Implement an Offline-First Travel Vault that caches the active `TripState` JSON, offline pocket notes, emergency numbers, local bilingual addresses, and essential translator phrasebooks. When connection is lost, show a clear "Offline Desk" banner, disable network-dependent actions (e.g. Chat input, community Feed updates), and render only cached elements.
+- Reason: Provides immediate traveler utility under connection loss, ensuring key details (like taxi cards, hotel addresses, or offline emergencies) are always accessible in under 3 seconds.
+
+ADR-061: Cultural Context Interpreter and Grounded AI Butler Reasoning.
+- Background: Travel in China involves specific digital rules (passport reservations, WeChat Mini-programs, cashless street stalls) that foreigners are unaware of.
+- Decision: Enhance the AI Butler system prompts to require cultural and operational interpretation. The Butler must identify reservation rules (e.g. Forbidden City 7-day advance booking), national holiday crowding alerts, and payment mode guidance (cash vs. mobile wallets) based on the locations and dates in the Trip Canvas.
+- Reason: Reduces traveler surprise and operational errors, moving the AI from a text planner to an authentic China travel advisor.
+
+ADR-062: Contextual Tool Promotion and Page-State Linkage.
+- Background: Navigating through six separate tabs to find local utility tools (like Metro routes or Payment guides) increases user friction during active travel.
+- Decision: Link active page states to tool configurations. If the current active itinerary is set to "Shanghai", tools like "Metro Route Planner" and "Alipay Guide" are floated to the top of the Tools drawer, and Translate menu-recognition prompts are pre-loaded.
+- Reason: Minimizes clicks and eliminates manual lookup, placing contextually useful widgets exactly when the user needs them.
+
+ADR-063: Bilingual Export and Print Kit Generation.
+- Background: Travelers frequently need to show taxi drivers and hotel staff their itinerary. Natural language English descriptions are useless for non-English speakers.
+- Decision: Add a "Bilingual Export & Print Kit" that renders high-contrast, large-font Chinese/English address cards for taxi drivers ("Show Taxi Driver") and exports clean, compact print-ready PDF/PNG canvases.
+- Reason: Seamlessly bridges the gap between digital planning and offline real-world execution.
+

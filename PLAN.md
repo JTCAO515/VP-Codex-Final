@@ -469,7 +469,24 @@ How it behaves without keys (important):
 - With zero LLM keys configured, `/api/chat` returns the mock Butler exactly as before — no regression. Each provider key the user adds (server-side) automatically upgrades the Butler; no code change needed. This is the 🟡→🟢 transition described in `docs/planning/mock-inventory.md`.
 
 Next code iterations (recommended order):
-
+ 
 - [ ] Chat Intelligence Layer (阶段十二 v0.1.46-plan): response-normalization schema `{headline,body,highlights,watchOut,nextStep}`, then wire the refine-verify loop (task 13.5) on top of it.
 - [ ] Tools functional upgrade (阶段十五) — high immediate traveler value, self-contained.
 - [ ] Amap POI enrichment (阶段十二 v0.1.48) — unlocks rich Explore/Chat cards with no new approval.
+
+## v0.1.53 Addendum - Strategic Documentation Pass (Docs Only)
+
+- [x] Brainstormed and documented detailed requirements for the "China Travel Operating System" strategy.
+- [x] Defined Offline-First Travel Vault (caching `TripState`, phrasebooks, contacts, and switching to "Offline Desk" layout when disconnected).
+- [x] Outlined Cultural Context Interpreter (AI Butler grounding in China digital rules, booking warnings, and payment explanations).
+- [x] Defined Intelligent Payment Card Routing (credit card setup wizard for Alipay/WeChat Pay transaction fees, thresholds, and ATMs).
+- [x] Documented Contextual Tool Promotion rules (floating Shanghai-specific tools like Metro/Alipay and menu OCR translation when the traveler is in Shanghai).
+- [x] Defined Bilingual Export & Print Kit ( taxi cards, bilingual addresses, print-ready PDF/PNG trip summary maps).
+- [x] Recorded architectural decisions in DESIGN.md (ADR-060 to ADR-063).
+- [x] Created the custom VPGA Skill in `.agents/skills/VPGA/` for automatic synchronization and iteration summary.
+- [x] Updated PRD.md, PLAN.md, AGENTS.md, and HANDOFF.md.
+- [x] No code changes this iteration; all tasks remain strategic and planned for subsequent implementation.
+
+Next implementation tasks:
+- [ ] v0.1.53 Code changes: home archetype starts, chat first-run empty state, primary `nextStep` action chips, traveler-facing status wording.
+
