@@ -416,3 +416,20 @@ Deferred to later iterations:
 
 - The response-normalization schema `{headline, body, highlights, watchOut, nextStep}` and the full refine-and-verify loop with a judge model writing disagreements into `watchOut` (task 13.5) — these layer onto the Chat Intelligence work.
 - Vision/long-context specialization beyond capability tagging (e.g. routing menu photos to Qwen-VL).
+
+## v0.1.48 Requirement Update - Configured Models and Structured Butler Replies
+
+This iteration activates the configured Vercel provider setup and delivers the first user-visible response-normalization layer.
+
+MVP acceptance additions:
+
+- The Butler model registry defaults match the configured Vercel provider choices: DeepSeek v4 flash, Qwen 3.6 Flash, Zhipu GLM5, and Moonshot Kimi 2.5. Each remains overridable with the existing server-side `*_CHAT_MODEL` env vars.
+- Live Butler responses should include a structured `assistantResponse` object with `headline`, `body`, `highlights`, optional `watchOut`, and `nextStep`.
+- `assistantMessage` remains required so saved chat history, old provider responses, and existing fallback paths keep working.
+- `ChatPanel` renders structured assistant responses as a compact guidance card; old/plain messages still render as normal text.
+
+Explicit exclusions:
+
+- No full judge/refine-and-verify loop yet.
+- No preference-profile persistence yet.
+- No Amap rich-field enrichment in this iteration; that work is now the next data-fusion step.

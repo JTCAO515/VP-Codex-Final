@@ -55,14 +55,24 @@ export interface TripState {
 export interface CanvasPatch {
   intent: "create_trip" | "adjust_trip" | "add_alerts";
   assistantMessage: string;
+  assistantResponse?: AssistantResponse;
   tripSummary?: Partial<TripSummary>;
   days?: TripDay[];
   butlerAlerts?: ButlerAlert[];
   reason: string;
 }
 
+export interface AssistantResponse {
+  headline: string;
+  body: string;
+  highlights: string[];
+  watchOut?: string;
+  nextStep: string;
+}
+
 export interface ChatMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
+  response?: AssistantResponse;
 }

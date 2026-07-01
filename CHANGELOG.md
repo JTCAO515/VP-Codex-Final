@@ -1,5 +1,16 @@
 # VisePanda Changelog
 
+## v0.1.48 - 2026-07-01
+
+**Chat quality activation for the configured provider keys.** DeepSeek, Qwen, Zhipu, and Moonshot are now aligned to the user's Vercel configuration, and Butler replies can render as structured travel guidance instead of a single plain paragraph.
+
+- Updated the multi-LLM registry defaults to the configured production model choices: DeepSeek v4 flash, Qwen 3.6 Flash, Zhipu GLM5, and Moonshot Kimi 2.5. Env overrides remain available through the existing `*_CHAT_MODEL` variables.
+- Extended `CanvasPatch` and `ChatMessage` with optional `assistantResponse` / `response` data: `{ headline, body, highlights, watchOut, nextStep }`.
+- Updated `lib/ai/butlerPrompt.ts` so live providers are asked to return the structured response object while still populating `assistantMessage` for backwards compatibility.
+- Added parser fallback behavior so older/plain provider JSON is still accepted and converted into a minimal structured response.
+- Updated `ChatPanel` to render structured VisePanda replies with a headline, highlights, optional watch-out line, and next-step line while preserving plain text rendering for historical messages and mock fallback.
+- Added tests for the new model defaults and structured-response parsing compatibility.
+
 ## v0.1.47 - 2026-07-01
 
 **First code iteration of the multi-model track (阶段十三).** The Butler now answers through a real multi-LLM orchestrator instead of a single hardcoded DeepSeek call, following the quality-over-cost principle (ADR-043). All keys are server-side only; the mock fallback is preserved.

@@ -46,7 +46,25 @@ export function ChatPanel({ messages, onSend, suggestions, busy = false }: ChatP
         {messages.map((message) => (
           <article className="chat-message" data-role={message.role} key={message.id}>
             <span>{message.role === "assistant" ? "VisePanda" : "You"}</span>
-            <p>{message.content}</p>
+            {message.role === "assistant" && message.response ? (
+              <div className="chat-message__response">
+                <strong>{message.response.headline}</strong>
+                {message.response.body ? <p>{message.response.body}</p> : null}
+                {message.response.highlights.length > 0 ? (
+                  <ul>
+                    {message.response.highlights.map((highlight) => (
+                      <li key={highlight}>{highlight}</li>
+                    ))}
+                  </ul>
+                ) : null}
+                {message.response.watchOut ? (
+                  <p className="chat-message__watch">Watch out: {message.response.watchOut}</p>
+                ) : null}
+                <p className="chat-message__next">{message.response.nextStep}</p>
+              </div>
+            ) : (
+              <p>{message.content}</p>
+            )}
           </article>
         ))}
       </div>

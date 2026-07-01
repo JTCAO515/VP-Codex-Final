@@ -116,7 +116,17 @@
 - [ ] 任务 12.9：画像持久化——登录用户存 Supabase（新增 `profiles` 表 + migration），guest 存 localStorage；每次 DeepSeek 调用都把结构化 profile 注入 system prompt。
 - [ ] 任务 12.10：ChatPanel 头部显示偏好 chips（如「Foodie · Mid budget · 2 people」），让用户知道 Butler「记得」自己。
 
-### v0.1.48：高德 POI 数据丰富化（无需新审批）
+### v0.1.48：Chat 质量激活 —— 已配置模型 + 结构化回复（实际完成）
+
+> 实际 v0.1.48 根据用户最新输入优先执行：DeepSeek、Zhipu、Moonshot、Qwen keys 已在 Vercel 配好，因此本轮先激活多模型默认配置和回答规范化。原计划的高德 POI rich fields 顺延为后续实现项。
+
+- [x] 任务 13.8：将多模型 registry 默认模型对齐到生产配置：DeepSeek v4 flash、Qwen 3.6 Flash、Zhipu GLM5、Moonshot Kimi 2.5，同时保留 `*_CHAT_MODEL` 环境变量覆盖。
+- [x] 任务 13.9：扩展 `CanvasPatch` / `ChatMessage`，支持可选结构化回复 `{ headline, body, highlights, watchOut, nextStep }`，同时保留 `assistantMessage` 作为纯文本 fallback。
+- [x] 任务 13.10：更新 Butler prompt 和 parser，要求 live providers 返回结构化回复；旧格式 provider JSON 自动转为最小结构，不阻断历史兼容。
+- [x] 任务 13.11：更新 `ChatPanel`，将 VisePanda 的回复渲染为 headline + highlights + watchOut + nextStep 的紧凑管家卡片，历史消息和 mock fallback 继续按普通文本显示。
+- [x] 任务 13.12：补充模型默认值和结构化回复解析测试。
+
+### v0.1.49（顺延）：高德 POI 数据丰富化（无需新审批）
 
 - [ ] 任务 12.11：升级 `/api/explore/amap` 使用 `extensions=all`，捕获高德已返回但当前被丢弃的字段：`rating` / `cost` / `tel` / `opentime_week` / `photos` / `business_area`。
 - [ ] 任务 12.12：`AmapPoi` 接口补齐上述字段；`lib/explore/types.ts` 新增全可选的 `ExploreRichMeta`（rating / reviewCount / pricePerPerson / priceLevel / tel / openHours / photoUrl / bookingUrl / sourceLabel），`ExploreAttraction`/`ExploreFoodSpot`/`ExploreStay` 继承之。

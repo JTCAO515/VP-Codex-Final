@@ -7,6 +7,13 @@ function validPatchJson(message: string) {
   return JSON.stringify({
     intent: "adjust_trip",
     assistantMessage: `Handled: ${message}`,
+    assistantResponse: {
+      headline: "Trip updated",
+      body: `Handled: ${message}`,
+      highlights: ["Pace stays balanced", "Transport stays practical"],
+      watchOut: "Book popular sights early.",
+      nextStep: "Review Day 1.",
+    },
     reason: "Test provider response.",
     suggestions: ["One?", "Two?"],
     tripSummary: { confidence: "Refined" },
@@ -47,7 +54,34 @@ describe("requestOrchestratedButlerPatch", () => {
     expect(result.strategy).toBe("single");
     expect(result.intent).toBe("adjust_trip");
     expect(result.patch.tripSummary?.confidence).toBe("Refined");
+    expect(result.patch.assistantResponse?.headline).toBe("Trip updated");
+    expect(result.patch.assistantResponse?.highlights).toHaveLength(2);
     expect(result.suggestions).toEqual(["One?", "Two?"]);
+  });
+
+  it("keeps old provider responses compatible by deriving a structured fallback", async () => {
+    const provider = makeProvider("deepseek", {
+      content: JSON.stringify({
+        intent: "adjust_trip",
+        assistantMessage: "Legacy plain response.",
+        reason: "Legacy response still parsed.",
+        suggestions: ["First?", "Second?"],
+      }),
+    });
+    const result = await requestOrchestratedButlerPatch({
+      message: "Make the Beijing day calmer",
+      currentTrip: initialTripState,
+      env: { DEEPSEEK_API_KEY: "k" },
+      fetchImpl: vi.fn(),
+      providers: [provider],
+    });
+
+    expect(result.patch.assistantResponse).toEqual({
+      headline: "Legacy plain response.",
+      body: "",
+      highlights: [],
+      nextStep: "First?",
+    });
   });
 
   it("falls through the chain when the first provider fails", async () => {

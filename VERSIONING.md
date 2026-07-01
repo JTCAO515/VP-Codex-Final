@@ -3,7 +3,7 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.47`
+- Current iteration: `v0.1.48`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -61,3 +61,4 @@
 - `v0.1.45`: documentation-only product-roadmap iteration — no code changes. Distills the intelligent-chat-pipeline and data-fusion direction into a seven-iteration roadmap (v0.1.46–v0.1.52): Chat Intelligence Layer (intent classification + routing + input refinement + response normalization), Preference Profile + intent distillation, Amap POI data enrichment, tool-calling Butler with real POI data, onboarding + canvas quick-actions, navigation restructure, and Dianping/Meituan + map integration. Recorded across PRD/PLAN/DESIGN/AGENTS/HANDOFF with ADR-037 through ADR-042.
 - `v0.1.46`: documentation-only product-expansion iteration — no code changes. Adds seven strategic tracks: quality-over-cost principle (token cost is not a constraint), multi-model Chinese LLM orchestration (DeepSeek/Qwen/GLM/Kimi/ERNIE), native iOS/Android apps (React Native + Expo, plan only), Tools functional upgrade (six tools become interactive), professional Account UI + lead capture (留资), user-management admin backend with LLM customer briefs, and a frontend/visual-optimization track. Deep-dive in `docs/planning/v0.1.46-product-expansion.md`; recorded across PRD/PLAN/DESIGN/AGENTS/HANDOFF with ADR-043 through ADR-049.
 - `v0.1.47`: first code iteration of the multi-model track (阶段十三). Adds a provider-agnostic multi-LLM Butler orchestrator: `ChatCompletionProvider` interface, an OpenAI-compatible provider, a six-provider model registry (DeepSeek/Qwen/GLM/Kimi/ERNIE/MiniMax), a local intent classifier, intent-based routing, a high-stakes parallel ensemble, and a full fallback chain ending at the mock Butler. `/api/chat` now uses the orchestrator; behavior is unchanged with zero keys (mock) and upgrades automatically as keys are added. Also adds `docs/planning/mock-inventory.md` (every mock/placeholder + real-replacement plan), `CLAUDE.md` project memory (VPCC runs on explicit request only; docs updated + pushed every iteration; beginner tutorials for manual steps), and 16 new server-side env keys. ADR-050. 95 tests pass; production build succeeds.
+- `v0.1.48`: Chat quality activation after provider keys were configured in Vercel. Aligns default Butler models to DeepSeek v4 flash, Qwen 3.6 Flash, Zhipu GLM5, and Moonshot Kimi 2.5; adds optional structured Butler replies (`headline/body/highlights/watchOut/nextStep`) to the canvas/chat contract and renders them in Chat while preserving plain `assistantMessage` compatibility.

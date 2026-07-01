@@ -267,3 +267,11 @@ The multi-LLM Butler orchestrator now exists. When touching AI/chat code:
 
 - `docs/planning/mock-inventory.md` is the running list of every mock/placeholder/local-sim point and its real-replacement plan. When you make a mock real, update its row (status 🔴/🟡/🟢) and the "What changed" section in that file during the same iteration.
 - "Replace" always means real primary + mock kept as graceful fallback. Never delete a fallback to "finish" an item.
+
+## v0.1.48 Agent Update - Configured Models and Structured Reply Rules
+
+- The active configured Butler defaults are DeepSeek v4 flash (`deepseek-v4-flash`), Qwen 3.6 Flash (`qwen3.6-flash`), Zhipu GLM5 (`glm-5`), and Moonshot Kimi 2.5 (`kimi-2.5`). Keep these defaults unless the user changes provider/model direction; use env overrides for deployment-specific corrections.
+- `CanvasPatch.assistantMessage` is still required. Do not remove it, because saved chat history, legacy providers, and mock fallback depend on a plain-text message.
+- `CanvasPatch.assistantResponse` is optional but preferred for live providers. It must follow `{ headline, body, highlights, watchOut, nextStep }`.
+- `ChatMessage.response` mirrors the structured assistant response for UI rendering. Historical messages may not have it; `ChatPanel` must keep rendering plain `content` safely.
+- When changing prompt/parser behavior, update `tests/orchestrator.test.ts` and keep old provider JSON compatible.

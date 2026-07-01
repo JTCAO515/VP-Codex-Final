@@ -600,3 +600,20 @@ ADR-050: One OpenAI-compatible provider implementation for all Chinese LLMs.
 - Background: DeepSeek, Qwen (DashScope compatible-mode), Zhipu GLM, Moonshot Kimi, Baidu Qianfan (ERNIE), and MiniMax all expose an OpenAI-shaped `POST {baseUrl}/chat/completions` with `Authorization: Bearer <key>`. Writing six bespoke clients would duplicate logic and drift.
 - Decision: Implement a single `createOpenAiCompatibleProvider(config)` factory; each provider is just a registry config entry (id, label, capabilities, key env + aliases, default base URL + override env, default model + override env). ERNIE uses Baidu Qianfan v2's bearer-token OpenAI-compatible endpoint rather than the legacy access-token flow. Qwen chat uses DashScope compatible-mode (separate from the existing translation helper).
 - Reason: One tested implementation, uniform behavior, per-deployment base-URL/model overrides for resilience, and trivial addition of future providers — all while keeping every key server-side and the mock fallback intact. Providers that later need a non-OpenAI shape can add their own `ChatCompletionProvider` without touching the orchestrator.
+
+## v0.1.48 Design Update - Structured Butler Replies (implemented)
+
+The configured production providers are now reflected in the registry defaults:
+
+- DeepSeek: `deepseek-v4-flash`
+- Qwen: `qwen3.6-flash`
+- Zhipu: `glm-5`
+- Moonshot: `kimi-2.5`
+
+All remain server-side and overridable via `DEEPSEEK_MODEL`, `QWEN_CHAT_MODEL`, `ZHIPU_CHAT_MODEL`, and `MOONSHOT_CHAT_MODEL`.
+
+ADR-051: Add structured assistant responses without breaking the existing canvas contract.
+
+- Background: v0.1.45 planned normalized replies (`headline`, `body`, `highlights`, `watchOut`, `nextStep`) so Butler answers are scannable. Existing Chat persistence and canvas patch consumers still expect `assistantMessage` as a plain string.
+- Decision: Extend `CanvasPatch` with optional `assistantResponse` and `ChatMessage` with optional `response`. `assistantMessage` remains required. `parseButlerPatch` asks live providers for `assistantResponse`, but if a provider returns the old JSON shape it derives a minimal structured response from `assistantMessage` and the first suggestion.
+- Reason: This makes structured Chat UI shippable immediately while preserving backwards compatibility with historical messages, the legacy DeepSeek path, and the mock Butler fallback.

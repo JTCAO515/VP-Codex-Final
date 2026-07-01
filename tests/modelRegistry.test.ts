@@ -12,6 +12,13 @@ describe("model registry", () => {
     expect(ids).toEqual(["deepseek", "qwen", "zhipu", "moonshot", "ernie", "minimax"]);
   });
 
+  it("uses the configured 2026 model defaults for the active China providers", () => {
+    expect(BUTLER_PROVIDERS.find((p) => p.id === "deepseek")?.model).toBe("deepseek-v4-flash");
+    expect(BUTLER_PROVIDERS.find((p) => p.id === "qwen")?.model).toBe("qwen3.6-flash");
+    expect(BUTLER_PROVIDERS.find((p) => p.id === "zhipu")?.model).toBe("glm-5");
+    expect(BUTLER_PROVIDERS.find((p) => p.id === "moonshot")?.model).toBe("kimi-2.5");
+  });
+
   it("reports a provider configured only when its key env is present", () => {
     const deepseek = BUTLER_PROVIDERS.find((p) => p.id === "deepseek")!;
     expect(deepseek.isConfigured({})).toBe(false);

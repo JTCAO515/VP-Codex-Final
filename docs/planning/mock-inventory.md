@@ -7,13 +7,13 @@
 > graceful fallback** — we never delete the fallback, we demote it.
 >
 > Status legend: 🟢 real primary live · 🟡 real primary partial · 🔴 still mock/placeholder.
-> Last updated: v0.1.47.
+> Last updated: v0.1.48.
 
 ## Summary table
 
 | # | Area | File(s) | Current state | Real replacement | Status | Target |
 |---|---|---|---|---|---|---|
-| 1 | AI Butler chat | `lib/ai/orchestrator.ts`, `lib/mock-ai/mockButler.ts` | Multi-LLM orchestrator is primary; mock canvas patch is fallback | Real Chinese LLMs (DeepSeek/Qwen/GLM/Kimi/ERNIE) via orchestrator | 🟢 (needs keys) | v0.1.47 done; keys pending |
+| 1 | AI Butler chat | `lib/ai/orchestrator.ts`, `lib/mock-ai/mockButler.ts` | Multi-LLM orchestrator is primary; DeepSeek/Qwen/Zhipu/Moonshot keys are configured in Vercel; mock canvas patch remains fallback | Real Chinese LLMs (DeepSeek/Qwen/GLM/Kimi/ERNIE) via orchestrator | 🟢 | v0.1.47 done; v0.1.48 configured defaults |
 | 2 | Butler suggestions | `lib/ai/butlerPrompt.ts` | Model-generated when live; mock heuristics as fallback | Model output | 🟢 | done |
 | 3 | Explore POIs | `lib/explore/amapProvider.ts`, `staticProvider.ts` | Amap live search primary; 8-city static fallback | Amap enrichment + Dianping/Meituan | 🟡 | 阶段十二 v0.1.48 / v0.1.52 |
 | 4 | Explore rich fields (rating/price/hours/photos) | `lib/explore/amapProvider.ts` | Discarded — only name/address kept | Capture Amap `extensions=all` + Dianping | 🔴 | 阶段十二 v0.1.48 |
@@ -57,3 +57,9 @@
   ensemble, and a full fallback chain ending at the mock Butler. It goes fully
   live for any provider whose key the user adds; with zero keys it behaves
   exactly as before (mock).
+
+## What changed in v0.1.48
+
+- Item 1 is now production-configured for the user's Vercel keys: DeepSeek v4
+  flash, Qwen 3.6 Flash, Zhipu GLM5, and Moonshot Kimi 2.5 are the active
+  Butler defaults. Mock fallback is still retained for local/no-key scenarios.

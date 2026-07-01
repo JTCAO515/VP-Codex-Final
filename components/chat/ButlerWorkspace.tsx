@@ -24,11 +24,12 @@ const initialSuggestions = [
   "Keep hotels convenient",
 ];
 
-function createMessage(role: ChatMessage["role"], content: string): ChatMessage {
+function createMessage(role: ChatMessage["role"], content: string, response?: ChatMessage["response"]): ChatMessage {
   return {
     id: `${role}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
     role,
     content,
+    response,
   };
 }
 
@@ -182,7 +183,7 @@ export function ButlerWorkspace() {
             : (body?.mode ?? "mock fallback");
 
       setTrip(nextTrip);
-      setMessages((current) => [...current, createMessage("assistant", patch.assistantMessage)]);
+      setMessages((current) => [...current, createMessage("assistant", patch.assistantMessage, patch.assistantResponse)]);
       setSuggestions(Array.isArray(body?.suggestions) ? body.suggestions.slice(0, 2) : initialSuggestions.slice(0, 2));
       setStatus(`VisePanda updated the canvas with ${modeNote}: ${patch.reason}`);
     } catch {
