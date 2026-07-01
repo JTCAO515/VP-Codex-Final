@@ -4,7 +4,7 @@
 
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）；v0.1.34 桌面横屏前端优化：Tools 6 个模态卡片 + 浮层对话框、Trips 筛选按钮布局修复（过滤器始终可见）、Translator 单页 2×2 网格布局（同时展示四个功能面板无需切换 tab）。
 - 当前分支：`claude/visepanda-phase-3-hym6z9`（每轮迭代同时强制推送到 `origin/main`）
-- 当前版本：`v0.1.48`
+- 当前版本：`v0.1.51`
 - 重要（已完成）：
   - `supabase/migrations/0002_trip_archive_and_share.sql`：用户已手动在 Supabase SQL Editor 执行，归档/分享 RLS policy 已生效。
   - Google OAuth：用户已在 Google Cloud 创建 OAuth 凭据并在 Supabase Authentication → Providers → Google 填入，Google 登录功能已配置就绪。
@@ -50,6 +50,16 @@
 - `components/chat/ChatPanel.tsx` renders structured VisePanda replies as compact guidance cards; historical/plain messages still render as ordinary text.
 - Key files changed: `lib/ai/modelRegistry.ts`, `lib/env/placeholders.ts`, `lib/ai/butlerPrompt.ts`, `lib/types/trip.ts`, `components/chat/ButlerWorkspace.tsx`, `components/chat/ChatPanel.tsx`, `app/globals.css`, tests and docs.
 - Verification: full `npm run test` passed (34 files, 97 tests); `npm run build` passed with 20 static pages generated.
+
+## v0.1.49-v0.1.51 Handoff Update - Rich POI, Tool Context, Preference Memory
+
+- Current version after this batch: `v0.1.51`.
+- User asked to implement the next three recommended rounds in one pass.
+- v0.1.49: Amap POI search now requests `extensions=all`; Nanjing is supported; `ExploreRichMeta` carries optional rating, price, phone, opening hours, photo, business area, source, and location fields; Explore cards render those fields when available.
+- v0.1.50: Chat orchestrator now builds a bounded live Amap POI context for create/recommend/add/logistics intents and injects it into the model prompt before requesting a normal `CanvasPatch`.
+- v0.1.51: Chat extracts a lightweight `UserPreferenceProfile` from natural language, persists it for guests in localStorage, sends it to `/api/chat`, and shows compact remembered-preference chips.
+- Key files changed: `lib/explore/amapSearch.ts`, `app/api/explore/amap/route.ts`, `lib/explore/types.ts`, `lib/explore/amapProvider.ts`, `components/explore/ExploreBoard.tsx`, `lib/ai/toolContext.ts`, `lib/ai/preferenceProfile.ts`, `lib/ai/butlerPrompt.ts`, `lib/ai/orchestrator.ts`, `app/api/chat/route.ts`, `components/chat/ButlerWorkspace.tsx`, `components/chat/ChatPanel.tsx`, `app/globals.css`, tests and docs.
+- Verification: full `npm run test` passed (35 files, 98 tests); `npm run build` passed with 20 static pages generated.
 
 ## v0.1.44 Handoff Update - Mobile Portrait Optimization
 

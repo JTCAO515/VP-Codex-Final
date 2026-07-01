@@ -433,3 +433,22 @@ Explicit exclusions:
 - No full judge/refine-and-verify loop yet.
 - No preference-profile persistence yet.
 - No Amap rich-field enrichment in this iteration; that work is now the next data-fusion step.
+
+## v0.1.49-v0.1.51 Requirement Update - Rich POI, Tool Context, Preference Memory
+
+This is a three-iteration implementation batch focused on making Chat and Explore feel more real and more personal.
+
+MVP acceptance additions:
+
+- Explore live Amap POIs can include optional rich metadata: rating, approximate cost, price level, phone, opening hours, photo URL, business area, source label, and location.
+- Explore cards conditionally render that metadata when available and continue to render cleanly when static fallback or sparse Amap rows omit it.
+- `/api/chat` can attach bounded live Amap POI context to relevant Butler intents before calling the model, so live providers can plan with real POI candidates instead of inventing every place name.
+- The app stores a lightweight guest `UserPreferenceProfile` in localStorage and injects it into Chat requests. The profile is extracted silently from natural messages and covers pace, budget, party, dietary restrictions, cuisine preferences, interests, and confidence.
+- Chat displays compact remembered-preference chips so travelers can see that VisePanda is adapting.
+
+Explicit exclusions:
+
+- No full multi-round function-calling loop yet; v0.1.50 is a bounded tool-context prefetch.
+- No Dianping/Meituan integration yet.
+- No Supabase `profiles` table yet; logged-in cross-device preference persistence remains planned.
+- No TripBlock POI embedding or Add-to-Day inline POI cards yet.

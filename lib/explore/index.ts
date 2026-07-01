@@ -11,5 +11,6 @@ export type {
   ExploreFoodSpot,
   ExploreProvider,
   ExploreProviderStatus,
+  ExploreRichMeta,
   ExploreStay,
 } from "@/lib/explore/types";

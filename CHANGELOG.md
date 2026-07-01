@@ -1,5 +1,16 @@
 # VisePanda Changelog
 
+## v0.1.51 - 2026-07-01
+
+**Three-iteration implementation batch:** Amap rich POI data, first Chat tool-context loop, and lightweight preference memory.
+
+- **v0.1.49 Amap rich POI:** `/api/explore/amap` now requests `extensions=all` and supports Nanjing. A shared `lib/explore/amapSearch.ts` normalizes rating, price, phone, opening hours, photos, business area, location, and source metadata.
+- **Explore rich cards:** `ExploreAttraction`, `ExploreFoodSpot`, and `ExploreStay` now carry optional rich metadata. `ExploreBoard` conditionally renders ratings, price level, approximate per-person price, opening hours, phone, source, business area, and thumbnails when Amap provides them, while static fallback cards stay unchanged.
+- **v0.1.50 Chat tool context:** the Butler orchestrator now builds a bounded Amap POI context for relevant intents (`create_trip`, `add_poi`, `ask_recommendation`, `logistics`) and injects real POI candidates into the model prompt before planning. If Amap is unavailable or unconfigured, the context is omitted and the normal provider/mock chain continues.
+- **v0.1.51 Preference memory:** added `UserPreferenceProfile` extraction for pace, budget, party type, dietary restrictions, cuisine preferences, interests, and confidence. Guest profiles persist in localStorage and are sent to `/api/chat`; Chat shows compact remembered-preference chips.
+- **Compatibility:** all new POI and preference fields are optional. Existing mock/static data, saved trips, and plain `assistantMessage` flows remain valid.
+- **Tests:** added preference-profile coverage and updated affected Chat/Explore tests.
+
 ## v0.1.48 - 2026-07-01
 
 **Chat quality activation for the configured provider keys.** DeepSeek, Qwen, Zhipu, and Moonshot are now aligned to the user's Vercel configuration, and Butler replies can render as structured travel guidance instead of a single plain paragraph.

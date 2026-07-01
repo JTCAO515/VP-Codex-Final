@@ -1,4 +1,5 @@
 import { createStaticExploreProvider } from "@/lib/explore/staticProvider";
+import { amapPoiRichMeta, type AmapPoi } from "@/lib/explore/amapSearch";
 import type {
   ExploreAttraction,
   ExploreCity,
@@ -7,15 +8,6 @@ import type {
   ExploreProviderStatus,
   ExploreStay,
 } from "@/lib/explore/types";
-
-interface AmapPoi {
-  id: string;
-  name: string;
-  type: string;
-  address?: string;
-  adname?: string;
-  biz_type?: string;
-}
 
 async function fetchAmapPois(cityId: string, type: string): Promise<AmapPoi[]> {
   try {
@@ -34,13 +26,19 @@ function primaryType(poi: AmapPoi): string {
   return poi.biz_type ?? poi.type.split(";")[0] ?? "";
 }
 
+function textValue(value: string | string[] | undefined, fallback = "") {
+  if (Array.isArray(value)) return value.find(Boolean) ?? fallback;
+  return value || fallback;
+}
+
 function poiToAttraction(poi: AmapPoi, cityId: string): ExploreAttraction {
   return {
     id: `amap-${poi.id}`,
     cityId,
     name: poi.name,
     category: primaryType(poi),
-    description: poi.address ?? poi.adname ?? cityId,
+    description: textValue(poi.address, poi.adname ?? cityId),
+    ...amapPoiRichMeta(poi),
   };
 }
 
@@ -50,7 +48,8 @@ function poiToFoodSpot(poi: AmapPoi, cityId: string): ExploreFoodSpot {
     cityId,
     name: poi.name,
     dish: primaryType(poi),
-    description: poi.address ?? poi.adname ?? cityId,
+    description: textValue(poi.address, poi.adname ?? cityId),
+    ...amapPoiRichMeta(poi),
   };
 }
 
@@ -60,7 +59,8 @@ function poiToStay(poi: AmapPoi, cityId: string): ExploreStay {
     cityId,
     name: poi.name,
     area: poi.adname ?? cityId,
-    description: poi.address ?? cityId,
+    description: textValue(poi.address, cityId),
+    ...amapPoiRichMeta(poi),
   };
 }
 
@@ -85,7 +85,8 @@ export function createAmapExploreProvider(): ExploreProvider {
         nextIntegration: "Add hotel booking and review data via Trip.com API.",
         limitations: [
           "POI results are not editorially curated; quality depends on Amap search ranking.",
-          "No live ticket prices, opening hours, or booking integration yet.",
+          "Amap rich fields are shown only when the upstream result includes them.",
+          "No live ticket prices or booking integration yet.",
         ],
       };
     },

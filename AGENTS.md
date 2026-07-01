@@ -275,3 +275,13 @@ The multi-LLM Butler orchestrator now exists. When touching AI/chat code:
 - `CanvasPatch.assistantResponse` is optional but preferred for live providers. It must follow `{ headline, body, highlights, watchOut, nextStep }`.
 - `ChatMessage.response` mirrors the structured assistant response for UI rendering. Historical messages may not have it; `ChatPanel` must keep rendering plain `content` safely.
 - When changing prompt/parser behavior, update `tests/orchestrator.test.ts` and keep old provider JSON compatible.
+
+## v0.1.49-v0.1.51 Agent Update - Rich POI, Tool Context, Preference Memory
+
+- Amap rich POI normalization lives in `lib/explore/amapSearch.ts`. Do not duplicate rating/price/photo/open-hours parsing inside components.
+- `/api/explore/amap` must keep `AMAP_API_KEY` server-side and use `extensions=all`; browser code only calls the internal route.
+- Explore rich metadata is optional. Static provider rows may leave all rich fields undefined, and UI must remain clean.
+- Chat tool context currently uses bounded Amap POI prefetch (`lib/ai/toolContext.ts`) rather than a full function-calling loop. Keep it bounded and gracefully omitted when Amap is unavailable.
+- `UserPreferenceProfile` is extracted silently in `lib/ai/preferenceProfile.ts`. Do not add a questionnaire UI unless the user explicitly asks.
+- Guest preference memory uses localStorage. Do not claim cross-device preference sync until Supabase `profiles` migration is implemented.
+- Keep the one-question rule in prompts: Butler may ask at most one clarifying question and only when missing information would make the trip clearly wrong.

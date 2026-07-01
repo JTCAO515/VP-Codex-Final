@@ -126,22 +126,30 @@
 - [x] 任务 13.11：更新 `ChatPanel`，将 VisePanda 的回复渲染为 headline + highlights + watchOut + nextStep 的紧凑管家卡片，历史消息和 mock fallback 继续按普通文本显示。
 - [x] 任务 13.12：补充模型默认值和结构化回复解析测试。
 
-### v0.1.49（顺延）：高德 POI 数据丰富化（无需新审批）
+### v0.1.49：高德 POI 数据丰富化（已完成）
 
-- [ ] 任务 12.11：升级 `/api/explore/amap` 使用 `extensions=all`，捕获高德已返回但当前被丢弃的字段：`rating` / `cost` / `tel` / `opentime_week` / `photos` / `business_area`。
-- [ ] 任务 12.12：`AmapPoi` 接口补齐上述字段；`lib/explore/types.ts` 新增全可选的 `ExploreRichMeta`（rating / reviewCount / pricePerPerson / priceLevel / tel / openHours / photoUrl / bookingUrl / sourceLabel），`ExploreAttraction`/`ExploreFoodSpot`/`ExploreStay` 继承之。
-- [ ] 任务 12.13：`amapProvider.ts` 的 mapper 填充 rich 字段；静态 provider 保持字段为 undefined（graceful degradation）。
-- [ ] 任务 12.14：Explore 卡片 UI 条件渲染评分（★ 4.7，`--gold`）、价格档（¥/¥¥/¥¥¥）、营业时间、缩略图；移动端卡片改为左图右文横向布局。
+- [x] 任务 12.11：升级 `/api/explore/amap` 使用 `extensions=all`，捕获高德已返回但此前被丢弃的字段：`rating` / `cost` / `tel` / `opentime_week` / `photos` / `business_area` / `location`。
+- [x] 任务 12.12：`AmapPoi` 接口补齐上述字段；`lib/explore/types.ts` 新增全可选的 `ExploreRichMeta`（rating / pricePerPerson / priceLevel / tel / openHours / photoUrl / sourceLabel / location），`ExploreAttraction`/`ExploreFoodSpot`/`ExploreStay` 继承之。
+- [x] 任务 12.13：`amapProvider.ts` 的 mapper 填充 rich 字段；静态 provider 保持字段为 undefined（graceful degradation）。
+- [x] 任务 12.14：Explore 卡片 UI 条件渲染评分、价格档、营业时间、电话、缩略图、来源和商圈；没有 rich data 时保持原卡片。
 
-### v0.1.49：工具调用 Butler（真实 POI 数据进对话）
+### v0.1.50：工具调用 Butler 第一版（真实 POI 数据进对话，已完成）
 
-- [ ] 任务 12.15：将 `/api/chat/route.ts` 升级为**工具执行循环**（最多 3 轮）：DeepSeek 返回 `tool_calls` → 服务端执行真实 Amap/Dianping 调用 → 把结果回灌 → 模型再基于真实数据生成行程。
-- [ ] 任务 12.16：定义工具 schema：`search_pois`（city/category/keyword/priceLevel）、`get_poi_detail`（poiId/city）、`search_dianping`（先做 stub，待审批）。
+- [x] 任务 12.15（第一版）：`/api/chat` 的 orchestrator 在调用模型前，为 `create_trip` / `add_poi` / `ask_recommendation` / `logistics` 预取高德 POI 上下文并注入 prompt。完整多轮 function-calling loop 留待后续。
+- [x] 任务 12.16（第一版）：定义 `ButlerToolContext` / `ButlerToolPoi`，等价于 bounded `search_pois` 工具结果；Dianping stub 尚未接入。
 - [ ] 任务 12.17：扩展 `TripBlock`（向后兼容，全可选）：`poiId` / `sourceLabel` / `rating` / `priceEstimate` / `openHours` / `phone` / `photoUrl` / `mapUrl` / `bookingUrl` / `location{lat,lng}`。
 - [ ] 任务 12.18：在 Chat 对话流内联渲染真实 POI 卡片（评分/价格/照片），卡片带「Add to Day N」按钮，直接进既有 AI pipeline。
 - [ ] 任务 12.19：确认 DeepSeek 计划支持 function calling（`deepseek-chat` 支持；若 V4 Flash 不支持，简单调整用 Flash、工具循环用 V3）。
 
-### v0.1.50：引导入口 + 画布快捷操作
+### v0.1.51：偏好画像 + 一问规则第一版（已完成）
+
+- [x] 任务 12.6（第一版）：定义 `UserPreferenceProfile`，覆盖 pace / budget / party / dietaryRestrictions / cuisinePreferences / interests / profileConfidence。
+- [x] 任务 12.7（第一版）：从任意口语消息中静默抽取偏好（预算、轻松节奏、带孩子、no pork、food/history 等），不做表单式盘问。
+- [x] 任务 12.8（第一版）：prompt 注入“一问规则”，要求 Butler 每轮最多问 1 个必要澄清问题。
+- [x] 任务 12.9（第一版）：guest profile 存 localStorage 并随 `/api/chat` 发送；Supabase `profiles` 表持久化留待后续 migration。
+- [x] 任务 12.10（第一版）：ChatPanel 头部显示偏好 chips（如 `light pace` / `economy budget` / `family with kids`）。
+
+### v0.1.52：引导入口 + 画布快捷操作
 
 - [ ] 任务 12.20：Home 增加 3 个原型入口（「首次中国 10 天精华」/「美食三城」/「历史+自然」），点击后带 `?archetype=` 参数预置 trip state，并由 Butler 以「建议」口吻呈现。
 - [ ] 任务 12.21：首跑向导——3 个 chip 问题（无需打字）即可生成起始草稿；替换空白 textarea 空状态。

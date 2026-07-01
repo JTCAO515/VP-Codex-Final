@@ -8,10 +8,11 @@ interface ChatPanelProps {
   messages: ChatMessage[];
   onSend: (message: string) => void | Promise<void>;
   suggestions: string[];
+  profileChips?: string[];
   busy?: boolean;
 }
 
-export function ChatPanel({ messages, onSend, suggestions, busy = false }: ChatPanelProps) {
+export function ChatPanel({ messages, onSend, suggestions, profileChips = [], busy = false }: ChatPanelProps) {
   const [draft, setDraft] = useState("");
 
   function submitMessage(message: string) {
@@ -34,6 +35,13 @@ export function ChatPanel({ messages, onSend, suggestions, busy = false }: ChatP
     <aside className="chat-panel" aria-label="AI butler chat">
       <div className="chat-panel__head">
         <p className="section-kicker">Ask VisePanda</p>
+        {profileChips.length > 0 ? (
+          <div className="chat-profile-chips" aria-label="Remembered preferences">
+            {profileChips.slice(0, 5).map((chip) => (
+              <span key={chip}>{chip}</span>
+            ))}
+          </div>
+        ) : null}
       </div>
       <div className="prompt-row" aria-label="Suggested prompts">
         {suggestions.map((prompt) => (

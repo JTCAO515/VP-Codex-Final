@@ -4,6 +4,7 @@ import type { Session } from "@supabase/supabase-js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChatPanel } from "@/components/chat/ChatPanel";
 import { TripCanvas } from "@/components/canvas/TripCanvas";
+import { preferenceProfileSummary, updatePreferenceProfile, type UserPreferenceProfile } from "@/lib/ai/preferenceProfile";
 import { applyCanvasPatch } from "@/lib/canvas/applyCanvasPatch";
 import { createMockButlerPatch, initialTripState } from "@/lib/mock-ai/mockButler";
 import { appendMessage, loadTripWithCanvas, saveTripCanvas } from "@/lib/supabase/tripsRepository";
@@ -11,10 +12,12 @@ import { useSupabaseSession } from "@/lib/supabase/useSupabaseSession";
 import type { ChatMessage, TripState } from "@/lib/types/trip";
 
 const GUEST_DRAFT_KEY = "visepanda:guest-draft";
+const PREFERENCE_PROFILE_KEY = "visepanda:preference-profile";
 
 interface GuestDraft {
   trip: TripState;
   messages: ChatMessage[];
+  preferenceProfile?: UserPreferenceProfile;
 }
 
 const initialSuggestions = [
@@ -45,6 +48,7 @@ export function ButlerWorkspace() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [suggestions, setSuggestions] = useState(initialSuggestions);
   const [status, setStatus] = useState("Canvas ready for your first request.");
+  const [preferenceProfile, setPreferenceProfile] = useState<UserPreferenceProfile | undefined>();
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
   const [tripId, setTripId] = useState<string | null>(null);
@@ -84,9 +88,21 @@ export function ButlerWorkspace() {
       const draft = JSON.parse(raw) as GuestDraft;
       setTrip(draft.trip);
       setMessages(draft.messages);
+      setPreferenceProfile(draft.preferenceProfile);
       setStatus("Restored your guest draft trip.");
     } catch {
       window.localStorage.removeItem(GUEST_DRAFT_KEY);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const raw = window.localStorage.getItem(PREFERENCE_PROFILE_KEY);
+    if (!raw) return;
+    try {
+      setPreferenceProfile(JSON.parse(raw) as UserPreferenceProfile);
+    } catch {
+      window.localStorage.removeItem(PREFERENCE_PROFILE_KEY);
     }
   }, []);
 
@@ -107,8 +123,14 @@ export function ButlerWorkspace() {
       return;
     }
     if (messages.length === 0) return;
-    window.localStorage.setItem(GUEST_DRAFT_KEY, JSON.stringify({ trip, messages } satisfies GuestDraft));
-  }, [trip, messages, session, tripId]);
+    window.localStorage.setItem(GUEST_DRAFT_KEY, JSON.stringify({ trip, messages, preferenceProfile } satisfies GuestDraft));
+  }, [trip, messages, preferenceProfile, session, tripId]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!preferenceProfile) return;
+    window.localStorage.setItem(PREFERENCE_PROFILE_KEY, JSON.stringify(preferenceProfile));
+  }, [preferenceProfile]);
 
   async function handleSaveToTrips(successMessage = "Saved this trip to your Trips library.") {
     if (!configured) {
@@ -163,6 +185,8 @@ export function ButlerWorkspace() {
 
   async function handleSend(message: string) {
     setBusy(true);
+    const nextPreferenceProfile = updatePreferenceProfile(preferenceProfile, message);
+    setPreferenceProfile(nextPreferenceProfile);
     const nextMessages = [...messages, createMessage("user", message)];
     setMessages(nextMessages);
 
@@ -170,7 +194,7 @@ export function ButlerWorkspace() {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, messages: nextMessages, trip }),
+        body: JSON.stringify({ message, messages: nextMessages, trip, preferenceProfile: nextPreferenceProfile }),
       });
       const body = await response.json();
       const patch = body?.patch ?? createMockButlerPatch(message, trip);
@@ -205,7 +229,13 @@ export function ButlerWorkspace() {
         <TripCanvas trip={trip} />
       </div>
       <div className="butler-workspace__chat">
-        <ChatPanel messages={messages} onSend={handleSend} busy={busy} suggestions={suggestions} />
+        <ChatPanel
+          messages={messages}
+          onSend={handleSend}
+          busy={busy}
+          suggestions={suggestions}
+          profileChips={preferenceProfileSummary(preferenceProfile)}
+        />
         <div className="workspace-save-row">
           <button type="button" onClick={() => handleSaveToTrips()} disabled={saving || busy}>
             {saving ? "Saving..." : "Save to Trips"}

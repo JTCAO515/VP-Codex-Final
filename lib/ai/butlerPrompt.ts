@@ -3,6 +3,8 @@
 // so the orchestrator can drive any provider with identical prompts and parsing.
 
 import { createMockButlerPatch } from "@/lib/mock-ai/mockButler";
+import type { ButlerToolContext } from "@/lib/ai/toolContext";
+import type { UserPreferenceProfile } from "@/lib/ai/preferenceProfile";
 import type { AssistantResponse, CanvasPatch, ChatMessage, TripState } from "@/lib/types/trip";
 
 const allowedIntents = new Set<CanvasPatch["intent"]>(["create_trip", "adjust_trip", "add_alerts"]);
@@ -28,11 +30,18 @@ export function buildSystemPrompt(): string {
   ].join(" ");
 }
 
-export function buildUserPrompt(message: string, currentTrip: TripState, recentMessages: ChatMessage[] = []): string {
+export function buildUserPrompt(
+  message: string,
+  currentTrip: TripState,
+  recentMessages: ChatMessage[] = [],
+  context: { preferenceProfile?: UserPreferenceProfile; toolContext?: ButlerToolContext } = {},
+): string {
   return JSON.stringify({
     userMessage: message,
     recentMessages: recentMessages.slice(-8),
     currentTrip,
+    preferenceProfile: context.preferenceProfile,
+    liveToolContext: context.toolContext,
     patchRules: {
       intent: ["create_trip", "adjust_trip", "add_alerts"],
       confidence: ["Draft", "Refined", "Ready to save"],
@@ -40,6 +49,8 @@ export function buildUserPrompt(message: string, currentTrip: TripState, recentM
       alertPriority: ["high", "medium", "low"],
       alertType: ["visa", "payment", "booking", "transport", "weather", "language", "risk", "emergency"],
       suggestions: "Return exactly two short context-aware question strings.",
+      liveToolContext: "If liveToolContext is present, prefer those real POIs over invented place names and mention important rating/price/open-hour caveats in watchOut.",
+      preferenceProfile: "Respect stored traveler preferences without interrogating the user; ask at most one clarifying question only if missing information would make the plan clearly wrong.",
     },
   });
 }

@@ -617,3 +617,23 @@ ADR-051: Add structured assistant responses without breaking the existing canvas
 - Background: v0.1.45 planned normalized replies (`headline`, `body`, `highlights`, `watchOut`, `nextStep`) so Butler answers are scannable. Existing Chat persistence and canvas patch consumers still expect `assistantMessage` as a plain string.
 - Decision: Extend `CanvasPatch` with optional `assistantResponse` and `ChatMessage` with optional `response`. `assistantMessage` remains required. `parseButlerPatch` asks live providers for `assistantResponse`, but if a provider returns the old JSON shape it derives a minimal structured response from `assistantMessage` and the first suggestion.
 - Reason: This makes structured Chat UI shippable immediately while preserving backwards compatibility with historical messages, the legacy DeepSeek path, and the mock Butler fallback.
+
+## v0.1.49-v0.1.51 Design Update - Rich POI, Tool Context, Preference Memory
+
+ADR-052: Share Amap rich POI normalization between Explore and Chat.
+
+- Background: Explore and Chat both need real POI data. Duplicating Amap parsing in each surface would drift quickly.
+- Decision: Add `lib/explore/amapSearch.ts` as the shared Amap search/normalization layer. `/api/explore/amap` uses it for the route, `amapProvider.ts` uses the same rich-meta mapper client-side from route results, and `lib/ai/toolContext.ts` uses it server-side to provide bounded POI context to the Butler.
+- Reason: One normalization point keeps rating/price/hours/photo/source semantics consistent while keeping API keys server-side and retaining static fallback.
+
+ADR-053: First Chat tool calling is bounded POI context, not full multi-round function calling.
+
+- Background: The roadmap calls for function-calling loops, but the current app must remain stable while provider function-calling support varies by model.
+- Decision: For v0.1.50, the orchestrator infers city/category for relevant intents, fetches up to five Amap POIs, and injects them as `liveToolContext` into the model prompt. The provider still returns a normal `CanvasPatch`.
+- Reason: This delivers real-data grounding immediately without changing the response protocol or risking an unbounded tool loop. Full tool-calling can layer on later.
+
+ADR-054: Preference memory starts as guest localStorage and prompt context.
+
+- Background: The product needs to feel like it remembers the traveler, but Supabase profile persistence requires a schema migration and consent decisions.
+- Decision: Add a local `UserPreferenceProfile` extractor that updates on each user message, persists guest state to localStorage, sends the profile to `/api/chat`, and displays compact chips in Chat.
+- Reason: This gives visible personalization now while deferring cross-device persistence to a later Supabase `profiles` migration.

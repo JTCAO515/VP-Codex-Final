@@ -6,7 +6,22 @@ export interface ExploreCity {
   bestFor: string[];
 }
 
-export interface ExploreAttraction {
+export interface ExploreRichMeta {
+  rating?: string;
+  pricePerPerson?: string;
+  priceLevel?: "¥" | "¥¥" | "¥¥¥";
+  tel?: string;
+  openHours?: string;
+  photoUrl?: string;
+  businessArea?: string;
+  sourceLabel?: string;
+  location?: {
+    lat: number;
+    lng: number;
+  };
+}
+
+export interface ExploreAttraction extends ExploreRichMeta {
   id: string;
   cityId: string;
   name: string;
@@ -14,7 +29,7 @@ export interface ExploreAttraction {
   description: string;
 }
 
-export interface ExploreFoodSpot {
+export interface ExploreFoodSpot extends ExploreRichMeta {
   id: string;
   cityId: string;
   name: string;
@@ -22,7 +37,7 @@ export interface ExploreFoodSpot {
   description: string;
 }
 
-export interface ExploreStay {
+export interface ExploreStay extends ExploreRichMeta {
   id: string;
   cityId: string;
   name: string;

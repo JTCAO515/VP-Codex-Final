@@ -7,6 +7,7 @@ import type {
   ExploreCity,
   ExploreFoodSpot,
   ExploreProviderStatus,
+  ExploreRichMeta,
   ExploreStay,
 } from "@/lib/explore";
 import { useTranslation } from "@/lib/i18n/I18nContext";
@@ -47,6 +48,36 @@ export function ExploreBoard() {
   function buildAddToTripMessage(name: string, cityName: string, context?: string) {
     const detail = context ? ` (${context})` : "";
     return `Add ${name}${detail} in ${cityName} to my trip and ask VisePanda to rebalance the route around it.`;
+  }
+
+  function renderRichMeta(item: ExploreRichMeta) {
+    const meta = [
+      item.rating ? `★ ${item.rating}` : "",
+      item.priceLevel ?? "",
+      item.openHours ? "Open hours" : "",
+      item.businessArea ?? "",
+    ].filter(Boolean);
+
+    if (meta.length === 0 && !item.tel && !item.photoUrl) return null;
+
+    return (
+      <div className="explore-poi-meta">
+        {item.photoUrl ? <img alt="" loading="lazy" src={item.photoUrl} /> : null}
+        <div>
+          {meta.length > 0 ? (
+            <p aria-label="POI details">
+              {meta.map((entry) => (
+                <span key={entry}>{entry}</span>
+              ))}
+            </p>
+          ) : null}
+          {item.pricePerPerson ? <small>Approx. ¥{item.pricePerPerson}/person</small> : null}
+          {item.openHours ? <small>{item.openHours}</small> : null}
+          {item.tel ? <small>{item.tel}</small> : null}
+          {item.sourceLabel ? <em>{item.sourceLabel}</em> : null}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -101,6 +132,7 @@ export function ExploreBoard() {
                   <li key={attraction.id}>
                     <strong>{attraction.name}</strong>
                     <span>{attraction.description}</span>
+                    {renderRichMeta(attraction)}
                     <button
                       type="button"
                       className="explore-add-button"
@@ -120,6 +152,7 @@ export function ExploreBoard() {
                   <li key={spot.id}>
                     <strong>{spot.name}</strong>
                     <span>{spot.dish} — {spot.description}</span>
+                    {renderRichMeta(spot)}
                     <button
                       type="button"
                       className="explore-add-button"
@@ -141,6 +174,7 @@ export function ExploreBoard() {
                   <li key={stay.id}>
                     <strong>{stay.name}</strong>
                     <span>{stay.area} — {stay.description}</span>
+                    {renderRichMeta(stay)}
                     <button
                       type="button"
                       className="explore-add-button"

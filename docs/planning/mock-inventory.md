@@ -7,7 +7,7 @@
 > graceful fallback** — we never delete the fallback, we demote it.
 >
 > Status legend: 🟢 real primary live · 🟡 real primary partial · 🔴 still mock/placeholder.
-> Last updated: v0.1.48.
+> Last updated: v0.1.51.
 
 ## Summary table
 
@@ -15,8 +15,8 @@
 |---|---|---|---|---|---|---|
 | 1 | AI Butler chat | `lib/ai/orchestrator.ts`, `lib/mock-ai/mockButler.ts` | Multi-LLM orchestrator is primary; DeepSeek/Qwen/Zhipu/Moonshot keys are configured in Vercel; mock canvas patch remains fallback | Real Chinese LLMs (DeepSeek/Qwen/GLM/Kimi/ERNIE) via orchestrator | 🟢 | v0.1.47 done; v0.1.48 configured defaults |
 | 2 | Butler suggestions | `lib/ai/butlerPrompt.ts` | Model-generated when live; mock heuristics as fallback | Model output | 🟢 | done |
-| 3 | Explore POIs | `lib/explore/amapProvider.ts`, `staticProvider.ts` | Amap live search primary; 8-city static fallback | Amap enrichment + Dianping/Meituan | 🟡 | 阶段十二 v0.1.48 / v0.1.52 |
-| 4 | Explore rich fields (rating/price/hours/photos) | `lib/explore/amapProvider.ts` | Discarded — only name/address kept | Capture Amap `extensions=all` + Dianping | 🔴 | 阶段十二 v0.1.48 |
+| 3 | Explore POIs | `lib/explore/amapProvider.ts`, `staticProvider.ts`, `amapSearch.ts` | Amap live search primary with rich metadata; 8-city static fallback | Dianping/Meituan review depth | 🟡 | Dianping/Meituan later |
+| 4 | Explore rich fields (rating/price/hours/photos) | `lib/explore/amapProvider.ts`, `lib/explore/amapSearch.ts` | Amap `extensions=all` rich fields captured and rendered when present | Add Dianping review counts and booking links | 🟡 | Dianping/Meituan later |
 | 5 | Tools — Currency | `lib/tools/liveToolsProvider.ts` | Live ExchangeRate-API rate injected | Live (add converter widget) | 🟡 | 阶段十五 |
 | 6 | Tools — Visa/Payment/Metro/eSIM/Emergency | `lib/tools/staticProvider.ts` | Static text checklists only | Interactive widgets (eligibility checker, wizards, route planner, call buttons) | 🔴 | 阶段十五 |
 | 7 | Community feed/photos/likes | `lib/community/mockData.ts`, `components/community/*` | Fully local mock + localStorage | Supabase `community_*` tables + Storage | 🔴 | 阶段十一 |
@@ -24,7 +24,7 @@
 | 9 | Account avatar | `components/account/AccountMenu.tsx`, `lib/account/avatars.ts` | localStorage only (`visepanda:selected-avatar`) | Supabase profile + Storage upload | 🔴 | 阶段十六 |
 | 10 | Account UI | `components/account/AccountMenu.tsx` | Minimal popover, no `/account` page | Professional `/account` center | 🔴 | 阶段十六 |
 | 11 | Lead capture (留资) | — (does not exist) | None | Supabase `leads` + progressive profiling | 🔴 | 阶段十六 |
-| 12 | Preference profile | — (does not exist) | None | `UserPreferenceProfile` (Supabase/localStorage) | 🔴 | 阶段十二 v0.1.47(plan) |
+| 12 | Preference profile | `lib/ai/preferenceProfile.ts`, `components/chat/ButlerWorkspace.tsx` | Guest localStorage profile + Chat prompt injection | Supabase `profiles` table for logged-in cross-device sync | 🟡 | Supabase migration later |
 | 13 | Trips persistence | `lib/supabase/tripsRepository.ts`, `lib/trips/mockTrips.ts` | Real Supabase; mock trips when guest/unconfigured | Real Supabase (primary already) | 🟢 | done (guest fallback intentional) |
 | 14 | Guest draft | `components/chat/ButlerWorkspace.tsx` | localStorage `visepanda:guest-draft` | Supabase on sign-in (already migrates) | 🟢 | done |
 | 15 | Translate text/OCR/TTS | `app/api/translate/*` | Qwen live + DeepSeek text fallback | Live | 🟢 | done |
@@ -63,3 +63,10 @@
 - Item 1 is now production-configured for the user's Vercel keys: DeepSeek v4
   flash, Qwen 3.6 Flash, Zhipu GLM5, and Moonshot Kimi 2.5 are the active
   Butler defaults. Mock fallback is still retained for local/no-key scenarios.
+
+## What changed in v0.1.49-v0.1.51
+
+- Items 3 and 4 now use Amap `extensions=all` and render optional rich POI
+  metadata in Explore.
+- Item 12 moved 🔴→🟡: guest preference memory now exists locally and is injected
+  into Chat; Supabase cross-device profile persistence is still planned.

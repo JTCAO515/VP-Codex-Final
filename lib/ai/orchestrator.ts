@@ -22,6 +22,8 @@ import {
   isHighStakesIntent,
   selectProvidersForIntent,
 } from "@/lib/ai/modelRegistry";
+import { buildButlerToolContext, type ButlerToolContext } from "@/lib/ai/toolContext";
+import type { UserPreferenceProfile } from "@/lib/ai/preferenceProfile";
 import { createMockButlerPatch } from "@/lib/mock-ai/mockButler";
 import type { ChatCompletionProvider, FetchLike } from "@/lib/ai/providers/types";
 import type { CanvasPatch, ChatMessage, TripState } from "@/lib/types/trip";
@@ -33,6 +35,7 @@ export interface OrchestratedButlerInput {
   env?: Record<string, string | undefined>;
   fetchImpl?: FetchLike;
   providers?: ChatCompletionProvider[];
+  preferenceProfile?: UserPreferenceProfile;
 }
 
 export interface OrchestratedButlerResult {
@@ -44,6 +47,7 @@ export interface OrchestratedButlerResult {
   patch: CanvasPatch;
   suggestions: string[];
   fallbackReason?: string;
+  toolContext?: ButlerToolContext;
 }
 
 const MAX_TOKENS = 2200;
@@ -54,12 +58,13 @@ async function tryProvider(
   env: Record<string, string | undefined>,
   fetchImpl: FetchLike,
   fallbackSuggestions: string[],
+  context: { preferenceProfile?: UserPreferenceProfile; toolContext?: ButlerToolContext },
 ): Promise<{ patch: CanvasPatch; suggestions: string[] }> {
   const result = await provider.complete(
     {
       messages: [
         { role: "system", content: buildSystemPrompt() },
-        { role: "user", content: buildUserPrompt(input.message, input.currentTrip, input.recentMessages) },
+        { role: "user", content: buildUserPrompt(input.message, input.currentTrip, input.recentMessages, context) },
       ],
       maxTokens: MAX_TOKENS,
       jsonMode: true,
@@ -110,6 +115,14 @@ export async function requestOrchestratedButlerPatch(
   const candidates = selectProvidersForIntent(intent, configured);
   const fallbackSuggestions = fallbackSuggestionsFor(message, input.currentTrip);
   const normalizedInput = { message, currentTrip: input.currentTrip, recentMessages };
+  const toolContext = await buildButlerToolContext({
+    message,
+    currentTrip: input.currentTrip,
+    intent,
+    env,
+    fetchImpl,
+  });
+  const providerContext = { preferenceProfile: input.preferenceProfile, toolContext };
   const tried: string[] = [];
 
   // High-stakes intents with 2+ providers: race the top two in parallel and
@@ -119,8 +132,8 @@ export async function requestOrchestratedButlerPatch(
     const [a, b] = candidates;
     tried.push(a.id, b.id);
     const settled = await Promise.allSettled([
-      tryProvider(a, normalizedInput, env, fetchImpl, fallbackSuggestions),
-      tryProvider(b, normalizedInput, env, fetchImpl, fallbackSuggestions),
+      tryProvider(a, normalizedInput, env, fetchImpl, fallbackSuggestions, providerContext),
+      tryProvider(b, normalizedInput, env, fetchImpl, fallbackSuggestions, providerContext),
     ]);
     // Prefer the primary (a) when both succeed.
     for (let i = 0; i < settled.length; i += 1) {
@@ -135,6 +148,7 @@ export async function requestOrchestratedButlerPatch(
           providersTried: [...tried],
           patch: outcome.value.patch,
           suggestions: outcome.value.suggestions,
+          toolContext,
         };
       }
     }
@@ -143,7 +157,7 @@ export async function requestOrchestratedButlerPatch(
       const provider = candidates[i];
       tried.push(provider.id);
       try {
-        const { patch, suggestions } = await tryProvider(provider, normalizedInput, env, fetchImpl, fallbackSuggestions);
+        const { patch, suggestions } = await tryProvider(provider, normalizedInput, env, fetchImpl, fallbackSuggestions, providerContext);
         return {
           mode: provider.id,
           modelLabel: provider.label,
@@ -152,6 +166,7 @@ export async function requestOrchestratedButlerPatch(
           providersTried: [...tried],
           patch,
           suggestions,
+          toolContext,
         };
       } catch {
         // try next
@@ -165,7 +180,7 @@ export async function requestOrchestratedButlerPatch(
   for (const provider of candidates) {
     tried.push(provider.id);
     try {
-      const { patch, suggestions } = await tryProvider(provider, normalizedInput, env, fetchImpl, fallbackSuggestions);
+      const { patch, suggestions } = await tryProvider(provider, normalizedInput, env, fetchImpl, fallbackSuggestions, providerContext);
       return {
         mode: provider.id,
         modelLabel: provider.label,
@@ -174,6 +189,7 @@ export async function requestOrchestratedButlerPatch(
         providersTried: [...tried],
         patch,
         suggestions,
+        toolContext,
       };
     } catch (error) {
       lastError = error instanceof Error ? error.message : "Unknown provider error.";
