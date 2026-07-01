@@ -213,6 +213,15 @@ Next translator priorities:
 - [x] Lock `/translate` to a single desktop landscape viewport with internal overflow only.
 - [x] Verify `/translate` at 1440x900 with Playwright metrics: body/html page scroll is zero and the translator surface uses hidden/internal overflow.
 
+## v0.1.43 Addendum - Translator and Trip Detail Repair
+
+- [x] Fix text translation availability by adding a DeepSeek fallback behind `/api/translate/text` when Qwen/DashScope is unavailable.
+- [x] Improve Translator failure copy so missing translation providers are described clearly instead of appearing as a generic broken state.
+- [x] Change Trip Canvas day-card CTA from `Edit` to `View details`.
+- [x] Convert the day detail drawer from an editable form to a read-only itinerary detail surface.
+- [x] Move real Trip Detail page status/actions/share controls into the Live Trip Canvas summary card when a saved canvas exists, reducing top-of-page chrome and prioritizing itinerary content.
+- [x] Add targeted tests for translation fallback, read-only day details, and compact Trip Detail controls.
+
 Next product iteration:
 
-- [ ] Continue product planning from VPCC backlog after reviewing the deployed v0.1.42 Translator experience.
+- [ ] Continue product planning from VPCC backlog after reviewing the deployed v0.1.43 repair iteration.

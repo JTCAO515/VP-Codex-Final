@@ -144,3 +144,11 @@ npm.cmd run test:e2e
 - Keep image entry as Upload Image and Take Photo. Take Photo may be disabled on desktop but should remain available for mobile browsers.
 - Voice UI should remain one Record button unless the user explicitly asks to restore audio upload or URL transcription controls.
 - Preserve existing avatar IDs in `lib/account/avatars.ts` unless there is a migration plan, because community mock data and localStorage may reference them.
+
+## v0.1.43 Agent Update - Repair Rules
+
+- `/api/translate/text` should keep Qwen/DashScope as the first provider but must preserve the DeepSeek fallback path unless the user explicitly removes it.
+- If changing Translator provider behavior, keep all provider keys server-side and update `tests/qwen-translate-api.test.ts`.
+- Trip Canvas day drawers are read-only detail views. Do not reintroduce day-edit inputs or a Save Day button unless the user explicitly asks to restore editing.
+- Day-card CTA copy should remain `View details`, not `Edit`.
+- Real Trip Detail pages with saved canvases should keep status/actions/share controls compact inside the Live Trip Canvas summary card; avoid rebuilding a large top action/status block above the itinerary.

@@ -409,3 +409,18 @@ ADR-034: Add a CSS visual-system layer instead of refactoring UI primitives.
 - Desktop layout is a fixed one-viewport translation desk: two equal top text panels for source/output, then a horizontal phrase and term rail below.
 - Visual treatment is background-forward: heavy translucent panels are avoided; text floats on the ink landscape with hairline dividers and very low-opacity paper backing.
 - Account avatar selection now points the existing six stable avatar IDs to six new PNG assets in `public/avatars`, preserving existing localStorage/community references while replacing the visible artwork.
+
+## v0.1.43 Design Update - Repair Fallbacks and Detail Hierarchy
+
+- `/api/translate/text` now uses provider fallback routing: try Qwen/DashScope first, normalize its JSON/plain response, then fall back to DeepSeek chat completions with the same JSON response contract if Qwen is missing or fails.
+- Translator fallback keeps all keys server-side. Client components still only call internal `/api/translate/*` routes.
+- `TripSummary` accepts an optional right-side action slot. Normal Chat/Share usage remains unchanged; real Trip Detail pages pass compact status/action controls into that slot.
+- `TripCanvas` accepts optional `summaryActions` and forwards them to `TripSummary`, avoiding Trip Detail-specific branching inside the canvas timeline.
+- `DayDetailDrawer` is now read-only. The day card CTA changed from `Edit` to `View details`, matching the current product intent that the drawer reveals itinerary detail rather than edits canvas state.
+- Trip Detail pages with saved canvases keep their `h1` accessible via `sr-only`, but visually reduce the top header so the Live Trip Canvas and day-by-day itinerary become the primary content.
+
+ADR-035: Use provider fallback for text translation and compact controls for trip details.
+
+- Background: The unified Translator still failed when Qwen was unavailable, and Trip Detail pages spent too much first-viewport space on actions/status copy instead of the itinerary.
+- Decision: Keep Qwen as the preferred Translator provider but fall back to DeepSeek for text translation; move Trip Detail actions into the TripSummary slot and remove day drawer editing controls.
+- Reason: This repairs production usefulness without adding new provider UI or changing persistence. It also keeps Trip Detail focused on concrete itinerary review.

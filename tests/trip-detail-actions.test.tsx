@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { TripDetail } from "@/components/trips/TripDetail";
+import { initialTripState } from "@/lib/mock-ai/mockButler";
 
 const stableSession = { user: { id: "user-1", email: "owner@example.com" } };
 
@@ -36,6 +37,22 @@ vi.mock("@/lib/supabase/tripsRepository", () => ({
 }));
 
 describe("TripDetail archive and share actions", () => {
+  it("keeps trip actions compact inside the live canvas summary when a saved canvas exists", async () => {
+    loadTripWithCanvas.mockResolvedValueOnce({ trip: remoteTrip, canvas: initialTripState });
+
+    render(<TripDetail tripId="trip-1" />);
+
+    await screen.findByRole("heading", { name: /beijing loop/i });
+
+    const compactActions = screen.getByLabelText(/trip actions and status/i);
+    expect(compactActions).toHaveTextContent(/continue/i);
+    expect(compactActions).toHaveTextContent(/trips/i);
+    expect(compactActions).toHaveTextContent(/ready/i);
+    expect(compactActions).toHaveTextContent(/archive/i);
+    expect(compactActions).toHaveTextContent(/share/i);
+    expect(screen.queryByLabelText(/current trip status/i)).not.toBeInTheDocument();
+  });
+
   it("lets a signed-in owner create and revoke a share link", async () => {
     render(<TripDetail tripId="trip-1" />);
 

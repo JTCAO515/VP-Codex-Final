@@ -55,6 +55,40 @@ describe("Qwen translator API routes", () => {
     );
   });
 
+  it("falls back to DeepSeek text translation when Qwen is unavailable", async () => {
+    vi.stubEnv("DASHSCOPE_API_KEY", "test-dashscope-key");
+    vi.stubEnv("DEEPSEEK_API_KEY", "test-deepseek-key");
+    const fetchMock = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(new Response("bad gateway", { status: 502 }))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ choices: [{ message: { content: "{\"translation\":\"你好\",\"pinyin\":\"ni hao\"}" } }] }), {
+          status: 200,
+        }),
+      );
+    const { POST } = await import("@/app/api/translate/text/route");
+
+    const response = await POST(new Request("http://localhost/api/translate/text", {
+      method: "POST",
+      body: JSON.stringify({ text: "Hello", from: "en", to: "zh" }),
+    }));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      ok: true,
+      provider: "deepseek",
+      fallbackFrom: "aliyun-bailian",
+      translation: "你好",
+      pinyin: "ni hao",
+    });
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      "https://api.deepseek.com/chat/completions",
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: "Bearer test-deepseek-key" }),
+        body: expect.stringContaining('"response_format":{"type":"json_object"}'),
+      }),
+    );
+  });
+
   it("uses Qwen OCR instead of OCR.space", async () => {
     vi.stubEnv("DASHSCOPE_API_KEY", "test-dashscope-key");
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(

@@ -220,3 +220,18 @@ Explicit exclusions:
 
 - No translation history, account sync, Supabase persistence, or uploaded audio storage.
 - No full mobile redesign beyond preserving functional stacked layout and mobile camera capture affordance.
+
+## v0.1.43 Repair Requirement Update
+
+MVP acceptance additions:
+
+- Text translation must remain usable when the Qwen/DashScope text route is unavailable but DeepSeek is configured; `/api/translate/text` should fall back server-side rather than leaving the Translator broken.
+- If no translation provider is configured, the Translator should show a clear configuration message instead of a generic failure.
+- Trip Canvas day cards should use `View details`, not `Edit`.
+- Opening a day drawer should show the itinerary details only: time blocks, hotel, transport, and notes. It should not show editable inputs or a save button.
+- On real Trip Detail pages with a saved canvas, Continue/Back/status/archive/share controls should be compact and live inside the Live Trip Canvas summary card so the detailed itinerary is the main page content.
+
+Explicit exclusions:
+
+- No new translation history, user translation storage, or provider selection UI.
+- No inline day editing in the Trip Canvas drawer for this repair iteration.

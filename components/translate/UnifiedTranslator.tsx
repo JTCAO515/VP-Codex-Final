@@ -130,8 +130,11 @@ export function UnifiedTranslator() {
         setTranslation(data.translation ?? "");
         setPinyin(data.pinyin ?? "");
         if (mode === "text") setDetectedText("");
-      } catch {
-        setError("Translation failed. Please try again.");
+      } catch (caught) {
+        const message = caught instanceof Error && caught.message === "translation_provider_unavailable"
+          ? "Translation is not configured yet. Add a Qwen or DeepSeek API key and try again."
+          : "Translation failed. Please try again.";
+        setError(message);
       } finally {
         setLoading("");
       }

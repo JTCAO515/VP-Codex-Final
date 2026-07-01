@@ -64,12 +64,12 @@ export function DayCard({ day, isSelected, onSelect }: DayCardProps) {
       <button
         aria-expanded={isSelected}
         aria-haspopup="dialog"
-        aria-label={`Open Day ${day.day} itinerary drawer`}
+        aria-label={`View details for Day ${day.day}`}
         className="day-card__button"
         onClick={onSelect}
         type="button"
       >
-        Edit
+        View details
       </button>
     </article>
   );

@@ -1,6 +1,7 @@
+import type { ReactNode } from "react";
 import type { TripState } from "@/lib/types/trip";
 
-export function TripSummary({ trip }: { trip: TripState }) {
+export function TripSummary({ trip, actions }: { trip: TripState; actions?: ReactNode }) {
   const route = trip.summary.destinations.join(" -> ");
 
   return (
@@ -19,6 +20,7 @@ export function TripSummary({ trip }: { trip: TripState }) {
         <span>{trip.summary.travelerStyle}</span>
         <span>{trip.summary.confidence}</span>
       </div>
+      {actions ? <div className="trip-summary__actions">{actions}</div> : null}
     </header>
   );
 }

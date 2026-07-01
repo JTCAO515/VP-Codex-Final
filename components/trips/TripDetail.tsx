@@ -111,29 +111,21 @@ export function TripDetail({ tripId }: { tripId: string }) {
   }
 
   if (state === "found" && remoteTrip) {
-    return (
-      <section className="trip-detail" aria-labelledby="trip-detail-title">
-        <div className="trip-detail__header">
-          <div>
-            <p className="section-kicker">Trips</p>
-            <h1 id="trip-detail-title">{remoteTrip.title}</h1>
-            <p className="trip-detail__status">
-              {tripStatusLabels[remoteTrip.status]} - Updated {new Date(remoteTrip.updated_at).toLocaleDateString()}
-            </p>
-          </div>
-          <div className="trip-detail__actions">
-            <Link className="primary-link" href={`/chat?trip=${remoteTrip.id}`}>
-              Continue in Chat
-            </Link>
-            <Link className="primary-link" href="/trips">
-              Back to Trips
-            </Link>
-          </div>
+    const compactControls = (
+      <div className="trip-summary-actions" aria-label="Trip actions and status">
+        <div className="trip-summary-actions__links">
+          <Link href={`/chat?trip=${remoteTrip.id}`}>Continue</Link>
+          <Link href="/trips">Trips</Link>
         </div>
-        <div className="trip-detail__status-actions">
+        <div className="trip-summary-actions__status">
+          <strong>{tripStatusLabels[remoteTrip.status]}</strong>
+          <span>{tripStatusDescriptions[remoteTrip.status]}</span>
+          <em>{tripStatusNextActions[remoteTrip.status]}</em>
+        </div>
+        <div className="trip-summary-actions__buttons">
           {remoteTrip.status !== "archived" && (
             <button disabled={actionBusy} onClick={() => handleSetStatus("ready")} type="button">
-              Mark as Ready
+              Ready
             </button>
           )}
           {remoteTrip.status !== "archived" ? (
@@ -142,37 +134,101 @@ export function TripDetail({ tripId }: { tripId: string }) {
             </button>
           ) : (
             <button disabled={actionBusy} onClick={() => handleSetStatus("draft")} type="button">
-              Restore from archive
+              Restore
             </button>
           )}
           {remoteTrip.share_token ? (
             <button disabled={actionBusy} onClick={handleRevokeShareLink} type="button">
-              Revoke share link
+              Revoke link
             </button>
           ) : (
             <button disabled={actionBusy} onClick={handleCreateShareLink} type="button">
-              Get share link
+              Share
             </button>
           )}
         </div>
-        <aside className="trip-detail__status-guide" aria-label="Current trip status">
-          <strong>{tripStatusLabels[remoteTrip.status]}</strong>
-          <p>{tripStatusDescriptions[remoteTrip.status]}</p>
-          <span>{tripStatusNextActions[remoteTrip.status]}</span>
-        </aside>
-        {shareUrl && (
-          <p className="trip-detail__share-link" role="status">
-            Share link: <code>{shareUrl}</code>
-          </p>
-        )}
+        {shareUrl && <code className="trip-summary-actions__share">{shareUrl}</code>}
         {actionMessage && (
-          <p aria-live="polite" className="trip-detail__action-message" role="status">
+          <span aria-live="polite" className="trip-summary-actions__message" role="status">
             {actionMessage}
-          </p>
+          </span>
+        )}
+      </div>
+    );
+
+    return (
+      <section className="trip-detail" aria-labelledby="trip-detail-title">
+        {canvas ? (
+          <div className="trip-detail__compact-head">
+            <p className="section-kicker">Trips</p>
+            <h1 className="sr-only" id="trip-detail-title">{remoteTrip.title}</h1>
+          </div>
+        ) : (
+          <div className="trip-detail__header">
+            <div>
+              <p className="section-kicker">Trips</p>
+              <h1 id="trip-detail-title">{remoteTrip.title}</h1>
+              <p className="trip-detail__status">
+                {tripStatusLabels[remoteTrip.status]} - Updated {new Date(remoteTrip.updated_at).toLocaleDateString()}
+              </p>
+            </div>
+            <div className="trip-detail__actions">
+              <Link className="primary-link" href={`/chat?trip=${remoteTrip.id}`}>
+                Continue in Chat
+              </Link>
+              <Link className="primary-link" href="/trips">
+                Back to Trips
+              </Link>
+            </div>
+          </div>
+        )}
+        {!canvas && (
+          <>
+            <div className="trip-detail__status-actions">
+              {remoteTrip.status !== "archived" && (
+                <button disabled={actionBusy} onClick={() => handleSetStatus("ready")} type="button">
+                  Mark as Ready
+                </button>
+              )}
+              {remoteTrip.status !== "archived" ? (
+                <button disabled={actionBusy} onClick={() => handleSetStatus("archived")} type="button">
+                  Archive
+                </button>
+              ) : (
+                <button disabled={actionBusy} onClick={() => handleSetStatus("draft")} type="button">
+                  Restore from archive
+                </button>
+              )}
+              {remoteTrip.share_token ? (
+                <button disabled={actionBusy} onClick={handleRevokeShareLink} type="button">
+                  Revoke share link
+                </button>
+              ) : (
+                <button disabled={actionBusy} onClick={handleCreateShareLink} type="button">
+                  Get share link
+                </button>
+              )}
+            </div>
+            <aside className="trip-detail__status-guide" aria-label="Current trip status">
+              <strong>{tripStatusLabels[remoteTrip.status]}</strong>
+              <p>{tripStatusDescriptions[remoteTrip.status]}</p>
+              <span>{tripStatusNextActions[remoteTrip.status]}</span>
+            </aside>
+            {shareUrl && (
+              <p className="trip-detail__share-link" role="status">
+                Share link: <code>{shareUrl}</code>
+              </p>
+            )}
+            {actionMessage && (
+              <p aria-live="polite" className="trip-detail__action-message" role="status">
+                {actionMessage}
+              </p>
+            )}
+          </>
         )}
         {canvas ? (
           <div className="trip-detail__canvas">
-            <TripCanvas trip={canvas} />
+            <TripCanvas trip={canvas} summaryActions={compactControls} />
           </div>
         ) : (
           <p className="trip-detail__notice">

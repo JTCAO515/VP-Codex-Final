@@ -545,6 +545,10 @@ select:focus-visible {
   box-shadow: 0 10px 24px rgba(55, 36, 18, 0.07);
 }
 
+.trip-summary:has(.trip-summary__actions) {
+  grid-template-columns: 112px minmax(0, 1fr) minmax(260px, 0.42fr);
+}
+
 .trip-summary__route-mark {
   position: relative;
   min-height: 58px;
@@ -602,6 +606,94 @@ select:focus-visible {
   color: var(--ink-muted);
   font-size: 0.78rem;
   font-weight: 850;
+}
+
+.trip-summary__actions {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  min-width: 0;
+}
+
+.trip-summary-actions {
+  display: grid;
+  gap: 7px;
+  justify-items: end;
+  color: var(--ink-muted);
+  font-size: 0.72rem;
+}
+
+.trip-summary-actions__links,
+.trip-summary-actions__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.trip-summary-actions__links a,
+.trip-summary-actions__buttons button {
+  min-height: 26px;
+  border: 1px solid rgba(111, 91, 73, 0.22);
+  border-radius: 999px;
+  padding: 0 10px;
+  background: rgba(255, 248, 237, 0.74);
+  color: var(--ink);
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 24px;
+  text-decoration: none;
+}
+
+.trip-summary-actions__links a:first-child {
+  border-color: rgba(163, 58, 45, 0.42);
+  background: var(--cinnabar);
+  color: var(--paper-soft);
+}
+
+.trip-summary-actions__buttons button {
+  color: var(--cinnabar);
+}
+
+.trip-summary-actions__buttons button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.trip-summary-actions__status {
+  display: grid;
+  gap: 2px;
+  max-width: 320px;
+  border-left: 2px solid var(--gold);
+  padding-left: 8px;
+  text-align: right;
+}
+
+.trip-summary-actions__status strong {
+  color: var(--ink);
+  font-size: 0.7rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.trip-summary-actions__status span,
+.trip-summary-actions__status em {
+  color: var(--ink-muted);
+  font-style: normal;
+  line-height: 1.25;
+}
+
+.trip-summary-actions__status em,
+.trip-summary-actions__message {
+  color: var(--cinnabar);
+  font-weight: 900;
+}
+
+.trip-summary-actions__share {
+  max-width: 320px;
+  overflow: hidden;
+  color: var(--ink-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .trip-canvas__body {
@@ -1660,7 +1752,13 @@ select:focus-visible {
 
 .trip-detail {
   display: grid;
-  gap: 18px;
+  gap: 10px;
+}
+
+.trip-detail__compact-head {
+  display: flex;
+  align-items: center;
+  min-height: 0;
 }
 
 .trip-detail__header {
@@ -1698,7 +1796,7 @@ select:focus-visible {
 .trip-detail__canvas {
   border: 1px solid rgba(111, 91, 73, 0.2);
   border-radius: 12px;
-  padding: 18px;
+  padding: 14px;
   background: color-mix(in srgb, var(--paper-soft) 84%, transparent);
 }
 
@@ -4282,6 +4380,10 @@ select {
     padding: 9px 13px;
     background: rgba(255, 248, 234, 0.68);
     box-shadow: var(--shadow-soft);
+  }
+
+  .trip-summary:has(.trip-summary__actions) {
+    grid-template-columns: 86px minmax(0, 1fr) minmax(240px, 0.38fr);
   }
 
   .trip-summary__route-mark {

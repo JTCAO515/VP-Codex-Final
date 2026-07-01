@@ -9,9 +9,9 @@ describe("TripCanvas", () => {
 
     expect(screen.getByLabelText(/live trip canvas/i)).toBeInTheDocument();
     expect(screen.getByText("China Trip Draft")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /open day 1 itinerary drawer/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /open day 2 itinerary drawer/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /open day 3 itinerary drawer/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /view details for day 1/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /view details for day 2/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /view details for day 3/i })).toBeInTheDocument();
     expect(screen.queryByLabelText(/day 1 itinerary details/i)).not.toBeInTheDocument();
     expect(screen.getAllByText(/^Morning$/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/^Afternoon$/i).length).toBeGreaterThan(0);
@@ -42,7 +42,7 @@ describe("TripCanvas", () => {
 
     render(<TripCanvas trip={trip} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /open day 4 itinerary drawer/i }));
+    fireEvent.click(screen.getByRole("button", { name: /view details for day 4/i }));
 
     expect(screen.getByLabelText(/day 4 itinerary details/i)).toBeInTheDocument();
     expect(screen.getAllByText("Shanghai").length).toBeGreaterThan(0);
@@ -53,20 +53,16 @@ describe("TripCanvas", () => {
     expect(screen.queryByLabelText(/day 4 itinerary details/i)).not.toBeInTheDocument();
   });
 
-  it("edits a day itinerary from the drawer and updates the canvas card", () => {
+  it("opens a read-only itinerary detail drawer without edit controls", () => {
     render(<TripCanvas trip={initialTripState} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /open day 1 itinerary drawer/i }));
-    fireEvent.change(screen.getByLabelText(/morning title/i), {
-      target: { value: "Forbidden City private guide" },
-    });
-    fireEvent.change(screen.getByLabelText(/hotel/i), {
-      target: { value: "Beijing boutique courtyard hotel" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /save day 1 changes/i }));
+    fireEvent.click(screen.getByRole("button", { name: /view details for day 1/i }));
 
-    expect(screen.queryByLabelText(/day 1 itinerary details/i)).not.toBeInTheDocument();
-    expect(screen.getAllByText("Forbidden City private guide").length).toBeGreaterThan(0);
-    expect(screen.getByText(/Beijing boutique courtyard hotel/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/day 1 itinerary details/i)).toBeInTheDocument();
+    expect(screen.getAllByText("Forbidden City (故宫)").length).toBeGreaterThan(0);
+    expect(screen.getByText(/Start with the classic imperial axis/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Beijing city-center hotel/i).length).toBeGreaterThan(0);
+    expect(screen.queryByLabelText(/morning title/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /save day 1 changes/i })).not.toBeInTheDocument();
   });
 });

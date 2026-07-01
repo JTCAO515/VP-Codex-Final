@@ -1,5 +1,13 @@
 # VisePanda Changelog
 
+## v0.1.43 - 2026-07-01
+
+- Fixed `/api/translate/text` so text translation no longer fails outright when the Qwen/DashScope route is unavailable; the route now falls back to the existing DeepSeek server-side provider before returning a provider-unavailable error.
+- Updated the unified Translator UI to show a clearer configuration message when neither Qwen nor DeepSeek translation providers are available.
+- Changed Trip Canvas day cards from `Edit` to `View details`; the day drawer is now read-only and shows itinerary details instead of editable form fields.
+- Reworked real Trip Detail pages with saved canvases so Continue/Trips/status/archive/share controls live as compact buttons/status copy inside the Live Trip Canvas summary card instead of taking over the top of the page.
+- Added tests for Qwen-to-DeepSeek translation fallback, read-only day details, and compact Trip Detail canvas actions.
+
 ## v0.1.42 - 2026-07-01
 
 - Simplified `/translate` from four separate cards into one locale-aware translator workspace.

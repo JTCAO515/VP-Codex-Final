@@ -3,7 +3,7 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.42`
+- Current iteration: `v0.1.43`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -56,3 +56,4 @@
 - `v0.1.40`: tightened the standalone landing home page into a single-viewport desktop layout with smaller hero spacing, compact feature cards, and preserved home/LanguageSwitcher/Account entry behavior.
 - `v0.1.41`: fixed Save to Trips by adding Supabase auth-to-public-user sync migration `0003_fix_auth_user_sync.sql`, upserting `public.users` before trip insert, making message append failures non-fatal, and adding save-error diagnostics.
 - `v0.1.42`: simplified Translator into one locale-aware workspace for active site language ↔ Chinese, with two equal source/output text panels, Upload Image / Take Photo, one Record button, horizontal phrases/terms support, lighter background-forward styling, correct Qwen locale prompts, desktop one-viewport locking, and six new panda PNG account avatars.
+- `v0.1.43`: repair iteration for Translator and Trip detail UX — text translation now falls back from Qwen/DashScope to DeepSeek, day drawers are read-only itinerary details instead of edit forms, and real Trip Detail action/status controls move into the Live Trip Canvas summary card as compact controls.
