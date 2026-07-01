@@ -504,3 +504,14 @@ Next implementation tasks:
 
 - [ ] v0.1.55 Canvas Action Layer: trip completeness, Day quick actions, and prep blockers.
 - [ ] v0.1.56 Inline Tool Cards or Tools Widgets, depending on whether the next priority is Chat anxiety resolution or standalone utility depth.
+
+## v0.1.55 Addendum - UX Layout & Frontend Design Spec (docs only)
+
+- [x] Added `docs/planning/ux-design-and-layout-spec.md`: the design/experience companion to the v0.1.52 interaction blueprint and v0.1.53 technical blueprint.
+- [x] Macro: single-surface spatial model, information-architecture table, five-anxiety layout principle.
+- [x] Micro: page-by-page layout + component interaction mechanics for Home, Chat command center + Canvas, Day detail, Explore, Tools, Translate FAB, Trips, Account, Admin.
+- [x] Frontend design system: tokens, reusable component library, per-surface visual hierarchy, motion, mobile-first, accessibility/i18n.
+- [x] Mapped each existing roadmap phase to its governing design section (design contract for implementation).
+- [x] Synced onto origin/main (v0.1.54) before working — parallel session's work preserved, nothing overwritten.
+
+Note: this iteration is the design contract for the already-planned code phases (Canvas Action Layer, Inline Tool Cards, Tools Widgets, etc.); it does not add new phases. Version numbering overlaps with the parallel session's roadmap — see the HANDOFF v0.1.55 parallel-session note.

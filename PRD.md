@@ -587,3 +587,12 @@ Explicit exclusions:
 - No direct canvas mutation from Home, Chat chips, or archetype starts.
 - No new provider keys, API integrations, Supabase migrations, or booking/payment logic in this iteration.
 - Offline Vault, Payment Wizard, Bilingual Handoff, and Contextual Tool Promotion remain planned follow-up tracks.
+
+## v0.1.55 Design-Spec Update - UX Layout & Frontend (planning only)
+
+Documentation-only. Establishes the design contract the FIT roadmap phases build against; deep-dive in `docs/planning/ux-design-and-layout-spec.md`.
+
+- Requirement: the product must present as one spatial system (Canvas + Chat as the home), with every one of the five traveler anxieties resolvable within one tap of the Canvas. Pages that don't answer a traveler question are demoted.
+- Requirement: Butler replies render as structured blocks (headline / body / highlights / watchOut / nextStep), with `nextStep` as a tappable primary action; canvas changes are visually signaled (new/revised animation).
+- Requirement: a formalized frontend design system (tokens + reusable component library + motion + a11y) underpins all new surfaces so Account/Admin/Tools widgets and the future native app inherit one coherent system.
+- Exclusion: no code, no new roadmap phases; this is the design layer for existing phases. Exact tokens/component APIs are targets, refined per implementation iteration.

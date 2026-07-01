@@ -339,3 +339,10 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 - First-run Chat starter chips are traveler choices, not explanatory feature cards. Keep them concise and action-oriented.
 - The primary `nextStep` card must keep using the normal `onSend` path so it preserves preference extraction, provider fallback, saved messages, and canvas patch handling.
 - Canvas confidence wording is presentation-only. Do not rename `TripState.summary.confidence` values without a migration and parser update.
+
+## v0.1.55 Agent Update - UX Layout & Frontend Design Spec
+
+- `docs/planning/ux-design-and-layout-spec.md` is the design contract for the FIT roadmap phases. When implementing Canvas Action Layer, Inline Tool Cards, Tools Widgets, Translate Everywhere, Account, or Admin, follow that doc's layout + interaction section for the surface you touch.
+- Build with the tokens + reusable component library the spec defines; do not hand-roll new per-page styles when a component exists (or create the shared component, then use it).
+- Butler replies render as structured blocks; keep `nextStep` a tappable primary action routed through `onSend` (never a direct canvas mutation).
+- Parallel-session hygiene: `origin/main` may advance from another session between turns. Before starting an iteration, `git fetch` and check `git log HEAD..origin/main`; if main advanced, rebase/sync onto it rather than force-pushing over it. Never overwrite commits you did not create. Version-number collisions are possible — coordinate or renumber rather than clobber.

@@ -1,5 +1,16 @@
 # VisePanda Changelog
- 
+
+## v0.1.55 - 2026-07-01
+
+**Documentation-only iteration — UX layout & frontend design specification.** Complements the existing v0.1.52 interaction blueprint (what/why) and v0.1.53 technical blueprint (plugin architecture) with the missing design/experience layer (how it looks, lays out, and feels) for the one-stop FIT travel-butler positioning.
+
+- Added `docs/planning/ux-design-and-layout-spec.md` with three parts:
+  - **Macro**: the single-surface spatial model (Canvas + Chat as home, not six tabs), a full information-architecture table, and the five-anxiety layout principle (every traveler anxiety must have a resolution path within one tap of the Canvas).
+  - **Micro**: wireframe-level page composition and component-level interaction mechanics for Home, the Chat command center + Live Canvas (desktop two-column and mobile stacked), Day detail, Explore, Tools, Translate FAB, Trips, Account, and Admin — including structured-reply block rendering, canvas-patch animation, day quick-actions, and precise Add-to-Trip.
+  - **Frontend design system**: formalized design tokens (Warm New Chinese palette, type/space/radius/motion scales), a reusable component library, per-surface visual hierarchy, motion/feedback, mobile-first specifics, and accessibility/i18n rules.
+- Mapped each existing roadmap phase (Canvas Action Layer, Inline Tool Cards, TripBlock POI, Translate Everywhere, Tools Widgets, Account, Admin) to its governing design section so implementation has a concrete design contract.
+- No product code changes. Synced this branch onto `origin/main` (v0.1.54) first to preserve the parallel session's work — no history was overwritten.
+
 ## v0.1.54 - 2026-07-01
 
 **Interaction Shell I code implementation.** This release implements the first code slice planned after the v0.1.52/v0.1.53 strategy documents.

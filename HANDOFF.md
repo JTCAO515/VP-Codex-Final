@@ -4,7 +4,7 @@
  
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）；v0.1.34 桌面横屏前端优化：Tools 6 个模态卡片 + 浮层对话框、Trips 筛选按钮布局修复（过滤器始终可见）、Translator 单页 2×2 网格布局（同时展示四个功能面板无需切换 tab）。
 - 当前分支：`main`
-- 当前版本：`v0.1.54`
+- 当前版本：`v0.1.55`
 - 重要（已完成）：
   - `supabase/migrations/0002_trip_archive_and_share.sql`：用户已手动在 Supabase SQL Editor 执行，归档/分享 RLS policy 已生效。
   - Google OAuth：用户已在 Google Cloud 创建 OAuth 凭据并在 Supabase Authentication → Providers → Google 填入，Google 登录功能已配置就绪。
@@ -532,3 +532,19 @@ Alternatives if Dianping approval is slow: (a) Amap enriched fields — already 
 ### Recommended next iteration
 
 - **Chat Intelligence Layer / response normalization** (阶段十二): add the `{headline, body, highlights, watchOut, nextStep}` schema so answers are consistent and scannable, then layer the refine-and-verify loop (task 13.5) on top of the orchestrator. Alternatively, **Tools functional upgrade** (阶段十五) for immediate, self-contained traveler value. See `docs/planning/mock-inventory.md` for the full replace-the-mocks queue.
+
+## v0.1.55 Handoff Update - UX Layout & Frontend Design Spec (docs only)
+
+- Current version after this iteration: `v0.1.55`.
+- Documentation only. Added `docs/planning/ux-design-and-layout-spec.md`, the design/experience companion to the v0.1.52 interaction blueprint and v0.1.53 technical blueprint. No product code changed.
+
+### ⚠️ Parallel-session / version-collision note (important for the operator)
+
+- This session discovered that `origin/main` had already advanced to **v0.1.54** via a **parallel session** (it did the FIT one-stop positioning, model activation, structured chat replies, rich POI context, preference memory, and the interaction shell).
+- To avoid destroying that work, this session **synced onto `origin/main` first** (dropping a now-redundant local v0.1.48 model-selection commit — the parallel session's own v0.1.48 already activated the same models) and then added this docs-only iteration on top. **No history was overwritten.**
+- **Risk:** two sessions both auto-increment `0.1.x` and both push to `main`, so version numbers can collide (this already happened once at v0.1.48). The roadmap reserves `v0.1.55` for the *Canvas Action Layer* code phase; this docs iteration also took `v0.1.55`. If the other session ships Canvas Action Layer, reconcile by renumbering one of them.
+- **Recommendation:** run one session at a time, OR give each session a version lane (e.g. code sessions use even patch numbers, planning sessions use a `-docs` suffix), OR designate this session for design/docs and the other for feature code. Awaiting the operator's preference.
+
+### What this doc adds (not a duplicate of v0.1.52/v0.1.53)
+
+- v0.1.52 = interaction blueprint (what/why); v0.1.53 = plugin/technical architecture; **v0.1.55 = concrete UX layout + component interaction mechanics + frontend visual design system** (the "how it looks and lays out" layer), plus a table mapping each roadmap phase to its governing design section.

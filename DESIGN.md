@@ -733,3 +733,12 @@ ADR-066: Traveler-facing canvas status is a presentation mapping.
 - Background: Existing canvas confidence values (`Draft`, `Refined`, `Ready to save`) are useful internal state but read like implementation labels to travelers.
 - Decision: `TripSummary` maps confidence to traveler copy (`Taking shape`, `Looking good`, `Travel-ready`) while leaving the underlying `TripState` contract unchanged.
 - Reason: This improves clarity and trust with no data migration or saved-trip compatibility risk.
+
+## v0.1.55 Design Update - UX Layout & Frontend Design System (planning)
+
+Documentation-only. `docs/planning/ux-design-and-layout-spec.md` is the design contract layered on the v0.1.52 interaction blueprint and v0.1.53 technical blueprint. It specifies presentation/layout and a component system, not new data flows, so it adds no new ADR — it operationalizes ADR-049 (design-system) and ADR-055/057 (Chat spine, contextual controls).
+
+- Single-surface spatial model (persistent top strip / Canvas+Chat workspace / Translate FAB / bottom nav) + an information-architecture table binding each layer to persistence and entry points.
+- Component-level interaction mechanics (structured `assistantResponse` block rendering, canvas-patch animation, day quick-actions via structured intents, precise Add-to-Trip) — consistent with the guardrail that quick actions never mutate the canvas directly (ADR-057) and structured replies (ADR-051).
+- Formalized design tokens + a reusable component library (Button/Card/Field/Pill/Modal/Sheet/Toast/RatingStars/PriceLevel/ProgressMeter/POICard/MessageBlock) so surfaces stop hand-rolling styles — the concrete follow-through ADR-049 called for.
+- A phase→design-section map so each already-planned code phase builds against a defined layout/interaction contract.
