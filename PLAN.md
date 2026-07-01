@@ -90,6 +90,77 @@
 - [ ] 任务 11.5（规划）：社区后台数据库设计——Supabase 新表：`community_posts`（标题/正文/用户/类型）、`community_media`（图片/存储路径）、`community_likes`、`community_comments`，新增对应 migration SQL。
 - [ ] 任务 11.6（规划）：社区内容基础治理——内容举报功能占位、关键词过滤（本地规则集）、管理员审核队列设计。
 
+## 阶段十二：智能对话管线与数据融合（v0.1.45 规划，代码未改动）
+
+> 本阶段是一次**纯文档产品规划迭代**（v0.1.45），不改动任何代码。目标是从宏观层面重新定义产品方向，并把「让 Chat 更高效、更规范、更懂用户」和「Chat×Explore×Trips 通过对话联动真实地图/美团数据」两条主线，蒸馏成 v0.1.46–v0.1.52 的可执行路线图。所有下列任务均为**规划中（未实现）**，实现时必须遵守既有的 provider abstraction、server-side key、mock fallback 约束。
+
+### 产品定位（宏观）
+
+- VisePanda 的核心不是「功能集合」（Chat/Explore/Tools/Translate），而是解决西方游客来中国前的**五大恐惧**：签证是否合格、能不能付款、手机能不能上网、看不懂中文、行程怎么串。每个功能都映射到它所化解的恐惧。
+- Chat 是把其他界面串起来的**唯一主线**。Explore 的数据、Tools 的清单、Translate 的能力，最终都应该能在 Chat 对话里被自然触发，而不是让用户在 6 个 tab 之间来回跳。
+- 当用户的恐惧被 Chat 主动化解，他们就会停留在 Chat，而不是在 tab 之间流失。
+
+### v0.1.46：Chat 智能层 I —— 意图分类 + 路由 + 提示词精炼 + 回答规范化
+
+- [ ] 任务 12.1：新增轻量意图分类器（正则 + 关键词，无 LLM 成本，<50ms），把用户消息分类为 10 种意图：`create_trip` / `adjust_trip` / `add_location` / `add_poi` / `ask_factual` / `ask_recommendation` / `preference_signal` / `concern` / `logistics` / `unclear`。
+- [ ] 任务 12.2：实体抽取——从原始消息中抽取城市、天数、预算信号、饮食提及、同行人数，构造结构化 `refinedPrompt` 再送入 DeepSeek，而不是直接把原始口语送进模型。
+- [ ] 任务 12.3：非 LLM 处理器——`ask_factual`（签证/支付/eSIM/地铁等）直接查 `lib/tools` 静态知识库并以内联工具卡返回（<100ms，零成本）；`preference_signal` 只更新 profile 并返回一行确认，不触发完整 canvas patch。
+- [ ] 任务 12.4：回答规范化——在 system prompt 中强制 `{headline, body, highlights, watchOut, nextStep}` 结构，`ChatPanel` 按分区渲染（headline 大字、highlights 绿色勾、watchOut 琥珀色、nextStep 变主建议 chip），取代单条自由文本 `assistantMessage`。
+- [ ] 任务 12.5：上下文建议——固定返回 2 个（而非 4 个）根据当前 trip state 计算的建议 chip；空画布/已建行程/某天过满/提到美食/提到签证各有不同建议。
+
+### v0.1.47：偏好画像 + 意图蒸馏
+
+- [ ] 任务 12.6：定义 `UserPreferenceProfile` 类型（pace / travelStyle / partySize / budgetPerDay / hotelStars / dietaryRestrictions / cuisinePreferences / interests / mobilityLevel / experienceLevel / profileConfidence）与 `ProfileContext`。
+- [ ] 任务 12.7：静默抽取——从任意口语消息中提取偏好（「走累了」→ pace:light；「带小孩」→ family_with_kids；「学生党」→ economy；「不吃猪肉」→ no_pork），不做表单式盘问。
+- [ ] 任务 12.8：一问规则——Butler 每轮最多问 1 个澄清问题，且仅当该信息缺失会导致行程明显错误时才问（如季节影响赏花时间），问题自然嵌入对话。
+- [ ] 任务 12.9：画像持久化——登录用户存 Supabase（新增 `profiles` 表 + migration），guest 存 localStorage；每次 DeepSeek 调用都把结构化 profile 注入 system prompt。
+- [ ] 任务 12.10：ChatPanel 头部显示偏好 chips（如「Foodie · Mid budget · 2 people」），让用户知道 Butler「记得」自己。
+
+### v0.1.48：高德 POI 数据丰富化（无需新审批）
+
+- [ ] 任务 12.11：升级 `/api/explore/amap` 使用 `extensions=all`，捕获高德已返回但当前被丢弃的字段：`rating` / `cost` / `tel` / `opentime_week` / `photos` / `business_area`。
+- [ ] 任务 12.12：`AmapPoi` 接口补齐上述字段；`lib/explore/types.ts` 新增全可选的 `ExploreRichMeta`（rating / reviewCount / pricePerPerson / priceLevel / tel / openHours / photoUrl / bookingUrl / sourceLabel），`ExploreAttraction`/`ExploreFoodSpot`/`ExploreStay` 继承之。
+- [ ] 任务 12.13：`amapProvider.ts` 的 mapper 填充 rich 字段；静态 provider 保持字段为 undefined（graceful degradation）。
+- [ ] 任务 12.14：Explore 卡片 UI 条件渲染评分（★ 4.7，`--gold`）、价格档（¥/¥¥/¥¥¥）、营业时间、缩略图；移动端卡片改为左图右文横向布局。
+
+### v0.1.49：工具调用 Butler（真实 POI 数据进对话）
+
+- [ ] 任务 12.15：将 `/api/chat/route.ts` 升级为**工具执行循环**（最多 3 轮）：DeepSeek 返回 `tool_calls` → 服务端执行真实 Amap/Dianping 调用 → 把结果回灌 → 模型再基于真实数据生成行程。
+- [ ] 任务 12.16：定义工具 schema：`search_pois`（city/category/keyword/priceLevel）、`get_poi_detail`（poiId/city）、`search_dianping`（先做 stub，待审批）。
+- [ ] 任务 12.17：扩展 `TripBlock`（向后兼容，全可选）：`poiId` / `sourceLabel` / `rating` / `priceEstimate` / `openHours` / `phone` / `photoUrl` / `mapUrl` / `bookingUrl` / `location{lat,lng}`。
+- [ ] 任务 12.18：在 Chat 对话流内联渲染真实 POI 卡片（评分/价格/照片），卡片带「Add to Day N」按钮，直接进既有 AI pipeline。
+- [ ] 任务 12.19：确认 DeepSeek 计划支持 function calling（`deepseek-chat` 支持；若 V4 Flash 不支持，简单调整用 Flash、工具循环用 V3）。
+
+### v0.1.50：引导入口 + 画布快捷操作
+
+- [ ] 任务 12.20：Home 增加 3 个原型入口（「首次中国 10 天精华」/「美食三城」/「历史+自然」），点击后带 `?archetype=` 参数预置 trip state，并由 Butler 以「建议」口吻呈现。
+- [ ] 任务 12.21：首跑向导——3 个 chip 问题（无需打字）即可生成起始草稿；替换空白 textarea 空状态。
+- [ ] 任务 12.22：画布进度指示（「你的行程已成型 40%」），基于 TripState 完整度（城市/日期/酒店区/美食/交通/行前清单）打分。
+- [ ] 任务 12.23：Day 卡片内联快捷按钮（Lighten / Swap morning / Add food），每个按钮发送预制 Butler 意图，用户无需打字。
+- [ ] 任务 12.24：把 `confidence`（Draft/Refined/Ready to save）映射为友好文案（「Taking shape / Looking good / Save it!」）；行程有标题后用标题替换「Live Trip Canvas」h1。
+
+### v0.1.51：导航重构（两种模式，而非六个 tab）
+
+- [ ] 任务 12.25：Translate 从主导航移除，改为全局悬浮相机/麦克风按钮（底部右侧常驻），点开是已激活 OCR 的 bottom sheet，不离开当前上下文。
+- [ ] 任务 12.26：Explore 从主导航降级，POI 浏览通过 Chat 内「Browse [City]」按钮进入；Explore 页面保留为可浏览的发现面，但不再是一级 tab。
+- [ ] 任务 12.27：主导航精简为 Chat · Trips · Tools · Community（4 tab）。
+- [ ] 任务 12.28：Chat 对话内联渲染工具卡（签证提醒、支付清单在对话中直接出现），复用 Tools modal 的组件。
+- [ ] 任务 12.29：已登录用户从 `/` 直接进 `/chat`（Home 仅作落地页）。
+
+### v0.1.52：大众点评/美团 + 地图（审批后）
+
+- [ ] 任务 12.30：`search_dianping` 接真实大众点评 POI 搜索（评分/评论数/人均），替换 stub。
+- [ ] 任务 12.31：酒店预订 deeplink 进美团/携程 App；餐厅卡展示真实人均消费与评论数。
+- [ ] 任务 12.32：注册 `NEXT_PUBLIC_AMAP_MAPS_KEY`（仅用于地图显示、域名白名单、可公开）；在 Day 抽屉/Canvas 加 `DayMapWidget`，对含 2+ 定位块的天渲染标记 + 路线。
+- [ ] 任务 12.33：Chat→Explore 反向联动——行程内 POI 在 Explore 城市视图显示「In your trip」徽标；偏好驱动 Explore 卡片排序。
+
+### 阶段十二关键设计取舍（详见 DESIGN.md ADR-037~042）
+
+- 为什么用工具调用而非 RAG：RAG 预嵌入静态知识；工具调用在规划时查实时数据，知道某餐厅当天是否营业、某景点是否需提前购票。
+- 为什么保留 static/mock provider：既有安全约束——真实数据源不可用/未审批时对话仍可用，只是退化为无真实 POID 的纯文本行程。
+- 为什么不流式工具调用：`response_format: json_object` 一次性输出，解析更稳；流式可后续仅对 `assistantMessage` 字段加。
+- 为什么高德要两把 key：POI 搜索 REST key（`AMAP_API_KEY`）永远服务端、按调用计费、绝不进浏览器；地图显示 JS key（`NEXT_PUBLIC_AMAP_MAPS_KEY`）按 Referer 白名单、可公开、无计费风险。
+
 ## 关键约束
 
 - 技术选型：Next.js App Router、React、TypeScript、Vercel、Supabase 预留。
@@ -237,3 +308,27 @@ Next translator priorities:
 Next product iteration:
 
 - [ ] Continue product planning from VPCC backlog after reviewing the deployed v0.1.43 repair iteration.
+
+## v0.1.45 Addendum - Intelligent Chat Pipeline & Data-Fusion Roadmap (Docs Only)
+
+- [x] Distill three research threads (Amap/Meituan data enrichment, Chat×Explore×Trips fusion, chat-efficiency/UX overhaul) into one coherent roadmap.
+- [x] Add 阶段十二 to PLAN with tasks 12.1–12.33 across seven planned iterations (v0.1.46–v0.1.52).
+- [x] Sharpen product positioning in PRD around the five traveler fears; add the Chat Intelligence pipeline, intent taxonomy, response-normalization schema, preference-profile requirements, UX audit, and navigation restructure.
+- [x] Record data-fusion architecture in DESIGN (intent routing, preference profile, tool-calling Butler, rich data model, two-key Amap split, nav restructure) as ADR-037 through ADR-042.
+- [x] Add AGENTS rules for implementing the roadmap without breaking provider abstraction, server-side keys, or mock fallback.
+- [x] Record the Dianping/Meituan API application guide and timeline in HANDOFF.
+- [x] No code changes this iteration; all tasks 12.1–12.33 remain planned/unimplemented.
+
+Sequencing rationale (why this order):
+
+- [ ] Chat Intelligence (v0.1.46) ships first because it improves every message for zero new API dependencies and reduces cost/latency immediately.
+- [ ] Preference Profile (v0.1.47) is next because tool-calling and onboarding both consume the profile.
+- [ ] Amap Enrichment (v0.1.48) precedes Tool-Calling Butler (v0.1.49) because the rich data model and mappers are prerequisites for feeding real POI data into the canvas.
+- [ ] Onboarding + Quick-Actions (v0.1.50) and Nav Restructure (v0.1.51) are UX-surface iterations that build on the intelligence + data layers.
+- [ ] Dianping/Meituan + Map (v0.1.52) is last because it depends on external API approval (multi-week queue — start the application during v0.1.46).
+
+Immediate no-code actions the user should take this week:
+
+- [ ] Apply for 大众点评开放平台 developer access now (2-week review queue).
+- [ ] Register an Amap JS Maps key (`NEXT_PUBLIC_AMAP_MAPS_KEY`, domain whitelist `go2china.space`) — 5-minute self-serve.
+- [ ] Confirm the DeepSeek plan includes function calling for the tool-calling Butler (v0.1.49).

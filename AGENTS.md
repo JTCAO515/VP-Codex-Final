@@ -160,3 +160,43 @@ npm.cmd run test:e2e
 - Trip Canvas day drawers are read-only detail views. Do not reintroduce day-edit inputs or a Save Day button unless the user explicitly asks to restore editing.
 - Day-card CTA copy should remain `View details`, not `Edit`.
 - Real Trip Detail pages with saved canvases should keep status/actions/share controls compact inside the Live Trip Canvas summary card; avoid rebuilding a large top action/status block above the itinerary.
+
+## v0.1.45 Agent Update - Intelligent Chat Pipeline & Data-Fusion Rules
+
+v0.1.45 is a documentation-only planning iteration. The rules below govern the implementation iterations it plans (v0.1.46–v0.1.52, tracked as 阶段十二/tasks 12.1–12.33 in PLAN.md). When you pick up any of those iterations, follow these rules.
+
+**General**
+
+- v0.1.45 itself must not change any code. If asked to "do v0.1.45", only update the seven docs.
+- Implement the roadmap in the planned order (v0.1.46 → v0.1.52). Each iteration should be independently shippable and keep the app working end-to-end.
+- Never remove the mock/static fallback. Every new provider (Amap enrichment, Dianping, tool calling) must degrade gracefully to the existing static provider and mock Butler when a key is missing or an upstream fails.
+
+**Chat pipeline (v0.1.46)**
+
+- The intent classifier must be local (regex + keyword), fast, and must not call an LLM. Put it in a dedicated module (e.g. `lib/ai/intentClassifier.ts`), not inline in the route.
+- `ask_factual` and `preference_signal` messages must be handled without a full Butler LLM call. Answer `ask_factual` from the existing `lib/tools` static data; handle `preference_signal` as a profile update + one-line ack.
+- All canvas writes must still flow through the existing `handleSend → /api/chat → CanvasPatch → applyCanvasPatch` pipeline. Do not let any handler assemble `TripDay`/`TripState` directly or bypass `applyCanvasPatch`.
+- When adding the `{headline, body, highlights, watchOut, nextStep}` schema, keep `CanvasPatch.assistantMessage` populated (e.g. from `headline`+`body`) for backwards compatibility with any consumer that reads it, and update `parseDeepSeekPatch` + tests.
+
+**Preference profile (v0.1.47)**
+
+- Store the profile via a new provider/repository entry point, not scattered across components. Logged-in → Supabase (new `profiles` table + migration run in order); guest → localStorage. Keep the Supabase path gracefully degrading when Supabase is not configured.
+- Extract preferences silently. Do not add a form/questionnaire UI. Respect the one-clarifying-question-per-turn rule.
+
+**Data enrichment & tool calling (v0.1.48–v0.1.49, v0.1.52)**
+
+- `ExploreRichMeta` and the new `TripBlock` fields must be optional. Do not make existing mock data or the read-only day drawer depend on them.
+- Keep the provider abstraction intact: components call `getExploreProvider()` / the chat route, never a data source directly. Amap enrichment lives in `amapProvider.ts` + `/api/explore/amap`; Dianping lives behind a new `/api/explore/dianping` + `meituanProvider.ts`, chained static ← amap ← dianping.
+- All data-source keys stay server-side: `AMAP_API_KEY`, future `DIANPING_APP_KEY`/`DIANPING_APP_SECRET`. The only public key permitted is `NEXT_PUBLIC_AMAP_MAPS_KEY` (display-only, domain-whitelisted) for the map widget.
+- The tool loop in `/api/chat` must be bounded (max ~3 rounds) and reuse existing Amap route logic for `search_pois`. Keep `response_format: json_object`. If DeepSeek V4 Flash lacks function calling, use `deepseek-chat` (V3) for the tool loop and keep Flash for simple adjustments.
+
+**UX & navigation (v0.1.50–v0.1.51)**
+
+- Onboarding archetypes must pre-seed a draft the Butler frames as a suggestion, still routed through the AI pipeline — do not hardcode a finished itinerary.
+- Day-card quick-actions send pre-formed Butler intent strings through `handleSend`; they must not mutate the canvas directly.
+- When restructuring nav, the Translate FAB and inline tool cards must reuse existing Translator/Tools components; do not fork their logic.
+- Follow the established late-cascade CSS override pattern in `app/globals.css` for any mobile layout work.
+
+**Docs**
+
+- Every one of these iterations must update PLAN/PRD/DESIGN/AGENTS/HANDOFF/CHANGELOG/VERSIONING and force-push per the VPCC end-of-iteration protocol.

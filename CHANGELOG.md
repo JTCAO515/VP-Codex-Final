@@ -1,5 +1,20 @@
 # VisePanda Changelog
 
+## v0.1.45 - 2026-07-01
+
+**Documentation-only iteration — no code changes.** This is a macro product-planning pass that distills three research threads (Amap/Meituan data enrichment, Chat×Explore×Trips fusion, and chat-efficiency/UX overhaul) into one coherent seven-iteration roadmap.
+
+- **Product positioning sharpened** (`PRD.md`): VisePanda is reframed around the five concrete fears a Western traveler has before a China trip — visa eligibility, payment, connectivity, language, and itinerary anxiety — and every feature is mapped to the fear it resolves. Chat becomes the single thread that holds the other surfaces together.
+- **Chat Intelligence pipeline defined** (`PRD.md`, `DESIGN.md`): a five-stage `Input → Classify → Route → Handle → Normalize` pipeline replaces the current "every message is a full LLM call" model. A 10-intent taxonomy (`create_trip`, `adjust_trip`, `add_poi`, `ask_factual`, `ask_recommendation`, `preference_signal`, `concern`, `logistics`, `add_location`, `unclear`) routes factual and preference messages to non-LLM handlers, cutting cost and latency for an estimated 30–40% of traffic.
+- **Response normalization schema defined**: a structured `{headline, body, highlights, watchOut, nextStep}` contract replaces the single free-text `assistantMessage` blob so every Butler reply is scannable and consistent.
+- **Preference Profile + intent distillation defined**: a `UserPreferenceProfile` extracted silently from natural conversation (no interrogation form), with a strict "one clarifying question per turn, only when a gap would produce a wrong itinerary" rule.
+- **Data-fusion architecture defined** (`DESIGN.md`): a tool-calling Butler that calls Amap/Dianping live during planning (`search_pois`, `get_poi_detail`, `search_dianping`), an `ExploreRichMeta` model for ratings/price/hours/photos, a backwards-compatible rich `TripBlock`, and a two-key Amap split (server-side POI key vs. public JS-map key).
+- **Seven-iteration roadmap added** (`PLAN.md` 阶段十二): v0.1.46 Chat Intelligence Layer → v0.1.47 Preference Profile → v0.1.48 Amap Enrichment → v0.1.49 Tool-Calling Butler → v0.1.50 Onboarding + Canvas Quick-Actions → v0.1.51 Navigation Restructure → v0.1.52 Dianping/Meituan + Map.
+- **UX audit added** (`PRD.md`): user-journey walkthroughs (first-run, ask-visa, refine-day, translate-menu), a redundancy-removal list (provider-status jargon, duplicate labels, developer-facing confidence copy), and a navigation restructure from 6 flat tabs to 4 tabs + a floating Translate action.
+- **Meituan/Dianping API application guide recorded** (`HANDOFF.md`): step-by-step registration path on 大众点评开放平台, credential requirements, realistic review timelines, and the recommendation to start the application now because of the multi-week queue.
+- **ADR-037 through ADR-042 added** (`DESIGN.md`): intent routing, preference profile, tool-calling loop, rich data model, two-key Amap split, and navigation restructure decisions.
+- **Security constraints reaffirmed**: all keys (`DEEPSEEK_API_KEY`, `DASHSCOPE_API_KEY`, `AMAP_API_KEY`, future `DIANPING_APP_KEY`/`DIANPING_APP_SECRET`) stay server-side only; mock/static fallback is never removed; `NEXT_PUBLIC_AMAP_MAPS_KEY` is the only new public key and is domain-whitelisted.
+
 ## v0.1.44 - 2026-07-01
 
 - Moved the 6-tab navigation to a **fixed bottom bar** on mobile (`position: fixed; bottom: 0`), so thumbs can reach tabs without stretching to the top of the screen. The header now shows only the brand mark, language switcher, and account icon on mobile.

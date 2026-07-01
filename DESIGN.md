@@ -441,3 +441,89 @@ ADR-035: Use provider fallback for text translation and compact controls for tri
 - Background: The unified Translator still failed when Qwen was unavailable, and Trip Detail pages spent too much first-viewport space on actions/status copy instead of the itinerary.
 - Decision: Keep Qwen as the preferred Translator provider but fall back to DeepSeek for text translation; move Trip Detail actions into the TripSummary slot and remove day drawer editing controls.
 - Reason: This repairs production usefulness without adding new provider UI or changing persistence. It also keeps Trip Detail focused on concrete itinerary review.
+
+## v0.1.45 Design Update - Intelligent Chat Pipeline & Data Fusion (Architecture Planning)
+
+This is a documentation-only planning iteration; no code changes. It records the target architecture for the seven implementation iterations that follow (v0.1.46–v0.1.52). The current runtime remains: `Chat → /api/chat → requestButlerPatch (DeepSeek) → CanvasPatch → applyCanvasPatch → TripCanvas`, with Explore reading `/api/explore/amap` and falling back to the static provider.
+
+### Target architecture — three layers
+
+```
+Layer 1  Preference Profile        UserPreferenceProfile, persisted (Supabase | localStorage)
+            │ injected into every Butler system prompt
+Layer 2  Tool-Calling Butler       /api/chat runs a bounded tool loop:
+            │                       search_pois | get_poi_detail | search_dianping
+            │                       server executes real Amap/Dianping calls mid-conversation
+Layer 3  Rich TripBlock            {time,title,description} + poiId, rating, priceEstimate,
+                                    openHours, phone, photoUrl, mapUrl, location{lat,lng}
+```
+
+### The Chat pipeline: Input → Classify → Route → Handle → Normalize
+
+The current design routes every message identically through a full LLM call. The target design inserts a fast classification and routing stage before the LLM:
+
+```
+User input
+  → Stage 1  Intent classifier (regex+keyword, <50ms) + entity extraction
+  → Stage 2  Route by intent:
+       ask_factual        → static lookup in lib/tools (no LLM, inline tool card)
+       preference_signal  → profile update only, one-line ack (no canvas patch)
+       ask_recommendation → tool call (Amap/Dianping) → real cards → light summarize
+       concern            → alert template (no LLM)
+       create/adjust/add  → full Butler LLM with enriched context
+  → Stage 3  Normalize output to {headline, body, highlights[], watchOut[], nextStep}
+```
+
+`refinedPrompt` (structured, entity-extracted) is what reaches DeepSeek, not the raw casual message.
+
+### Tool-calling loop (v0.1.49 target)
+
+`/api/chat/route.ts` becomes a bounded multi-round loop (max 3 rounds). DeepSeek returns `tool_calls` → the server executes real data-source calls (reusing the existing `/api/explore/amap` logic for `search_pois`) → results are fed back as tool messages → the model responds again with real data. Tools: `search_pois(city, category, keyword?, priceLevel?)`, `get_poi_detail(poiId, city)`, `search_dianping(city, keyword, category?, minRating?)` (stubbed until Dianping is approved).
+
+### Data model extensions (backwards-compatible, all optional)
+
+- `ExploreRichMeta` in `lib/explore/types.ts`: `rating`, `reviewCount`, `pricePerPerson`, `priceLevel`, `tel`, `openHours`, `photoUrl`, `bookingUrl`, `sourceLabel`. `ExploreAttraction`/`ExploreFoodSpot`/`ExploreStay` extend it. Static provider leaves these undefined.
+- `AmapPoi` is widened to capture fields the Amap `/v3/place/text?extensions=all` response already returns but the current provider discards: `rating`, `cost`, `tel`, `opentime_week`, `photos`, `business_area`.
+- `TripBlock` in `lib/types/trip.ts` gains optional `poiId`, `sourceLabel`, `rating`, `priceEstimate`, `openHours`, `phone`, `photoUrl`, `mapUrl`, `bookingUrl`, `location{lat,lng}`. Existing mock data and the read-only day drawer render gracefully when these are absent.
+
+### Bidirectional Chat ↔ Explore sync
+
+- Explore → Chat keeps the existing `/chat?add=` pipeline, enhanced to pass `poiId` so the Butler can enrich via `get_poi_detail`.
+- Chat → Explore: when a `CanvasPatch` contains blocks with real `poiId`, Explore cards for the active city show an "In your trip" badge (via a shared trip-state context).
+- Preference → Explore: Explore columns re-rank by profile interests using local weights — no extra API calls.
+
+ADR-037: Classify-and-route before calling the LLM.
+
+- Background: Every chat message currently triggers a full DeepSeek call regardless of type, causing avoidable latency, cost, and inconsistent output for factual and preference messages.
+- Decision: Add a fast local intent classifier and route `ask_factual`/`preference_signal`/`concern` to non-LLM handlers; only itinerary-affecting intents reach the generative Butler. Send a structured `refinedPrompt` to the model, not raw text.
+- Reason: An estimated 30–40% of traffic is factual/preference and can be answered instantly from static content or a profile update. This reduces cost and latency and standardizes responses, while the LLM is reserved for genuinely generative work.
+
+ADR-038: Extract preferences silently; persist a UserPreferenceProfile.
+
+- Background: The Butler has no memory of user preferences between messages; each turn starts cold, and a form-style questionnaire would feel like a visa application.
+- Decision: Extract preferences from natural language into a `UserPreferenceProfile` (Supabase for logged-in, localStorage for guests), inject it into every system prompt, and enforce a one-clarifying-question-per-turn rule gated on "would a wrong answer break the itinerary."
+- Reason: This makes the Butler feel like it understands the traveler without interrogation, and gives downstream tool-calling and onboarding a shared source of truth.
+
+ADR-039: Tool-calling Butler over RAG for live POI data.
+
+- Background: The Butler generates itineraries from training data alone, so it cannot know real POI IDs, current opening hours, or real ratings.
+- Decision: Upgrade `/api/chat` to a bounded server-side tool loop that calls Amap/Dianping during planning, rather than pre-embedding a static knowledge base (RAG).
+- Reason: Travel planning needs live facts (is this restaurant open on the visit day? does this attraction need advance tickets?). Tool calling queries at planning time; RAG only reflects a static snapshot. The loop is bounded (max 3 rounds) and uses `response_format: json_object` for stable parsing.
+
+ADR-040: Backwards-compatible rich data model with optional fields.
+
+- Background: `ExploreAttraction`/`TripBlock` are thin (name/description only) and cannot represent ratings, prices, hours, photos, or coordinates.
+- Decision: Add an all-optional `ExploreRichMeta` and widen `TripBlock` with optional rich fields; static/mock providers leave them undefined and the UI degrades gracefully.
+- Reason: Optional fields let live providers enrich cards without breaking the provider abstraction, existing tests, mock data, or the read-only day drawer. No forced migration of existing data.
+
+ADR-041: Two Amap keys — server POI key vs. public JS-map key.
+
+- Background: v0.1.52 adds a map widget. The existing `AMAP_API_KEY` is a billable server-side POI search key that must never reach the browser.
+- Decision: Keep `AMAP_API_KEY` server-side only for REST POI search; introduce a separate `NEXT_PUBLIC_AMAP_MAPS_KEY` for browser map rendering, gated by an HTTP-Referer domain whitelist (`go2china.space`).
+- Reason: The JS map key is safe to expose because it is domain-locked and display-only, while the POI key stays protected from quota abuse. This preserves the standing security constraint that billable/server keys never enter client code.
+
+ADR-042: Restructure navigation into two modes.
+
+- Background: Six flat tabs (Chat · Trips · Explore · Tools · Translate · Community) present six co-equal destinations, but users operate in two modes: Planning (before) and Travelling (in China).
+- Decision: Reduce to four tabs (Chat · Trips · Tools · Community); make Translate a floating global action; demote Explore to a sub-feature accessed from Chat; render Tools content inline in Chat where relevant.
+- Reason: Aligns the surface with how travelers actually work, makes Chat the spine that reaches Explore/Tools/Translate data, and reduces tab-switching that currently fragments the experience. This is a UX-surface change layered on the intelligence and data layers, scheduled after them.

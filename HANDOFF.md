@@ -3,8 +3,8 @@
 ## 当前状态
 
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）；v0.1.34 桌面横屏前端优化：Tools 6 个模态卡片 + 浮层对话框、Trips 筛选按钮布局修复（过滤器始终可见）、Translator 单页 2×2 网格布局（同时展示四个功能面板无需切换 tab）。
-- 当前分支：`main`
-- 当前版本：`v0.1.44`
+- 当前分支：`claude/visepanda-phase-3-hym6z9`（每轮迭代同时强制推送到 `origin/main`）
+- 当前版本：`v0.1.45`
 - 重要（已完成）：
   - `supabase/migrations/0002_trip_archive_and_share.sql`：用户已手动在 Supabase SQL Editor 执行，归档/分享 RLS policy 已生效。
   - Google OAuth：用户已在 Google Cloud 创建 OAuth 凭据并在 Supabase Authentication → Providers → Google 填入，Google 登录功能已配置就绪。
@@ -316,3 +316,43 @@ Known deployment requirement:
 Known follow-up:
 
 - Longer production voice recordings should later upload to Supabase Storage or OSS before STT if data URL payload size becomes a problem.
+
+## v0.1.45 Handoff Update - Intelligent Chat Pipeline & Data-Fusion Roadmap (Docs Only)
+
+- Current version after this iteration: `v0.1.45`.
+- This iteration changed **documentation only**. No code, provider, schema, or component changes. The runtime behavior is identical to v0.1.44.
+- What was produced: a distilled seven-iteration roadmap (v0.1.46–v0.1.52) recorded across PRD (product direction + acceptance criteria), PLAN (阶段十二, tasks 12.1–12.33 + sequencing rationale), DESIGN (target architecture + ADR-037 through ADR-042), and AGENTS (implementation rules).
+- The three research threads that fed this: (1) Amap/Meituan POI data enrichment and display, (2) Chat×Explore×Trips fusion via a tool-calling Butler + preference profile, (3) chat-efficiency/UX overhaul (intent routing, input refinement, response normalization, navigation restructure).
+
+### Recommended next implementation iteration
+
+- **v0.1.46 — Chat Intelligence Layer I** is the recommended next code iteration: intent classifier + routing + input refinement + response normalization schema, with non-LLM handlers for `ask_factual` and `preference_signal`. It improves every message for zero new external dependencies and is fully independent of any pending API approval.
+
+### External actions the user should start now (multi-week lead time)
+
+**Apply for 大众点评开放平台 (Dianping Open Platform) — the realistic Meituan-group data path**
+
+Meituan does not offer a general public POI API like Google Places. For a foreign-facing travel app, the accessible path is Dianping (owned by Meituan Group), which has an individual-developer track and provides POI name, rating, review count, price level, business hours, category, photos, and address.
+
+1. Prepare identity: a Chinese business license (营业执照, fastest, full quota) OR personal real-name verification (身份证 + Chinese 手机号, slower, lower quota). For a US-based entity, start with the personal-verification path.
+2. Register at `https://open.dianping.com` → 登录/注册 with a Chinese phone → complete 实名认证 (submit ID). Identity review: ~1–3 business days.
+3. Create an application: 我的应用 → 创建应用. Category = 旅游/出行. Callback URL = `https://go2china.space/api/auth/dianping/callback`. Request API products: 商户搜索 (POI search), 商户详情 (full details incl. rating/photos), optionally 团购/优惠 (deals). Submit for review: ~3–7 business days.
+4. On approval you receive `app_key` and `app_secret`. Store them as `DIANPING_APP_KEY` / `DIANPING_APP_SECRET` in Vercel env vars — server-side only, never exposed to the browser.
+5. Usage shape: `GET https://api.dianping.com/v1/business/find_businesses?appkey=…&city=北京&category_id=…&limit=20&sign=<HMAC-MD5 of sorted params + app_secret>`. Response includes `rating` (0–5), `review_count`, `avg_price`, `open_time`, `photo_list[].url`.
+
+Alternatives if Dianping approval is slow: (a) Amap enriched fields — already licensed under the existing `AMAP_API_KEY`, zero extra cost, unlocked in v0.1.48; (b) Trip.com (携程) open API — English docs, travel-partner friendly, covers hotels/attractions/restaurants with booking CTAs.
+
+**Register an Amap JS Maps key (for v0.1.52 map widget)**
+
+- In the same Amap console, create a **Web端(JS API)** key (separate from the existing Web Service POI key). Add `go2china.space` to the Referer whitelist. This becomes `NEXT_PUBLIC_AMAP_MAPS_KEY` — it is display-only and safe to expose because it is domain-locked. The billable POI key (`AMAP_API_KEY`) stays server-side.
+
+**Confirm DeepSeek function-calling support (for v0.1.49 tool loop)**
+
+- `deepseek-chat` (V3) supports OpenAI-compatible function calling. If the current `deepseek-v4-flash` model does not, plan to use `deepseek-chat` for the tool-calling loop and keep Flash for simple adjustments. Verify against the DeepSeek account/plan before starting v0.1.49.
+
+### Standing security constraints (unchanged, reaffirmed)
+
+- All keys server-side only: `DEEPSEEK_API_KEY`, `DASHSCOPE_API_KEY`, `EXCHANGE_RATE_API_KEY`, `AMAP_API_KEY`, future `DIANPING_APP_KEY`/`DIANPING_APP_SECRET`. Never write real keys into the repo or docs.
+- `NEXT_PUBLIC_AMAP_MAPS_KEY` is the only public key permitted, and only because it is domain-whitelisted and display-only.
+- Never remove the mock/static fallback; real integrations must always degrade gracefully.
+- `SUPABASE_SERVICE_ROLE_KEY` must not be introduced into any browser-side code.

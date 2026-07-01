@@ -250,3 +250,93 @@ Explicit exclusions:
 
 - No new translation history, user translation storage, or provider selection UI.
 - No inline day editing in the Trip Canvas drawer for this repair iteration.
+
+## v0.1.45 Product Direction Update - Intelligent Chat Pipeline & Data Fusion (Planning Only)
+
+This is a documentation-only planning iteration. It does not change code. It defines the product direction and acceptance criteria for the seven implementation iterations that follow (v0.1.46–v0.1.52, tracked as 阶段十二 in PLAN.md).
+
+### Repositioning: from a feature grid to a fear-resolution engine
+
+VisePanda is not "an app with Chat, Explore, Tools, and Translate." It is the single product that resolves the five hard blockers a Western traveler hits before a China trip:
+
+| Blocker | Traveler anxiety | Surface that resolves it |
+|---|---|---|
+| Visa | "Do I even qualify?" | Tools (visa) + Chat `ask_factual` auto-triggers the checklist |
+| Payment | "Can I use my card?" | Tools (payment) + pre-trip checklist |
+| Connectivity | "Will my phone work?" | Tools (eSIM/VPN) |
+| Language | "I can't read anything" | Translate, available everywhere as a 1-tap overlay |
+| Itinerary | "How do I connect 10 cities in 2 weeks?" | Chat + Canvas + real POI data |
+
+Design consequence: Chat is the spine. Explore data, Tools checklists, and Translate should all be reachable from inside a Chat conversation, not only as separate tabs. When the traveler's fear is resolved inside Chat, they stop bouncing between tabs.
+
+### Requirement A — Chat efficiency: not every message is a full LLM call
+
+Today every message takes the same path (raw text → full DeepSeek call → 2–3s → response), regardless of whether it is a factual question, a preference statement, or an itinerary request. This is slow, expensive, and inconsistent.
+
+Acceptance criteria (target for v0.1.46):
+
+- A fast, local intent classifier (regex + keyword, no LLM cost, <50ms) labels every message with one of 10 intents: `create_trip`, `adjust_trip`, `add_location`, `add_poi`, `ask_factual`, `ask_recommendation`, `preference_signal`, `concern`, `logistics`, `unclear`.
+- `ask_factual` messages (visa, payment, VPN, metro, currency) are answered from the existing `lib/tools` static knowledge base and rendered as an inline tool card — no LLM call, <100ms, zero cost. These are an estimated 30–40% of chat traffic.
+- `preference_signal` messages update the preference profile and return a one-line acknowledgment only; they do not trigger a full canvas patch.
+- `ask_recommendation` messages call Amap/Dianping first and return real POI cards, then optionally use a lightweight summarization call for 1–2 sentences of context — never hallucinated place lists.
+- Only `create_trip` / `adjust_trip` / `add_*` reach the full generative Butler LLM.
+
+### Requirement B — Input refinement: expand casual text into structured intent
+
+Users type casually ("beijing shanghai maybe xi'an 2 weeks family tired"). The system must extract entities (destinations, duration, party composition, preference signals) and build a structured `refinedPrompt` that is sent to DeepSeek instead of the raw message. The refined prompt is what drives quality and consistency.
+
+### Requirement C — Response normalization: structured, scannable answers
+
+Replace the single free-text `assistantMessage` with an enforced schema:
+
+```
+{ headline, body, highlights[], watchOut[], nextStep }
+```
+
+`ChatPanel` renders these as visual sections: large headline, green-check highlights, amber watch-out items, and `nextStep` promoted to the primary suggestion chip. Every reply becomes scannable and consistent. Suggestions are always exactly 2 chips, computed from the current trip state.
+
+### Requirement D — Preference distillation without interrogation
+
+The Butler must build a `UserPreferenceProfile` by reading between the lines of natural conversation, not by presenting a form. Examples: "tired of walking" → pace:light, mobility:moderate; "my kids love animals" → family_with_kids, interests:nature; "student budget" → economy, 2–3 stars; "I don't eat pork" → dietary:no_pork.
+
+The one-question rule: the Butler may ask at most one clarifying question per turn, and only when the missing information would produce a materially wrong itinerary (e.g., season affects cherry-blossom timing). The question must be embedded naturally, not asked as a form field.
+
+Acceptance criteria (target for v0.1.47):
+
+- Profile fields: pace, travelStyle, partySize, partyComposition, budgetPerDay, hotelStars, dietaryRestrictions, cuisinePreferences, interests, mobilityLevel, experienceLevel, profileConfidence.
+- Profile persists in Supabase for logged-in users and localStorage for guests, and is injected into every Butler system prompt.
+- Profile chips are visible in the ChatPanel header (e.g., "Foodie · Mid budget · 2 people").
+
+### Requirement E — Real data in the itinerary, not hallucinations
+
+The Butler must recommend real places with real attributes. Acceptance criteria (targets for v0.1.48–v0.1.49, v0.1.52):
+
+- Amap POI data captured today is enriched to expose rating, average cost, phone, opening hours, and photos (fields the Amap API already returns but the current provider discards).
+- Explore and Chat POI cards conditionally display rating (★ score), price level (¥/¥¥/¥¥¥), opening hours, phone, review count, and a booking CTA — all optional, degrading gracefully when a field is missing.
+- The Butler can call Amap/Dianping live during planning (tool calling), so itinerary blocks carry real POI IDs, real hours, and real ratings.
+- Static/mock providers are never removed; when a live source is unavailable or unapproved, the conversation still works with text-only itineraries.
+
+### Requirement F — UX audit: journeys, redundancy, and navigation
+
+User-journey targets:
+
+- First-run: replace the blank textarea with 3 archetype entry points ("First trip — 10 days essentials", "Foodie — 3 cities", "History + nature"). Selecting one pre-seeds a starter draft the Butler frames as a suggestion. Show a trip-completeness progress indicator.
+- Ask-visa: answered instantly from static content as an inline tool card, with a proactive offer to add a visa reminder — no navigation, no LLM call.
+- Refine-day: Day cards get inline quick-actions (Lighten / Swap morning / Add food) that send pre-formed Butler intents so the user never types prompt-engineering text.
+- Translate-menu: a floating camera/mic button opens OCR from anywhere in ~3 seconds without leaving the current screen.
+
+Redundancy to remove:
+
+- Provider-status jargon in Explore (move to an internal/debug surface).
+- Duplicate "Ask VisePanda" labels in ChatPanel.
+- Developer-facing `confidence` copy ("Draft/Refined/Ready to save") → friendly phrases.
+- The generic "Live Trip Canvas" h1 + "VP" badge → the trip's own title once one exists.
+- The homepage feature grid for signed-in users → redirect `/` to `/chat`.
+
+Navigation restructure (target for v0.1.51): from 6 flat tabs (Chat · Trips · Explore · Tools · Translate · Community) to 4 tabs (Chat · Trips · Tools · Community) plus a floating Translate action. Explore is demoted to a sub-feature accessed from inside Chat.
+
+### Explicit exclusions for v0.1.45
+
+- No code changes at all. This iteration only produces documentation (PRD/PLAN/DESIGN/AGENTS/HANDOFF/CHANGELOG/VERSIONING).
+- No AI provider, Supabase schema, provider API, or component changes.
+- Exact field names, schemas, and tool signatures in this document are the planning target and may be refined during each implementation iteration.
