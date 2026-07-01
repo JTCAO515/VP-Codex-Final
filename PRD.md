@@ -340,3 +340,58 @@ Navigation restructure (target for v0.1.51): from 6 flat tabs (Chat · Trips · 
 - No code changes at all. This iteration only produces documentation (PRD/PLAN/DESIGN/AGENTS/HANDOFF/CHANGELOG/VERSIONING).
 - No AI provider, Supabase schema, provider API, or component changes.
 - Exact field names, schemas, and tool signatures in this document are the planning target and may be refined during each implementation iteration.
+
+## v0.1.46 Product Direction Update - Product Expansion (Planning Only)
+
+Documentation-only planning iteration. No code changes. Authoritative deep-dive: `docs/planning/v0.1.46-product-expansion.md`. This section states the product-level requirements for seven new tracks.
+
+### Guiding principle: quality over cost
+
+The overriding requirement is **user experience and answer quality**. Token/compute cost is explicitly not a constraint. Where a better answer is possible via a larger model, a multi-model ensemble, or a multi-pass refine-and-verify loop, that is the correct choice. This supersedes the v0.1.45 rationale of routing messages away from the LLM "to save cost": the intent classifier is retained, but its purpose is now routing for **quality and correctness** (right specialist model / verified source), not cost reduction. The only real limits are acceptable latency and never fabricating China-specific facts.
+
+### Requirement G — Multi-model Chinese LLM precision
+
+- The Butler may draw on multiple Chinese LLMs (DeepSeek, Qwen/Aliyun Bailian, Zhipu GLM, Moonshot Kimi, Baidu ERNIE, optionally MiniMax/Doubao), each used for what it is strongest at (reasoning, Chinese POI/menu understanding, long context, China-specific facts).
+- High-stakes answers (final itinerary, visa eligibility) should use a parallel ensemble with a judge/reconciler; disagreements surface as `watchOut` items.
+- All model keys are server-side only; the chain always degrades to the mock Butler if every model fails.
+
+### Requirement H — Native iOS + Android apps (plan only)
+
+- The product will ship genuinely native mobile apps (not a WebView wrapper of the website). Recommended stack: React Native + Expo, reusing the existing TypeScript domain layer and Next.js API routes as the backend.
+- Must support offline-first travel data (trips, tools checklists, phrasebook cached locally), native camera (OCR), microphone (STT), push notifications (visa/booking reminders), and deep links.
+- China distribution is a distinct track requiring ICP 备案, software copyright 软著, and MIIT registration — treated as a legal/ops workstream with long lead time. This track is planned only; not executed now.
+
+### Requirement I — Tools deliver real functionality, not just text
+
+Each of the six Tools becomes interactive:
+
+- Visa & entry: nationality-driven eligibility checker + transit-time calculator + progress-tracked document checklist.
+- Payment setup: step-by-step Alipay/WeChat linking wizard with app deep links and card-compatibility check.
+- Currency: full converter (amount input, live rate, reverse, offline snapshot).
+- Metro: real route planner (from/to station → route, transfers, fare, time) via Amap transit; station names shown in EN + 中文.
+- eSIM/VPN: comparable providers with real purchase links and install guidance.
+- Emergency: one-tap 110/120/119 call buttons, GPS embassy locator, medical phrase cards with TTS, share-location-in-Chinese, nearest hospital.
+
+Interactive widgets degrade to the existing static content when data is unavailable.
+
+### Requirement J — Professional Account UI + lead capture (留资)
+
+- A dedicated, mainstream, professional `/account` center that signals trust and formality (in addition to the quick popover): profile, security, membership, preferences, travel documents (opt-in, encrypted), notifications, and privacy/data controls with export & delete.
+- Lead capture uses progressive profiling (never a wall of forms). Prioritized fields: Tier 1 contact (name, email, phone and/or WeChat, preferred channel); Tier 2 trip qualification (nationality, dates, party size/composition, cities, budget range, trip purpose); Tier 3 enrichment (interests, dietary/mobility, booking needs, attribution, explicit marketing consent).
+- Consent is explicit, timestamped, and source-tagged (PIPL/GDPR aware). A single "Talk to a China travel expert" CTA opens the lead form; core planning is never blocked behind it.
+
+### Requirement K — Admin backend with LLM customer briefs
+
+- A role-gated `/admin` area (never in traveler navigation) where staff view leads and chat conversations.
+- For each customer, an LLM pipeline distills lead fields + conversation + trip state into a structured `CustomerBrief`: summary, trip intent, budget signal, readiness-to-book score (0–100), key preferences, open questions to close the sale, detected objections/risks, suggested next action, and preferred contact language. The brief is advisory; raw data is always available beside it.
+- Admin routes are server-side only, gated by Supabase session + role check; `SUPABASE_SERVICE_ROLE_KEY` is used strictly server-side; data access is logged.
+
+### Requirement L — Frontend & visual optimization
+
+- Formalize design tokens and a small reusable component library; add purposeful motion, loading skeletons, and designed empty/error states; complete an accessibility pass (contrast, focus, keyboard, reduced-motion, RTL); polish responsive/tablet layouts; optimize performance (images, code splitting, fonts); and introduce a cohesive brand illustration/icon system.
+
+### Explicit exclusions for v0.1.46
+
+- No code changes at all; documentation only.
+- Exact schemas, field names, model choices, and native stack details are planning targets and may be refined per implementation iteration.
+- Native apps, admin backend, and lead capture are planned, not built, in this iteration.

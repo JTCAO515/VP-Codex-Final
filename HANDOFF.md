@@ -4,7 +4,7 @@
 
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）；v0.1.34 桌面横屏前端优化：Tools 6 个模态卡片 + 浮层对话框、Trips 筛选按钮布局修复（过滤器始终可见）、Translator 单页 2×2 网格布局（同时展示四个功能面板无需切换 tab）。
 - 当前分支：`claude/visepanda-phase-3-hym6z9`（每轮迭代同时强制推送到 `origin/main`）
-- 当前版本：`v0.1.45`
+- 当前版本：`v0.1.46`
 - 重要（已完成）：
   - `supabase/migrations/0002_trip_archive_and_share.sql`：用户已手动在 Supabase SQL Editor 执行，归档/分享 RLS policy 已生效。
   - Google OAuth：用户已在 Google Cloud 创建 OAuth 凭据并在 Supabase Authentication → Providers → Google 填入，Google 登录功能已配置就绪。
@@ -356,3 +356,42 @@ Alternatives if Dianping approval is slow: (a) Amap enriched fields — already 
 - `NEXT_PUBLIC_AMAP_MAPS_KEY` is the only public key permitted, and only because it is domain-whitelisted and display-only.
 - Never remove the mock/static fallback; real integrations must always degrade gracefully.
 - `SUPABASE_SERVICE_ROLE_KEY` must not be introduced into any browser-side code.
+
+## v0.1.46 Handoff Update - Product Expansion Roadmap (Docs Only)
+
+- Current version after this iteration: `v0.1.46`.
+- Documentation only — no code, provider, schema, or component changes. Runtime behavior is identical to v0.1.45.
+- Authoritative deep-dive added: `docs/planning/v0.1.46-product-expansion.md` (seven tracks, full detail). Summaries + decisions recorded in PRD (Requirements G–L), PLAN (阶段十三–十八 + Supabase task S.1), DESIGN (ADR-043–ADR-049), and AGENTS (v0.1.46 rules).
+
+### What changed at the direction level
+
+- **Guiding principle:** optimize for UX and answer quality; token/compute cost is explicitly not a constraint. The intent classifier is retained but repurposed for quality/correctness routing, not cost savings.
+- Seven tracks planned: (1) multi-model Chinese LLM orchestration, (2) native iOS/Android apps, (3) Tools functional upgrade, (4) professional Account UI + lead capture, (5) admin backend + LLM customer briefs, (6) Supabase schema additions, (7) frontend/visual optimization.
+
+### Recommended build sequence
+
+- Multi-LLM orchestration → Tools functional upgrade → Account + lead capture → Admin backend + briefs → design-system pass (continuous) → native apps (last, largest). Version numbers assigned when each is built; the order is the commitment.
+
+### External / long-lead-time actions the user should start now
+
+**Additional Chinese LLM accounts (for multi-model orchestration)**
+
+- Register developer keys to trial: Zhipu AI (智谱, GLM) `open.bigmodel.cn`; Moonshot (Kimi) `platform.moonshot.cn`; Baidu 千帆/ERNIE `console.bce.baidu.com`; optionally MiniMax. Store as `ZHIPU_API_KEY`, `MOONSHOT_API_KEY`, `ERNIE_API_KEY`/`BAIDU_*`, `MINIMAX_API_KEY` in Vercel — server-side only. Qwen/DashScope is already configured.
+
+**Native app prerequisites (if confirmed — multi-week/month lead times)**
+
+- Decide the stack: React Native + Expo (recommended, reuses the TypeScript core) vs. fully native Swift/Kotlin.
+- Enroll Apple Developer Program ($99/yr) and Google Play Console ($25 one-time).
+- Start the China distribution track early: ICP 备案, software copyright 软著, and MIIT app registration. These gate Chinese app-store release and take the longest.
+
+**Business / data prerequisites (for lead capture + admin)**
+
+- Decide the concierge follow-up workflow (who contacts leads, via what channel — note WeChat is often the real channel for China travel).
+- Confirm PIPL/GDPR posture for storing traveler PII (consent copy, retention window, export/delete process). The `0004_leads_and_admin.sql` migration will need to be run in the Supabase SQL Editor when the admin/lead-capture work is built.
+- Designate at least one `admin` user for the `/admin` backend.
+
+### Standing security constraints (reaffirmed for the new scope)
+
+- New LLM keys and `SUPABASE_SERVICE_ROLE_KEY` are server-side only; the service-role key must never enter any client bundle (admin routes are server-side only).
+- Lead/PII data requires explicit, timestamped, source-tagged consent; passport/document fields require opt-in and encryption.
+- The mock/static fallback is never removed; multi-model failure still degrades to the mock Butler.

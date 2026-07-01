@@ -1,5 +1,20 @@
 # VisePanda Changelog
 
+## v0.1.46 - 2026-07-01
+
+**Documentation-only iteration — no code changes.** A strategic product-expansion plan covering seven new tracks. Full deep-dive in `docs/planning/v0.1.46-product-expansion.md`; summaries and decisions recorded across the seven workflow docs.
+
+- **Guiding principle changed** (`PRD.md`, `DESIGN.md`): optimize for user experience and answer quality first — **token cost is explicitly not a constraint**. The v0.1.45 "route factual messages away from the LLM to save cost" rationale is reframed: the intent classifier now exists for quality/correctness (route to the right specialist model / verified source), not cost savings. Larger models, multi-model ensembles, and refine-and-verify loops are all in scope.
+- **Multi-model Chinese LLM orchestration defined** (§1, ADR-044): a provider-agnostic orchestrator over DeepSeek, Qwen (Aliyun Bailian), Zhipu GLM, Moonshot Kimi, and Baidu ERNIE, with intent-based routing, parallel ensemble + judge for high-stakes answers, a refine-and-verify loop, and a graceful fallback chain that still ends at the mock Butler.
+- **Native iOS + Android apps planned** (§2, ADR-045): React Native + Expo recommended (genuinely native, reuses the TypeScript domain layer and API routes) over dual Swift/Kotlin; offline-first travel cache, native camera/mic/push, and a separate China distribution track requiring ICP 备案 / 软著. Plan only — not executed.
+- **Tools functional upgrade planned** (§3, ADR-046): the six static Tools become interactive — visa eligibility/transit checker, payment setup wizard, full currency converter, Amap-backed metro route planner, actionable eSIM/VPN options, and one-tap Emergency (call buttons, GPS embassy locator, phrase TTS, share-location).
+- **Professional Account UI + lead capture planned** (§4, ADR-047): a dedicated `/account` center (professional, formal, trust-signaling) plus progressive-profiling lead capture (留资) with a prioritized field list — contact (incl. WeChat), trip qualification (nationality/dates/party/budget/cities/purpose), and enrichment with explicit consent.
+- **Admin backend + LLM customer briefs planned** (§5, ADR-048): a role-gated `/admin` area where staff see leads and chat conversations, with a multi-model pipeline that distills each customer's data + conversation into a structured `CustomerBrief` (summary, trip intent, budget signal, readiness-to-book score, key preferences, open questions, objections, suggested next action).
+- **Supabase schema additions planned** (§6): `0004_leads_and_admin.sql` — `leads`, `lead_events`, `customer_briefs`, `profiles`, and an admin `role`; RLS for admin-wide read; `SUPABASE_SERVICE_ROLE_KEY` server-side only.
+- **Frontend & visual optimization track planned** (§7, ADR-049): design tokens + a reusable component library, motion/feedback, empty/error states, accessibility, responsive/tablet polish, performance, and a brand illustration system.
+- **Consolidated build sequence recorded** (`PLAN.md` 阶段十三–十八): multi-LLM → Tools functional → Account+leads → admin backend → design system → native apps, with parallelizable legal/ops lead-time work started early.
+- **New env keys reserved (server-side only):** `ZHIPU_API_KEY`, `MOONSHOT_API_KEY`, `ERNIE_API_KEY`/`BAIDU_*`, `MINIMAX_API_KEY`. Standing security constraints reaffirmed (mock fallback preserved; service-role key never in browser; only `NEXT_PUBLIC_AMAP_MAPS_KEY` is public).
+
 ## v0.1.45 - 2026-07-01
 
 **Documentation-only iteration — no code changes.** This is a macro product-planning pass that distills three research threads (Amap/Meituan data enrichment, Chat×Explore×Trips fusion, and chat-efficiency/UX overhaul) into one coherent seven-iteration roadmap.

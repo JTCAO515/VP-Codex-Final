@@ -161,6 +161,70 @@
 - 为什么不流式工具调用：`response_format: json_object` 一次性输出，解析更稳；流式可后续仅对 `assistantMessage` 字段加。
 - 为什么高德要两把 key：POI 搜索 REST key（`AMAP_API_KEY`）永远服务端、按调用计费、绝不进浏览器；地图显示 JS key（`NEXT_PUBLIC_AMAP_MAPS_KEY`）按 Referer 白名单、可公开、无计费风险。
 
+## 阶段十三～十八：产品扩张规划（v0.1.46 规划，代码未改动）
+
+> 第二次**纯文档战略规划迭代**（v0.1.46）。详细深潜见 `docs/planning/v0.1.46-product-expansion.md`。核心原则变更：**不再考虑 token 成本，只优化用户体验与回答质量**——可以用更大模型、多模型集成、多轮精炼+校验。以下全部为**规划中（未实现）**。
+
+### 阶段十三：质量优先 + 多中国 LLM 编排
+
+- [ ] 任务 13.1：新增 `lib/ai/modelRegistry.ts` 描述各中国厂商（DeepSeek / Qwen-DashScope / 智谱 GLM / Moonshot Kimi / 百度 ERNIE / MiniMax），含能力标签 `reasoning|chinese|longContext|vision|judge` 和服务端 key 名。
+- [ ] 任务 13.2：新增 `lib/ai/orchestrator.ts`——按意图选择编排模式：单模型 / 并行集成+judge / 精炼-校验循环；每个 provider 封装在统一 `ChatCompletionProvider` 接口后。
+- [ ] 任务 13.3：意图路由到专长模型（行程推理→DeepSeek；中文 POI/菜名→Qwen；签证法规→ERNIE/校验静态源；长历史总结→Kimi）。
+- [ ] 任务 13.4：高风险回答（最终行程、签证资格）走并行集成 + judge 合并，分歧写入 `watchOut`。
+- [ ] 任务 13.5：精炼-校验循环——reasoner 起草，另一模型用工具数据校验事实并改写为 `{headline,body,highlights,watchOut,nextStep}`。
+- [ ] 任务 13.6：全链 fallback，最终仍回落 mock Butler；新增 key 全服务端：`ZHIPU_API_KEY`/`MOONSHOT_API_KEY`/`ERNIE_API_KEY`/`MINIMAX_API_KEY`。
+
+### 阶段十四：原生 iOS / Android 应用（仅规划，不执行）
+
+- [ ] 任务 14.1：技术选型——推荐 React Native + Expo（真原生视图、复用现有 TS 领域层与 API），备选纯 Swift/Kotlin（双代码库）。
+- [ ] 任务 14.2：抽取共享核心包（`lib/types`、`lib/i18n`、provider 接口、orchestrator client），web 与 mobile 共用；现有 Next.js API 路由直接作为移动端后端。
+- [ ] 任务 14.3：原生 UI——底部 tab 导航 + Chat/Trips/Explore/Tools/Account 原生屏；原生地图（react-native-maps + 高德 SDK）。
+- [ ] 任务 14.4：离线优先——本地 SQLite 缓存行程/工具清单/短语库，断网可用，重连同步。
+- [ ] 任务 14.5：原生设备能力——相机 OCR、麦克风 STT、推送（签证截止/预订提醒）、深链、生物识别解锁。
+- [ ] 任务 14.6：应用商店——Apple Developer / Play Console；**中国分发单独 track**（ICP 备案 + 软著 + MIIT 登记），法务/运营与工程并行（提前量长）。
+
+### 阶段十五：Tools 功能化升级（6 个工具给真实效果）
+
+- [ ] 任务 15.1：为 `ToolCategory` 增加可选 `interactive` 描述符（widget 类型 + 配置），卡片在静态内容下渲染交互组件，数据不可用时降级为文字。
+- [ ] 任务 15.2：签证——交互式资格检查器（国籍→签证类型/免签/144-240h 过境）、过境时长计算器、带进度的文档清单。
+- [ ] 任务 15.3：支付——Alipay/微信支付国际卡绑定分步向导 + App 深链 + 卡兼容检查。
+- [ ] 任务 15.4：汇率——完整换算器（金额输入、实时汇率、反向换算、常用金额、离线快照）。
+- [ ] 任务 15.5：地铁——路线规划器（城市+起终站→路线/换乘/票价/时间，经 `/api/tools/transit` 高德换乘 API；站名 EN+中文）。
+- [ ] 任务 15.6：eSIM/VPN——真实运营商对比 + 购买链接 + QR 安装引导 + VPN 合规说明。
+- [ ] 任务 15.7：应急——一键拨号 110/120/119、GPS 使馆定位、医疗短语卡 TTS、"用中文分享我的位置"、最近医院。
+
+### 阶段十六：Account 专业化 UI + 留资
+
+- [ ] 任务 16.1：新增独立 `/account` 页面（主流、专业、正式，凸显信任感），卡片式资料中心：头像+姓名+会员等级、账户安全、资料完整度进度条。
+- [ ] 任务 16.2：分区——Profile / My Trips / Preferences（偏好画像）/ Travel documents（护照国、签证状态，加密、opt-in）/ Notifications / Privacy & data（导出/删除/同意管理）。
+- [ ] 任务 16.3：留资（渐进式画像，不一次性堆表单）——T1 联系（姓名/邮箱/手机+微信/首选渠道）；T2 行程资格（国籍/日期/人数/城市/预算/目的）；T3 增值（兴趣/饮食/是否需代订/来源渠道/营销同意）。
+- [ ] 任务 16.4：存 Supabase `leads` 表（登录关联 user，guest 用 session id）；同意标记含时间戳与来源；单一"Talk to a China travel expert" CTA 打开留资表单。
+
+### 阶段十七：用户管理后台 + LLM 客户简报
+
+- [ ] 任务 17.1：角色门控 `/admin` 区（仅 `admin` 角色），不出现在旅行者导航。
+- [ ] 任务 17.2：Leads 看板——可排序/筛选表（姓名/联系/国籍/日期/预算/lead score/状态/来源/日期），CSV 导出。
+- [ ] 任务 17.3：客户详情——完整 lead + 关联行程 + 完整 chat 历史，并排 LLM 客户简报。
+- [ ] 任务 17.4：LLM 简报管线——把 lead 字段 + 对话 + trip state 过多模型编排，产出结构化 `CustomerBrief`（summary / tripIntent / budgetSignal / readinessToBook 0-100 / keyPreferences / openQuestions / objections / suggestedNextAction / language）；按需生成 + 缓存，新消息到达重算。
+- [ ] 任务 17.5：安全——admin API 全服务端 + 每请求角色校验；`SUPABASE_SERVICE_ROLE_KEY` 仅服务端；PIPL/GDPR：访问日志、保留策略、导出/删除。
+
+### 阶段十八：前端与视觉优化（持续轨道）
+
+- [ ] 任务 18.1：设计 token 化 + 复用组件库（Button/Card/Field/Pill/Modal/Sheet/Toast），页面不再手写样式。
+- [ ] 任务 18.2：动效与反馈——canvas patch 入场动画、加载骨架屏、发送/保存乐观 UI、toast。
+- [ ] 任务 18.3：空状态/错误状态设计（与 v0.1.45 首跑原型入口衔接）。
+- [ ] 任务 18.4：可访问性——对比度、focus-visible、键盘导航、reduced-motion、RTL 校正。
+- [ ] 任务 18.5：响应式（含平板断点）+ 性能（图片优化、路由级代码分割、字体策略、背景图权重预算）。
+- [ ] 任务 18.6：品牌插画/图标体系（熊猫吉祥物状态、目的地插画）。
+
+### Supabase 新迁移（阶段十六~十七）
+
+- [ ] 任务 S.1：`supabase/migrations/0004_leads_and_admin.sql` —— `leads` / `lead_events` / `customer_briefs` / `profiles` 表 + 用户 `role`（traveler|admin）+ admin 跨表读 RLS。全部 key 服务端；service-role key 不入浏览器。
+
+### 推荐构建顺序（v0.1.46 规划，版本号按实际构建时分配）
+
+1. 多 LLM 编排（阶段十三，质量地基）→ 2. Tools 功能化（阶段十五，即时价值）→ 3. Account+留资（阶段十六，商业闭环）→ 4. Admin 后台+简报（阶段十七，依赖前两者）→ 5. 设计系统（阶段十八，持续，原生前先成熟）→ 6. 原生 App（阶段十四，最大工作量，放最后）。并行：阶段十八设计系统持续；阶段十三可即刻起步；阶段十四法务/运营（备案/软著/开发者账号）因提前量可并行启动。
+
 ## 关键约束
 
 - 技术选型：Next.js App Router、React、TypeScript、Vercel、Supabase 预留。
@@ -332,3 +396,22 @@ Immediate no-code actions the user should take this week:
 - [ ] Apply for 大众点评开放平台 developer access now (2-week review queue).
 - [ ] Register an Amap JS Maps key (`NEXT_PUBLIC_AMAP_MAPS_KEY`, domain whitelist `go2china.space`) — 5-minute self-serve.
 - [ ] Confirm the DeepSeek plan includes function calling for the tool-calling Butler (v0.1.49).
+
+## v0.1.46 Addendum - Product Expansion Roadmap (Docs Only)
+
+- [x] Write the authoritative deep-dive `docs/planning/v0.1.46-product-expansion.md` covering all seven requested tracks.
+- [x] Establish the quality-over-cost principle (token cost is not a constraint) and reframe the intent classifier's purpose from cost-saving to quality/correctness routing.
+- [x] Plan multi-model Chinese LLM orchestration (DeepSeek/Qwen/GLM/Kimi/ERNIE) with routing, ensemble+judge, and refine-verify (阶段十三, ADR-044).
+- [x] Plan native iOS/Android apps via React Native + Expo, incl. offline-first and China 备案/软著 distribution track (阶段十四, ADR-045). Plan only.
+- [x] Plan the Tools functional upgrade turning six static tools interactive (阶段十五, ADR-046).
+- [x] Plan the professional Account center + progressive-profiling lead capture with a prioritized field list (阶段十六, ADR-047).
+- [x] Plan the admin backend with LLM `CustomerBrief` distillation and the `0004_leads_and_admin.sql` schema (阶段十七, ADR-048).
+- [x] Plan the frontend/visual-optimization track: tokens, component library, motion, a11y, performance, brand (阶段十八, ADR-049).
+- [x] Record the recommended build sequence and parallelizable lead-time work.
+- [x] No code changes this iteration; all 阶段十三–十八 tasks remain planned/unimplemented.
+
+Immediate no-code actions the user should take (long lead times):
+
+- [ ] Register developer accounts / API keys for the additional Chinese LLMs to trial (Zhipu, Moonshot, Baidu ERNIE, MiniMax) — server-side keys only.
+- [ ] If native apps are confirmed: enroll Apple Developer ($99/yr) + Google Play Console ($25), and start China 备案 (ICP) + 软著 (software copyright) — these have multi-week/month lead times.
+- [ ] Decide native stack: React Native + Expo (recommended, reuses TS core) vs. fully native Swift/Kotlin.

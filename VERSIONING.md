@@ -3,7 +3,7 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.45`
+- Current iteration: `v0.1.46`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -59,3 +59,4 @@
 - `v0.1.44`: mobile portrait optimization — bottom sticky nav bar (fixed, thumb-friendly), day detail drawer becomes a full-width bottom sheet (was 34vw ≈ 133px — unusable on mobile), account popover bounded to viewport width, explore city filters scroll horizontally, explore columns stack to single column, trip detail header stacks vertically, trip summary actions left-aligned, tool cards enlarged touch targets, shell bottom padding accounts for the fixed nav bar.
 - `v0.1.43`: repair iteration for Translator and Trip detail UX — text translation now falls back from Qwen/DashScope to DeepSeek, day drawers are read-only itinerary details instead of edit forms, and real Trip Detail action/status controls move into the Live Trip Canvas summary card as compact controls.
 - `v0.1.45`: documentation-only product-roadmap iteration — no code changes. Distills the intelligent-chat-pipeline and data-fusion direction into a seven-iteration roadmap (v0.1.46–v0.1.52): Chat Intelligence Layer (intent classification + routing + input refinement + response normalization), Preference Profile + intent distillation, Amap POI data enrichment, tool-calling Butler with real POI data, onboarding + canvas quick-actions, navigation restructure, and Dianping/Meituan + map integration. Recorded across PRD/PLAN/DESIGN/AGENTS/HANDOFF with ADR-037 through ADR-042.
+- `v0.1.46`: documentation-only product-expansion iteration — no code changes. Adds seven strategic tracks: quality-over-cost principle (token cost is not a constraint), multi-model Chinese LLM orchestration (DeepSeek/Qwen/GLM/Kimi/ERNIE), native iOS/Android apps (React Native + Expo, plan only), Tools functional upgrade (six tools become interactive), professional Account UI + lead capture (留资), user-management admin backend with LLM customer briefs, and a frontend/visual-optimization track. Deep-dive in `docs/planning/v0.1.46-product-expansion.md`; recorded across PRD/PLAN/DESIGN/AGENTS/HANDOFF with ADR-043 through ADR-049.

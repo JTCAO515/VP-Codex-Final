@@ -527,3 +527,49 @@ ADR-042: Restructure navigation into two modes.
 - Background: Six flat tabs (Chat · Trips · Explore · Tools · Translate · Community) present six co-equal destinations, but users operate in two modes: Planning (before) and Travelling (in China).
 - Decision: Reduce to four tabs (Chat · Trips · Tools · Community); make Translate a floating global action; demote Explore to a sub-feature accessed from Chat; render Tools content inline in Chat where relevant.
 - Reason: Aligns the surface with how travelers actually work, makes Chat the spine that reaches Explore/Tools/Translate data, and reduces tab-switching that currently fragments the experience. This is a UX-surface change layered on the intelligence and data layers, scheduled after them.
+
+## v0.1.46 Design Update - Product Expansion (Architecture Planning)
+
+Documentation-only planning iteration; no code changes. Authoritative deep-dive: `docs/planning/v0.1.46-product-expansion.md`. Decisions ADR-043 through ADR-049 record the target architecture for seven expansion tracks.
+
+ADR-043: Optimize for quality over token cost.
+
+- Background: The v0.1.45 pipeline routed factual/preference messages away from the LLM primarily to save cost. The product owner has stated cost is not a constraint; UX and answer quality are the core requirement.
+- Decision: Keep the intent classifier, but reframe its purpose as routing for quality and correctness (select the right specialist model or verified data source), not cost reduction. Permit larger models, multi-model ensembles, and multi-pass refine-and-verify loops. Constrain only on latency (keep acceptable) and correctness (never fabricate China-specific facts).
+- Reason: For a high-stakes travel-planning product, a wrong visa rule or a hallucinated closed restaurant is far more costly than compute. Spending more inference to be right is the correct trade.
+
+ADR-044: Multi-model Chinese LLM orchestration behind a provider-agnostic layer.
+
+- Background: A single generalist model is weaker than the best specialist per sub-problem (itinerary reasoning vs. Chinese POI comprehension vs. long-context summarization vs. China-specific facts).
+- Decision: Introduce `lib/ai/modelRegistry.ts` (per-provider capabilities + server-side key names) and `lib/ai/orchestrator.ts` (selects single / ensemble+judge / refine-verify patterns by intent). Wrap each provider (DeepSeek, Qwen/DashScope, Zhipu GLM, Moonshot Kimi, Baidu ERNIE, optional MiniMax) behind a common `ChatCompletionProvider` interface; reuse one OpenAI-compatible client where possible; keep the existing Qwen helper; add ERNIE's access-token auth. Every path falls back to the mock Butler.
+- Reason: A provider-agnostic orchestrator lets the product route to the strongest model per task and run ensembles for high-stakes answers, while preserving the standing fallback guarantee and keeping all keys server-side.
+
+ADR-045: Native mobile via React Native + Expo, reusing the TypeScript core.
+
+- Background: The product requires genuinely native iOS/Android apps, not a WebView wrapper. Two paths exist: React Native + Expo, or dual native (Swift + Kotlin).
+- Decision: Recommend React Native + Expo. Extract a shared core package (`lib/types`, `lib/i18n`, provider interfaces, orchestrator client) consumed by both web and mobile; the existing Next.js API routes become the mobile backend unchanged. Native UI, offline-first SQLite cache, native camera/mic/push, and Amap native map. Document dual-native as the fallback if platform fidelity demands it.
+- Reason: RN+Expo is genuinely native (compiles to native views) while reusing the existing TypeScript domain layer, types, i18n, and API — one team, fastest path, no logic duplication. China distribution (备案/软著/MIIT) is a separate legal/ops track with long lead time.
+
+ADR-046: Tools gain optional interactive widgets without breaking the provider abstraction.
+
+- Background: Five of six Tools are static text; travelers need functional capability (converters, route planners, eligibility checks, one-tap emergency).
+- Decision: Extend `ToolCategory` with an optional `interactive` descriptor (widget type + config); render an interactive component (`components/tools/widgets/*`) below the static content, degrading to text when data is unavailable. Add server routes only where needed (`/api/tools/transit` for Amap transit; reuse `/api/exchange-rate`). Keep the `ToolsProvider` abstraction and server-side keys.
+- Reason: An additive, optional descriptor lets each tool become functional independently, preserves existing tests/content, and keeps third-party keys server-side.
+
+ADR-047: Professional Account center + progressive-profiling lead capture.
+
+- Background: The current `AccountMenu` popover is minimal and does not capture leads. The product needs a trust-signaling account UI and a lead pipeline (留资).
+- Decision: Add a dedicated `/account` page (professional/formal, banking/airline-grade structure) alongside the popover. Capture leads via progressive profiling stored in a Supabase `leads` table (linked to user or guest session id), with tiered fields (contact → trip qualification → enrichment) and explicit, timestamped, source-tagged consent. Never block core planning behind the form.
+- Reason: Progressive profiling maximizes lead quality without form fatigue; a professional account center builds the trust required to ask for personal/travel details; explicit consent keeps PIPL/GDPR compliance.
+
+ADR-048: Role-gated admin backend with LLM-distilled customer briefs.
+
+- Background: Staff need to understand each customer quickly from leads + conversation, without reading full transcripts.
+- Decision: Add a role-gated `/admin` area (never in traveler nav). Run each customer's lead fields + chat + trip state through the multi-model orchestrator to produce a cached, structured `CustomerBrief` (summary, trip intent, budget signal, readiness-to-book score, key preferences, open questions, objections, suggested next action, language). Admin API routes are server-side only, gated by Supabase session + role check; `SUPABASE_SERVICE_ROLE_KEY` stays server-side; access is logged. New tables via `0004_leads_and_admin.sql` with admin-wide read RLS.
+- Reason: An LLM brief turns raw data into an at-a-glance sales-ready summary while keeping raw data available; strict server-side gating and logging protect PII per the standing service-role-key constraint.
+
+ADR-049: Formalize a design system before scaling surfaces and mobile.
+
+- Background: Pages currently hand-roll styles over a v0.1.33 CSS layer; new surfaces (Account, Admin, Tools widgets) and the native app will multiply inconsistency without a system.
+- Decision: Formalize design tokens (the Warm New Chinese palette + spacing/type scale) and a small reusable component library (Button, Card, Field, Pill, Modal, Sheet, Toast); add motion/feedback, designed empty/error states, an accessibility pass, responsive/tablet polish, performance work, and a brand illustration system. Run this as a continuous track, front-loaded before the native-app core extraction.
+- Reason: A mature design system reduces per-page CSS drift, gives the native app a coherent system to inherit, and raises perceived quality/trust — reinforcing the professional tone required by the Account/lead-capture work.
