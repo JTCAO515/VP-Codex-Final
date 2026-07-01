@@ -53,3 +53,5 @@
 - `v0.1.37`: multi-language i18n system — Spanish, Arabic, Japanese, Korean, French plus English; LanguageSwitcher in header; RTL support for Arabic with `[dir="rtl"]` CSS overrides; locale stored in localStorage.
 - `v0.1.38`: new standalone landing home page at `/` with hero CTA and 6 feature cards; brand-mark links to home; interior page headers made more compact.
 - `v0.1.39`: replaced background with golden-line Chinese landscape (mountains, pagodas, traditional buildings); gradient overlays thinned to let the new art show through.
+- `v0.1.40`: tightened the standalone landing home page into a single-viewport desktop layout with smaller hero spacing, compact feature cards, and preserved home/LanguageSwitcher/Account entry behavior.
+- `v0.1.41`: fixed Save to Trips by adding Supabase auth-to-public-user sync migration `0003_fix_auth_user_sync.sql`, upserting `public.users` before trip insert, making message append failures non-fatal, and adding save-error diagnostics.

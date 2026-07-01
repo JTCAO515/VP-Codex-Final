@@ -186,3 +186,19 @@ Next translator priorities:
 - [x] Normalize visible Translator and Community page labels, and clean Translator Text/OCR/Voice control copy while preserving the existing Qwen API routes.
 - [x] Verify 1440x900 desktop pages for `/chat`, `/trips`, `/explore`, `/tools`, `/translate`, and `/community` with Playwright screenshots and body/main overflow metrics.
 - [ ] Future: run a dedicated mobile portrait design pass; current v0.1.33 remains desktop-landscape first.
+
+## v0.1.34-v0.1.41 Alignment Addendum - Completed Remote Iterations
+
+- [x] v0.1.34: polished the desktop landscape frontend with Tools modal-card drawers, fixed Trips filter visibility, and changed Translator into a single-page Text/OCR/Voice/Phrases grid.
+- [x] v0.1.35: completed the English-only UI pass and converted mock place names to bilingual `English (Chinese)` naming.
+- [x] v0.1.36: completed the mobile layout overhaul with bottom six-tab navigation, scrollable mobile pages, and single-column Translator on phones.
+- [x] v0.1.37: added the multi-language i18n system for EN/ES/AR/JA/KO/FR, including LanguageSwitcher persistence and Arabic RTL support.
+- [x] v0.1.38: added the standalone `/` landing home page with hero CTA and six feature cards.
+- [x] v0.1.39: replaced the background with a golden-line Chinese landscape and reduced overlay opacity.
+- [x] v0.1.40: tightened the landing home page into a single-viewport desktop layout with compact hero and feature cards.
+- [x] v0.1.41: fixed Save to Trips by adding Supabase auth-user synchronization migration `0003_fix_auth_user_sync.sql`, upserting `public.users` before trip insert, and making message append failures non-fatal.
+- [x] Documentation alignment checkpoint: PLAN, HANDOFF, CHANGELOG, and VERSIONING now reflect v0.1.41 as the current source of truth.
+
+Next product iteration:
+
+- [ ] v0.1.42: simplify Translator into one locale-aware workspace instead of four separate cards. Translation should work between the current website language and Chinese; image input should expose Upload Image and Take Photo buttons; voice translation should be one record button; common phrases and special terms should be simplified into a lighter supporting layout.

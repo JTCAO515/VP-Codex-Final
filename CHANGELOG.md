@@ -9,6 +9,13 @@
 - Fix 3 (code): `appendMessage` failures are now non-fatal (logged as warnings, don't block the save success message).
 - Added `console.error` logging in the save catch block for easier diagnosis of future failures.
 
+## v0.1.40 - 2026-07-01
+
+- Tightened the standalone landing home page into a single-viewport desktop layout.
+- Reduced hero, header, CTA, and feature-card spacing so the home page reads faster without pushing key content below the fold.
+- Made the six feature cards more compact while preserving the route entry points for Chat, Trips, Explore, Tools, Translate, and Community.
+- Preserved the v0.1.38 home-page structure, brand mark behavior, LanguageSwitcher, and Account menu entry.
+
 ## v0.1.39 - 2026-07-01
 
 - Replaced background image with new golden-line Chinese landscape (mountains, pagodas, traditional buildings on warm cream paper).
