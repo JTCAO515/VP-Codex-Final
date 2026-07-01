@@ -398,3 +398,14 @@ ADR-034: Add a CSS visual-system layer instead of refactoring UI primitives.
 - Background: The user asked for a design-led pass focused on typography, spacing, page layout, and text boxes across multiple already-working pages.
 - Decision: Keep functional component boundaries stable and apply a scoped v0.1.33 CSS override layer, with only small component text cleanups where visible labels were broken.
 - Reason: This reduces regression risk, preserves existing tests and provider flows, and creates a clear place for future design refinements before a larger component-system refactor.
+
+## v0.1.42 Design Update - Unified Translator Workspace
+
+- `components/translate/UnifiedTranslator.tsx` is the new traveler-facing Translator surface. `TranslatorPage` renders it directly instead of the old four-panel Text/OCR/Voice/Phrases grid.
+- The old `TextTranslator`, `OcrTranslator`, `VoiceTranslator`, and `PhraseBook` components remain in the codebase for reuse/reference, but they are no longer mounted by `/translate`.
+- Direction is derived from `useTranslation().locale`: active site locale ↔ Chinese. `LOCALE_LABELS` maps EN/ES/AR/JA/KO/FR to human-readable labels.
+- Text input posts to `/api/translate/text`; image input resizes client-side then calls `/api/translate/ocr` and feeds recognized text into `/api/translate/text`; voice uses `MediaRecorder` and `/api/translate/stt`, then feeds the transcript into `/api/translate/text`; TTS uses `/api/translate/tts`.
+- `/api/translate/text` now maps all supported locale codes to target language names so Qwen prompts Spanish/Arabic/Japanese/Korean/French correctly instead of treating every non-Chinese target as English.
+- Desktop layout is a fixed one-viewport translation desk: two equal top text panels for source/output, then a horizontal phrase and term rail below.
+- Visual treatment is background-forward: heavy translucent panels are avoided; text floats on the ink landscape with hairline dividers and very low-opacity paper backing.
+- Account avatar selection now points the existing six stable avatar IDs to six new PNG assets in `public/avatars`, preserving existing localStorage/community references while replacing the visible artwork.

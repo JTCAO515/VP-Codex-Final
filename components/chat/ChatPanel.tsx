@@ -57,6 +57,8 @@ export function ChatPanel({ messages, onSend, suggestions, busy = false }: ChatP
           value={draft}
           onChange={handleDraftChange}
           onInput={handleDraftChange}
+          onKeyUp={handleDraftChange}
+          onBlur={handleDraftChange}
           placeholder="Tell me your days, cities, budget, pace, or worries..."
           rows={3}
         />

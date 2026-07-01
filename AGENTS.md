@@ -133,3 +133,14 @@ npm.cmd run test:e2e
 - Use solid paper-style inputs and fine ink dividers; do not introduce glassmorphism panels.
 - If visible mojibake appears in primary labels, clean it during the same iteration that touches that page.
 - For design-only work, avoid changing provider routes, Supabase persistence, or AI model behavior.
+
+## v0.1.42 Agent Update - Unified Translator Rules
+
+- `/translate` should stay as one unified workspace, not four visible cards or tabs.
+- The desktop layout should use two equal top text panels and a horizontal phrase/term rail below.
+- Traveler-facing direction must be active site language ↔ Chinese. Keep `/api/translate/text` locale prompts aligned with all supported locales.
+- Desktop landscape `/translate` must be one viewport tall with no body/page scroll. Use internal overflow for long recognized text, translations, phrases, and terms.
+- Keep the visual surface clean and background-forward. Avoid heavy translucent cards; use hairline dividers and very low-opacity paper backing only where text needs contrast.
+- Keep image entry as Upload Image and Take Photo. Take Photo may be disabled on desktop but should remain available for mobile browsers.
+- Voice UI should remain one Record button unless the user explicitly asks to restore audio upload or URL transcription controls.
+- Preserve existing avatar IDs in `lib/account/avatars.ts` unless there is a migration plan, because community mock data and localStorage may reference them.

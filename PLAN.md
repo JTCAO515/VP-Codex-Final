@@ -199,6 +199,20 @@ Next translator priorities:
 - [x] v0.1.41: fixed Save to Trips by adding Supabase auth-user synchronization migration `0003_fix_auth_user_sync.sql`, upserting `public.users` before trip insert, and making message append failures non-fatal.
 - [x] Documentation alignment checkpoint: PLAN, HANDOFF, CHANGELOG, and VERSIONING now reflect v0.1.41 as the current source of truth.
 
+## v0.1.42 Addendum - Unified Locale-Aware Translator
+
+- [x] Replace the four-card Translator layout with one unified translator workspace.
+- [x] Bind translation direction to the active website language and Chinese instead of hard-coding English/Chinese only.
+- [x] Keep text, image OCR, voice STT, and TTS on Aliyun Bailian Qwen server-side routes.
+- [x] Expose image input as two buttons: Upload Image and Take Photo; desktop shows Take Photo disabled because camera capture is mobile-only.
+- [x] Reduce Voice translation to one Record button and remove upload-audio / public-audio-URL UI from the page.
+- [x] Arrange source and output text as two equal panels across the top of the page.
+- [x] Simplify common phrases and special terms into a horizontal support rail below the text panels.
+- [x] Reduce heavy translucent panel styling so the background image remains visible and the page feels cleaner.
+- [x] Replace Account avatar picker artwork with the six new panda PNG assets while preserving existing avatar IDs.
+- [x] Lock `/translate` to a single desktop landscape viewport with internal overflow only.
+- [x] Verify `/translate` at 1440x900 with Playwright metrics: body/html page scroll is zero and the translator surface uses hidden/internal overflow.
+
 Next product iteration:
 
-- [ ] v0.1.42: simplify Translator into one locale-aware workspace instead of four separate cards. Translation should work between the current website language and Chinese; image input should expose Upload Image and Take Photo buttons; voice translation should be one record button; common phrases and special terms should be simplified into a lighter supporting layout.
+- [ ] Continue product planning from VPCC backlog after reviewing the deployed v0.1.42 Translator experience.

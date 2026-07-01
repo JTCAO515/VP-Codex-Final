@@ -199,3 +199,24 @@ Explicit exclusions:
 
 - No new business logic, AI provider changes, Supabase schema changes, or provider API changes in this iteration.
 - Mobile portrait polish remains deferred to a later dedicated pass.
+
+## v0.1.42 Translator Requirement Update
+
+Translator is now a unified, locale-aware travel translation workspace rather than four separate cards.
+
+MVP acceptance additions:
+
+- `/translate` shows two equal upper text panels: source on the left and translated output on the right.
+- Translation direction follows the active website language and Chinese: EN/ES/AR/JA/KO/FR ↔ ZH.
+- Text input, image OCR, voice recording, and TTS continue to use server-side Aliyun Bailian Qwen routes.
+- Image input exposes exactly two user-facing actions: Upload Image and Take Photo. Take Photo is visible but disabled on desktop and reserved for mobile camera capture.
+- Voice translation exposes one Record button only; audio upload and public audio URL controls are removed from the traveler UI.
+- Common phrases and special terms sit horizontally below the two text panels as lightweight support content.
+- Desktop landscape `/translate` must fit inside one viewport; page-level body/main scrolling is not allowed, and overflowing results/support content must scroll internally.
+- The surface should feel clean and background-forward: avoid heavy translucent cards, use hairline dividers and very low-opacity paper backing only where text needs contrast.
+- Account avatar selection uses the six new panda PNG assets supplied in `public/avatars`.
+
+Explicit exclusions:
+
+- No translation history, account sync, Supabase persistence, or uploaded audio storage.
+- No full mobile redesign beyond preserving functional stacked layout and mobile camera capture affordance.

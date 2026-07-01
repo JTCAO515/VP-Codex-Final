@@ -1,9 +1,6 @@
 "use client";
 
-import { OcrTranslator } from "@/components/translate/OcrTranslator";
-import { PhraseBook } from "@/components/translate/PhraseBook";
-import { TextTranslator } from "@/components/translate/TextTranslator";
-import { VoiceTranslator } from "@/components/translate/VoiceTranslator";
+import { UnifiedTranslator } from "@/components/translate/UnifiedTranslator";
 import { useTranslation } from "@/lib/i18n/I18nContext";
 
 export function TranslatorPage() {
@@ -17,20 +14,7 @@ export function TranslatorPage() {
         <p>{t.translate.subtitle}</p>
       </header>
 
-      <div className="translator-grid">
-        <div className="translator-grid__panel">
-          <TextTranslator />
-        </div>
-        <div className="translator-grid__panel">
-          <OcrTranslator />
-        </div>
-        <div className="translator-grid__panel">
-          <VoiceTranslator />
-        </div>
-        <div className="translator-grid__panel">
-          <PhraseBook />
-        </div>
-      </div>
+      <UnifiedTranslator />
     </section>
   );
 }

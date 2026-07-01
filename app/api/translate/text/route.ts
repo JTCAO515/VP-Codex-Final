@@ -1,6 +1,16 @@
 import { NextResponse } from "next/server";
 import { ALIYUN_PROVIDER, QWEN_MODELS, callQwenChatCompletions, parseJsonObject } from "@/lib/aliyun/qwen";
 
+const LANGUAGE_NAMES: Record<string, string> = {
+  ar: "Arabic",
+  en: "English",
+  es: "Spanish",
+  fr: "French",
+  ja: "Japanese",
+  ko: "Korean",
+  zh: "Simplified Chinese",
+};
+
 export async function POST(req: Request) {
   const { text, from = "en", to = "zh" } = await req.json();
   if (!text || typeof text !== "string") {
@@ -8,8 +18,8 @@ export async function POST(req: Request) {
   }
 
   const model = process.env.QWEN_TRANSLATE_MODEL?.trim() || QWEN_MODELS.translate;
-  const targetName = to === "zh" ? "Simplified Chinese" : "natural English";
-  const sourceName = from === "zh" ? "Chinese" : "the source language";
+  const targetName = LANGUAGE_NAMES[String(to)] ?? "the requested target language";
+  const sourceName = LANGUAGE_NAMES[String(from)] ?? "the source language";
 
   try {
     const content = await callQwenChatCompletions({

@@ -1,5 +1,17 @@
 # VisePanda Changelog
 
+## v0.1.42 - 2026-07-01
+
+- Simplified `/translate` from four separate cards into one locale-aware translator workspace.
+- Translation direction now follows the active website language and Chinese, supporting English, Spanish, Arabic, Japanese, Korean, French, and Chinese through the existing Qwen text route.
+- Image translation now exposes two clear actions: Upload Image and Take Photo. Take Photo is visible but disabled on desktop because it is intended for mobile camera capture.
+- Voice translation is reduced to one Record button; audio upload and public audio URL controls were removed from the page UI.
+- Common phrases and special terms now sit in a horizontal support rail below the two equal source/output text panels.
+- Reduced heavy translucent panel styling on Translator so the ink landscape background remains visible, using hairline dividers and very low-opacity paper backing instead.
+- Replaced the Account avatar picker artwork with six new panda PNG assets while keeping the existing six avatar IDs stable for localStorage and community compatibility.
+- Desktop landscape `/translate` is locked to one viewport with internal overflow only; 1440x900 verification showed no body/html page scroll.
+- Updated `/api/translate/text` so non-English target locales are prompted correctly instead of defaulting every non-Chinese target to English.
+
 ## v0.1.41 - 2026-07-01
 
 - Fixed "Saving failed" error on Save to Trips in Chat.

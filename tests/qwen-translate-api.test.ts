@@ -34,6 +34,27 @@ describe("Qwen translator API routes", () => {
     );
   });
 
+  it("uses the requested website locale as the translation target", async () => {
+    vi.stubEnv("DASHSCOPE_API_KEY", "test-dashscope-key");
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ choices: [{ message: { content: "Bonjour" } }] }), { status: 200 }),
+    );
+    const { POST } = await import("@/app/api/translate/text/route");
+
+    const response = await POST(new Request("http://localhost/api/translate/text", {
+      method: "POST",
+      body: JSON.stringify({ text: "你好", from: "zh", to: "fr" }),
+    }));
+
+    expect(response.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+      expect.objectContaining({
+        body: expect.stringContaining("French"),
+      }),
+    );
+  });
+
   it("uses Qwen OCR instead of OCR.space", async () => {
     vi.stubEnv("DASHSCOPE_API_KEY", "test-dashscope-key");
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
