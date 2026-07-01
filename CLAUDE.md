@@ -11,6 +11,9 @@ Standing rules for every session on this project. Read this before acting.
 - **Every iteration must update ALL markdown docs in detail** — especially
   `HANDOFF.md`, `PLAN.md`, and `PRD.md`, plus `DESIGN.md`, `AGENTS.md`,
   `CHANGELOG.md`, and `VERSIONING.md`. Bump `package.json` version each iteration.
+- **Version series is `0.2.x`** (reset from `0.1.x` at operator request as of
+  `v0.2.1`; `v0.1.55` was the last `0.1.x`). Increment the `0.2.x` patch by 1 each
+  iteration unless the operator specifies a different version.
 - **After every iteration, commit and push to the feature branch
   `claude/visepanda-phase-3-hym6z9` AND force-push the same commit to
   `origin/main`** (`git push origin HEAD:main`).

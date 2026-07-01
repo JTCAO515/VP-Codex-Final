@@ -3,12 +3,14 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.55`
+- Minor-series reset: `v0.2.1` (operator directive — all subsequent iterations use `0.2.x`)
+- Current iteration: `v0.2.1`
 - Production domain: `go2china.space`
 
 ## Rule
 
-- Default product iteration format is `0.1.x`.
+- Default product iteration format is `0.2.x` (reset from `0.1.x` at operator request; `v0.1.55` was the last `0.1.x` iteration, and `v0.2.1` is the first `0.2.x`).
+- Increment the `0.2.x` patch by 1 each iteration unless the operator specifies a different version.
 - Every iteration must update `package.json` and `CHANGELOG.md`.
 - Use a custom version only when the user explicitly provides one.
 
@@ -68,4 +70,5 @@
 - **v0.1.52**: documentation-only product interaction blueprint. Repositions VisePanda as a China travel operating system, defines the five traveler anxieties, journey-stage model, page roles, feature linkage matrix, UX writing rules, metrics, and the original implementation roadmap, later shifted so `v0.1.54` implements Interaction Shell I and `v0.1.55` starts Canvas Action Layer. No runtime product code changes.
 - **v0.1.53**: documentation-only strategic planning pass. Elevates VisePanda from a general travel tool to a cohesive "China Travel Operating System" with detailed requirements for an Offline-First Travel Vault, Cultural Context Interpreter, Intelligent Payment Card Routing, Contextual Tool Promotion, and Bilingual Export and Print Kits. Adds ADR-060 through ADR-063. No code changes.
 - **v0.1.54**: Interaction Shell I code implementation. Adds Home FIT archetype starts, Chat `?archetype=` auto-send through the Butler pipeline, three first-run starter chips, a primary structured `nextStep` action card, and traveler-facing Trip Canvas title/status copy.
+- **v0.2.1**: version-series reset per operator directive. The product moves from the `0.1.x` line to the `0.2.x` line; `v0.1.55` was the final `0.1.x` iteration and `v0.2.1` is the new baseline. No product code or behavior change — only version metadata and the versioning rule were updated across `package.json` and the workflow docs. All subsequent iterations increment `0.2.x`.
 - **v0.1.55**: documentation-only UX layout & frontend design specification. Adds `docs/planning/ux-design-and-layout-spec.md` — the design/experience companion to the v0.1.52 interaction blueprint and v0.1.53 technical blueprint. Covers the macro single-surface spatial model + information architecture + five-anxiety layout principle, micro page-by-page layout & interaction mechanics (Home, Chat command center + Canvas, Day detail, Explore, Tools, Translate, Trips, Account, Admin), and a frontend visual design system (tokens, reusable component library, visual hierarchy, motion, mobile-first, a11y). Maps each existing roadmap phase to its governing design section. No code changes.

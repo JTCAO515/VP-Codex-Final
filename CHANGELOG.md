@@ -1,5 +1,14 @@
 # VisePanda Changelog
 
+## v0.2.1 - 2026-07-01
+
+**Version-series reset (operator directive).** The product moves from the `0.1.x` line to the `0.2.x` line. `v0.1.55` was the last `0.1.x` iteration; `v0.2.1` is the new baseline, and every subsequent iteration increments `0.2.x`.
+
+- `package.json` version → `0.2.1`.
+- `VERSIONING.md` records the reset and updates the versioning rule to `0.2.x`.
+- `CLAUDE.md` project memory records the new versioning rule so future sessions continue from `0.2.x`.
+- No product code, behavior, provider, or schema change — version metadata only.
+
 ## v0.1.55 - 2026-07-01
 
 **Documentation-only iteration — UX layout & frontend design specification.** Complements the existing v0.1.52 interaction blueprint (what/why) and v0.1.53 technical blueprint (plugin architecture) with the missing design/experience layer (how it looks, lays out, and feels) for the one-stop FIT travel-butler positioning.

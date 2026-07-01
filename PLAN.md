@@ -515,3 +515,9 @@ Next implementation tasks:
 - [x] Synced onto origin/main (v0.1.54) before working — parallel session's work preserved, nothing overwritten.
 
 Note: this iteration is the design contract for the already-planned code phases (Canvas Action Layer, Inline Tool Cards, Tools Widgets, etc.); it does not add new phases. Version numbering overlaps with the parallel session's roadmap — see the HANDOFF v0.1.55 parallel-session note.
+
+## v0.2.1 Addendum - Version-Series Reset (operator directive)
+
+- [x] Reset the version series from `0.1.x` to `0.2.x`. `v0.1.55` was the final `0.1.x`; `v0.2.1` is the new baseline; subsequent iterations increment `0.2.x`.
+- [x] Updated `package.json`, `VERSIONING.md` (rule + release note), `CHANGELOG.md`, `HANDOFF.md`, and `CLAUDE.md` (project memory).
+- [x] No product code, provider, or schema change — version metadata only. All prior roadmap phases (阶段一…十八 and the FIT v0.1.5x roadmap) remain valid; only their future version tags renumber onto the `0.2.x` line.
