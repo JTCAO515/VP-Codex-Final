@@ -1,5 +1,19 @@
 # VisePanda Changelog
  
+## v0.1.54 - 2026-07-01
+
+**Interaction Shell I code implementation.** This release implements the first code slice planned after the v0.1.52/v0.1.53 strategy documents.
+
+- Added three Home archetype starts for independent FIT travelers: First China 10 Days Essentials, Foodie China, and History & Nature. Each routes to `/chat?archetype=<id>`.
+- Added shared archetype configuration in `lib/chat/archetypes.ts`, so Home links and Chat starter prompts use the same labels and Butler prompts.
+- Chat now detects `?archetype=` on launch, clears the URL, and sends the matching archetype prompt through the existing Butler pipeline. No direct canvas mutation was added.
+- Chat first-run suggestions now show three no-typing FIT starter chips instead of generic prompt buttons.
+- The latest structured Butler `nextStep` now appears as a prominent primary action card in the Chat panel and can be clicked to continue the same AI pipeline.
+- Trip Canvas now uses the trip title as its main h1 when available, replacing the generic "Live Trip Canvas" heading.
+- Trip summary confidence labels now render as traveler-facing copy: Draft → Taking shape, Refined → Looking good, Ready / Ready to save → Travel-ready.
+- Added tests for Home archetype routing, Chat first-run starts, `?archetype=` auto-send, primary `nextStep` action, and Canvas title/status wording.
+- Updated planning docs so the active next implementation sequence begins at `v0.1.55` Canvas Action Layer after this `v0.1.54` code pass.
+
 ## v0.1.53 - 2026-07-01
 
 **Documentation-only strategic planning pass.** No product runtime code changes. This iteration refines VisePanda's architectural design and product goals from a comprehensive traveler-first experience angle, detailing new features and linkages.
@@ -9,7 +23,7 @@
 - **Intelligent Payment Card Routing**: Added a structural payments wizard requirement mapping foreign credit cards (Visa/Mastercard/Amex) to optimized WeChat Pay and Alipay setup procedures, identifying transaction limits, local ID verifications, and ATMs/cash backups.
 - **Contextual Tool Promotion**: Outlined page linkage rules to promote relevant tools in real-time context (e.g., if a user is in Shanghai on Day 2, automatically float the Metro and Alipay guides, and prioritize menu translation).
 - **Bilingual Export & Print Kit**: Added design specification to export itineraries as compact, clean bilingual (EN/ZH) cards, maps, and offline print sheets, specifically tailored for taxi drivers and hotel staff.
-- Added design documents **ADR-051** (Offline Travel Vault), **ADR-052** (Contextual Tool Promotion), and **ADR-053** (Bilingual Export and Print Kit) to `DESIGN.md`.
+- Added design documents **ADR-060** through **ADR-063** to `DESIGN.md`.
 - Updated `PRD.md`, `PLAN.md`, `AGENTS.md`, and `HANDOFF.md` to establish the new execution baseline.
 
 ## v0.1.52 - 2026-07-01
@@ -22,7 +36,7 @@
 - Defined the core loop: intent/archetype → preference extraction → live tools/data → Trip Canvas source of truth → Chat explanation → small next-step controls → Trips readiness/continuity.
 - Defined the journey model: Curious → Planning → Preparing → In China → Share/Get help.
 - Reassigned page roles: Home starts archetypes; Chat is the command center; Canvas is the operational trip object; Trips handles continuity/readiness/sharing; Explore feeds Chat/Canvas; Tools resolves anxieties as contextual widgets/cards; Translate becomes an everywhere utility; Account handles trust/preference/consent/lead capture; Community supports inspiration and proof.
-- Updated the roadmap so `v0.1.53-v0.1.60` proceed through Interaction Shell I, Canvas Action Layer, Inline Tool Cards, TripBlock POI Embedding, Translate Everywhere, Tools Widgets, Account Center, and Admin/Customer Brief.
+- Updated the original roadmap so the active sequence now treats `v0.1.54` as the completed Interaction Shell I code pass, followed by `v0.1.55` Canvas Action Layer and later tracks.
 - Updated `PLAN.md`, `PRD.md`, `DESIGN.md`, `AGENTS.md`, `HANDOFF.md`, and `VERSIONING.md` to reflect the new planning baseline.
 
 ## v0.1.51 - 2026-07-01

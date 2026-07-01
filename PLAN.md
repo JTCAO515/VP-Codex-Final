@@ -157,7 +157,7 @@
 - [x] 任务 12.20b：建立用户旅程模型：Curious → Planning → Preparing → In China → Share/Get help，并为每一阶段定义用户心理、最佳交互和成功信号。
 - [x] 任务 12.20c：重定义页面职责：Home 负责 archetype start，Chat 负责决策，Canvas 负责可执行行程和动作，Trips 负责连续性/ready 状态，Explore 负责数据发现，Tools 负责旅前/旅中小工具，Translate 变成全局 utility，Account 承担信任/偏好/留资。
 - [x] 任务 12.20d：补齐 feature linkage matrix，明确 Home→Chat、Explore→Chat、Canvas quick actions→Chat、Tools→Chat、Translate→当前上下文、Account/Trips→高意向留资的联动关系。
-- [x] 任务 12.20e：给出 v0.1.53–v0.1.60 的后续实施路线：Interaction Shell I、Canvas Action Layer、Inline Tool Cards、TripBlock POI Embedding、Translate Everywhere、Tools Widgets I、Account Center + Preference Review、Admin + Customer Brief。
+- [x] 任务 12.20e：给出后续实施路线；v0.1.54 已完成 Interaction Shell I，当前顺延为 v0.1.55–v0.1.61 继续执行 Canvas Action Layer、Inline Tool Cards、TripBlock POI Embedding、Translate Everywhere、Tools Widgets I、Account Center + Preference Review、Admin + Customer Brief。
 - [x] 任务 12.20f：沉淀 UX writing rules 和指标体系：用 traveler-facing 状态替代 developer-facing 状态，每轮 AI 回复都要有具体下一步；关注 time to first canvas、trip edits/session、prep item completion、translate quick action usage、share/lead conversion 等。
 
 ### v0.1.53：Interaction Shell I / 引导入口 + 画布快捷操作（规划）
@@ -183,16 +183,16 @@
 - [ ] 任务 12.32：注册 `NEXT_PUBLIC_AMAP_MAPS_KEY`（仅用于地图显示、域名白名单、可公开）；在 Day 抽屉/Canvas 加 `DayMapWidget`，对含 2+ 定位块的天渲染标记 + 路线。
 - [ ] 任务 12.33：Chat→Explore 反向联动——行程内 POI 在 Explore 城市视图显示「In your trip」徽标；偏好驱动 Explore 卡片排序。
 
-### v0.1.53–v0.1.60 推荐实施顺序（以 v0.1.52 蓝图为准）
+### v0.1.54–v0.1.61 当前推荐实施顺序（v0.1.54 已完成 Interaction Shell I）
 
-1. `v0.1.53` Interaction Shell I：Home archetype starts、Chat first-run chips、structured `nextStep` 主按钮、Canvas 标题/状态友好化。
-2. `v0.1.54` Canvas Action Layer：trip completeness、day quick actions、prep blockers，从“展示行程”升级为“可操作行程”。
-3. `v0.1.55` Inline Tool Cards：签证、支付、eSIM、汇率、应急卡在 Chat 内出现，减少 tab 切换。
-4. `v0.1.56` TripBlock POI Embedding + Day Detail Upgrade：把真实 POI 字段持久化到行程块，Day detail 展示中文名/地址/营业时间/电话/地图/为什么适合用户。
-5. `v0.1.57` Translate Everywhere：Translate 作为全局 camera/mic utility，能从 Day detail、Tools、Chat 回到当前上下文。
-6. `v0.1.58` Tools Widgets I：currency converter、visa eligibility checker、payment setup wizard、emergency card generator。
-7. `v0.1.59` Account Center + Preference Review：真实 `/account` 信任中心、偏好编辑、隐私/同意、渐进式留资。
-8. `v0.1.60` Admin + Customer Brief Planning/Build：leads schema、admin role、customer brief、对话/行程摘要视图。
+1. `v0.1.54` Interaction Shell I（已完成）：Home archetype starts、Chat first-run chips、structured `nextStep` 主按钮、Canvas 标题/状态友好化。
+2. `v0.1.55` Canvas Action Layer：trip completeness、day quick actions、prep blockers，从“展示行程”升级为“可操作行程”。
+3. `v0.1.56` Inline Tool Cards：签证、支付、eSIM、汇率、应急卡在 Chat 内出现，减少 tab 切换。
+4. `v0.1.57` TripBlock POI Embedding + Day Detail Upgrade：把真实 POI 字段持久化到行程块，Day detail 展示中文名/地址/营业时间/电话/地图/为什么适合用户。
+5. `v0.1.58` Translate Everywhere：Translate 作为全局 camera/mic utility，能从 Day detail、Tools、Chat 回到当前上下文。
+6. `v0.1.59` Tools Widgets I：currency converter、visa eligibility checker、payment setup wizard、emergency card generator。
+7. `v0.1.60` Account Center + Preference Review：真实 `/account` 信任中心、偏好编辑、隐私/同意、渐进式留资。
+8. `v0.1.61` Admin + Customer Brief Planning/Build：leads schema、admin role、customer brief、对话/行程摘要视图。
 
 ### 阶段十二关键设计取舍（详见 DESIGN.md ADR-037~042）
 
@@ -428,7 +428,7 @@ Historical sequencing note (superseded by the v0.1.52 blueprint):
 
 - [x] Chat Intelligence / multi-model orchestration shipped in v0.1.47-v0.1.48.
 - [x] Amap enrichment, bounded Chat tool context, and lightweight preference memory shipped in v0.1.49-v0.1.51.
-- [x] v0.1.52 was reassigned to the product interaction blueprint. The next implementation order is now the v0.1.53-v0.1.60 sequence above.
+- [x] v0.1.52 was reassigned to the product interaction blueprint. After the v0.1.54 code pass, the next implementation order is now the v0.1.55-v0.1.61 sequence above.
 - [ ] Dianping/Meituan + map remains a later external-approval track, not the v0.1.52 implementation target.
 
 Immediate no-code actions the user should take this week:
@@ -488,5 +488,19 @@ Next code iterations (recommended order):
 - [x] No code changes this iteration; all tasks remain strategic and planned for subsequent implementation.
 
 Next implementation tasks:
-- [ ] v0.1.53 Code changes: home archetype starts, chat first-run empty state, primary `nextStep` action chips, traveler-facing status wording.
+- [x] v0.1.54 Code implementation: home archetype starts, chat first-run empty state, primary `nextStep` action chips, traveler-facing status wording.
 
+## v0.1.54 Addendum - Interaction Shell I Code Implementation
+
+- [x] Added shared `TRIP_ARCHETYPES` configuration for First China 10 Days Essentials, Foodie China, and History & Nature.
+- [x] Updated Home to surface the three FIT archetype entry points and route each one to `/chat?archetype=<id>`.
+- [x] Updated Chat workspace to detect `?archetype=`, clear the URL, and send the corresponding prompt through the existing Butler pipeline.
+- [x] Replaced first-run Chat suggestions with exactly three no-typing starter chips.
+- [x] Promoted structured Butler `nextStep` into a primary action card in Chat.
+- [x] Updated Trip Canvas h1 to use the current trip title and mapped confidence labels to traveler-facing copy.
+- [x] Added tests for Home archetype routing, Chat archetype auto-send, ChatPanel next-step action, and Canvas title/status wording.
+
+Next implementation tasks:
+
+- [ ] v0.1.55 Canvas Action Layer: trip completeness, Day quick actions, and prep blockers.
+- [ ] v0.1.56 Inline Tool Cards or Tools Widgets, depending on whether the next priority is Chat anxiety resolution or standalone utility depth.

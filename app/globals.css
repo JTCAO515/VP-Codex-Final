@@ -1472,6 +1472,44 @@ select:focus-visible {
   font-weight: 850;
 }
 
+.chat-next-step-card {
+  order: 3;
+  display: grid;
+  gap: 6px;
+  border: 1px solid rgba(163, 58, 45, 0.34);
+  border-radius: 8px;
+  padding: 10px;
+  background:
+    linear-gradient(135deg, rgba(163, 58, 45, 0.1), rgba(182, 134, 52, 0.09)),
+    color-mix(in srgb, var(--paper-soft) 82%, transparent);
+  box-shadow: 0 10px 22px rgba(55, 36, 18, 0.08);
+}
+
+.chat-next-step-card span {
+  color: var(--ink-muted);
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.chat-next-step-card button {
+  min-height: 36px;
+  border: 0;
+  border-radius: 6px;
+  padding: 8px 11px;
+  background: var(--cinnabar);
+  color: #fff;
+  font-size: 0.83rem;
+  font-weight: 900;
+  text-align: left;
+  box-shadow: 0 8px 20px rgba(163, 58, 45, 0.24);
+}
+
+.chat-next-step-card button:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
 .chat-message .chat-message__response p {
   border: 0;
   border-radius: 0;
@@ -5403,6 +5441,65 @@ select {
   box-shadow: 0 10px 30px rgba(163, 58, 45, 0.36);
 }
 
+/* ── Archetype starts ── */
+.home-archetypes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(8px, 1.2vw, 14px);
+  flex-shrink: 0;
+  padding: 0 0 clamp(12px, 1.8vh, 20px);
+}
+
+.home-archetype-card {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 4px 11px;
+  align-items: center;
+  border: 1px solid rgba(163, 58, 45, 0.22);
+  border-radius: 8px;
+  padding: 12px 13px;
+  background:
+    linear-gradient(135deg, rgba(163, 58, 45, 0.08), rgba(102, 123, 92, 0.06)),
+    rgba(251, 244, 232, 0.78);
+  color: var(--ink);
+  text-decoration: none;
+  box-shadow: 0 8px 22px rgba(55, 36, 18, 0.06);
+  transition: background 0.15s, box-shadow 0.15s, transform 0.12s;
+}
+
+.home-archetype-card:hover {
+  background: rgba(251, 244, 232, 0.96);
+  box-shadow: var(--shadow-soft);
+  transform: translateY(-2px);
+}
+
+.home-archetype-card__icon {
+  grid-row: 1 / span 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  background: rgba(163, 58, 45, 0.1);
+  color: var(--cinnabar);
+}
+
+.home-archetype-card strong {
+  min-width: 0;
+  font-size: 0.86rem;
+  font-weight: 900;
+  line-height: 1.18;
+}
+
+.home-archetype-card small {
+  min-width: 0;
+  color: var(--ink-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
 /* ── Feature grid ── */
 .home-features {
   display: grid;
@@ -5482,6 +5579,11 @@ select {
     grid-template-columns: 1fr 1fr;
     gap: 10px;
     flex: none;
+  }
+
+  .home-archetypes {
+    grid-template-columns: 1fr;
+    gap: 10px;
   }
 
   .home-hero__headline {

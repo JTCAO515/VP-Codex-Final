@@ -4,14 +4,18 @@ import Link from "next/link";
 import {
   Compass,
   Globe,
+  Landmark,
   Languages,
   Luggage,
+  Map,
   MessageCircle,
+  Utensils,
   Wrench,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { AccountMenu } from "@/components/account/AccountMenu";
 import { LanguageSwitcher } from "@/components/shell/LanguageSwitcher";
+import { TRIP_ARCHETYPES } from "@/lib/chat/archetypes";
 import { useTranslation } from "@/lib/i18n/I18nContext";
 import type { Translations } from "@/lib/i18n/translations/en";
 
@@ -82,6 +86,12 @@ const FEATURES: Feature[] = [
   },
 ];
 
+const ARCHETYPE_ICONS: Record<string, LucideIcon> = {
+  "first-china-10-days": Map,
+  "foodie-china": Utensils,
+  "history-nature": Landmark,
+};
+
 export function HomePage() {
   const { t } = useTranslation();
 
@@ -107,17 +117,31 @@ export function HomePage() {
       </header>
 
       <section className="home-hero" aria-labelledby="home-headline">
-        <p className="home-hero__kicker">Plan · Explore · Travel</p>
+        <p className="home-hero__kicker">Independent China travel</p>
         <h1 id="home-headline" className="home-hero__headline">
-          Your AI China<br />Travel Butler
+          Your one-stop AI<br />China travel butler
         </h1>
         <p className="home-hero__sub">
-          Tell the AI what you want — it builds a live itinerary canvas.<br />
-          Explore cities, use on-the-ground tools, join the traveler community.
+          Plan, book, translate, pay, navigate, and adapt one live trip canvas for a self-guided China journey.
         </p>
-        <Link className="home-hero__cta" href="/chat">
+        <Link className="home-hero__cta" href="/chat?archetype=first-china-10-days">
           Start Planning →
         </Link>
+      </section>
+
+      <section className="home-archetypes" aria-label="Independent trip starts">
+        {TRIP_ARCHETYPES.map(({ id, title, subtitle }) => {
+          const Icon = ARCHETYPE_ICONS[id];
+          return (
+            <Link className="home-archetype-card" href={`/chat?archetype=${id}`} key={id}>
+              <span className="home-archetype-card__icon" aria-hidden="true">
+                <Icon size={21} strokeWidth={1.8} />
+              </span>
+              <strong>{title}</strong>
+              <small>{subtitle}</small>
+            </Link>
+          );
+        })}
       </section>
 
       <section className="home-features" aria-label="VisePanda features">

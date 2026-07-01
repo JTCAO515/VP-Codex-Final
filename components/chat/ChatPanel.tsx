@@ -14,6 +14,9 @@ interface ChatPanelProps {
 
 export function ChatPanel({ messages, onSend, suggestions, profileChips = [], busy = false }: ChatPanelProps) {
   const [draft, setDraft] = useState("");
+  const latestNextStep = [...messages].reverse().find((message) => message.role === "assistant" && message.response?.nextStep)?.response?.nextStep;
+  const promptLabel = messages.length === 0 ? "First trip starts" : "Suggested prompts";
+  const visibleSuggestions = messages.length === 0 ? suggestions.slice(0, 3) : suggestions;
 
   function submitMessage(message: string) {
     const trimmed = message.trim();
@@ -43,8 +46,8 @@ export function ChatPanel({ messages, onSend, suggestions, profileChips = [], bu
           </div>
         ) : null}
       </div>
-      <div className="prompt-row" aria-label="Suggested prompts">
-        {suggestions.map((prompt) => (
+      <div className="prompt-row" aria-label={promptLabel}>
+        {visibleSuggestions.map((prompt) => (
           <button key={prompt} type="button" onClick={() => submitMessage(prompt)} disabled={busy}>
             {prompt}
           </button>
@@ -76,6 +79,14 @@ export function ChatPanel({ messages, onSend, suggestions, profileChips = [], bu
           </article>
         ))}
       </div>
+      {latestNextStep ? (
+        <div className="chat-next-step-card" aria-label="Primary next step">
+          <span>Next step</span>
+          <button type="button" onClick={() => submitMessage(latestNextStep)} disabled={busy}>
+            {latestNextStep}
+          </button>
+        </div>
+      ) : null}
       <form className="chat-composer" onSubmit={handleSubmit}>
         <label htmlFor="butler-message">Ask VisePanda</label>
         <textarea

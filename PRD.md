@@ -500,14 +500,14 @@ The required experience loop is:
 
 ### Roadmap acceptance targets
 
-- `v0.1.53` should improve the first 60 seconds: Home archetypes, Chat first-run chips, and primary `nextStep` actions.
-- `v0.1.54` should make Canvas operational: completeness score, day quick actions, and prep blockers.
-- `v0.1.55` should render inline tool cards inside Chat for visa, payment, eSIM, currency, and emergency needs.
-- `v0.1.56` should persist rich POI fields in TripBlocks and upgrade Day detail with real operational fields.
-- `v0.1.57` should make Translate available from anywhere without stranding the user on a separate page.
-- `v0.1.58` should turn top Tools into real widgets.
-- `v0.1.59` should add a real Account center and editable preference/consent review.
-- `v0.1.60` should connect lead/admin planning to customer briefs.
+- `v0.1.54` implements the first 60 seconds: Home archetypes, Chat first-run chips, and primary `nextStep` actions.
+- `v0.1.55` should make Canvas operational: completeness score, day quick actions, and prep blockers.
+- `v0.1.56` should render inline tool cards inside Chat for visa, payment, eSIM, currency, and emergency needs.
+- `v0.1.57` should persist rich POI fields in TripBlocks and upgrade Day detail with real operational fields.
+- `v0.1.58` should make Translate available from anywhere without stranding the user on a separate page.
+- `v0.1.59` should turn top Tools into real widgets.
+- `v0.1.60` should add a real Account center and editable preference/consent review.
+- `v0.1.61` should connect lead/admin planning to customer briefs.
 
 ### UX writing and metrics
 
@@ -568,3 +568,22 @@ This iteration establishes requirements for deeper travel assistance capabilitie
 - No product runtime code changes.
 - No Supabase or database schema migrations.
 
+## v0.1.54 Implementation Update - Interaction Shell I
+
+This iteration implements the first code slice after the v0.1.52 interaction blueprint and v0.1.53 one-stop FIT strategy.
+
+MVP acceptance additions:
+
+- Home provides three high-confidence independent-travel archetype starts: First China 10 Days Essentials, Foodie China, and History & Nature.
+- Each Home archetype routes to `/chat?archetype=<archetype-id>` and does not hardcode a finished itinerary.
+- Chat detects `?archetype=` once on launch and sends the matching prompt through the existing `handleSend` → `/api/chat` → `CanvasPatch` → `applyCanvasPatch` pipeline.
+- Empty Chat state shows exactly three no-typing starter chips for FIT travelers.
+- The latest structured Butler `nextStep` is promoted to a primary action card/chip that can be clicked to continue the conversation.
+- Trip Canvas h1 uses the current trip title when available instead of the generic "Live Trip Canvas" placeholder.
+- Canvas confidence labels use traveler-facing wording: Taking shape, Looking good, and Travel-ready.
+
+Explicit exclusions:
+
+- No direct canvas mutation from Home, Chat chips, or archetype starts.
+- No new provider keys, API integrations, Supabase migrations, or booking/payment logic in this iteration.
+- Offline Vault, Payment Wizard, Bilingual Handoff, and Contextual Tool Promotion remain planned follow-up tracks.

@@ -712,3 +712,24 @@ ADR-063: Bilingual Export and Print Kit Generation.
 - Decision: Add a "Bilingual Export & Print Kit" that renders high-contrast, large-font Chinese/English address cards for taxi drivers ("Show Taxi Driver") and exports clean, compact print-ready PDF/PNG canvases.
 - Reason: Seamlessly bridges the gap between digital planning and offline real-world execution.
 
+## v0.1.54 Design Update - Interaction Shell I Implementation
+
+This code iteration implements the first practical shell around the Chat/Canvas spine without changing provider contracts or persistence schemas.
+
+ADR-064: Archetype starts are Butler prompts, not hardcoded itineraries.
+
+- Background: Home needs high-confidence first starts for FIT travelers, but directly creating a finished canvas from Home would bypass the AI pipeline and duplicate itinerary logic.
+- Decision: Define shared archetype metadata in `lib/chat/archetypes.ts`. Home links to `/chat?archetype=<id>`, and `ButlerWorkspace` resolves that id into a natural-language Butler prompt sent through `handleSend`.
+- Reason: The user gets a no-typing start while all canvas writes still flow through `/api/chat`, `CanvasPatch`, and `applyCanvasPatch`, preserving mock fallback and future live provider grounding.
+
+ADR-065: Promote `nextStep` as an action, not only response text.
+
+- Background: Structured Butler replies already include `nextStep`, but it was rendered inside the message body where users could miss it.
+- Decision: `ChatPanel` derives the latest assistant `nextStep` and renders it as a primary action card below the conversation. Clicking it sends the next step through the same `onSend` path as typed messages.
+- Reason: This turns structured AI guidance into a concrete interaction loop without adding a new command surface or direct state mutation.
+
+ADR-066: Traveler-facing canvas status is a presentation mapping.
+
+- Background: Existing canvas confidence values (`Draft`, `Refined`, `Ready to save`) are useful internal state but read like implementation labels to travelers.
+- Decision: `TripSummary` maps confidence to traveler copy (`Taking shape`, `Looking good`, `Travel-ready`) while leaving the underlying `TripState` contract unchanged.
+- Reason: This improves clarity and trust with no data migration or saved-trip compatibility risk.

@@ -3,15 +3,16 @@
 ## 当前状态
  
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）；v0.1.34 桌面横屏前端优化：Tools 6 个模态卡片 + 浮层对话框、Trips 筛选按钮布局修复（过滤器始终可见）、Translator 单页 2×2 网格布局（同时展示四个功能面板无需切换 tab）。
-- 当前分支：`main`（本地当前领先 `origin/main`；用户说明稍后手动 push）
-- 当前版本：`v0.1.53`
+- 当前分支：`main`
+- 当前版本：`v0.1.54`
 - 重要（已完成）：
   - `supabase/migrations/0002_trip_archive_and_share.sql`：用户已手动在 Supabase SQL Editor 执行，归档/分享 RLS policy 已生效。
   - Google OAuth：用户已在 Google Cloud 创建 OAuth 凭据并在 Supabase Authentication → Providers → Google 填入，Google 登录功能已配置就绪。
   - ExchangeRate-API：用户已获取 API Key，已配置 `EXCHANGE_RATE_API_KEY` 到 Vercel 环境变量；`/api/exchange-rate` 路由已连接，Tools Currency 分类展示实时 CNY 汇率（每小时刷新）。
   - 高德地图 API：用户已获取 Web Service API Key，已配置 `AMAP_API_KEY` 到 Vercel 环境变量；`/api/explore/amap` 路由已连接，Explore 景点/美食/住宿来自高德 POI 实时搜索。
-  - v0.1.52 是纯文档产品策略/交互规划迭代：新增 `docs/planning/v0.1.52-product-interaction-blueprint.md`，把产品定位、用户旅程、页面职责、功能联动、v0.1.53-v0.1.60 路线、UX writing 和指标体系定为后续实施依据。
+  - v0.1.52 是纯文档产品策略/交互规划迭代：新增 `docs/planning/v0.1.52-product-interaction-blueprint.md`，把产品定位、用户旅程、页面职责、功能联动、UX writing 和指标体系定为后续实施依据；路线在 v0.1.54 代码实现后顺延为 v0.1.55-v0.1.61。
   - v0.1.53 是纯文档战略规划迭代：细化了“中国旅行操作系统”产品方向，设计了离线保险库（Offline Vault）、文化背景解读器（Cultural Context Interpreter）、信用卡智能支付路由（Payment Card Routing）、上下文工具推荐（Contextual Tool Promotion）和双语打印包（Bilingual Export & Print Kit）五大模块及系统关联。
+  - v0.1.54 是 Interaction Shell I 代码实现：Home 三个 FIT archetype 入口、Chat `?archetype=` 首跑、3 个免打字 starter chips、结构化 `nextStep` 主行动卡、Trip Canvas 标题/状态友好化。
 - 最新实现 commit：本轮提交后以 `git log -1 --oneline` 为准
 - 当前远端：`https://github.com/JTCAO515/VP-Codex-Final.git`
 - 部署地址：`https://go2china.space`
@@ -28,7 +29,25 @@
   - Node dependencies installed successfully via `npm install`.
   - Dev server running in background.
   - All 98 unit/component tests passing (100% green).
-- Next recommended iteration: `v0.1.53` code changes. Implement Home archetype routes, first-run empty state suggestions, dynamic `nextStep` buttons, and traveler-facing status copy mapping.
+- Next recommended iteration was the Interaction Shell I code pass, now completed in `v0.1.54`.
+
+## v0.1.54 Handoff Update - Interaction Shell I Code Implementation
+
+- Current version: `v0.1.54` in `package.json`, `package-lock.json`, and `VERSIONING.md`.
+- User intent: implement the first code pass after the v0.1.52/v0.1.53 strategy work, while firmly locking product positioning to independent FIT foreign travelers in China and a one-stop AI travel butler that integrates planning, booking, POI/food choices, translation, transit, payment, and maps.
+- Workspace note: user supplied `/Users/jtcao/Documents/Antigravity/VP-Codex-Final` as the active local path. This Codex sandbox could read/sync that repo but could not apply patches there, so implementation was completed in the VPMCO writable workspace `/Users/jtcao/Documents/Codex 2/VP-Codex-Final`, synced to the same GitHub `main` source of truth.
+- Implemented:
+  - `lib/chat/archetypes.ts` defines three shared FIT starts: First China 10 Days Essentials, Foodie China, History & Nature.
+  - Home surfaces those starts and routes to `/chat?archetype=<id>`.
+  - `ButlerWorkspace` detects `?archetype=`, clears the URL, and sends the mapped prompt through `handleSend`, preserving the existing `/api/chat` → `CanvasPatch` → `applyCanvasPatch` path and mock fallback.
+  - `ChatPanel` shows three first-run starter chips and promotes the latest structured `nextStep` into a primary action card.
+  - `TripCanvas` uses the current trip title as h1; `TripSummary` maps Draft/Refined/Ready to traveler-facing status text.
+- Key files changed: `components/home/HomePage.tsx`, `components/chat/ButlerWorkspace.tsx`, `components/chat/ChatPanel.tsx`, `components/canvas/TripCanvas.tsx`, `components/canvas/TripSummary.tsx`, `lib/chat/archetypes.ts`, `app/globals.css`, tests, and docs.
+- Verification: `npm run test` passed (37 files, 103 tests); `npm run build` passed with 20 generated pages.
+- Dev server note: this Codex sandbox rejected local port binding with `listen EPERM` for both `127.0.0.1:3000` and `127.0.0.1:3001`, and it could not stop the stale local Node listener on port 3000. Run `npm run dev` from a normal Mac terminal after pulling to verify `http://localhost:3000`.
+- Push note: local commit was created, but `git push origin main` failed in this sandbox because DNS could not resolve `github.com`. Push from a normal network-enabled Mac terminal with `git push origin main`.
+- Known issue: Antigravity local repo will need `git pull origin main` after this commit is pushed, because code changes were made in the writable VPMCO workspace.
+- Next recommended iteration: Canvas Action Layer (`v0.1.55`) with trip completeness, Day quick actions, and prep blockers.
  
 ## v0.1.41 Handoff Update - Documentation Alignment Snapshot
 
@@ -88,7 +107,7 @@
   - Core loop: intent/archetype → preference extraction → live tools/data → Trip Canvas source of truth → Chat explanation → small next-step controls → Trips readiness/continuity.
   - Journey model: Curious → Planning → Preparing → In China → Share/Get help.
   - Page roles: Home starts archetypes; Chat is command center; Canvas is operational trip object; Trips is continuity/readiness/sharing; Explore feeds Chat/Canvas; Tools resolves anxieties as widgets/cards; Translate becomes an everywhere utility; Account is trust/preference/consent/lead capture; Community is proof and inspiration.
-  - Roadmap: `v0.1.53` Interaction Shell I, `v0.1.54` Canvas Action Layer, `v0.1.55` Inline Tool Cards, `v0.1.56` TripBlock POI Embedding + Day Detail Upgrade, `v0.1.57` Translate Everywhere, `v0.1.58` Tools Widgets I, `v0.1.59` Account Center + Preference Review, `v0.1.60` Admin + Customer Brief Planning/Build.
+  - Roadmap was later shifted when `v0.1.54` implemented Interaction Shell I. Active next order: `v0.1.55` Canvas Action Layer, `v0.1.56` Inline Tool Cards, `v0.1.57` TripBlock POI Embedding + Day Detail Upgrade, `v0.1.58` Translate Everywhere, `v0.1.59` Tools Widgets I, `v0.1.60` Account Center + Preference Review, `v0.1.61` Admin + Customer Brief Planning/Build.
 - Files changed: `docs/planning/v0.1.52-product-interaction-blueprint.md`, `PLAN.md`, `PRD.md`, `DESIGN.md`, `AGENTS.md`, `HANDOFF.md`, `CHANGELOG.md`, `VERSIONING.md`, `package.json`, `package-lock.json`.
 - Product code intentionally untouched; only docs/version metadata changed.
 - Push note: the user said they will push later. Local repo is expected to remain ahead of `origin/main` until the user pushes from a network-enabled terminal.
@@ -196,11 +215,10 @@
 
 ## 下一步优先级
 
-1. `v0.1.53` Interaction Shell I：Home 增加 archetype starts，Chat 增加 first-run chips，把 structured `nextStep` 变成主行动按钮，Canvas 标题/状态改成 traveler-facing 文案。
-2. `v0.1.54` Canvas Action Layer：增加 trip completeness、Day quick actions、prep blockers，让 Canvas 从展示行程升级为可操作行程。
-3. `v0.1.55` Inline Tool Cards：把签证、支付、eSIM、汇率、应急等工具卡放进 Chat 回复流，减少用户跳 tab。
-4. `v0.1.56` TripBlock POI Embedding + Day Detail Upgrade：把真实 POI 字段持久化到行程块，Day detail 显示中文地址、营业时间、电话、地图和“为什么适合你”。
-5. `v0.1.57+`：Translate Everywhere、Tools Widgets、Account Center、Admin/Customer Brief 按 `PLAN.md` 的 v0.1.53-v0.1.60 顺序推进。
+1. `v0.1.55` Canvas Action Layer：增加 trip completeness、Day quick actions、prep blockers，让 Canvas 从展示行程升级为可操作行程。
+2. `v0.1.56` Inline Tool Cards：把签证、支付、eSIM、汇率、应急等工具卡放进 Chat 回复流，减少用户跳 tab。
+3. `v0.1.57` TripBlock POI Embedding + Day Detail Upgrade：把真实 POI 字段持久化到行程块，Day detail 显示中文地址、营业时间、电话、地图和“为什么适合你”。
+4. `v0.1.58+`：Translate Everywhere、Tools Widgets、Account Center、Admin/Customer Brief 按 `PLAN.md` 的 v0.1.55-v0.1.61 顺序推进。
 
 ## 关键文件索引
 

@@ -32,11 +32,12 @@ export function TripCanvas({ trip, summaryActions }: { trip: TripState; summaryA
     () => editableTrip.days.find((day) => day.day === selectedDayNumber),
     [selectedDayNumber, editableTrip.days],
   );
+  const canvasTitle = editableTrip.summary.title.trim() || "Live Trip Canvas";
 
   return (
     <section className="trip-canvas" aria-label="Live trip canvas">
       <div className="trip-canvas__title">
-        <h1>Live Trip Canvas</h1>
+        <h1>{canvasTitle}</h1>
         <span aria-hidden="true">VP</span>
       </div>
       <TripSummary trip={editableTrip} actions={summaryActions} />

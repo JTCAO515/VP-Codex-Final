@@ -8,11 +8,12 @@ describe("ButlerWorkspace", () => {
     window.history.replaceState(null, "", "/chat");
   });
 
-  it("starts without demo conversation and shows four suggestions in two rows", () => {
+  it("starts without demo conversation and shows three first-run suggestions", () => {
     render(<ButlerWorkspace />);
 
     expect(screen.queryByText(/We're interested in history, culture, and good food/i)).not.toBeInTheDocument();
-    expect(screen.getAllByRole("button").filter((button) => button.closest(".prompt-row"))).toHaveLength(4);
+    expect(screen.getAllByRole("button").filter((button) => button.closest(".prompt-row"))).toHaveLength(3);
+    expect(screen.getByRole("button", { name: /first china 10 days essentials/i })).toBeInTheDocument();
   });
 
   it("updates the canvas after a user asks for a first China trip", async () => {
@@ -59,6 +60,16 @@ describe("ButlerWorkspace", () => {
     render(<ButlerWorkspace />);
 
     expect(await screen.findByText("Add Forbidden City in Beijing to my trip.")).toBeInTheDocument();
+    expect(await screen.findByText(/VisePanda updated the canvas/i)).toBeInTheDocument();
+    expect(window.location.search).toBe("");
+  });
+
+  it("auto-sends an archetype starter found in the ?archetype= URL param", async () => {
+    window.history.replaceState(null, "", "/chat?archetype=foodie-china");
+
+    render(<ButlerWorkspace />);
+
+    expect(await screen.findByText(/Start a Foodie China independent trip/i)).toBeInTheDocument();
     expect(await screen.findByText(/VisePanda updated the canvas/i)).toBeInTheDocument();
     expect(window.location.search).toBe("");
   });

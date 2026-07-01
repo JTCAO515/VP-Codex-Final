@@ -322,7 +322,7 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 
 **Recommended order**
  
-- Next implementation should start with `v0.1.53` Interaction Shell I, then proceed through Canvas Action Layer, Inline Tool Cards, TripBlock POI Embedding, Translate Everywhere, Tools Widgets, Account Center, and Admin/Customer Brief work as recorded in `PLAN.md`.
+- After the completed `v0.1.54` Interaction Shell I code pass, the next implementation should start with Canvas Action Layer, then proceed through Inline Tool Cards, TripBlock POI Embedding, Translate Everywhere, Tools Widgets, Account Center, and Admin/Customer Brief work as recorded in `PLAN.md`.
  
 ## v0.1.53 Agent Update - Offline Vault, Context Interpretation, Payment Cards, Contextual Tool Promotion, and Bilingual Handoff
 
@@ -332,3 +332,10 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 - **Contextual Tool Rendering**: Components on the active workspace must watch the current day/city route. Ensure tool priority changes dynamically (e.g., floating metro and Alipay cards for Shanghai, currency convert calculators for shopping).
 - **Bilingual Handoff Guidelines**: Ensure every POI and day block exposes a "Show Taxi Driver" trigger, rendering Chinese name and address in large-font bilingual text cards for drivers. Itinerary export should produce clean, compact EN/ZH print sheets.
 
+## v0.1.54 Agent Update - Interaction Shell I Rules
+
+- Home archetype starts are defined in `lib/chat/archetypes.ts`. Do not duplicate their labels/prompts in Home or Chat components.
+- Archetype starts must route through `/chat?archetype=<id>` and then through `ButlerWorkspace.handleSend`; do not create or merge `TripState` directly from Home.
+- First-run Chat starter chips are traveler choices, not explanatory feature cards. Keep them concise and action-oriented.
+- The primary `nextStep` card must keep using the normal `onSend` path so it preserves preference extraction, provider fallback, saved messages, and canvas patch handling.
+- Canvas confidence wording is presentation-only. Do not rename `TripState.summary.confidence` values without a migration and parser update.

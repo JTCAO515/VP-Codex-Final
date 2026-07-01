@@ -6,6 +6,7 @@ import { ChatPanel } from "@/components/chat/ChatPanel";
 import { TripCanvas } from "@/components/canvas/TripCanvas";
 import { preferenceProfileSummary, updatePreferenceProfile, type UserPreferenceProfile } from "@/lib/ai/preferenceProfile";
 import { applyCanvasPatch } from "@/lib/canvas/applyCanvasPatch";
+import { getTripArchetype, TRIP_ARCHETYPES } from "@/lib/chat/archetypes";
 import { createMockButlerPatch, initialTripState } from "@/lib/mock-ai/mockButler";
 import { appendMessage, loadTripWithCanvas, saveTripCanvas } from "@/lib/supabase/tripsRepository";
 import { useSupabaseSession } from "@/lib/supabase/useSupabaseSession";
@@ -20,12 +21,7 @@ interface GuestDraft {
   preferenceProfile?: UserPreferenceProfile;
 }
 
-const initialSuggestions = [
-  "Plan my first China trip",
-  "Make this trip less tiring",
-  "Add food-focused stops",
-  "Keep hotels convenient",
-];
+const initialSuggestions = TRIP_ARCHETYPES.map((archetype) => archetype.title);
 
 function createMessage(role: ChatMessage["role"], content: string, response?: ChatMessage["response"]): ChatMessage {
   return {
@@ -55,6 +51,7 @@ export function ButlerWorkspace() {
   const persistedMessageCount = useRef(0);
   const hasLoadedDraftRef = useRef(false);
   const hasAppliedAddRef = useRef(false);
+  const hasAppliedArchetypeRef = useRef(false);
   const previousSessionRef = useRef<Session | null>(null);
 
   const statusText = useMemo(() => status, [status]);
@@ -80,7 +77,8 @@ export function ButlerWorkspace() {
   useEffect(() => {
     if (typeof window === "undefined" || hasLoadedDraftRef.current) return;
     hasLoadedDraftRef.current = true;
-    if (new URLSearchParams(window.location.search).get("trip")) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("trip") || params.get("add") || params.get("archetype")) return;
 
     const raw = window.localStorage.getItem(GUEST_DRAFT_KEY);
     if (!raw) return;
@@ -113,6 +111,19 @@ export function ButlerWorkspace() {
     hasAppliedAddRef.current = true;
     window.history.replaceState(null, "", "/chat");
     void handleSend(addParam);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || hasAppliedArchetypeRef.current) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("trip") || params.get("add")) return;
+    const archetype = getTripArchetype(params.get("archetype"));
+    if (!archetype) return;
+    hasAppliedArchetypeRef.current = true;
+    window.history.replaceState(null, "", "/chat");
+    setStatus(`Starting ${archetype.title} with VisePanda.`);
+    void handleSend(archetype.prompt);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
