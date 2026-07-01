@@ -149,7 +149,18 @@
 - [x] 任务 12.9（第一版）：guest profile 存 localStorage 并随 `/api/chat` 发送；Supabase `profiles` 表持久化留待后续 migration。
 - [x] 任务 12.10（第一版）：ChatPanel 头部显示偏好 chips（如 `light pace` / `economy budget` / `family with kids`）。
 
-### v0.1.52：引导入口 + 画布快捷操作
+### v0.1.52：产品交互逻辑与用户旅程蓝图（文档规划，代码未改动）
+
+> 本轮是一次深度产品策略/交互规划迭代。详细蓝图见 `docs/planning/v0.1.52-product-interaction-blueprint.md`。核心判断：VisePanda 不应只被定位为 AI itinerary generator，而应是外国游客来华的 China travel operating system，把入境、支付、联网、语言和行程五类焦虑连接成一条可执行旅程。
+
+- [x] 任务 12.20a：重新定义产品定位：Chat 是 command center，Trip Canvas 是 source of truth，Tools/Translate/Explore/Trips/Account/Community 是围绕旅程运转的支持系统。
+- [x] 任务 12.20b：建立用户旅程模型：Curious → Planning → Preparing → In China → Share/Get help，并为每一阶段定义用户心理、最佳交互和成功信号。
+- [x] 任务 12.20c：重定义页面职责：Home 负责 archetype start，Chat 负责决策，Canvas 负责可执行行程和动作，Trips 负责连续性/ready 状态，Explore 负责数据发现，Tools 负责旅前/旅中小工具，Translate 变成全局 utility，Account 承担信任/偏好/留资。
+- [x] 任务 12.20d：补齐 feature linkage matrix，明确 Home→Chat、Explore→Chat、Canvas quick actions→Chat、Tools→Chat、Translate→当前上下文、Account/Trips→高意向留资的联动关系。
+- [x] 任务 12.20e：给出 v0.1.53–v0.1.60 的后续实施路线：Interaction Shell I、Canvas Action Layer、Inline Tool Cards、TripBlock POI Embedding、Translate Everywhere、Tools Widgets I、Account Center + Preference Review、Admin + Customer Brief。
+- [x] 任务 12.20f：沉淀 UX writing rules 和指标体系：用 traveler-facing 状态替代 developer-facing 状态，每轮 AI 回复都要有具体下一步；关注 time to first canvas、trip edits/session、prep item completion、translate quick action usage、share/lead conversion 等。
+
+### v0.1.53：Interaction Shell I / 引导入口 + 画布快捷操作（规划）
 
 - [ ] 任务 12.20：Home 增加 3 个原型入口（「首次中国 10 天精华」/「美食三城」/「历史+自然」），点击后带 `?archetype=` 参数预置 trip state，并由 Butler 以「建议」口吻呈现。
 - [ ] 任务 12.21：首跑向导——3 个 chip 问题（无需打字）即可生成起始草稿；替换空白 textarea 空状态。
@@ -157,7 +168,7 @@
 - [ ] 任务 12.23：Day 卡片内联快捷按钮（Lighten / Swap morning / Add food），每个按钮发送预制 Butler 意图，用户无需打字。
 - [ ] 任务 12.24：把 `confidence`（Draft/Refined/Ready to save）映射为友好文案（「Taking shape / Looking good / Save it!」）；行程有标题后用标题替换「Live Trip Canvas」h1。
 
-### v0.1.51：导航重构（两种模式，而非六个 tab）
+### v0.1.57：Translate Everywhere + 导航模式重构（规划）
 
 - [ ] 任务 12.25：Translate 从主导航移除，改为全局悬浮相机/麦克风按钮（底部右侧常驻），点开是已激活 OCR 的 bottom sheet，不离开当前上下文。
 - [ ] 任务 12.26：Explore 从主导航降级，POI 浏览通过 Chat 内「Browse [City]」按钮进入；Explore 页面保留为可浏览的发现面，但不再是一级 tab。
@@ -165,12 +176,23 @@
 - [ ] 任务 12.28：Chat 对话内联渲染工具卡（签证提醒、支付清单在对话中直接出现），复用 Tools modal 的组件。
 - [ ] 任务 12.29：已登录用户从 `/` 直接进 `/chat`（Home 仅作落地页）。
 
-### v0.1.52：大众点评/美团 + 地图（审批后）
+### 后续规划：大众点评/美团 + 地图（审批后）
 
 - [ ] 任务 12.30：`search_dianping` 接真实大众点评 POI 搜索（评分/评论数/人均），替换 stub。
 - [ ] 任务 12.31：酒店预订 deeplink 进美团/携程 App；餐厅卡展示真实人均消费与评论数。
 - [ ] 任务 12.32：注册 `NEXT_PUBLIC_AMAP_MAPS_KEY`（仅用于地图显示、域名白名单、可公开）；在 Day 抽屉/Canvas 加 `DayMapWidget`，对含 2+ 定位块的天渲染标记 + 路线。
 - [ ] 任务 12.33：Chat→Explore 反向联动——行程内 POI 在 Explore 城市视图显示「In your trip」徽标；偏好驱动 Explore 卡片排序。
+
+### v0.1.53–v0.1.60 推荐实施顺序（以 v0.1.52 蓝图为准）
+
+1. `v0.1.53` Interaction Shell I：Home archetype starts、Chat first-run chips、structured `nextStep` 主按钮、Canvas 标题/状态友好化。
+2. `v0.1.54` Canvas Action Layer：trip completeness、day quick actions、prep blockers，从“展示行程”升级为“可操作行程”。
+3. `v0.1.55` Inline Tool Cards：签证、支付、eSIM、汇率、应急卡在 Chat 内出现，减少 tab 切换。
+4. `v0.1.56` TripBlock POI Embedding + Day Detail Upgrade：把真实 POI 字段持久化到行程块，Day detail 展示中文名/地址/营业时间/电话/地图/为什么适合用户。
+5. `v0.1.57` Translate Everywhere：Translate 作为全局 camera/mic utility，能从 Day detail、Tools、Chat 回到当前上下文。
+6. `v0.1.58` Tools Widgets I：currency converter、visa eligibility checker、payment setup wizard、emergency card generator。
+7. `v0.1.59` Account Center + Preference Review：真实 `/account` 信任中心、偏好编辑、隐私/同意、渐进式留资。
+8. `v0.1.60` Admin + Customer Brief Planning/Build：leads schema、admin role、customer brief、对话/行程摘要视图。
 
 ### 阶段十二关键设计取舍（详见 DESIGN.md ADR-037~042）
 
@@ -402,13 +424,12 @@ Next product iteration:
 - [x] Record the Dianping/Meituan API application guide and timeline in HANDOFF.
 - [x] No code changes this iteration; all tasks 12.1–12.33 remain planned/unimplemented.
 
-Sequencing rationale (why this order):
+Historical sequencing note (superseded by the v0.1.52 blueprint):
 
-- [ ] Chat Intelligence (v0.1.46) ships first because it improves every message for zero new API dependencies and reduces cost/latency immediately.
-- [ ] Preference Profile (v0.1.47) is next because tool-calling and onboarding both consume the profile.
-- [ ] Amap Enrichment (v0.1.48) precedes Tool-Calling Butler (v0.1.49) because the rich data model and mappers are prerequisites for feeding real POI data into the canvas.
-- [ ] Onboarding + Quick-Actions (v0.1.50) and Nav Restructure (v0.1.51) are UX-surface iterations that build on the intelligence + data layers.
-- [ ] Dianping/Meituan + Map (v0.1.52) is last because it depends on external API approval (multi-week queue — start the application during v0.1.46).
+- [x] Chat Intelligence / multi-model orchestration shipped in v0.1.47-v0.1.48.
+- [x] Amap enrichment, bounded Chat tool context, and lightweight preference memory shipped in v0.1.49-v0.1.51.
+- [x] v0.1.52 was reassigned to the product interaction blueprint. The next implementation order is now the v0.1.53-v0.1.60 sequence above.
+- [ ] Dianping/Meituan + map remains a later external-approval track, not the v0.1.52 implementation target.
 
 Immediate no-code actions the user should take this week:
 

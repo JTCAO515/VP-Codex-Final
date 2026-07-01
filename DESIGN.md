@@ -637,3 +637,53 @@ ADR-054: Preference memory starts as guest localStorage and prompt context.
 - Background: The product needs to feel like it remembers the traveler, but Supabase profile persistence requires a schema migration and consent decisions.
 - Decision: Add a local `UserPreferenceProfile` extractor that updates on each user message, persists guest state to localStorage, sends the profile to `/api/chat`, and displays compact chips in Chat.
 - Reason: This gives visible personalization now while deferring cross-device persistence to a later Supabase `profiles` migration.
+
+## v0.1.52 Design Update - Product Interaction System (Planning Only)
+
+Documentation-only strategic iteration. No runtime code changes. Full blueprint: `docs/planning/v0.1.52-product-interaction-blueprint.md`.
+
+### Target product architecture
+
+The product should be understood as one traveler operating loop, not six equal tabs:
+
+```
+Intent / archetype
+  -> Chat command center
+  -> Preference memory + live data/tool context
+  -> Trip Canvas source of truth
+  -> Small next-step controls
+  -> Trips readiness / sharing / continuity
+  -> Tools, Translate, Explore, Account, Community as contextual support surfaces
+```
+
+This does not remove the existing routes immediately. It changes the design priority: new capabilities should first strengthen the Chat/Canvas/Trips loop, then become standalone pages only when the standalone use case is strong.
+
+ADR-055: Treat Chat + Trip Canvas as the product spine.
+
+- Background: The current UI exposes Chat, Trips, Explore, Tools, Translate, and Community as co-equal destinations. That is accurate as an implementation inventory, but it makes the traveler decide which tool to use before the product understands their need.
+- Decision: Chat remains the command center and Trip Canvas remains the source of truth. Explore, Tools, Translate, Account, and Community should feed into or act on that spine whenever possible.
+- Reason: Foreign visitors are not buying a collection of tabs. They need one trusted butler that carries memory and reduces uncertainty across entry, payment, connectivity, language, and itinerary concerns.
+
+ADR-056: Design by journey stage before page ownership.
+
+- Background: Feature pages can become locally polished while the end-to-end journey still feels fragmented.
+- Decision: Future UX work must start from one of five journey stages: Curious, Planning, Preparing, In China, Share/Get help. Each feature should state which anxiety it reduces and what success looks like for that stage.
+- Reason: This keeps product decisions customer-led. For example, Translate as a floating utility matters because the In China stage needs a 10-second solve, while Account lead capture should wait until Share/Get help because trust and intent are higher.
+
+ADR-057: Prefer contextual controls over large new surfaces.
+
+- Background: The app already has many surfaces. Adding more panels can hide the actual itinerary and force users to navigate away.
+- Decision: Favor small controls in the active context: `nextStep` chips in Chat, quick actions on Canvas days, inline Tools cards, compact Trip detail actions, and floating Translate. Full pages remain available for deep work.
+- Reason: The fastest product improvement is reducing tab switching and prompt-engineering burden. Contextual controls keep the user inside the current decision while still routing through the established AI/provider pipeline.
+
+ADR-058: Keep operational trip data optional but persistent once available.
+
+- Background: Rich POI context is currently available to Explore and Chat, but the itinerary itself still mostly stores text blocks.
+- Decision: When implementing the next data layer, add optional operational fields to trip blocks and day details: Chinese name/address, coordinates, rating, open hours, phone, map/deeplink, source label, and "why it fits" rationale. These fields remain optional for backwards compatibility.
+- Reason: The product promise is practical travel, not pretty text. Persisting operational data lets Trips detail, share pages, Translate shortcuts, and future mobile/in-China flows work from the same source of truth.
+
+ADR-059: Traveler-facing language must hide internal implementation status.
+
+- Background: Some existing surfaces still expose internal words such as provider status, confidence, draft/refined, or implementation readiness.
+- Decision: Traveler UI should use status language based on the user's task: Taking shape, Looking good, Travel-ready, Needs payment setup, Missing hotel area, Ready for review. Internal provider/model/API metadata belongs in docs, logs, admin/debug tools, or subtle support copy.
+- Reason: Trust improves when the product speaks in terms of the traveler's next decision instead of the stack's current state.

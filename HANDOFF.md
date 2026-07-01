@@ -3,13 +3,14 @@
 ## 当前状态
 
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）；v0.1.34 桌面横屏前端优化：Tools 6 个模态卡片 + 浮层对话框、Trips 筛选按钮布局修复（过滤器始终可见）、Translator 单页 2×2 网格布局（同时展示四个功能面板无需切换 tab）。
-- 当前分支：`claude/visepanda-phase-3-hym6z9`（每轮迭代同时强制推送到 `origin/main`）
-- 当前版本：`v0.1.51`
+- 当前分支：`main`（本地当前领先 `origin/main`；用户说明稍后手动 push）
+- 当前版本：`v0.1.52`
 - 重要（已完成）：
   - `supabase/migrations/0002_trip_archive_and_share.sql`：用户已手动在 Supabase SQL Editor 执行，归档/分享 RLS policy 已生效。
   - Google OAuth：用户已在 Google Cloud 创建 OAuth 凭据并在 Supabase Authentication → Providers → Google 填入，Google 登录功能已配置就绪。
   - ExchangeRate-API：用户已获取 API Key，已配置 `EXCHANGE_RATE_API_KEY` 到 Vercel 环境变量；`/api/exchange-rate` 路由已连接，Tools Currency 分类展示实时 CNY 汇率（每小时刷新）。
   - 高德地图 API：用户已获取 Web Service API Key，已配置 `AMAP_API_KEY` 到 Vercel 环境变量；`/api/explore/amap` 路由已连接，Explore 景点/美食/住宿来自高德 POI 实时搜索。
+  - v0.1.52 是纯文档产品策略/交互规划迭代：新增 `docs/planning/v0.1.52-product-interaction-blueprint.md`，把产品定位、用户旅程、页面职责、功能联动、v0.1.53-v0.1.60 路线、UX writing 和指标体系定为后续实施依据。
 - 最新实现 commit：本轮提交后以 `git log -1 --oneline` 为准
 - 当前远端：`https://github.com/JTCAO515/VP-Codex-Final.git`
 - 部署地址：`https://go2china.space`
@@ -60,6 +61,21 @@
 - v0.1.51: Chat extracts a lightweight `UserPreferenceProfile` from natural language, persists it for guests in localStorage, sends it to `/api/chat`, and shows compact remembered-preference chips.
 - Key files changed: `lib/explore/amapSearch.ts`, `app/api/explore/amap/route.ts`, `lib/explore/types.ts`, `lib/explore/amapProvider.ts`, `components/explore/ExploreBoard.tsx`, `lib/ai/toolContext.ts`, `lib/ai/preferenceProfile.ts`, `lib/ai/butlerPrompt.ts`, `lib/ai/orchestrator.ts`, `app/api/chat/route.ts`, `components/chat/ButlerWorkspace.tsx`, `components/chat/ChatPanel.tsx`, `app/globals.css`, tests and docs.
 - Verification: full `npm run test` passed (35 files, 98 tests); `npm run build` passed with 20 static pages generated.
+
+## v0.1.52 Handoff Update - Product Interaction Blueprint
+
+- Current version after this iteration: `v0.1.52`.
+- User intent: no product code changes this round; think deeply about the whole product's interaction logic, product positioning, user experience, linked features, page priorities, and write the planning into the repo docs.
+- Product decision: VisePanda should be treated as a China travel operating system for foreign visitors, not only an AI itinerary generator. The product should reduce five anxieties: entry, payment, connectivity, language, and itinerary.
+- New planning doc: `docs/planning/v0.1.52-product-interaction-blueprint.md`.
+- Key thinking recorded:
+  - Core loop: intent/archetype → preference extraction → live tools/data → Trip Canvas source of truth → Chat explanation → small next-step controls → Trips readiness/continuity.
+  - Journey model: Curious → Planning → Preparing → In China → Share/Get help.
+  - Page roles: Home starts archetypes; Chat is command center; Canvas is operational trip object; Trips is continuity/readiness/sharing; Explore feeds Chat/Canvas; Tools resolves anxieties as widgets/cards; Translate becomes an everywhere utility; Account is trust/preference/consent/lead capture; Community is proof and inspiration.
+  - Roadmap: `v0.1.53` Interaction Shell I, `v0.1.54` Canvas Action Layer, `v0.1.55` Inline Tool Cards, `v0.1.56` TripBlock POI Embedding + Day Detail Upgrade, `v0.1.57` Translate Everywhere, `v0.1.58` Tools Widgets I, `v0.1.59` Account Center + Preference Review, `v0.1.60` Admin + Customer Brief Planning/Build.
+- Files changed: `docs/planning/v0.1.52-product-interaction-blueprint.md`, `PLAN.md`, `PRD.md`, `DESIGN.md`, `AGENTS.md`, `HANDOFF.md`, `CHANGELOG.md`, `VERSIONING.md`, `package.json`, `package-lock.json`.
+- Product code intentionally untouched; only docs/version metadata changed.
+- Push note: the user said they will push later. Local repo is expected to remain ahead of `origin/main` until the user pushes from a network-enabled terminal.
 
 ## v0.1.44 Handoff Update - Mobile Portrait Optimization
 
@@ -164,10 +180,11 @@
 
 ## 下一步优先级
 
-1. 选择并验证第一个真实数据源：建议从 Tools 的实时汇率 API 开始，因为风险低、字段简单、对旅行实用性明确。
-2. 评估 Explore 真实第三方 provider 接入，优先验证 Amap/Trip.com/Meituan/Tripadvisor 哪个最适合 POI、餐饮、住宿和票务数据。
-3. 如需要强化视觉惊艳感，生成/接入北京、上海、江南、山城等城市级水墨背景资产，替换当前 CSS 氛围层。
-4. 继续移动端竖屏细节适配。
+1. `v0.1.53` Interaction Shell I：Home 增加 archetype starts，Chat 增加 first-run chips，把 structured `nextStep` 变成主行动按钮，Canvas 标题/状态改成 traveler-facing 文案。
+2. `v0.1.54` Canvas Action Layer：增加 trip completeness、Day quick actions、prep blockers，让 Canvas 从展示行程升级为可操作行程。
+3. `v0.1.55` Inline Tool Cards：把签证、支付、eSIM、汇率、应急等工具卡放进 Chat 回复流，减少用户跳 tab。
+4. `v0.1.56` TripBlock POI Embedding + Day Detail Upgrade：把真实 POI 字段持久化到行程块，Day detail 显示中文地址、营业时间、电话、地图和“为什么适合你”。
+5. `v0.1.57+`：Translate Everywhere、Tools Widgets、Account Center、Admin/Customer Brief 按 `PLAN.md` 的 v0.1.53-v0.1.60 顺序推进。
 
 ## 关键文件索引
 

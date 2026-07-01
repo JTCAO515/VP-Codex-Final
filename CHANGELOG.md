@@ -1,5 +1,18 @@
 # VisePanda Changelog
 
+## v0.1.52 - 2026-07-01
+
+**Documentation-only strategic interaction iteration.** No product runtime code changes. This iteration defines the deeper product/UX direction for the next implementation rounds.
+
+- Added `docs/planning/v0.1.52-product-interaction-blueprint.md` as the authoritative blueprint for product positioning, journey design, page roles, feature linkage, roadmap, UX writing, metrics, and implementation guardrails.
+- Repositioned VisePanda as a China travel operating system for foreign visitors rather than only an AI itinerary generator.
+- Defined the five anxieties the product must reduce: entry, payment, connectivity, language, and itinerary.
+- Defined the core loop: intent/archetype → preference extraction → live tools/data → Trip Canvas source of truth → Chat explanation → small next-step controls → Trips readiness/continuity.
+- Defined the journey model: Curious → Planning → Preparing → In China → Share/Get help.
+- Reassigned page roles: Home starts archetypes; Chat is the command center; Canvas is the operational trip object; Trips handles continuity/readiness/sharing; Explore feeds Chat/Canvas; Tools resolves anxieties as contextual widgets/cards; Translate becomes an everywhere utility; Account handles trust/preference/consent/lead capture; Community supports inspiration and proof.
+- Updated the roadmap so `v0.1.53-v0.1.60` proceed through Interaction Shell I, Canvas Action Layer, Inline Tool Cards, TripBlock POI Embedding, Translate Everywhere, Tools Widgets, Account Center, and Admin/Customer Brief.
+- Updated `PLAN.md`, `PRD.md`, `DESIGN.md`, `AGENTS.md`, `HANDOFF.md`, and `VERSIONING.md` to reflect the new planning baseline.
+
 ## v0.1.51 - 2026-07-01
 
 **Three-iteration implementation batch:** Amap rich POI data, first Chat tool-context loop, and lightweight preference memory.

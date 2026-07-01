@@ -3,7 +3,7 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.51`
+- Current iteration: `v0.1.52`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -65,3 +65,4 @@
 - `v0.1.49`: Amap rich POI enrichment. `/api/explore/amap` uses `extensions=all`; Explore models/cards can show optional rating, price, phone, opening hours, photos, business area, source, and location metadata while static fallback remains valid.
 - `v0.1.50`: first Chat tool-context Butler. Relevant Chat intents now prefetch bounded Amap POI candidates and inject them into the multi-model prompt, so live providers can plan with real POI data before later full function-calling loops.
 - `v0.1.51`: lightweight preference memory. Guest Chat extracts pace, budget, party, dietary, cuisine, and interest signals from natural messages, persists them in localStorage, sends them to `/api/chat`, and shows compact remembered-preference chips.
+- `v0.1.52`: documentation-only product interaction blueprint. Repositions VisePanda as a China travel operating system, defines the five traveler anxieties, journey-stage model, page roles, feature linkage matrix, UX writing rules, metrics, and the `v0.1.53-v0.1.60` implementation roadmap. No runtime product code changes.

@@ -452,3 +452,74 @@ Explicit exclusions:
 - No Dianping/Meituan integration yet.
 - No Supabase `profiles` table yet; logged-in cross-device preference persistence remains planned.
 - No TripBlock POI embedding or Add-to-Day inline POI cards yet.
+
+## v0.1.52 Product Interaction Blueprint Update - Planning Only
+
+Documentation-only strategic iteration. No product runtime code changes. Authoritative deep-dive: `docs/planning/v0.1.52-product-interaction-blueprint.md`.
+
+### Product position
+
+VisePanda should be positioned as a China travel operating system for foreign visitors, not merely an AI itinerary generator. The product must reduce five traveler anxieties:
+
+- Entry: visa, transit, customs, documents.
+- Payment: Alipay, WeChat Pay, foreign cards, cash backup.
+- Connectivity: eSIM, VPN, maps, translation availability.
+- Language: menus, taxi addresses, signs, emergencies.
+- Itinerary: route logic, fatigue, opening hours, real POIs, hotel areas.
+
+### Core product loop
+
+The required experience loop is:
+
+1. The user expresses intent naturally or chooses an archetype.
+2. VisePanda extracts preferences and constraints without a form.
+3. VisePanda uses live tools/data where factual confidence matters.
+4. Trip Canvas updates as the stable source of truth.
+5. Chat explains what changed and what decision remains.
+6. The user acts through small next-step controls instead of prompt engineering.
+7. Trips saves status, readiness, sharing, and continuity.
+
+### Journey-stage requirements
+
+- Curious: the first screen should help the user start a realistic China trip quickly through archetypes, not explain every product feature.
+- Planning: Chat remains the main workspace; Canvas exposes completeness and quick day-level actions.
+- Preparing: Trips/Canvas should surface readiness blockers and contextual Tools cards.
+- In China: Translate must become a global utility; Day detail must show operational fields such as Chinese address, map link, phone, and opening hours.
+- Share/Get help: Trips status should use traveler language, and lead capture should appear only at high-intent moments.
+
+### Page-role requirements
+
+- Home: acquisition and first-start surface; show archetype starts and route returning users toward active trips.
+- Chat: operating center for planning; show first-run chips, structured next-step actions, and subtle preference memory.
+- Trip Canvas: visible trip object plus action surface; prioritize trip title, completeness, quick actions, and operational day detail.
+- Trips: continuity, readiness, review, and sharing; show blockers and compact actions while keeping itinerary primary.
+- Explore: discovery engine feeding Chat/Canvas; show "In your trip" and Add-to-Day/Replace precision over generic Add to Trip.
+- Tools: operational widgets that resolve anxieties; surface contextually inside Chat when relevant.
+- Translate: global camera/mic/text utility that returns users to their prior context.
+- Community: social proof and inspiration; convert posts/shared trips into Chat planning prompts.
+- Account: trust, preference review, consent, and progressive lead capture.
+
+### Roadmap acceptance targets
+
+- `v0.1.53` should improve the first 60 seconds: Home archetypes, Chat first-run chips, and primary `nextStep` actions.
+- `v0.1.54` should make Canvas operational: completeness score, day quick actions, and prep blockers.
+- `v0.1.55` should render inline tool cards inside Chat for visa, payment, eSIM, currency, and emergency needs.
+- `v0.1.56` should persist rich POI fields in TripBlocks and upgrade Day detail with real operational fields.
+- `v0.1.57` should make Translate available from anywhere without stranding the user on a separate page.
+- `v0.1.58` should turn top Tools into real widgets.
+- `v0.1.59` should add a real Account center and editable preference/consent review.
+- `v0.1.60` should connect lead/admin planning to customer briefs.
+
+### UX writing and metrics
+
+- Replace developer-facing status with traveler-facing status: Draft → Taking shape, Refined → Looking good, Ready to save → Travel-ready.
+- Avoid provider/API/model jargon in traveler-facing text.
+- Each AI reply should end with one concrete next action.
+- Every sensitive or personal question must explain why it matters.
+- Track time to first canvas, meaningful edits/session, save-to-Trips rate, prep item completion, Translate quick-action usage, share-link creation, lead CTA completion, and the percentage of replies grounded in live tool/POI context.
+
+### Explicit exclusions for v0.1.52
+
+- No product code changes in this iteration.
+- No provider/API/Supabase schema changes.
+- The blueprint sets the next implementation order but does not mark those future features as complete.

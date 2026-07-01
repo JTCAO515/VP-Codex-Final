@@ -285,3 +285,41 @@ The multi-LLM Butler orchestrator now exists. When touching AI/chat code:
 - `UserPreferenceProfile` is extracted silently in `lib/ai/preferenceProfile.ts`. Do not add a questionnaire UI unless the user explicitly asks.
 - Guest preference memory uses localStorage. Do not claim cross-device preference sync until Supabase `profiles` migration is implemented.
 - Keep the one-question rule in prompts: Butler may ask at most one clarifying question and only when missing information would make the trip clearly wrong.
+
+## v0.1.52 Agent Update - Product Interaction Blueprint Rules
+
+v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `docs/planning/v0.1.52-product-interaction-blueprint.md`. Future product/UX work should follow these rules unless the user explicitly changes direction.
+
+**Product spine**
+
+- Treat VisePanda as a China travel operating system for foreign visitors, not just an itinerary generator.
+- Chat is the command center; Trip Canvas is the source of truth; Trips is continuity/readiness/sharing. Explore, Tools, Translate, Account, and Community should support that loop instead of competing with it.
+- Before adding a new standalone page or large panel, check whether the same value can appear as a contextual Chat card, Canvas action, Trip detail control, or Translate floating utility.
+
+**Journey-first planning**
+
+- For every new feature, identify the journey stage it serves: Curious, Planning, Preparing, In China, or Share/Get help.
+- Also identify which traveler anxiety it reduces: entry, payment, connectivity, language, or itinerary.
+- Do not prioritize a feature only because it is technically convenient; prioritize it when it moves the traveler to the next safe, practical step.
+
+**Surface roles**
+
+- Home should start trips through archetypes and route returning/high-intent users toward Chat or active Trips.
+- Chat should expose first-run starts, structured `nextStep` actions, inline tool cards, and subtle preference memory.
+- Trip Canvas should show the trip title, completeness, day quick actions, and operational day detail. Quick actions must still send Butler intents through the AI pipeline; they must not mutate canvas directly.
+- Trips detail should keep itinerary primary and actions compact inside the trip/canvas context.
+- Explore should feed Chat/Canvas and support "In your trip", Add to Day, Replace morning, or Use as dinner precision.
+- Tools should become widgets and contextual cards, but static fallback content must remain.
+- Translate should become an everywhere utility and return users to their prior context.
+- Account should become a trust/preference/consent center; do not collect sensitive document fields without explicit opt-in.
+
+**Traveler-facing language**
+
+- Replace developer-facing labels with traveler-facing labels: Draft → Taking shape, Refined → Looking good, Ready to save → Travel-ready.
+- Avoid provider/API/model jargon in traveler UI. Use internal docs/logs/admin/debug surfaces for implementation status.
+- Every AI reply or guided flow should end with one concrete next action.
+- Every personal or sensitive question must explain why it matters to the trip.
+
+**Recommended order**
+
+- Next implementation should start with `v0.1.53` Interaction Shell I, then proceed through Canvas Action Layer, Inline Tool Cards, TripBlock POI Embedding, Translate Everywhere, Tools Widgets, Account Center, and Admin/Customer Brief work as recorded in `PLAN.md`.
