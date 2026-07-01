@@ -573,3 +573,30 @@ ADR-049: Formalize a design system before scaling surfaces and mobile.
 - Background: Pages currently hand-roll styles over a v0.1.33 CSS layer; new surfaces (Account, Admin, Tools widgets) and the native app will multiply inconsistency without a system.
 - Decision: Formalize design tokens (the Warm New Chinese palette + spacing/type scale) and a small reusable component library (Button, Card, Field, Pill, Modal, Sheet, Toast); add motion/feedback, designed empty/error states, an accessibility pass, responsive/tablet polish, performance work, and a brand illustration system. Run this as a continuous track, front-loaded before the native-app core extraction.
 - Reason: A mature design system reduces per-page CSS drift, gives the native app a coherent system to inherit, and raises perceived quality/trust — reinforcing the professional tone required by the Account/lead-capture work.
+
+## v0.1.47 Design Update - Multi-LLM Butler Orchestrator (implemented)
+
+First code iteration of ADR-044 (阶段十三). The Butler is now provider-agnostic:
+
+```
+/api/chat
+  → requestOrchestratedButlerPatch (lib/ai/orchestrator.ts)
+      → classifyIntent (lib/ai/intentClassifier.ts)          // 10 intents, local regex
+      → getConfiguredProviders + selectProvidersForIntent     // lib/ai/modelRegistry.ts
+      → high-stakes? parallel ensemble (prefer primary)
+        else fallback chain (specialist → … )
+      → each provider.complete()                              // ChatCompletionProvider
+      → parseButlerPatch (lib/ai/butlerPrompt.ts)
+      → on total failure: createMockButlerPatch               // fallback preserved
+```
+
+- `lib/ai/providers/types.ts` defines `ChatCompletionProvider`; `openaiCompatibleProvider.ts` implements it once for all six providers (they share the OpenAI `/chat/completions` shape).
+- `lib/ai/modelRegistry.ts` lists the six providers with capability tags and server-side key envs (+ aliases), and provides `selectProvidersForIntent` (capability-priority ranking + fallback) and `isHighStakesIntent`.
+- `lib/ai/butlerPrompt.ts` holds the shared system/user prompt + patch parser, kept separate from the legacy `lib/ai/deepseekButler.ts` (retained for back-compat and its test).
+- The route returns `mode`, `modelLabel`, `intent`, `strategy`, `providersTried`; `ButlerWorkspace` surfaces `modelLabel`.
+
+ADR-050: One OpenAI-compatible provider implementation for all Chinese LLMs.
+
+- Background: DeepSeek, Qwen (DashScope compatible-mode), Zhipu GLM, Moonshot Kimi, Baidu Qianfan (ERNIE), and MiniMax all expose an OpenAI-shaped `POST {baseUrl}/chat/completions` with `Authorization: Bearer <key>`. Writing six bespoke clients would duplicate logic and drift.
+- Decision: Implement a single `createOpenAiCompatibleProvider(config)` factory; each provider is just a registry config entry (id, label, capabilities, key env + aliases, default base URL + override env, default model + override env). ERNIE uses Baidu Qianfan v2's bearer-token OpenAI-compatible endpoint rather than the legacy access-token flow. Qwen chat uses DashScope compatible-mode (separate from the existing translation helper).
+- Reason: One tested implementation, uniform behavior, per-deployment base-URL/model overrides for resilience, and trivial addition of future providers — all while keeping every key server-side and the mock fallback intact. Providers that later need a non-OpenAI shape can add their own `ChatCompletionProvider` without touching the orchestrator.

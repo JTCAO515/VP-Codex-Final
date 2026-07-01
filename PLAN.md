@@ -165,14 +165,15 @@
 
 > 第二次**纯文档战略规划迭代**（v0.1.46）。详细深潜见 `docs/planning/v0.1.46-product-expansion.md`。核心原则变更：**不再考虑 token 成本，只优化用户体验与回答质量**——可以用更大模型、多模型集成、多轮精炼+校验。以下全部为**规划中（未实现）**。
 
-### 阶段十三：质量优先 + 多中国 LLM 编排
+### 阶段十三：质量优先 + 多中国 LLM 编排（v0.1.47 首个代码迭代）
 
-- [ ] 任务 13.1：新增 `lib/ai/modelRegistry.ts` 描述各中国厂商（DeepSeek / Qwen-DashScope / 智谱 GLM / Moonshot Kimi / 百度 ERNIE / MiniMax），含能力标签 `reasoning|chinese|longContext|vision|judge` 和服务端 key 名。
-- [ ] 任务 13.2：新增 `lib/ai/orchestrator.ts`——按意图选择编排模式：单模型 / 并行集成+judge / 精炼-校验循环；每个 provider 封装在统一 `ChatCompletionProvider` 接口后。
-- [ ] 任务 13.3：意图路由到专长模型（行程推理→DeepSeek；中文 POI/菜名→Qwen；签证法规→ERNIE/校验静态源；长历史总结→Kimi）。
-- [ ] 任务 13.4：高风险回答（最终行程、签证资格）走并行集成 + judge 合并，分歧写入 `watchOut`。
-- [ ] 任务 13.5：精炼-校验循环——reasoner 起草，另一模型用工具数据校验事实并改写为 `{headline,body,highlights,watchOut,nextStep}`。
-- [ ] 任务 13.6：全链 fallback，最终仍回落 mock Butler；新增 key 全服务端：`ZHIPU_API_KEY`/`MOONSHOT_API_KEY`/`ERNIE_API_KEY`/`MINIMAX_API_KEY`。
+- [x] 任务 13.1：新增 `lib/ai/modelRegistry.ts` 描述各中国厂商（DeepSeek / Qwen-DashScope / 智谱 GLM / Moonshot Kimi / 百度 ERNIE / MiniMax），含能力标签 `reasoning|chinese|longContext|vision|chinaFacts|judge` 和服务端 key 名（含别名）。
+- [x] 任务 13.2：新增 `lib/ai/orchestrator.ts`——按意图选择编排模式；每个 provider 封装在统一 `ChatCompletionProvider` 接口后（`lib/ai/providers/*`，OpenAI 兼容实现覆盖全部 6 家）。
+- [x] 任务 13.3：意图路由到专长模型（行程推理→DeepSeek/GLM；中文 POI/菜名→Qwen；签证法规→ERNIE；`selectProvidersForIntent` 按能力优先级排序 + fallback 链）。新增 `lib/ai/intentClassifier.ts`（10 类意图，本地正则）。
+- [x] 任务 13.4（第一版）：高风险意图（`create_trip`/`ask_factual`）在 2+ provider 时走并行集成（race，优先主模型），失败继续 fallback 链。完整 judge 合并 + 分歧写 `watchOut` 留作后续。
+- [ ] 任务 13.5（规划中）：精炼-校验循环——reasoner 起草，另一模型用工具数据校验事实并改写为 `{headline,body,highlights,watchOut,nextStep}`（依赖阶段十二 Chat 智能层的回答 schema）。
+- [x] 任务 13.6：全链 fallback，最终仍回落 mock Butler；新增 key 全服务端并在 `lib/env/placeholders.ts` 文档化：`ZHIPU_API_KEY`/`MOONSHOT_API_KEY`/`ERNIE_API_KEY`/`MINIMAX_API_KEY` + 各家 `*_BASE_URL`/`*_CHAT_MODEL` 覆盖。
+- [x] 任务 13.7：`/api/chat` 切换到 orchestrator；`ButlerWorkspace` 状态显示真实模型标签；新增 3 个测试文件（16 用例）；全套 95 测试通过、build 成功。
 
 ### 阶段十四：原生 iOS / Android 应用（仅规划，不执行）
 
@@ -415,3 +416,21 @@ Immediate no-code actions the user should take (long lead times):
 - [ ] Register developer accounts / API keys for the additional Chinese LLMs to trial (Zhipu, Moonshot, Baidu ERNIE, MiniMax) — server-side keys only.
 - [ ] If native apps are confirmed: enroll Apple Developer ($99/yr) + Google Play Console ($25), and start China 备案 (ICP) + 软著 (software copyright) — these have multi-week/month lead times.
 - [ ] Decide native stack: React Native + Expo (recommended, reuses TS core) vs. fully native Swift/Kotlin.
+
+## v0.1.47 Addendum - Multi-LLM Butler Orchestrator (阶段十三, first code iteration)
+
+- [x] Built the provider-agnostic multi-LLM orchestrator: `ChatCompletionProvider` interface + OpenAI-compatible provider + six-provider registry + intent classifier + orchestrator with routing, high-stakes ensemble, and mock fallback.
+- [x] Wired `/api/chat` to the orchestrator; `ButlerWorkspace` shows the real model label; documented 16 new server-side env keys.
+- [x] Produced `docs/planning/mock-inventory.md` — 22 mock/placeholder/local-sim items with real-replacement plans and target phases (the "fill in skipped steps" request). Principle: real primary, mock stays as graceful fallback.
+- [x] Added `CLAUDE.md` project memory (VPCC on explicit request only; every iteration updates all md docs + pushes; beginner tutorials for manual steps) and annotated `.claude/commands/vpcc.md`.
+- [x] Tests: +16 (orchestrator/intentClassifier/modelRegistry); full suite 95 pass; build succeeds.
+
+How it behaves without keys (important):
+
+- With zero LLM keys configured, `/api/chat` returns the mock Butler exactly as before — no regression. Each provider key the user adds (server-side) automatically upgrades the Butler; no code change needed. This is the 🟡→🟢 transition described in `docs/planning/mock-inventory.md`.
+
+Next code iterations (recommended order):
+
+- [ ] Chat Intelligence Layer (阶段十二 v0.1.46-plan): response-normalization schema `{headline,body,highlights,watchOut,nextStep}`, then wire the refine-verify loop (task 13.5) on top of it.
+- [ ] Tools functional upgrade (阶段十五) — high immediate traveler value, self-contained.
+- [ ] Amap POI enrichment (阶段十二 v0.1.48) — unlocks rich Explore/Chat cards with no new approval.

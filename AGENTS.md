@@ -249,3 +249,21 @@ v0.1.46 is a documentation-only planning iteration. The deep-dive is `docs/plann
 **Schema**
 
 - New tables land in `supabase/migrations/0004_leads_and_admin.sql` (run in order in the SQL Editor): `leads`, `lead_events`, `customer_briefs`, `profiles`, plus a user `role`. Keep all Supabase code gracefully degrading when Supabase is unconfigured.
+
+## v0.1.47 Agent Update - Multi-LLM Orchestrator Rules (implemented)
+
+The multi-LLM Butler orchestrator now exists. When touching AI/chat code:
+
+- **Entry point:** the chat route calls `requestOrchestratedButlerPatch` (`lib/ai/orchestrator.ts`). Do not reintroduce a direct single-provider call in the route. `lib/ai/deepseekButler.ts` is legacy/back-compat only — keep it and its test, but do not build new features on it.
+- **Add a provider = add a registry entry.** To add or change a Chinese LLM, edit `BUTLER_PROVIDERS` in `lib/ai/modelRegistry.ts` (id, label, capabilities, key env + aliases, base URL/override, model/override). Only write a new `ChatCompletionProvider` implementation if the provider is not OpenAI-compatible.
+- **Keys are server-side only.** Never read an LLM key in client code or bundle it. Every new key must be documented in `lib/env/placeholders.ts`. Current provider keys: `DEEPSEEK_API_KEY`, `DASHSCOPE_API_KEY`, `ZHIPU_API_KEY`, `MOONSHOT_API_KEY`, `ERNIE_API_KEY`, `MINIMAX_API_KEY` (+ documented aliases and `*_BASE_URL`/`*_CHAT_MODEL` overrides).
+- **Never remove the mock fallback.** The orchestrator must always end at `createMockButlerPatch` when no provider is configured or all fail. Keep this true for every future change.
+- **Routing is by capability, not hardcoded model names.** Change routing via `INTENT_CAPABILITY_PRIORITY` / `selectProvidersForIntent`, and high-stakes membership via `HIGH_STAKES_INTENTS`. Keep these pure and unit-tested (`tests/modelRegistry.test.ts`).
+- **Intent classifier is local and deterministic.** Extend `lib/ai/intentClassifier.ts` with regex/keyword only — no network calls. Update `tests/intentClassifier.test.ts` when adding intents.
+- **Prompt/parsing lives in `lib/ai/butlerPrompt.ts`.** Reuse `buildSystemPrompt`/`buildUserPrompt`/`parseButlerPatch` so all providers behave identically. When you add the `{headline,body,highlights,watchOut,nextStep}` schema (task 13.5), extend the parser here and keep `assistantMessage` populated for back-compat.
+- **Response shape:** the route returns `mode`, `modelLabel`, `intent`, `strategy`, `providersTried`, `patch`, `suggestions`, `fallbackReason`. `ButlerWorkspace` reads `modelLabel` for status — keep it populated.
+
+## Mock/placeholder replacement discipline
+
+- `docs/planning/mock-inventory.md` is the running list of every mock/placeholder/local-sim point and its real-replacement plan. When you make a mock real, update its row (status 🔴/🟡/🟢) and the "What changed" section in that file during the same iteration.
+- "Replace" always means real primary + mock kept as graceful fallback. Never delete a fallback to "finish" an item.

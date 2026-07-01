@@ -4,7 +4,7 @@
 
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）；v0.1.34 桌面横屏前端优化：Tools 6 个模态卡片 + 浮层对话框、Trips 筛选按钮布局修复（过滤器始终可见）、Translator 单页 2×2 网格布局（同时展示四个功能面板无需切换 tab）。
 - 当前分支：`claude/visepanda-phase-3-hym6z9`（每轮迭代同时强制推送到 `origin/main`）
-- 当前版本：`v0.1.46`
+- 当前版本：`v0.1.47`
 - 重要（已完成）：
   - `supabase/migrations/0002_trip_archive_and_share.sql`：用户已手动在 Supabase SQL Editor 执行，归档/分享 RLS policy 已生效。
   - Google OAuth：用户已在 Google Cloud 创建 OAuth 凭据并在 Supabase Authentication → Providers → Google 填入，Google 登录功能已配置就绪。
@@ -395,3 +395,69 @@ Alternatives if Dianping approval is slow: (a) Amap enriched fields — already 
 - New LLM keys and `SUPABASE_SERVICE_ROLE_KEY` are server-side only; the service-role key must never enter any client bundle (admin routes are server-side only).
 - Lead/PII data requires explicit, timestamped, source-tagged consent; passport/document fields require opt-in and encryption.
 - The mock/static fallback is never removed; multi-model failure still degrades to the mock Butler.
+
+## v0.1.47 Handoff Update - Multi-LLM Butler Orchestrator (first code iteration)
+
+- Current version after this iteration: `v0.1.47`.
+- The Butler now uses a real multi-model orchestrator (`lib/ai/orchestrator.ts`) over six Chinese LLMs. `/api/chat` was switched from the single DeepSeek call to `requestOrchestratedButlerPatch`. 95 tests pass; production build succeeds.
+- **No regression risk without keys:** with zero LLM keys configured, the app behaves exactly as before (mock Butler). Each key you add turns on that model automatically — no redeploy of logic needed.
+- New docs: `docs/planning/mock-inventory.md` (every mock/placeholder + real-replacement plan) and `CLAUDE.md` (project memory: VPCC on explicit request only; all md docs updated + pushed every iteration; beginner tutorials for manual steps).
+
+### Project rules recorded this iteration (in `CLAUDE.md`)
+
+- VPCC is not automatic — it runs only when you explicitly ask ("执行vpcc" / "/vpcc").
+- Every iteration still updates all md docs in detail (especially HANDOFF/PLAN/PRD) and pushes to the feature branch + `origin/main`.
+- Every manual step you must do yourself comes with a numbered, click-by-click beginner tutorial (see below).
+
+### 手把手教程：如何添加中国 LLM 的 API Key（技术小白版）
+
+下面每个模型都是**可选**的：你加了哪个，Butler 就会用哪个；一个都不加也能正常运行（用 mock）。**强烈建议至少配置 DeepSeek**（已在用）和 **Qwen/通义千问**（你已有 DashScope key）。其余按需增加，答案质量会更好。
+
+**第 1 步：先理解"环境变量"是什么（1 句话）**
+- 环境变量 = 存放在 Vercel 服务器上的"密码本"，代码运行时才去读它。它不会出现在网页里，也不会进代码仓库，所以安全。你要做的只是把各家给你的 key 复制粘贴到 Vercel 后台。
+
+**第 2 步：去各家官网申请 key（选你想用的）**
+
+1. **DeepSeek（已在用，若没配就配）**
+   - 打开 `https://platform.deepseek.com` → 注册/登录 → 左侧「API Keys」→「Create API Key」→ 复制那串以 `sk-` 开头的字符。
+   - 环境变量名：`DEEPSEEK_API_KEY`
+2. **通义千问 Qwen（阿里云百炼，你已有 `DASHSCOPE_API_KEY`）**
+   - 已配置则无需再做。Butler 聊天会用 `qwen-plus`；如果想换模型，可加 `QWEN_CHAT_MODEL`。
+3. **智谱 GLM**
+   - 打开 `https://open.bigmodel.cn` → 注册/登录（手机号）→ 右上角头像「API keys」→ 创建 → 复制。
+   - 环境变量名：`ZHIPU_API_KEY`
+4. **月之暗面 Kimi（Moonshot）**
+   - 打开 `https://platform.moonshot.cn` → 注册/登录 → 「API Key 管理」→ 新建 → 复制。
+   - 环境变量名：`MOONSHOT_API_KEY`
+5. **百度文心 ERNIE（千帆）**
+   - 打开 `https://console.bce.baidu.com/qianfan/` → 登录 → 开通「千帆大模型平台」→ 「应用接入 / API Key」创建 v2 兼容 key → 复制。
+   - 环境变量名：`ERNIE_API_KEY`
+6. **MiniMax（可选）**
+   - 打开 `https://platform.minimax.chat` → 登录 → 账户里找到 API Key → 复制。
+   - 环境变量名：`MINIMAX_API_KEY`
+
+**第 3 步：把 key 填进 Vercel（每个 key 都是同样的操作）**
+
+1. 打开 `https://vercel.com` 并登录，进入 VisePanda 这个项目。
+2. 顶部点 **Settings**（设置）。
+3. 左侧点 **Environment Variables**（环境变量）。
+4. 在 **Key** 框里填变量名（例如 `ZHIPU_API_KEY`），在 **Value** 框里粘贴你复制的那串 key。
+5. **Environment** 选择 **Production, Preview, Development** 三个都勾（默认全选即可）。
+6. 点 **Save**（保存）。
+7. 每加一个模型，就把第 4–6 步重复一次。
+
+**第 4 步：让改动生效（重新部署）**
+
+1. 在 Vercel 项目顶部点 **Deployments**（部署）。
+2. 找到最上面那条最新部署，点右边的「⋯」菜单 → **Redeploy**（重新部署）→ 确认。
+3. 等待约 1–2 分钟变成绿色 **Ready**。
+4. 打开 `https://go2china.space/chat`，随便发一句「帮我规划 5 天中国行程」，屏幕下方状态会显示是哪个模型回复的（例如 "Qwen Plus" 或 "DeepSeek V4 Flash"）。看到真实模型名 = 配置成功。
+
+**常见问题**
+- 状态一直显示 "mock fallback"？→ 说明一个 key 都没读到：检查变量名有没有拼错、是否点了 Save、是否 Redeploy。
+- 只想用一个模型？→ 完全可以，配 1 个就行，其余不填。
+- key 会泄露吗？→ 不会。它只存在 Vercel 服务器端，永远不会出现在浏览器或代码里。
+
+### Recommended next iteration
+
+- **Chat Intelligence Layer / response normalization** (阶段十二): add the `{headline, body, highlights, watchOut, nextStep}` schema so answers are consistent and scannable, then layer the refine-and-verify loop (task 13.5) on top of the orchestrator. Alternatively, **Tools functional upgrade** (阶段十五) for immediate, self-contained traveler value. See `docs/planning/mock-inventory.md` for the full replace-the-mocks queue.

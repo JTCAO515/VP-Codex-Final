@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requestButlerPatch } from "@/lib/ai/deepseekButler";
+import { requestOrchestratedButlerPatch } from "@/lib/ai/orchestrator";
 import { initialTripState } from "@/lib/mock-ai/mockButler";
 import type { TripState } from "@/lib/types/trip";
 
@@ -8,12 +8,16 @@ export async function POST(request: Request) {
   const message = typeof body.message === "string" ? body.message : "";
   const currentTrip = isTripState(body.trip) ? body.trip : initialTripState;
   const recentMessages = Array.isArray(body.messages) ? body.messages : [];
-  const result = await requestButlerPatch({ currentTrip, message, recentMessages });
+  const result = await requestOrchestratedButlerPatch({ currentTrip, message, recentMessages });
 
   return NextResponse.json({
     ok: true,
     fallbackReason: result.fallbackReason,
     mode: result.mode,
+    modelLabel: result.modelLabel,
+    intent: result.intent,
+    strategy: result.strategy,
+    providersTried: result.providersTried,
     patch: result.patch,
     suggestions: result.suggestions,
   });

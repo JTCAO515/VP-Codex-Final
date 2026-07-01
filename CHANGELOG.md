@@ -1,5 +1,21 @@
 # VisePanda Changelog
 
+## v0.1.47 - 2026-07-01
+
+**First code iteration of the multi-model track (阶段十三).** The Butler now answers through a real multi-LLM orchestrator instead of a single hardcoded DeepSeek call, following the quality-over-cost principle (ADR-043). All keys are server-side only; the mock fallback is preserved.
+
+- **Provider abstraction** (`lib/ai/providers/types.ts`, `openaiCompatibleProvider.ts`): a `ChatCompletionProvider` interface plus one OpenAI-compatible implementation that covers every Chinese LLM (they all expose an OpenAI-shaped `/chat/completions`).
+- **Model registry** (`lib/ai/modelRegistry.ts`): six providers — DeepSeek (reasoning), Qwen/Aliyun Bailian (chinese/vision), Zhipu GLM (reasoning/judge/long-context), Moonshot Kimi (long-context), Baidu ERNIE (china-facts), MiniMax (judge). Each declares capabilities and a server-side key env with aliases; base URL and model are overridable per deployment.
+- **Intent classifier** (`lib/ai/intentClassifier.ts`): a fast local regex/keyword classifier (10 intents) whose purpose is quality routing (pick the right specialist), not cost savings.
+- **Orchestrator** (`lib/ai/orchestrator.ts`): classify → select candidate providers (specialist first, then a fallback chain) → for high-stakes intents (`create_trip`, `ask_factual`) with 2+ providers run a small parallel ensemble preferring the primary → parse the patch → on total failure fall back to the mock Butler. Returns `mode`, `modelLabel`, `intent`, `strategy`, and `providersTried`.
+- **Chat route** (`app/api/chat/route.ts`): now calls `requestOrchestratedButlerPatch` and returns the richer metadata. With zero keys configured it behaves exactly as before (mock); it upgrades automatically as each provider key is added — no code change required.
+- **Workspace status** (`components/chat/ButlerWorkspace.tsx`): shows the actual model label (e.g. "Qwen Plus (Aliyun Bailian)") that produced the canvas update, instead of only "DeepSeek/mock".
+- **Env documentation** (`lib/env/placeholders.ts`): 16 new keys documented — `ZHIPU_API_KEY`, `MOONSHOT_API_KEY`, `ERNIE_API_KEY`, `MINIMAX_API_KEY`, plus each provider's `*_BASE_URL` / `*_CHAT_MODEL` overrides and `QWEN_CHAT_MODEL`. All server-side only.
+- **Mock inventory** (`docs/planning/mock-inventory.md`): a complete list of every mock / placeholder / local-simulation point (22 items) with its real-replacement plan, status, and target phase — per the request to fill in previously-skipped steps with real tools/data/workflows while keeping fallbacks.
+- **Project memory** (`CLAUDE.md`): VPCC runs only on explicit request (not automatically); every iteration updates all md docs in detail (especially HANDOFF/PLAN/PRD) and pushes; manual steps get beginner tutorials; security constraints restated. `.claude/commands/vpcc.md` annotated accordingly.
+- **Tests**: added `tests/orchestrator.test.ts`, `tests/intentClassifier.test.ts`, `tests/modelRegistry.test.ts` (16 new tests). Full suite 95 passing; the legacy `deepseekButler.test.ts` stays green (that path is retained for back-compat). Production build succeeds.
+- **ADR-050** added (`DESIGN.md`): provider-agnostic orchestration on top of OpenAI-compatible endpoints.
+
 ## v0.1.46 - 2026-07-01
 
 **Documentation-only iteration — no code changes.** A strategic product-expansion plan covering seven new tracks. Full deep-dive in `docs/planning/v0.1.46-product-expansion.md`; summaries and decisions recorded across the seven workflow docs.

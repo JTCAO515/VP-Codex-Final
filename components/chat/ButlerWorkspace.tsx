@@ -174,7 +174,12 @@ export function ButlerWorkspace() {
       const body = await response.json();
       const patch = body?.patch ?? createMockButlerPatch(message, trip);
       const nextTrip = applyCanvasPatch(trip, patch);
-      const modeNote = body?.mode === "deepseek" ? "DeepSeek V4 Flash" : "mock fallback";
+      const modeNote =
+        typeof body?.modelLabel === "string" && body.modelLabel
+          ? body.modelLabel
+          : body?.mode === "mock"
+            ? "mock fallback"
+            : (body?.mode ?? "mock fallback");
 
       setTrip(nextTrip);
       setMessages((current) => [...current, createMessage("assistant", patch.assistantMessage)]);

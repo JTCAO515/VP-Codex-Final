@@ -395,3 +395,24 @@ Interactive widgets degrade to the existing static content when data is unavaila
 - No code changes at all; documentation only.
 - Exact schemas, field names, model choices, and native stack details are planning targets and may be refined per implementation iteration.
 - Native apps, admin backend, and lead capture are planned, not built, in this iteration.
+
+## v0.1.47 Implementation Update - Multi-LLM Butler Orchestrator
+
+First code iteration delivering Requirement G (multi-model Chinese LLM precision) and the quality-over-cost principle (ADR-043).
+
+Delivered:
+
+- The Butler answers through a provider-agnostic orchestrator that can use DeepSeek, Qwen, Zhipu GLM, Moonshot Kimi, Baidu ERNIE, and MiniMax. Each request is classified (10 intents) and routed to the strongest available specialist, with the remaining providers as a fallback chain.
+- High-stakes intents (`create_trip`, `ask_factual`) run a small parallel ensemble when two or more providers are configured, preferring the primary's answer.
+- All keys are server-side only. The mock Butler fallback is preserved: with no keys the product behaves exactly as before; adding a provider key upgrades answer quality with no code change.
+
+Acceptance criteria met:
+
+- With `DEEPSEEK_API_KEY` (or any provider key) set, `/api/chat` returns a real model's canvas patch and the chat status shows which model produced it.
+- With no keys, `/api/chat` returns the mock Butler patch and the app still works end-to-end.
+- Provider selection is deterministic and unit-tested; adding/removing a key changes which model answers without any redeploy of logic.
+
+Deferred to later iterations:
+
+- The response-normalization schema `{headline, body, highlights, watchOut, nextStep}` and the full refine-and-verify loop with a judge model writing disagreements into `watchOut` (task 13.5) — these layer onto the Chat Intelligence work.
+- Vision/long-context specialization beyond capability tagging (e.g. routing menu photos to Qwen-VL).

@@ -2,6 +2,12 @@
 
 Standard iteration workflow for the VisePanda project.
 
+> **Run only on explicit request.** Do NOT auto-run this ceremony (Step 0 diff
+> report, code sync, read-7-docs, confirm-phase). Execute it only when the user
+> explicitly asks (e.g. "执行vpcc", "run vpcc", or `/vpcc`). Normal iteration
+> requests do not trigger VPCC — but every iteration still updates all md docs
+> and pushes per the Hard Rules below. See `CLAUDE.md` for project memory.
+
 ## Steps
 
 ### Step 0: Pre-Work Diff Report
