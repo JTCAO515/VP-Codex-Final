@@ -4,8 +4,42 @@ Standard iteration workflow for the VisePanda project.
 
 ## Steps
 
+### Step 0: Pre-Work Diff Report
+Before touching any code or documents, produce a detailed text report comparing remote main with local state. Run all of the following and present results in plain text:
+
+```bash
+# 1. Which branch are we on and what is the remote tracking branch?
+git branch -vv
+
+# 2. Commits on local that are NOT on remote main
+git log origin/main..HEAD --oneline
+
+# 3. Commits on remote main that are NOT local (i.e., remote is ahead)
+git log HEAD..origin/main --oneline
+
+# 4. Files changed (staged + unstaged) vs current HEAD
+git status --short
+
+# 5. Full unified diff of any uncommitted changes
+git diff HEAD
+
+# 6. Local package.json version vs remote package.json version
+grep '"version"' package.json
+git show origin/main:package.json | grep '"version"'
+
+# 7. Summary of the 7 workflow docs: local HEAD commit that last touched each
+git log --oneline -1 -- VERSIONING.md CHANGELOG.md HANDOFF.md PLAN.md PRD.md DESIGN.md AGENTS.md
+```
+
+Report format — write a plain-text summary covering:
+- **Remote vs local commit gap**: how many commits ahead/behind each side is
+- **Uncommitted changes**: list every modified/untracked file with a one-line description of what differs
+- **Version gap**: local `package.json` version vs remote `package.json` version
+- **Doc freshness**: which of the 7 docs have local changes not yet pushed
+- **Conclusion**: what state we are starting from and any risks before proceeding
+
 ### Step 1: Sync Code
-Pull the latest remote state before starting any work.
+After the diff report, pull the latest remote state before starting any work.
 
 ```bash
 git fetch origin main && git reset --hard origin/main
@@ -43,10 +77,38 @@ After reading the docs, report:
 1. **Version**: increment `0.1.x` patch by 1 each iteration unless the user specifies a different version.
 2. **Doc sync**: after every code change, update all 7 documents before committing.
 3. **Tests**: run `npm run test` and `npm run build` before committing; record failures if they occur.
-4. **Commit**: `git add` specific files (no `-A` for secrets), commit with a descriptive message, then `git push -u origin <branch>`.
-5. **Security**: never write real API keys into any file. All keys (`DEEPSEEK_API_KEY`, `DASHSCOPE_API_KEY`, `EXCHANGE_RATE_API_KEY`, `AMAP_API_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`) must only be read from server-side environment variables.
-6. **No mock removal**: keep all mock/fallback providers even after real providers are added.
-7. **Branch**: always develop on `claude/visepanda-phase-3-hym6z9`; push to remote with `git push -u origin <branch>`.
+4. **Commit + push to feature branch**: `git add` specific files (no `-A` for secrets), commit with a descriptive message, push feature branch with `git push -u origin claude/visepanda-phase-3-hym6z9`.
+5. **Force push to main**: after the feature branch push succeeds, always push the same commit to the GitHub repo main branch:
+   ```bash
+   git push origin HEAD:main
+   ```
+   Verify the push succeeded by checking `git log origin/main --oneline -3`. If it fails, retry up to 3 times with 5-second waits between attempts.
+6. **Security**: never write real API keys into any file. All keys (`DEEPSEEK_API_KEY`, `DASHSCOPE_API_KEY`, `EXCHANGE_RATE_API_KEY`, `AMAP_API_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`) must only be read from server-side environment variables.
+7. **No mock removal**: keep all mock/fallback providers even after real providers are added.
+
+## End-of-Iteration Push Protocol
+
+Every iteration must end with this exact sequence:
+
+```bash
+# 1. Stage specific files (never git add -A)
+git add <list of changed files>
+
+# 2. Commit
+git commit -m "<version>: <description>"
+
+# 3. Push to feature branch
+git push -u origin claude/visepanda-phase-3-hym6z9
+
+# 4. Push to main (mandatory, not optional)
+git push origin HEAD:main
+
+# 5. Confirm both succeeded
+git log origin/main --oneline -3
+git log origin/claude/visepanda-phase-3-hym6z9 --oneline -3
+```
+
+Report the final SHA and both remote refs after completing the push sequence.
 
 ## Version Update Checklist
 
