@@ -521,3 +521,16 @@ Note: this iteration is the design contract for the already-planned code phases 
 - [x] Reset the version series from `0.1.x` to `0.2.x`. `v0.1.55` was the final `0.1.x`; `v0.2.1` is the new baseline; subsequent iterations increment `0.2.x`.
 - [x] Updated `package.json`, `VERSIONING.md` (rule + release note), `CHANGELOG.md`, `HANDOFF.md`, and `CLAUDE.md` (project memory).
 - [x] No product code, provider, or schema change — version metadata only. All prior roadmap phases (阶段一…十八 and the FIT v0.1.5x roadmap) remain valid; only their future version tags renumber onto the `0.2.x` line.
+
+## v0.2.2 Addendum - Chat Core-Loop Fixes
+
+- [x] Speed: orchestrator races providers in parallel (`Promise.any`) + 18s per-provider timeout + 6s bounded tool-context prefetch.
+- [x] Sync: destination-aware mock fallback (city + day-count extraction → skeleton itinerary) + system prompt requires full `days` on itinerary change.
+- [x] Auto-save every chat for signed-in users; removed the manual Save to Trips button; de-duplicated sign-in sync vs auto-save.
+- [x] Tests updated (+ parallel-race, + destination-skeleton); 105 pass; build green.
+
+Next three planned iterations:
+
+- [ ] v0.2.3 Canvas Action Layer: completeness score + progress meter + Day quick-actions (structured intents) + prep blockers.
+- [ ] v0.2.4 Inline Tool Cards + factual fast-path: `ask_factual` answered from static Tools data as inline chat cards (also faster); reminder/mark-done hooks.
+- [ ] v0.2.5 Tools Interactive Widgets I: currency converter, visa checker, payment wizard via optional `interactive` ToolCategory descriptor (static fallback kept).

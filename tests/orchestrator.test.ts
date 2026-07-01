@@ -99,7 +99,7 @@ describe("requestOrchestratedButlerPatch", () => {
     expect(result.providersTried).toEqual(["deepseek", "qwen"]);
   });
 
-  it("runs a parallel ensemble for high-stakes create_trip and prefers the primary", async () => {
+  it("races multiple providers in parallel and returns a valid winner", async () => {
     const primary = makeProvider("deepseek");
     const secondary = makeProvider("qwen");
     const result = await requestOrchestratedButlerPatch({
@@ -111,8 +111,24 @@ describe("requestOrchestratedButlerPatch", () => {
     });
 
     expect(result.intent).toBe("create_trip");
-    expect(result.strategy).toBe("ensemble");
-    expect(result.mode).toBe("deepseek");
+    expect(result.strategy).toBe("parallel");
+    expect(["deepseek", "qwen"]).toContain(result.mode);
+    expect(result.providersTried).toEqual(["deepseek", "qwen"]);
+  });
+
+  it("returns the healthy provider even when a faster one rejects (parallel race)", async () => {
+    const failing = makeProvider("deepseek", { behavior: "throw" });
+    const healthy = makeProvider("qwen");
+    const result = await requestOrchestratedButlerPatch({
+      message: "Plan me a 5 day trip in China",
+      currentTrip: initialTripState,
+      env: { DEEPSEEK_API_KEY: "k", DASHSCOPE_API_KEY: "k" },
+      fetchImpl: vi.fn(),
+      providers: [failing, healthy],
+    });
+
+    expect(result.mode).toBe("qwen");
+    expect(result.strategy).toBe("parallel");
   });
 
   it("falls back to the mock butler when no provider is configured", async () => {

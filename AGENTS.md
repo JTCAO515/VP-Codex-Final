@@ -346,3 +346,11 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 - Build with the tokens + reusable component library the spec defines; do not hand-roll new per-page styles when a component exists (or create the shared component, then use it).
 - Butler replies render as structured blocks; keep `nextStep` a tappable primary action routed through `onSend` (never a direct canvas mutation).
 - Parallel-session hygiene: `origin/main` may advance from another session between turns. Before starting an iteration, `git fetch` and check `git log HEAD..origin/main`; if main advanced, rebase/sync onto it rather than force-pushing over it. Never overwrite commits you did not create. Version-number collisions are possible — coordinate or renumber rather than clobber.
+
+## v0.2.2 Agent Update - Chat Core-Loop Rules
+
+- Keep the orchestrator's parallel race (`Promise.any`) — do not revert to sequential provider attempts. Preserve the per-provider timeout in `openaiCompatibleProvider` and the bounded tool-context prefetch.
+- Never let the mock fallback return a create/adjust patch with no `days` for a message that names a destination — the destination-aware skeleton in `mockButler.ts` keeps Chat↔Canvas in sync and must stay.
+- Live-model prompt requires the full `days` array on itinerary change; keep that instruction when editing `buildSystemPrompt`.
+- Chats auto-save for signed-in users; do not reintroduce a manual Save button unless asked. Keep the sign-in-sync vs auto-save de-duplication (`lastAutoSavedCount`).
+- If a canvas-not-updating report recurs with live models, first suspect a wrong `*_CHAT_MODEL` id (env override), not the wiring.

@@ -29,12 +29,10 @@ describe("ButlerWorkspace", () => {
     expect(await screen.findByText(/VisePanda updated the canvas/i)).toBeInTheDocument();
   });
 
-  it("prompts to configure Supabase when saving without project keys", async () => {
+  it("has no manual Save to Trips button (chats auto-save)", () => {
     render(<ButlerWorkspace />);
 
-    fireEvent.click(screen.getByRole("button", { name: /save to trips/i }));
-
-    expect(await screen.findByText(/Add Supabase project keys to enable saving trips\./i)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /save to trips/i })).not.toBeInTheDocument();
   });
 
   it("persists a guest draft to localStorage and restores it after remount", async () => {

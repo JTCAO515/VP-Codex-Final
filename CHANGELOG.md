@@ -1,5 +1,25 @@
 # VisePanda Changelog
 
+## v0.2.2 - 2026-07-01
+
+**Chat core-loop fixes: speed, Chat↔Canvas sync, and auto-save.** Addresses three reported problems.
+
+### Slow replies
+- `lib/ai/orchestrator.ts` now **races all candidate providers in parallel** (`Promise.any`, first valid patch wins) instead of trying them one-by-one. Latency ≈ the fastest healthy model instead of the sum of failing ones.
+- `lib/ai/providers/openaiCompatibleProvider.ts` gives every provider call an **18s abort timeout**, so a hung or misconfigured model fails fast instead of stalling the reply.
+- The Amap tool-context prefetch is now time-bounded (6s) and best-effort, so a slow POI lookup never blocks the answer.
+
+### Chat and Live Canvas not syncing
+- Root cause: when a provider failed (e.g. a model-id mismatch), the orchestrator fell back to the mock butler, which only produced a full itinerary for "first time"/"5 days" messages — every other message returned no `days`, so `applyCanvasPatch` kept the old canvas.
+- `lib/mock-ai/mockButler.ts` is now **destination-aware**: it extracts city names (EN + 中文) and a day/week count from the message and generates a matching multi-day skeleton itinerary, so the canvas reflects the chat even in fallback mode.
+- `lib/ai/butlerPrompt.ts` system prompt now **requires live models to return the complete `days` array** (and set `tripSummary` title/duration/destinations) whenever the itinerary changes; days may be omitted only for pure factual questions.
+
+### Auto-save
+- `components/chat/ButlerWorkspace.tsx` now **auto-saves every chat** to Trips for signed-in users (silent "Saved to your Trips." note), and the manual **"Save to Trips" button was removed**. Guests keep the automatic localStorage draft. The sign-in sync and auto-save no longer double-write.
+
+### Tests
+- Updated `orchestrator`, `mockButler`, `chat-workspace`, and `chat-workspace-guest-sync` tests; added parallel-race and destination-skeleton coverage. Full suite 105 passing; production build succeeds.
+
 ## v0.2.1 - 2026-07-01
 
 **Version-series reset (operator directive).** The product moves from the `0.1.x` line to the `0.2.x` line. `v0.1.55` was the last `0.1.x` iteration; `v0.2.1` is the new baseline, and every subsequent iteration increments `0.2.x`.

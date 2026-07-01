@@ -44,11 +44,13 @@ export function ButlerWorkspace() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [suggestions, setSuggestions] = useState(initialSuggestions);
   const [status, setStatus] = useState("Canvas ready for your first request.");
+  const [saveNote, setSaveNote] = useState("");
   const [preferenceProfile, setPreferenceProfile] = useState<UserPreferenceProfile | undefined>();
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
   const [tripId, setTripId] = useState<string | null>(null);
   const persistedMessageCount = useRef(0);
+  const lastAutoSavedCount = useRef(0);
   const hasLoadedDraftRef = useRef(false);
   const hasAppliedAddRef = useRef(false);
   const hasAppliedArchetypeRef = useRef(false);
@@ -143,14 +145,17 @@ export function ButlerWorkspace() {
     window.localStorage.setItem(PREFERENCE_PROFILE_KEY, JSON.stringify(preferenceProfile));
   }, [preferenceProfile]);
 
-  async function handleSaveToTrips(successMessage = "Saved this trip to your Trips library.") {
+  async function handleSaveToTrips(
+    successMessage = "Saved this trip to your Trips library.",
+    notify: (message: string) => void = setStatus,
+  ) {
     if (!configured) {
-      setStatus("Add Supabase project keys to enable saving trips.");
+      notify("Add Supabase project keys to enable saving trips.");
       return;
     }
     if (loading) return;
     if (!session) {
-      setStatus("Sign in from Account to save this trip.");
+      notify("Sign in from Account to save this trip.");
       return;
     }
 
@@ -176,10 +181,10 @@ export function ButlerWorkspace() {
       }
       persistedMessageCount.current = messages.length;
 
-      setStatus(successMessage);
+      notify(successMessage);
     } catch (err) {
       console.error("[Save to Trips] failed:", err);
-      setStatus("Saving failed. Please try again.");
+      notify("Saving failed. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -190,9 +195,26 @@ export function ButlerWorkspace() {
     previousSessionRef.current = session;
     if (!justSignedIn || loading || tripId || messages.length === 0) return;
 
+    // Claim the current message count so the auto-save effect does not also fire
+    // for the same messages on sign-in (avoids a duplicate save).
+    lastAutoSavedCount.current = messages.length;
     void handleSaveToTrips("Synced your guest draft trip to your account.");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
+
+  // Auto-save every chat: whenever a new assistant reply lands and the user is
+  // signed in, persist silently to Trips. No manual Save button (guests keep the
+  // localStorage draft automatically). Runs only when Supabase is configured.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!configured || loading || !session) return;
+    if (busy || saving) return;
+    if (messages.length === 0 || messages[messages.length - 1].role !== "assistant") return;
+    if (messages.length === lastAutoSavedCount.current) return;
+    lastAutoSavedCount.current = messages.length;
+    void handleSaveToTrips("Saved to your Trips.", setSaveNote);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages, session, configured, loading, busy, saving]);
 
   async function handleSend(message: string) {
     setBusy(true);
@@ -247,13 +269,9 @@ export function ButlerWorkspace() {
           suggestions={suggestions}
           profileChips={preferenceProfileSummary(preferenceProfile)}
         />
-        <div className="workspace-save-row">
-          <button type="button" onClick={() => handleSaveToTrips()} disabled={saving || busy}>
-            {saving ? "Saving..." : "Save to Trips"}
-          </button>
-        </div>
         <p className="workspace-status" role="status" aria-live="polite">
           {statusText}
+          {saveNote ? <span className="workspace-autosave"> · {saveNote}</span> : null}
         </p>
       </div>
     </section>

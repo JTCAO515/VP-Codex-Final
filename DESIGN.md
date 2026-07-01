@@ -742,3 +742,23 @@ Documentation-only. `docs/planning/ux-design-and-layout-spec.md` is the design c
 - Component-level interaction mechanics (structured `assistantResponse` block rendering, canvas-patch animation, day quick-actions via structured intents, precise Add-to-Trip) — consistent with the guardrail that quick actions never mutate the canvas directly (ADR-057) and structured replies (ADR-051).
 - Formalized design tokens + a reusable component library (Button/Card/Field/Pill/Modal/Sheet/Toast/RatingStars/PriceLevel/ProgressMeter/POICard/MessageBlock) so surfaces stop hand-rolling styles — the concrete follow-through ADR-049 called for.
 - A phase→design-section map so each already-planned code phase builds against a defined layout/interaction contract.
+
+## v0.2.2 Design Update - Chat Core-Loop Fixes
+
+ADR-067: Race providers in parallel instead of sequential fallback.
+
+- Background: The orchestrator tried candidate providers one-by-one with no timeout. A slow or misconfigured model (e.g. a wrong model id) made every reply crawl through failures before falling back, and the fallback often produced no `days` — so replies were slow AND the canvas stopped reflecting the chat.
+- Decision: Race all candidate providers in parallel (`Promise.any`, first valid patch wins), give each provider call an 18s abort timeout, and time-bound the Amap tool-context prefetch to 6s. Strategy is now `parallel` | `single` | `mock`. Cost is not a concern (ADR-043), so parallel racing is the correct trade for latency and resilience.
+- Reason: Reply latency becomes ≈ the fastest healthy model, and no single provider can stall the chat. The mock fallback is still the final floor.
+
+ADR-068: The mock fallback must keep Chat and Canvas in sync (destination-aware).
+
+- Background: The fallback butler only generated a full itinerary for "first time"/"5 days" messages; everything else returned no `days`, so `applyCanvasPatch` kept the previous canvas and the two surfaces appeared disconnected.
+- Decision: The mock butler extracts city names (EN + 中文) and a day/week count and generates a matching skeleton itinerary for create-style messages. The live-model system prompt additionally requires a complete `days` array on any itinerary change.
+- Reason: The Chat↔Canvas link is the core promise; it must hold even without live models, and live models must not under-return partial itineraries.
+
+ADR-069: Chats auto-save; no manual Save button.
+
+- Background: Users expect their planning to persist without a manual step.
+- Decision: Signed-in chats auto-save to Trips after each assistant reply (silent note), and the manual button is removed. Guests keep the localStorage draft. Sign-in sync claims the message count so it does not double-write with auto-save.
+- Reason: Reduces friction and matches the "single memory butler" positioning; persistence is a background behavior, not a chore.

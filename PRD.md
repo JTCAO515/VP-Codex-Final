@@ -596,3 +596,11 @@ Documentation-only. Establishes the design contract the FIT roadmap phases build
 - Requirement: Butler replies render as structured blocks (headline / body / highlights / watchOut / nextStep), with `nextStep` as a tappable primary action; canvas changes are visually signaled (new/revised animation).
 - Requirement: a formalized frontend design system (tokens + reusable component library + motion + a11y) underpins all new surfaces so Account/Admin/Tools widgets and the future native app inherit one coherent system.
 - Exclusion: no code, no new roadmap phases; this is the design layer for existing phases. Exact tokens/component APIs are targets, refined per implementation iteration.
+
+## v0.2.2 Update - Chat Core-Loop Fixes
+
+Fixes three reported product problems:
+
+- Chat replies must be fast: the Butler races configured models in parallel and bounds each call with a timeout, so latency tracks the fastest healthy model.
+- Chat and the Live Canvas must stay in sync: any message that changes the itinerary updates the canvas — guaranteed even in fallback via a destination-aware skeleton, and required of live models via the prompt contract.
+- Chats persist automatically: signed-in chats auto-save to Trips; there is no manual Save button. Guests keep an automatic local draft.

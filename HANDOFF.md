@@ -4,7 +4,7 @@
  
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）；v0.1.34 桌面横屏前端优化：Tools 6 个模态卡片 + 浮层对话框、Trips 筛选按钮布局修复（过滤器始终可见）、Translator 单页 2×2 网格布局（同时展示四个功能面板无需切换 tab）。
 - 当前分支：`main`
-- 当前版本：`v0.2.1`（版本序列已从 `0.1.x` 重置为 `0.2.x`，后续均按 `0.2.x` 递增）
+- 当前版本：`v0.2.2`（版本序列 `0.2.x`）
 - 重要（已完成）：
   - `supabase/migrations/0002_trip_archive_and_share.sql`：用户已手动在 Supabase SQL Editor 执行，归档/分享 RLS policy 已生效。
   - Google OAuth：用户已在 Google Cloud 创建 OAuth 凭据并在 Supabase Authentication → Providers → Google 填入，Google 登录功能已配置就绪。
@@ -548,3 +548,26 @@ Alternatives if Dianping approval is slow: (a) Amap enriched fields — already 
 ### What this doc adds (not a duplicate of v0.1.52/v0.1.53)
 
 - v0.1.52 = interaction blueprint (what/why); v0.1.53 = plugin/technical architecture; **v0.1.55 = concrete UX layout + component interaction mechanics + frontend visual design system** (the "how it looks and lays out" layer), plus a table mapping each roadmap phase to its governing design section.
+
+## v0.2.2 Handoff Update - Chat Core-Loop Fixes (speed, sync, auto-save)
+
+- Current version after this iteration: `v0.2.2`.
+- Fixes three reported problems in the Chat↔Canvas loop. All keep the mock fallback and keys server-side.
+
+### 1. Slow replies → parallel racing + timeouts
+- The orchestrator (`lib/ai/orchestrator.ts`) now races all configured providers in parallel with `Promise.any` (first valid patch wins) instead of sequential attempts.
+- Each provider call has an 18s abort timeout (`lib/ai/providers/openaiCompatibleProvider.ts`); the Amap tool-context prefetch is bounded to 6s and best-effort.
+- Result: reply latency ≈ the fastest healthy model, and a wrong/hung model can't stall the chat.
+
+### 2. Chat and Live Canvas not syncing → destination-aware fallback + stricter prompt
+- The mock butler (`lib/mock-ai/mockButler.ts`) now detects cities (EN + 中文) and a day/week count in the message and generates a matching skeleton itinerary, so the canvas always reflects the chat even when live models fail.
+- The system prompt now requires live models to return the COMPLETE `days` array on any itinerary change.
+- **If the canvas still doesn't update with live models on, the likely cause is a wrong model id** (see the v0.1.48 tutorial): set `ZHIPU_CHAT_MODEL` / `MOONSHOT_CHAT_MODEL` / `QWEN_CHAT_MODEL` in Vercel to the exact model id from each provider's console, then Redeploy. Until then the destination-aware fallback keeps the canvas in sync.
+
+### 3. Auto-save + button removed
+- Every chat auto-saves to Trips for signed-in users (silent "Saved to your Trips." note in the status line). The manual "Save to Trips" button is gone. Guests keep the automatic localStorage draft. Sign-in sync and auto-save no longer double-write.
+
+### Next three iterations (planned)
+- **v0.2.3 — Canvas Action Layer**: trip-completeness score + progress meter in `TripSummary`; Day quick-actions (Lighten / Add food / Swap morning / Add rest) sending structured Butler intents; prep blockers surfaced on the canvas.
+- **v0.2.4 — Inline Tool Cards + factual fast-path**: `ask_factual` answered instantly from `lib/tools` static data as inline cards in Chat (also speeds those replies by skipping the LLM); "Add reminder / Mark as done" hooks into trip prep.
+- **v0.2.5 — Tools Interactive Widgets I**: currency converter (live rate), visa eligibility checker, payment setup wizard, via an optional `interactive` descriptor on `ToolCategory` (static checklist stays as fallback).
