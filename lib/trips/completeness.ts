@@ -1,4 +1,4 @@
-import type { TripState } from "@/lib/types/trip";
+import type { TripDay, TripState } from "@/lib/types/trip";
 
 export type CompletenessDimensionId = "route" | "stay" | "food" | "transport" | "payment" | "visa";
 
@@ -43,4 +43,22 @@ export function calculateTripCompleteness(trip: TripState): CompletenessResult {
     checks,
     score: Math.round((completeCount / checks.length) * 100),
   };
+}
+
+/**
+ * Lightweight per-day completeness (0-100), used for the small percentage
+ * badge on each Day card. Four real, checkable dimensions: all three time
+ * blocks present, food noted, stay area noted, transport noted. Deliberately
+ * simpler than the trip-level six dimensions — a single day has no
+ * independent payment/visa concept.
+ */
+export function calculateDayCompleteness(day: TripDay): number {
+  const checks = [
+    day.blocks.length >= 3,
+    day.food.length > 0,
+    Boolean(day.stay?.trim()),
+    Boolean(day.transport?.trim()),
+  ];
+  const completeCount = checks.filter(Boolean).length;
+  return Math.round((completeCount / checks.length) * 100);
 }

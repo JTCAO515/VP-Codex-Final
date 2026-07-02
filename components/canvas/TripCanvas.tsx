@@ -20,6 +20,9 @@ export function TripCanvas({
   summaryActions,
   onQuickAction,
   onToggleAlertDone,
+  onRenameTrip,
+  onAddDay,
+  onRebalanceRoute,
   highlightSignal,
   busy,
 }: {
@@ -27,6 +30,9 @@ export function TripCanvas({
   summaryActions?: ReactNode;
   onQuickAction?: (message: string, kind: QuickActionKind) => void;
   onToggleAlertDone?: (alert: ButlerAlert) => void;
+  onRenameTrip?: (nextTitle: string) => void;
+  onAddDay?: () => void;
+  onRebalanceRoute?: () => void;
   highlightSignal?: HighlightSignal | null;
   busy?: boolean;
 }) {
@@ -92,7 +98,13 @@ export function TripCanvas({
         <h1>{canvasTitle}</h1>
         <span aria-hidden="true">VP</span>
       </div>
-      <TripSummary trip={trip} actions={summaryActions} />
+      <TripSummary
+        actions={summaryActions}
+        onAddDay={onAddDay}
+        onRebalanceRoute={onRebalanceRoute}
+        onRenameTrip={onRenameTrip}
+        trip={trip}
+      />
       <div className="trip-canvas__body">
         <div className="trip-canvas__days">
           {trip.days.map((day) => (

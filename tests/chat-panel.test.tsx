@@ -35,4 +35,52 @@ describe("ChatPanel interaction shell", () => {
     fireEvent.click(nextStepAction);
     expect(onSend).toHaveBeenCalledWith("Add convenient hotel areas");
   });
+
+  it("dismisses the next-step card without sending a message", () => {
+    const onSend = vi.fn();
+    render(<ChatPanel messages={[assistantMessage]} onSend={onSend} suggestions={[]} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /dismiss next step/i }));
+
+    expect(screen.queryByLabelText(/primary next step/i)).not.toBeInTheDocument();
+    expect(onSend).not.toHaveBeenCalled();
+  });
+
+  it("toggles feedback on an assistant response as a local-only action", () => {
+    render(<ChatPanel messages={[assistantMessage]} onSend={() => undefined} suggestions={[]} />);
+
+    const upvote = screen.getByRole("button", { name: /good response/i });
+    expect(upvote).toHaveAttribute("aria-pressed", "false");
+
+    fireEvent.click(upvote);
+    expect(upvote).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(upvote);
+    expect(upvote).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("copies the assistant response text and shows a Copied confirmation", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+
+    render(<ChatPanel messages={[assistantMessage]} onSend={() => undefined} suggestions={[]} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /copy response/i }));
+
+    expect(await screen.findByText("Copied")).toBeInTheDocument();
+    expect(writeText).toHaveBeenCalledWith(expect.stringContaining("Your first route is taking shape"));
+  });
+
+  it("sends the draft on Enter and inserts a newline on Shift+Enter", () => {
+    const onSend = vi.fn();
+    render(<ChatPanel messages={[]} onSend={onSend} suggestions={[]} />);
+
+    const textarea = screen.getByLabelText(/ask visepanda/i);
+    fireEvent.change(textarea, { target: { value: "Plan a trip to Xi'an" } });
+    fireEvent.keyDown(textarea, { key: "Enter", shiftKey: true });
+    expect(onSend).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(textarea, { key: "Enter" });
+    expect(onSend).toHaveBeenCalledWith("Plan a trip to Xi'an");
+  });
 });

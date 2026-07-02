@@ -18,8 +18,13 @@ describe("buildQuickActionMessage", () => {
     expect(message).toMatch(/slow|relaxed|less tiring/);
   });
 
-  it("add_food produces a message that routes to the mock butler's food fallback", () => {
-    const message = buildQuickActionMessage("add_food", day).toLowerCase();
+  it("find_food produces a message that routes to the mock butler's food fallback", () => {
+    const message = buildQuickActionMessage("find_food", day).toLowerCase();
     expect(message).toContain("food");
+  });
+
+  it("add_activity and get_tickets produce day-specific messages", () => {
+    expect(buildQuickActionMessage("add_activity", day)).toContain("Add one more activity");
+    expect(buildQuickActionMessage("get_tickets", day)).toContain("tickets");
   });
 });

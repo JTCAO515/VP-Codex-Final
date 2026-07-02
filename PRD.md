@@ -664,3 +664,14 @@ Fixes three reported product problems:
 交付:六维完成度评分与进度条、Day 卡快捷动作(预制意图走 AI 管道)、变更摘要卡(点击定位+高亮)、patch 演出动画、撤销(本地确定性回滚)、出发准备区(可勾选清单)。验收标准(点"减负"→3秒内对应卡脉冲+摘要卡列出改动+完成度动画;点摘要条目画布定位;点撤销恢复上一版)已通过端到端测试验证。
 
 一处对规格文档的刻意偏离:撤销未按原计划路由给 AI,而是做成本地确定性回滚——因为 LLM 无法在未被喂入"撤销前的权威状态"的情况下可靠地精确重建原状态,若严格照做会让"撤销"按钮的行为不可预测。详见 DESIGN.md ADR-070。
+
+
+## v0.2.8 更新 —— Chat/Canvas 视觉重设计(已完成)
+
+需求来源:操作者在 v0.2.7 收尾阶段提供了一张 Chat 页面高保真设计稿,要求按此重做视觉。范围因此从原计划的"MessageBlock 伪流式渲染 + composer 规格"调整为"对齐设计稿的完整 Chat/Canvas 视觉重做"。
+
+交付:`TripSummary` 标题内联改名 + 状态徽标(进度条/下一步) + 一览 chip 行 + 动作行(Add day/Rebalance route 真实走 AI 管道,View map/Trip settings 诚实禁用);`DayCard` 新增 Day 级完成度徽标、真实照片或图标占位的三段式 block、快捷动作拆分为常显主动作 + "…" 溢出次动作;`ChatPanel` 新增头像化头部、消息时间戳、结构化高亮卡片、赞踩/复制反馈(本地状态,不接后端)、可关闭 Next Step 卡、图标化输入区、AI 免责声明。
+
+验收标准:所有内容型变更(改名除外的行程内容)仍必须走既有 `handleSend → /api/chat → CanvasPatch → applyCanvasPatch` 管道——本轮未新增任何绕过该管道的内容写入路径;所有非功能性控件(Attach/Mic/Pin/View map/Trip settings)必须是真实 `disabled` 状态并带 `title="Coming soon"`,不得是无 `disabled` 属性的装饰性假按钮——已逐一核对。全部 134 测试通过(新增 8 个),`npm run build` 成功,并用 Playwright 对渲染结果做了视觉核验。
+
+排除:不新增外部 key、不改变任何既有 API 契约、不实现设计稿之外的功能(地图/导出/行程设置等在设计稿中出现但无对应后端能力的项,统一诚实降级为禁用态,留给未来迭代)。

@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { TripCanvas } from "@/components/canvas/TripCanvas";
 import { initialTripState } from "@/lib/mock-ai/mockButler";
 
@@ -9,7 +9,9 @@ describe("TripCanvas", () => {
 
     expect(screen.getByLabelText(/live trip canvas/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "China Trip Draft", level: 1 })).toBeInTheDocument();
-    expect(screen.getByText("Taking shape")).toBeInTheDocument();
+    // "Taking shape" now appears twice (the compact meta row and the v0.2.8
+    // status badge) — both are real, intentional UI, not a duplication bug.
+    expect(screen.getAllByText("Taking shape").length).toBeGreaterThan(0);
     // Six-dimension completeness (route/stay/food/transport/payment/visa): the
     // mock initial trip has an unresolved payment alert and no visa alert, so
     // 5 of 6 dimensions are complete (payment is the outstanding one).
@@ -89,11 +91,53 @@ describe("TripCanvas", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /view details for day 1/i }));
 
-    expect(screen.getByLabelText(/day 1 itinerary details/i)).toBeInTheDocument();
+    const drawer = screen.getByLabelText(/day 1 itinerary details/i);
+    expect(drawer).toBeInTheDocument();
+    // Day cards now also render a short preview of each block's description
+    // (v0.2.8), so scope these assertions to the drawer to avoid matching
+    // both the card and the drawer's own copy of the same text.
     expect(screen.getAllByText("Forbidden City (故宫)").length).toBeGreaterThan(0);
-    expect(screen.getByText(/Start with the classic imperial axis/i)).toBeInTheDocument();
+    expect(within(drawer).getByText(/Start with the classic imperial axis/i)).toBeInTheDocument();
     expect(screen.getAllByText(/Beijing city-center hotel/i).length).toBeGreaterThan(0);
     expect(screen.queryByLabelText(/morning title/i)).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /save day 1 changes/i })).not.toBeInTheDocument();
+  });
+
+  it("renames the trip title inline via the pencil icon", () => {
+    const onRenameTrip = vi.fn();
+    render(<TripCanvas trip={initialTripState} onRenameTrip={onRenameTrip} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /rename trip/i }));
+    const input = screen.getByDisplayValue(initialTripState.summary.title);
+    fireEvent.change(input, { target: { value: "Nanjing Weekend" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    expect(onRenameTrip).toHaveBeenCalledWith("Nanjing Weekend");
+  });
+
+  it("wires the Add day and Rebalance route buttons to their handlers", () => {
+    const onAddDay = vi.fn();
+    const onRebalanceRoute = vi.fn();
+    render(<TripCanvas trip={initialTripState} onAddDay={onAddDay} onRebalanceRoute={onRebalanceRoute} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /add day/i }));
+    fireEvent.click(screen.getByRole("button", { name: /rebalance route/i }));
+
+    expect(onAddDay).toHaveBeenCalledTimes(1);
+    expect(onRebalanceRoute).toHaveBeenCalledTimes(1);
+  });
+
+  it("disables Add day and Rebalance route when no handler is provided", () => {
+    render(<TripCanvas trip={initialTripState} />);
+
+    expect(screen.getByRole("button", { name: /add day/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /rebalance route/i })).toBeDisabled();
+  });
+
+  it("shows non-functional canvas affordances as disabled with a Coming soon hint", () => {
+    render(<TripCanvas trip={initialTripState} />);
+
+    expect(screen.getByRole("button", { name: /view map/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /trip settings/i })).toBeDisabled();
   });
 });

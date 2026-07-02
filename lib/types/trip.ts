@@ -14,6 +14,10 @@ export interface TripBlock {
   time: "Morning" | "Afternoon" | "Evening" | "Flexible";
   title: string;
   description: string;
+  /** Optional short checklist sub-items for this block. Absent for most AI/mock output today — the UI falls back to rendering `description` as a single bullet. */
+  highlights?: string[];
+  /** Optional real photo URL (e.g. from a future POI provider). Never fabricated client-side. */
+  photoUrl?: string;
 }
 
 export interface TripDay {
@@ -90,4 +94,6 @@ export interface ChatMessage {
   response?: AssistantResponse;
   /** Present only on assistant messages that actually changed the canvas. */
   changeDigest?: ChangeDigestEntry[];
+  /** ISO timestamp set at creation time. Optional so older saved/loaded messages without it still render. */
+  createdAt?: string;
 }

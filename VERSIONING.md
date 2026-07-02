@@ -4,7 +4,7 @@
 
 - Previous baseline: `v0.1.1`
 - Minor-series reset: `v0.2.1` (operator directive — all subsequent iterations use `0.2.x`)
-- Current iteration: `v0.2.7`
+- Current iteration: `v0.2.8`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -16,6 +16,7 @@
 
 ## Release Notes
 
+- `v0.2.8`: Chat/Canvas visual redesign to match an operator-supplied high-fidelity mockup. `TripSummary` gained an inline-editable title, a status badge with progress bar and next-step cell, at-a-glance chips, and an action row (Add day / Rebalance route wired to the AI pipeline; View map / Trip settings honestly disabled with "Coming soon"). `DayCard` gained a per-day completeness badge, Morning/Afternoon/Evening blocks with photo-or-placeholder art and optional highlight checklists, and split its quick actions into three always-visible primary actions plus a "…" overflow menu for the rest. `ChatPanel` gained an avatar+title header (History link + disabled Pin), message timestamps and per-role avatars, icon-highlight cards for structured AI highlights, thumbs-up/down + copy-to-clipboard feedback (local only, no backend), a dismissible Next Step card, and a redesigned icon composer (disabled Attach/Mic, functional Enter-to-send) with an AI disclaimer footer. No fabricated data: every non-functional affordance is a real disabled control with a "Coming soon" title, never a decorative fake. 8 new tests; 134 total tests pass; build succeeds.
 - `v0.1.1`: first AI Butler Chat MVP skeleton.
 - `v0.1.2`: open ink-painting Chat workspace restyle with integrated canvas cards and a line-separated chat rail.
 - `v0.1.3`: desktop-first Trip Canvas density pass with smaller title, one-line day summaries, and a detail drawer.

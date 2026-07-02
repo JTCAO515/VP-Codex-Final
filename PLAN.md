@@ -598,5 +598,15 @@ Next three planned iterations:
 
 下一步:
 
-- [ ] `v0.2.8` Chat 体验重塑 + 内联工具卡:MessageBlock 分块渲染、composer 规格、等待叙事、`ask_factual` <150ms 快通道、实体 chip 双向悬停联动。**注意**:操作者已提供 Chat 视觉设计稿(高保真 mockup),v0.2.8 范围可能需要按设计稿扩展或调整(见对应会话记录/HANDOFF)。
-- [ ] `v0.2.9` 设计系统收口 + Tools 交互组件。
+- [x] `v0.2.8` Chat 体验重塑(改为按操作者提供的高保真设计稿实现,范围调整为下方附录所记)。
+- [ ] `v0.2.9` 设计系统收口 + Tools 交互组件;`docs/planning/v0.2.4-interaction-deep-dive.md` 中尚未落地的 MessageBlock 伪流式、`ask_factual` <150ms 快通道、实体 chip 双向悬停联动可并入其中或单独排期。
+
+## v0.2.8 附录 —— Chat/Canvas 视觉重设计(按操作者设计稿实现,已完成)
+
+- [x] 收到操作者高保真 Chat 页面设计稿(Canvas 左栏 + Chat 右栏),范围从原计划的"MessageBlock 伪流式+composer 规格"调整为"对齐设计稿的完整视觉重设计",在 v0.2.7 交互逻辑收尾验证通过后开始。
+- [x] `TripSummary.tsx`:标题内联改名(铅笔图标,`onRenameTrip`)、状态徽标(进度条+下一步单元格)、一览 chip 行、动作行(Add day/Rebalance route 走 AI 管道,View map/Trip settings 诚实禁用)。既有 `.trip-summary__readiness` 勾选清单结构不变。
+- [x] `DayCard.tsx`:Day 级完成度徽标(`calculateDayCompleteness`)、三段式 block 改为图标+照片/占位+可选 highlights 清单、快捷动作拆分为 `DAY_PRIMARY_ACTIONS`(常显)与 `DAY_SECONDARY_ACTIONS`("…" 溢出菜单)。
+- [x] `ChatPanel.tsx`:头像化头部(History 真实链接/Pin 诚实禁用)、消息 byline(头像+时间戳+已读对勾)、结构化 highlights 高亮卡片、赞踩+复制反馈(均本地状态,复制用 `navigator.clipboard`)、可关闭 Next Step 卡、图标化 composer(Attach/Mic 诚实禁用,Enter 发送)、AI 免责声明。
+- [x] `ButlerWorkspace.tsx`:新增 `handleRenameTrip`/`handleAddDay`/`handleRebalanceRoute` 三个本地/AI-管道处理函数;`ChatMessage.createdAt`(新增可选字段)驱动时间戳。
+- [x] `app/globals.css`:新增约 350 行样式,排查并确认与两处并行会话遗留的层叠覆盖块(`v0.1.55 VISUAL POLISH`、`min-width:900px` 紧凑布局)无实质冲突;修复一处遗留选择器(`.day-card__head span { display:none }`)意外隐藏新徽标的真实回归。
+- [x] 新增 8 个测试(内联改名/Add day/Rebalance route/禁用态/next-step 关闭/反馈切换/复制确认/Enter 发送),全部 134 测试通过,`npm run build` 成功;用 Playwright 对 `/chat` 页面截图核验桌面布局与交互态。

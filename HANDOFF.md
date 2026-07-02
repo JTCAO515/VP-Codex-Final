@@ -4,8 +4,9 @@
  
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）；v0.1.34 桌面横屏前端优化：Tools 6 个模态卡片 + 浮层对话框、Trips 筛选按钮布局修复（过滤器始终可见）、Translator 单页 2×2 网格布局（同时展示四个功能面板无需切换 tab）。
 - 当前分支：`main`
-- 当前版本：`v0.2.7`（版本序列 `0.2.x`）
+- 当前版本：`v0.2.8`（版本序列 `0.2.x`）
 - 重要（已完成）：
+  - v0.2.8 完成了操作者提供的高保真 Chat 页面设计稿的视觉重设计：`TripSummary` 新增可内联改名的标题、状态徽标（进度条+下一步单元格）、一览 chip 行、Add day/Rebalance route（真实走 AI 管道）+ View map/Trip settings（诚实禁用）动作行；`DayCard` 新增 Day 级完成度徽标、真实照片或图标占位的三段式 block、主/次两组快捷动作（次要动作收进"…"溢出菜单）；`ChatPanel` 新增头像化头部、消息时间戳与已读对勾、结构化高亮卡片、赞踩/复制反馈、可关闭的 Next Step 卡、图标化输入区与 AI 免责声明。所有非功能性控件（Attach/Mic/Pin/View map/Trip settings）均为真实 `disabled` + `title="Coming soon"`，未伪造任何交互或数据。详见 `CHANGELOG.md` v0.2.8 与 `DESIGN.md` 对应章节。
   - `supabase/migrations/0002_trip_archive_and_share.sql`：用户已手动在 Supabase SQL Editor 执行，归档/分享 RLS policy 已生效。
   - Google OAuth：用户已在 Google Cloud 创建 OAuth 凭据并在 Supabase Authentication → Providers → Google 填入，Google 登录功能已配置就绪。
   - ExchangeRate-API：用户已获取 API Key，已配置 `EXCHANGE_RATE_API_KEY` 到 Vercel 环境变量；`/api/exchange-rate` 路由已连接，Tools Currency 分类展示实时 CNY 汇率（每小时刷新）。
@@ -17,7 +18,16 @@
 - 最新实现 commit：本轮提交后以 `git log -1 --oneline` 为准
 - 当前远端：`https://github.com/JTCAO515/VP-Codex-Final.git`
 - 部署地址：`https://go2china.space`
- 
+
+## v0.2.8 Handoff Update - Chat/Canvas 视觉重设计
+
+- 触发来源：操作者在 v0.2.7 Canvas 行动层代码收尾阶段提供了一张高保真 Chat 页面设计稿（Canvas 左栏 + Chat 右栏），要求"把 chat 设计成这样"；本会话先完成手头的 v0.2.7 交互逻辑接线并验证通过后，才开始本轮视觉重设计，避免中断已接近完成的工作。
+- 组件改动：`TripSummary.tsx`（内联改名 + 状态徽标 + chip 行 + 动作行，`onRenameTrip`/`onAddDay`/`onRebalanceRoute` 三个新 props）、`DayCard.tsx`（Day 完成度徽标 + 三段式 block 重排 + 主/次快捷动作分离）、`ChatPanel.tsx`（头像头部 + byline/highlights/feedback + 可关闭 next-step 卡 + 图标化 composer）、`TripCanvas.tsx`（透传三个新 props 给 `TripSummary`）、`ButlerWorkspace.tsx`（新增 `handleRenameTrip`/`handleAddDay`/`handleRebalanceRoute`，`createMessage` 补充 `createdAt`）、`lib/canvas/quickActions.ts`（拆分为 `DAY_PRIMARY_ACTIONS`/`DAY_SECONDARY_ACTIONS`，新增 3 种 kind）、`lib/types/trip.ts`（`ChatMessage.createdAt?` 新字段）。
+- CSS：`app/globals.css` 追加约 350 行"v0.2.8 CHAT + CANVAS VISUAL REDESIGN"新块，在文件末尾（层叠优先级最高）。排查确认了此前并行会话遗留的两处 append-only 覆盖块（`v0.1.55 VISUAL POLISH` 与 `min-width:900px` 紧凑布局块）不会与新样式冲突：`.trip-summary` 已改 `display:flex`，遗留的 grid 定位规则自然失效为 no-op；`.chat-panel` 的三层 `order` 声明在 head/empty-state/prompt-row/chat-log/next-step/composer 上数值完全一致，新增的 `.chat-disclaimer` 用 `order:7` 单独占位，不受影响。过程中定位并修复一处真实回归：遗留的 `.day-card__head span { display:none }` 意外隐藏了新的 pace/完成度徽标，已用更高特异性选择器覆盖。
+- 验证：全部 41 个测试文件 134 个测试通过（含新增 8 个）；`npm run build` 通过（20 个静态页）；额外用 Playwright 启动 dev server 对 `/chat` 页面截图核验桌面布局、溢出菜单展开态、内联改名态，确认视觉效果符合设计稿意图后才提交。
+- 诚实降级原则再次贯彻：mock fallback（无真实 API key 时）不产出 `AssistantResponse`，因此 highlights/反馈图标等新 UI 在 mock 模式下不会出现在纯文字回复上——这是既有行为，不是本轮引入的缺陷；真实 provider 返回结构化 `assistantResponse` 时会完整渲染。
+- 下一轮建议：`docs/planning/v0.2.4-interaction-deep-dive.md` 中尚未实现的部分（MessageBlock 伪流式渲染、`ask_factual` <150ms 快通道、实体 chip 双向悬停联动、设计系统 token 收口、Tools 交互组件）可作为后续迭代的候选范围，具体编号以下一轮开工时的 `package.json`/`git log` 实际状态为准。
+
 ## v0.1.53 Handoff Update - Strategic Handoff Snapshot
  
 - Current version: `v0.1.53` in `package.json` and `VERSIONING.md`.

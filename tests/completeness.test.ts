@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateTripCompleteness } from "@/lib/trips/completeness";
+import { calculateDayCompleteness, calculateTripCompleteness } from "@/lib/trips/completeness";
 import { initialTripState } from "@/lib/mock-ai/mockButler";
 import type { TripState } from "@/lib/types/trip";
 
@@ -44,6 +44,15 @@ describe("calculateTripCompleteness", () => {
     expect(result.checks.find((c) => c.id === "transport")?.complete).toBe(false);
     expect(result.checks.find((c) => c.id === "payment")?.complete).toBe(true);
     expect(result.checks.find((c) => c.id === "visa")?.complete).toBe(true);
+  });
+
+  it("scores a fully-populated mock day at 100", () => {
+    expect(calculateDayCompleteness(initialTripState.days[0])).toBe(100);
+  });
+
+  it("scores a sparse day lower", () => {
+    const sparseDay = { ...initialTripState.days[0], food: [], stay: "", blocks: [] };
+    expect(calculateDayCompleteness(sparseDay)).toBe(25); // only transport is set
   });
 
   it("treats an unresolved visa alert as an incomplete visa dimension", () => {

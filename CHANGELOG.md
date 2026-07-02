@@ -1,5 +1,35 @@
 # VisePanda Changelog
 
+## v0.2.8 - 2026-07-02
+
+**Chat/Canvas 视觉重设计,对齐操作者提供的高保真设计稿。** 不改变既有交互契约(所有内容变更仍走 AI 管道),纯视觉层与少量新的本地操作性交互。
+
+### TripSummary(行程摘要卡)
+- 标题可内联改名:铅笔图标 → 点击进入编辑态(input,Enter 提交/Escape 取消/失焦提交) → `onRenameTrip(nextTitle)`,`ButlerWorkspace.handleRenameTrip` 本地 `setTrip` 仅改 `summary.title`(操作性状态,不路由 AI,与既有 Undo/prep-checklist 例外原则一致)。
+- 新增状态徽标:圆点 + confidence 文案 + 进度条 + 百分比说明 + 下一步单元格(展示首个未完成维度)。
+- 新增"一览"chip 行(路线/天数/旅行风格)与动作行两组按钮簇:Add day(`onAddDay` → `ButlerWorkspace.handleAddDay`,拼装预制消息通过既有 AI 管道追加一天)、Rebalance route(`onRebalanceRoute` → `handleRebalanceRoute`,同样走 AI 管道)均为真实功能;View map / Trip settings 诚实禁用 + `title="Coming soon"`,不是假交互。
+- 原有 `.trip-summary__readiness` 勾选清单结构与 `aria-label` 完整保留,未破坏既有测试契约。
+
+### DayCard(单日卡片)
+- 新增 Day 级完成度徽标(`calculateDayCompleteness`,4 维:blocks≥3/food/stay/transport)。
+- Morning/Afternoon/Evening 三个 block 现渲染真实图标(Sunrise/Sun/MoonStar)+ 真实照片(`block.photoUrl`,如无则展示图标占位,不编造图片)+ 可选 highlights 清单(无则回退展示 description 单条)。
+- 快捷动作拆分为主/次两组:`DAY_PRIMARY_ACTIONS`(Add to day / Find food nearby / Get tickets,始终可见)与 `DAY_SECONDARY_ACTIONS`(Lighten this day / Swap morning / Add rest,收进 "…" 溢出菜单,`role="menu"`/`role="menuitem"`)。`lib/canvas/quickActions.ts` 相应重写,新增 `add_activity`/`find_food`/`get_tickets` 三种 kind。
+
+### ChatPanel(对话面板)
+- 头部重构为头像 + "Ask VisePanda" 标题 + 历史(真实链接到 `/trips`)/ Pin(诚实禁用)图标行。
+- 每条消息新增 byline(助手头像 + 角色 + 时间戳 + 用户消息的"已发送"对勾),`ChatMessage.createdAt`(新增可选字段)驱动时间戳。
+- 结构化 AI 回复的 `highlights` 现渲染为带 Sparkles 图标的高亮卡片列表;新增反馈行(赞/踩本地状态切换,不接后端;复制到剪贴板 + "Copied" 提示,`navigator.clipboard` 失败静默降级)。
+- Next Step 卡新增 Star 图标与可关闭的 X 按钮(仅本地隐藏当前这条,下一条新 nextStep 到达后重新出现)。
+- 输入区重构为图标行:Attach/Mic 诚实禁用,Send 图标按钮,textarea 支持 Enter 发送 / Shift+Enter 换行;底部新增 AI 免责声明"VisePanda can make mistakes. Please double-check important details."。
+
+### 样式层排查
+- `app/globals.css` 存在多处并行会话遗留的 append-only 层叠覆盖块(v0.1.55 视觉打磨块、`min-width:900px` 紧凑布局块),核实后确认它们对 `.trip-summary`(已改 `display:flex`)的 grid 定位规则已失效为 no-op,`.chat-panel` 的 `order` 分层在各层间数值一致、互不冲突;新增 `.chat-disclaimer { order: 7 }` 并将 `.chat-panel` 的 `grid-template-rows` 追加第 7 条 track,确保免责声明稳定渲染在输入框下方而非被隐式行顺序打乱。
+- 发现并修复一处真实回归:遗留的 `.day-card__head span { display: none; }` 规则(用于隐藏旧版卡片副标题)意外把新的 pace 文案与完成度徽标一起隐藏,已用更高特异性的 `.day-card__head-meta span` / `span.day-card__completeness` 选择器覆盖。
+
+### 测试与验证
+- 新增 8 个测试(`tests/canvas-components.test.tsx`:内联改名/Add day/Rebalance route/禁用态断言;`tests/chat-panel.test.tsx`:next-step 关闭/反馈切换/复制确认/Enter 发送),全部 134 测试通过,`npm run build` 成功。
+- 用 Playwright 对 `/chat` 页面做了视觉核验(桌面宽度截图 + 溢出菜单展开 + 内联改名态),确认布局与设计稿意图一致后才提交。
+
 ## v0.2.7 - 2026-07-02
 
 **Canvas 行动层 —— 第一轮代码实现。** 让行程从"能看"变成"能指挥"。

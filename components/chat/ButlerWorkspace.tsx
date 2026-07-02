@@ -37,6 +37,7 @@ function createMessage(
     content,
     response,
     changeDigest,
+    createdAt: new Date().toISOString(),
   };
 }
 
@@ -320,13 +321,32 @@ export function ButlerWorkspace() {
     }));
   }
 
+  // Trip title is a label the traveler fully controls, not itinerary content
+  // the AI plans — same "operational, not content" reasoning as alert.done.
+  function handleRenameTrip(nextTitle: string) {
+    setTrip((current) => ({ ...current, summary: { ...current.summary, title: nextTitle } }));
+  }
+
+  function handleAddDay() {
+    const nextDayNumber = trip.days.length + 1;
+    const lastCity = trip.days[trip.days.length - 1]?.city ?? trip.summary.destinations[0] ?? "the same city";
+    void handleSend(`Add Day ${nextDayNumber} to this trip, continuing in or near ${lastCity}.`);
+  }
+
+  function handleRebalanceRoute() {
+    void handleSend("Rebalance the route across all days to reduce backtracking and even out the pace.");
+  }
+
   return (
     <section className="butler-workspace" aria-label="VisePanda AI Butler workspace">
       <div className="butler-workspace__canvas">
         <TripCanvas
           busy={busy}
           highlightSignal={highlightSignal}
+          onAddDay={handleAddDay}
           onQuickAction={handleQuickAction}
+          onRebalanceRoute={handleRebalanceRoute}
+          onRenameTrip={handleRenameTrip}
           onToggleAlertDone={handleToggleAlertDone}
           trip={trip}
         />
