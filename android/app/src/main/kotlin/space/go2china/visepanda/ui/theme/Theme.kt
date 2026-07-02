@@ -32,12 +32,18 @@ private val VisePandaColorScheme = lightColorScheme(
     onError = PaperSoft,
 )
 
+/**
+ * v0.3.7: medium/large bumped from 8dp/16dp to 16dp/20dp to match the
+ * operator-approved Figma Make visual reference's "soft card" roundness
+ * (see DESIGN.md ADR-105) — cards read noticeably softer/rounder than the
+ * v0.3.3 baseline now, on purpose.
+ */
 private val VisePandaShapes = Shapes(
     extraSmall = RoundedCornerShape(Dimens.RadiusSM),
     small = RoundedCornerShape(Dimens.RadiusSM),
-    medium = RoundedCornerShape(Dimens.RadiusMD),
-    large = RoundedCornerShape(Dimens.RadiusLG),
-    extraLarge = RoundedCornerShape(Dimens.RadiusLG),
+    medium = RoundedCornerShape(Dimens.RadiusLG),
+    large = RoundedCornerShape(Dimens.RadiusXL),
+    extraLarge = RoundedCornerShape(Dimens.RadiusXL),
 )
 
 @Composable

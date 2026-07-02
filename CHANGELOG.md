@@ -1,5 +1,23 @@
 # VisePanda Changelog
 
+## v0.3.7 - 2026-07-03
+
+**Android 视觉层对齐 Figma Make 设计参考(纯视觉,产品结构不变)。** 操作者提供了 Figma Make 文件 `Design According to MD Document`(https://www.figma.com/make/8J1WnuwCHwx60bSC6f7fQn/),要求"将布局修改为figma的设计"。读取该文件后发现它的产品结构(五屏 Chat/Plan/Explore/Tools/Me、两侧+中间悬浮按钮的底部导航)和现有 repo 路线图(Today/Chat/Plan/Explore/Tools 横向导航)有实质性差异,遂就采纳范围征询操作者,操作者选择"只做视觉层"——保留现有产品结构和路线图节奏,只对齐配色/字体/圆角/Taxi Card 字号等视觉细节。
+
+### 视觉改动
+- `ui/theme/Color.kt`:配色更新为 Figma 精确值——纸白 `#FAF8F4`、中国红 `#C1292E`、金色 `#C9A84C` 等。**这是对 ADR-094/095"和 Web 端 `globals.css` 逐字对齐"规则的一次刻意例外**,本轮只改 Android,未同步改动 Web 端,两端色值从此有意产生细微差异(仍是同一套暖色新中式色系),详见 DESIGN.md ADR-105。
+- `ui/theme/Type.kt`:首次引入自定义字体——Playfair Display(标题/品牌时刻)+ DM Sans(全部 UI 正文),替换掉此前"系统字体占位,自定义字体推迟"的 v0.3.3 决定。两款字体均为 Google Fonts 的 variable font(OFL 许可,可自由打包),通过 `FontVariation.Settings` 按字重取用,已加 `@OptIn(ExperimentalTextApi::class)`。
+- `ui/theme/Dimens.kt` / `Theme.kt`:新增 `RadiusXL`(20dp)/`RadiusPill`(999dp)圆角 token,`Shapes.medium/large` 相应调大,让卡片呈现 Figma 要求的"更软"观感。
+- `ui/components/TaxiDriverCard.kt`:中文地址字号从 34sp 提升到 Figma 规格的 52sp。**过程中发现并修复一个真实的视觉 bug**:只提字号不提行高会导致多行地址文字笔画重叠(原 34sp 时不明显,放大到 52sp 后暴露出来),已把 `lineHeight` 一并调整到 64sp。
+
+### 未采纳的部分(明确排除,超出本轮"视觉层"范围)
+底部导航形态(横向 5 等分 → 两侧+中间悬浮 Chat 按钮)、"Me" 新 tab(取代 Today)、Plan 提前加入 Needs Scheduling 候选区、Tools 做成 8 格 utility grid、Translator 全屏 overlay——这些都是产品结构/功能层面的改动,留给操作者未来决定是否要单独立项。
+
+### 验证
+- `./gradlew :app:testDebugUnitTest :app:assembleDebug`:先跑出一个真实编译错误(`FontVariation` 相关 API 需要 `@OptIn(ExperimentalTextApi::class)`),修复后 `BUILD SUCCESSFUL`。
+- Android 34 模拟器手动验收:新配色/字体/圆角渲染正常;Taxi Card 52sp 地址文字修复后不再重叠;`Copy Chinese address` 功能未受影响,复制正常;全程无 `FATAL`/`AndroidRuntime` 崩溃。
+- `strings.xml` 里 `Tools`/`Explore` 占位文案顺延为 v0.3.8/v0.3.9(因为这轮用掉了 v0.3.7)。
+
 ## v0.3.6 - 2026-07-02
 
 **Native Android Butler + Sync Bridge I。** 原计划称为 "v0.3.5 Butler + Sync Bridge" 的功能实现,因 v0.3.5 版本号被构建验证收尾轮占用,实际在 v0.3.6 交付。Chat(Butler)从诚实占位页升级为真实的 Jetpack Compose 对话界面,并成为底部导航默认首页。

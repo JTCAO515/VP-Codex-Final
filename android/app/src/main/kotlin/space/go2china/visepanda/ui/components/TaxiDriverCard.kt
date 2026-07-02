@@ -60,8 +60,14 @@ private fun TaxiDriverCardDialog(block: TripBlock, onDismiss: () -> Unit) {
         text = {
             Column {
                 Text(
+                    // 52sp matches the high-contrast large-Chinese-character
+                    // spec from the operator-approved Figma Make visual
+                    // reference — see DESIGN.md ADR-105. lineHeight must be
+                    // bumped along with fontSize (not left at headlineMedium's
+                    // 32sp default), or multi-line Chinese addresses render
+                    // with overlapping/crowded glyph strokes.
                     text = block.chineseAddress ?: block.title,
-                    style = MaterialTheme.typography.headlineMedium.copy(fontSize = 34.sp),
+                    style = MaterialTheme.typography.headlineMedium.copy(fontSize = 52.sp, lineHeight = 64.sp),
                 )
                 if (block.address != null) {
                     Text(

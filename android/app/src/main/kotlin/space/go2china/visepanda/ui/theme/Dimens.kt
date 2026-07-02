@@ -19,6 +19,8 @@ object Dimens {
     val RadiusSM = 6.dp
     val RadiusMD = 8.dp
     val RadiusLG = 16.dp
+    val RadiusXL = 20.dp
+    val RadiusPill = 999.dp
 
     val TouchTargetMin = 48.dp
 

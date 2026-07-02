@@ -39,10 +39,10 @@
     <string name="butler_placeholder_title">Chat is ready</string>
     <string name="butler_placeholder_body">Ask VisePanda to refine the active trip.</string>
 
-    <string name="explore_placeholder_title">Explore is coming in v0.3.8</string>
+    <string name="explore_placeholder_title">Explore is coming in v0.3.9</string>
     <string name="explore_placeholder_body">Attraction, food, and hotel discovery will reuse the existing Explore/Amap API route.</string>
 
-    <string name="tools_placeholder_title">Tools is coming in v0.3.7</string>
+    <string name="tools_placeholder_title">Tools is coming in v0.3.8</string>
     <string name="tools_placeholder_body">Translator, payment setup, currency, and entry checklist utilities land with the native Translator round.</string>
 
     <string name="state_empty_title">Nothing here yet</string>

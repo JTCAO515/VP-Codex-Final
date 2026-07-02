@@ -935,4 +935,16 @@ UI 参考:操作者提供 Lovable 预览与 Figma Make `Design According to MD D
 
 排除:不接入真实 Supabase auth/trips/messages 云端同步(仍留给后续版本);不做 guest draft 迁移;不做 Butler change digest UI;不做 WebView 混合方案;不恢复隐藏打车卡触发;不开启 Material 3 Dynamic Color;不新增 Supabase schema;不实现真实支付/预订/订单/地图/相机/麦克风能力。
 
-观察记录(非阻塞):`NativeButlerFallback` 用简单关键词匹配(城市名)决定是否改写行程标题的离线兜底分支,存在语义误伤风险,记录供后续版本评估收紧。Tools/Explore 占位文案已顺延为 v0.3.7/v0.3.8。
+观察记录(非阻塞):`NativeButlerFallback` 用简单关键词匹配(城市名)决定是否改写行程标题的离线兜底分支,存在语义误伤风险,记录供后续版本评估收紧。Tools/Explore 占位文案原顺延为 v0.3.7/v0.3.8,因 v0.3.7 后来被视觉对齐轮占用,再顺延为 v0.3.8/v0.3.9。
+
+## v0.3.7 需求更新 —— Android 视觉层对齐 Figma Make 设计参考(已完成)
+
+需求来源:操作者发消息"开始下一轮的工作，并且将布局修改为figma的设计"，并给出 Figma Make 文件 `Design According to MD Document`(https://www.figma.com/make/8J1WnuwCHwx60bSC6f7fQn/)。读取该文件后发现其产品结构(五屏 Chat/Plan/Explore/Tools/**Me**、两侧+中间悬浮按钮底部导航、Plan 提前含 Needs Scheduling 候选区)与 repo 既有路线图有实质性差异,已用 `AskUserQuestion` 征询操作者采纳范围。操作者选择"只做视觉层"——保留现有产品结构(Today/Chat/Plan/Explore/Tools 横向导航)和路线图节奏,只对齐视觉细节。
+
+交付:`ui/theme/Color.kt` 配色对齐 Figma 精确值(纸白 `#FAF8F4`、中国红 `#C1292E`、金色 `#C9A84C`);首次引入 Playfair Display(标题)+ DM Sans(正文)两款 Google Fonts,替换系统字体占位;`Dimens.kt`/`Theme.kt` 新增更大圆角 token 让卡片更"软";`TaxiDriverCard.kt` 中文地址字号从 34sp 提到 Figma 规格的 52sp,并同步修复了"只调字号不调行高导致文字重叠"的真实 bug。
+
+验收标准:`./gradlew :app:testDebugUnitTest :app:assembleDebug` 先跑出一个真实编译错误(`FontVariation` 需要 `@OptIn(ExperimentalTextApi::class)`),修复后 `BUILD SUCCESSFUL`;Android 34 模拟器手动验收新视觉效果渲染正常,Taxi Card 52sp 地址不再重叠,`Copy Chinese address` 功能未受影响,全程无崩溃。
+
+排除:不采纳 Figma 的产品结构改动——不做两侧+悬浮按钮底部导航、不加 "Me" tab、不提前做 Needs Scheduling、不做 8 格 Tools grid、不做 Translator overlay,这些留给操作者未来单独决定是否要立项。
+
+观察记录:本轮对 `Color.kt` 的调色是对 DESIGN.md ADR-094/095"Android 配色必须和 Web 端 `app/globals.css` 逐字对齐"规则的一次刻意例外——只改了 Android,没有同步改 Web 端,两端色值从此存在有意但细微的差异,详见 DESIGN.md ADR-105。Tools/Explore 占位文案顺延为 v0.3.8/v0.3.9(因本轮用掉了 v0.3.7)。
