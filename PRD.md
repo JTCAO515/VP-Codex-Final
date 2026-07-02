@@ -698,3 +698,30 @@ Fixes three reported product problems:
 - 不做完整签证资格决策树、支付向导、汇率换算器;这些进入 v0.2.10 Tools Widgets I。
 - 不做实体 chip 双向悬停、不做完整 MessageBlock 伪流式。
 - 不新增外部 key、Supabase migration 或生产级 FlyAI 接入。
+
+## v0.2.10 更新 —— Tools Widgets I(已完成)
+
+需求来源:Tools 页面此前能提供清单,但用户仍需要自己把信息转化为行动。本轮把最常见的三类旅行焦虑做成可直接操作的小工具:汇率、签证/入境初筛、支付设置。
+
+交付:
+
+- Currency: RMB converter,支持输入金额、选择目标货币、常用金额 chip;有 live rate section 时优先使用 live rate,否则使用离线估算 fallback。
+- Visa and entry: conservative entry planning checker,支持国籍、停留天数、transit-only 开关,输出规划建议与官方确认提醒。
+- Payment setup: payment setup wizard,支持钱包(Alipay/WeChat Pay)与卡品牌选择,输出出发前设置步骤和卡兼容提醒。
+- 三个 widget 都由 `ToolCategory.interactive` 描述符驱动;未配置 interactive 的分类保持原静态内容。
+
+验收标准:
+
+- 打开 `/tools?category=currency` 能完成 RMB 到常见货币的快速估算。
+- 打开 `/tools?category=visa-and-entry` 能基于国籍和天数得到保守入境规划提示。
+- 打开 `/tools?category=payment-setup` 能生成 Alipay/WeChat Pay + 卡品牌的设置步骤。
+- 静态 tips、sections、offline notes 不被移除,仍作为 fallback 和详情内容。
+
+排除:
+
+- 不做官方签证裁定或实时政策保证。
+- 不处理真实支付、绑卡、交易、钱包授权。
+- 不新增外部 API key、Supabase migration、FlyAI 生产调用或预订能力。
+
+- 不安装 Impeccable、better-icons、MCP server、CLI 或 npm 包。
+- 不新增生产功能、API key、Supabase schema 或用户可见行为。

@@ -1,5 +1,19 @@
 # VisePanda Changelog
 
+## v0.2.10 - 2026-07-02
+
+**Tools Widgets I.** This release turns the first three high-anxiety Tools categories into real interactive widgets while preserving the existing static checklists as fallback context.
+
+- Added an optional `ToolCategory.interactive` descriptor for widget metadata. Categories without it continue rendering static checklist content only.
+- Added `components/tools/widgets/ToolWidget.tsx` with:
+  - RMB currency converter, using live injected CNY rates when present and conservative fallback rates otherwise.
+  - Visa/entry planning checker with nationality, stay length, and transit-only inputs.
+  - Payment setup wizard for wallet and card-brand choices.
+- Rendered widgets inside the existing Tools modal, above quick tips and detailed sections, so travelers can act first and read details after.
+- Added focused widget styling that follows the current paper/hairline visual system.
+- Added tests for interactive descriptor coverage and all three widget interactions.
+- No new external API keys, no official visa adjudication, no payment transaction API, no booking integration, and no production FlyAI usage.
+
 ## v0.2.9 - 2026-07-02
 
 **Chat factual fast-path + inline Tools cards.** This release completes the first practical slice of the remaining Chat interaction work after the v0.2.8 visual redesign.

@@ -2651,6 +2651,124 @@ select:focus-visible {
   line-height: 1.5;
 }
 
+.tool-widget {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 16px;
+  border: 1px solid rgba(111, 91, 73, 0.16);
+  border-left: 3px solid var(--tool-accent, var(--cinnabar));
+  border-radius: 8px;
+  padding: 14px;
+  background: rgba(255, 248, 237, 0.62);
+}
+
+.tool-widget__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tool-widget__head strong {
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.tool-widget__head span {
+  border: 1px solid rgba(111, 91, 73, 0.16);
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: var(--ink-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.tool-widget__controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.tool-widget label {
+  display: grid;
+  gap: 5px;
+  color: var(--ink-muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.tool-widget input,
+.tool-widget select {
+  min-height: 38px;
+  border: 1px solid rgba(111, 91, 73, 0.18);
+  border-radius: 7px;
+  padding: 8px 9px;
+  background: rgba(255, 252, 244, 0.92);
+  color: var(--ink);
+  font: inherit;
+}
+
+.tool-widget__toggle {
+  display: flex !important;
+  grid-template-columns: none !important;
+  align-items: center;
+  gap: 8px !important;
+}
+
+.tool-widget__toggle input {
+  width: 16px;
+  min-height: 0;
+}
+
+.tool-widget__result {
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: rgba(102, 123, 92, 0.08);
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: 850;
+  line-height: 1.45;
+}
+
+.tool-widget__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tool-widget__chips button {
+  min-height: 30px;
+  border: 1px solid rgba(111, 91, 73, 0.18);
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: rgba(255, 252, 244, 0.82);
+  color: var(--ink-muted);
+  font-weight: 850;
+}
+
+.tool-widget__steps {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.tool-widget__steps li {
+  color: var(--ink-muted);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.tool-widget__note {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
 .tool-modal__tips {
   list-style: none;
   padding: 10px 14px;

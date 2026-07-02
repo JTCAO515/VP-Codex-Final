@@ -21,5 +21,9 @@ describe("static tools provider", () => {
       expect(category.offlineTips.length).toBeGreaterThan(0);
       expect(category.apiPriority).toMatch(/later|next|not planned yet/i);
     }
+    expect(categories.find((category) => category.id === "currency")?.interactive?.type).toBe("currency-converter");
+    expect(categories.find((category) => category.id === "visa-and-entry")?.interactive?.type).toBe("visa-checker");
+    expect(categories.find((category) => category.id === "payment-setup")?.interactive?.type).toBe("payment-wizard");
+    expect(categories.find((category) => category.id === "metro")?.interactive).toBeUndefined();
   });
 });

@@ -4,9 +4,9 @@
  
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）；v0.1.34 桌面横屏前端优化：Tools 6 个模态卡片 + 浮层对话框、Trips 筛选按钮布局修复（过滤器始终可见）、Translator 单页 2×2 网格布局（同时展示四个功能面板无需切换 tab）。
 - 当前分支：`main`
-- 当前版本：`v0.2.9`（版本序列 `0.2.x`）
+- 当前版本：`v0.2.10`（版本序列 `0.2.x`）
 - 重要（已完成）：
-  - v0.2.8 完成了操作者提供的高保真 Chat 页面设计稿的视觉重设计：`TripSummary` 新增可内联改名的标题、状态徽标（进度条+下一步单元格）、一览 chip 行、Add day/Rebalance route（真实走 AI 管道）+ View map/Trip settings（诚实禁用）动作行；`DayCard` 新增 Day 级完成度徽标、真实照片或图标占位的三段式 block、主/次两组快捷动作（次要动作收进"…"溢出菜单）；`ChatPanel` 新增头像化头部、消息时间戳与已读对勾、结构化高亮卡片、赞踩/复制反馈、可关闭的 Next Step 卡、图标化输入区与 AI 免责声明。所有非功能性控件（Attach/Mic/Pin/View map/Trip settings）均为真实 `disabled` + `title="Coming soon"`，未伪造任何交互或数据。详见 `CHANGELOG.md` v0.2.8 与 `DESIGN.md` 对应章节。
+  - v0.2.10 完成 Tools Widgets I：`ToolCategory.interactive` 可描述 Currency converter、Visa checker、Payment setup wizard；`/tools` 弹窗在静态清单前渲染相应 widget。所有结果都是保守旅行规划辅助,不做官方签证裁定、不处理真实支付、不新增外部 key。详见 `CHANGELOG.md` v0.2.10 与 `DESIGN.md` ADR-075/076。
   - v0.2.9 完成 Chat factual fast-path + inline Tools cards：签证/支付/汇率/地铁/eSIM/应急等高置信事实问题先从现有 Tools 知识生成结构化工具卡，返回 `mode:"tools"` / `strategy:"tool"`，不等待 LLM；Chat 可渲染工具卡并深链到 `/tools?category=...`，同时保留多模型与 mock fallback。详见 `CHANGELOG.md` v0.2.9 与 `DESIGN.md` ADR-073/074。
   - v0.2.8 完成了操作者提供的高保真 Chat 页面设计稿的视觉重设计：`TripSummary` 新增可内联改名的标题、状态徽标（进度条+下一步单元格）、一览 chip 行、Add day/Rebalance route（真实走 AI 管道）+ View map/Trip settings（诚实禁用）动作行；`DayCard` 新增 Day 级完成度徽标、真实照片或图标占位的三段式 block、主/次两组快捷动作（次要动作收进"…"溢出菜单）；`ChatPanel` 新增头像化头部、消息时间戳与已读对勾、结构化高亮卡片、赞踩/复制反馈、可关闭的 Next Step 卡、图标化输入区与 AI 免责声明。所有非功能性控件（Attach/Mic/Pin/View map/Trip settings）均为真实 `disabled` + `title="Coming soon"`，未伪造任何交互或数据。详见 `CHANGELOG.md` v0.2.8 与 `DESIGN.md` 对应章节。
   - `supabase/migrations/0002_trip_archive_and_share.sql`：用户已手动在 Supabase SQL Editor 执行，归档/分享 RLS policy 已生效。
@@ -43,7 +43,22 @@
   - `tests/factualToolCards.test.ts`、`tests/orchestrator.test.ts`、`tests/chat-panel.test.tsx`：覆盖生成、绕过 provider、渲染。
 - 边界：本轮不做完整 Tools widgets，不做签证决策树/支付向导/汇率换算器，不新增任何外部 key、Supabase schema、生产 FlyAI 调用或预订能力。
 - 验证：受影响测试已通过；本轮收尾前需跑完整 `npm run test` 与 `npm run build`。
-- 下一步建议：`v0.2.10` 做 Tools Widgets I（currency converter、visa checker、payment setup wizard），让 Chat 卡片和 `/tools` 页面复用同一套 widget/data descriptor；`v0.2.11` 做 TripBlock POI embedding + Day detail operational upgrade。
+- 下一步建议：`v0.2.11` TripBlock POI Embedding + Day Detail Operational Upgrade,把 Amap rich POI 与后续预订/地图候选字段沉淀到 `TripBlock`,并实现 Show Taxi Driver 卡。
+
+## v0.2.10 Handoff Update - Tools Widgets I
+
+- 用户意图：继续上一轮后的下一轮,把 Tools 从静态清单推进为能实际操作的旅行小工具,优先覆盖汇率、签证/入境、支付三类高焦虑问题。
+- 实现思路：不在 `ToolsBoard` 里写死每类逻辑,而是在 `ToolCategory` 上新增可选 `interactive` 描述符,由 `components/tools/widgets/ToolWidget.tsx` 统一按类型渲染。这样未来 live provider 或 Chat inline card 可以复用同一 Tools 数据层。
+- 主要文件：
+  - `lib/tools/types.ts`:新增 `ToolInteractiveDescriptor` union。
+  - `lib/tools/staticProvider.ts`:为 Currency / Visa and entry / Payment setup 三类加入 widget metadata。
+  - `components/tools/widgets/ToolWidget.tsx`:新增 RMB converter、Entry planning checker、Payment setup wizard。
+  - `components/tools/ToolsBoard.tsx`:在 modal summary 下方挂载 `<ToolWidget />`。
+  - `app/globals.css`:新增 `.tool-widget*` 样式。
+  - `tests/tools-board.test.tsx`、`tests/tools-provider.test.ts`:覆盖 descriptor 与三件套交互。
+- 边界：不新增官方签证判断、不处理真实支付或银行卡、不新增外部 key、不调用 FlyAI 生产能力;静态 tips/sections/offlineTips 全部保留。
+- 验证：受影响 Tools 测试已通过;收尾前需跑完整 `npm run test` 与 `npm run build`。
+- 下一步建议：`v0.2.12` TripBlock POI Embedding + Day Detail Operational Upgrade,把 Amap rich POI 与后续预订/地图候选字段沉淀到 `TripBlock`,并实现 Show Taxi Driver 卡。
 
 ## v0.1.53 Handoff Update - Strategic Handoff Snapshot
  
@@ -658,13 +673,13 @@ Alternatives if Dianping approval is slow: (a) Amap enriched fields — already 
 - **版本编号说明(重要)**:本轮为纯规划+开发工具轮,不消耗"Canvas 行动层"等实现轮编号。此前 v0.2.5 融合轮定的完整代码三轮(v0.2.6 Canvas 行动层 → v0.2.7 Chat 体验 → v0.2.8 设计系统)因本轮占用 v0.2.6,**再顺延一位为 v0.2.7 / v0.2.8 / v0.2.9**,任务内容不变。
 - 如需推进生产级飞猪合作:联系 `flyai@alibaba-inc.com` 或 `https://open.fly.ai/`,咨询第三方网站服务端 API 合作方案,不要复用 CLI 内嵌的共享试用凭证。本轮不需要任何 Vercel 环境变量配置。
 
-### 当时的后三轮编号(已被后续 v0.2.7-v0.2.9 实际实现覆盖)
+### 当时的后三轮编号(已被后续 v0.2.7-v0.2.10 实际实现覆盖)
 
 1. `v0.2.7` Canvas 行动层+画布交互:完成度纯函数、可点缺口、Day 快捷动作(带天数)、Change Digest 变更摘要卡、patch 演出、撤销、Before you fly 准备区(在现有 v0.2.5 readiness seed 基础上补全为完整 completion schema)。
 2. `v0.2.8` Chat 体验重塑+内联工具卡:MessageBlock 分块渲染、composer 规格、等待叙事、`ask_factual` <150ms 快通道、实体 chip 双向悬停联动。
 3. `v0.2.9` 设计系统收口+Tools 交互组件:token 层+组件库归一、Tools 三件套 widget(汇率换算/签证问答/支付向导)、移动 Chat sheet。
 
-当前真实状态以文件顶部 `v0.2.9 Handoff Update` 为准:`v0.2.9` 已用于 Chat factual fast-path + inline Tools cards。后续建议为 `v0.2.10` Tools Widgets I 与 `v0.2.11` TripBlock POI/Day detail operational upgrade。
+当前真实状态以文件顶部 `v0.2.10 Handoff Update` 为准:`v0.2.9` 已用于 Chat factual fast-path + inline Tools cards,`v0.2.10` 已用于 Tools Widgets I。后续建议为 `v0.2.11` TripBlock POI/Day detail operational upgrade。
 
 
 ## v0.2.7 交接更新 —— Canvas 行动层(第一轮代码实现)
@@ -684,7 +699,7 @@ Alternatives if Dianping approval is slow: (a) Amap enriched fields — already 
 
 1. `v0.2.8` Chat/Canvas 视觉重设计：已完成。
 2. `v0.2.9` Chat factual fast-path + inline Tools cards：已完成。
-3. `v0.2.10` Tools Widgets I：汇率换算器、签证资格问答、支付设置向导。
+3. `v0.2.10` Tools Widgets I：已完成。
 4. `v0.2.11` TripBlock POI embedding + Day detail operational upgrade。
 
 ### 操作者无需任何手动步骤

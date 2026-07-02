@@ -600,7 +600,7 @@ Next three planned iterations:
 
 - [x] `v0.2.8` Chat 体验重塑(改为按操作者提供的高保真设计稿实现,范围调整为下方附录所记)。
 - [x] `v0.2.9` Chat factual fast-path + inline Tools cards(本轮完成,替代旧编号里的"设计系统收口"占位)。
-- [ ] `v0.2.10` Tools Widgets I:汇率换算器、签证资格问答、支付设置向导;`docs/planning/v0.2.4-interaction-deep-dive.md` 中尚未落地的完整 MessageBlock 伪流式、实体 chip 双向悬停联动可并入后续单独排期。
+- [x] `v0.2.10` Tools Widgets I:汇率换算器、签证资格问答、支付设置向导;`docs/planning/v0.2.4-interaction-deep-dive.md` 中尚未落地的完整 MessageBlock 伪流式、实体 chip 双向悬停联动可并入后续单独排期。
 
 ## v0.2.8 附录 —— Chat/Canvas 视觉重设计(按操作者设计稿实现,已完成)
 
@@ -629,5 +629,28 @@ Next three planned iterations:
 
 下一步建议:
 
-- [ ] `v0.2.10` Tools Widgets I:在本轮 inline card 数据模型基础上,把 Currency converter、Visa checker、Payment setup wizard 做成真实可交互组件,并让 Chat tool cards 复用同一套 widget metadata。
-- [ ] `v0.2.11` TripBlock POI Embedding + Day Detail Operational Upgrade:将中文地址、营业时间、电话、坐标、booking/map url 等可选运营字段持久化进 `TripBlock`,升级 Day detail 和 Taxi Driver card。
+- [x] `v0.2.10` Tools Widgets I:在本轮 inline card 数据模型基础上,把 Currency converter、Visa checker、Payment setup wizard 做成真实可交互组件,并让 Chat tool cards 与 `/tools` 继续复用同一 Tools 数据源。
+- [ ] `v0.2.12` TripBlock POI Embedding + Day Detail Operational Upgrade:将中文地址、营业时间、电话、坐标、booking/map url 等可选运营字段持久化进 `TripBlock`,升级 Day detail 和 Taxi Driver card。
+
+## v0.2.10 附录 —— Tools Widgets I(已完成)
+
+- [x] `lib/tools/types.ts`:新增可选 `ToolCategory.interactive` 描述符,覆盖 `currency-converter` / `visa-checker` / `payment-wizard`;未设置该字段的分类保持原静态清单渲染。
+- [x] `lib/tools/staticProvider.ts`:为 Currency、Visa and entry、Payment setup 三类补充 widget metadata,同时保留 tips/sections/offlineTips 作为降级内容。
+- [x] `components/tools/widgets/ToolWidget.tsx`:新增三件套交互组件:
+  - RMB converter:优先解析 live rate section,否则使用离线估算 fallback rates。
+  - Entry planning checker:国籍 + 停留天数 + transit-only 开关,输出保守规划建议。
+  - Payment setup wizard:钱包 + 卡品牌选择,输出预出发设置步骤。
+- [x] `ToolsBoard.tsx`:在工具弹窗 summary 下方渲染 widget,静态 tips/sections/offline notes 保持原位。
+- [x] `app/globals.css`:新增 widget 纸面样式,延续现有 modal/card/hairline 视觉系统。
+- [x] `tests/tools-board.test.tsx` 与 `tests/tools-provider.test.ts`:覆盖 descriptor 和三件套交互。
+
+排除项:
+
+- 不声称官方签证判定;所有结果都是 conservative planning guidance。
+- 不接真实支付交易、不保存银行卡、不做 Alipay/WeChat OAuth。
+- 不新增 transit planner、emergency generator、eSIM provider comparison。
+- 不新增任何外部 key 或 Supabase schema。
+
+下一步建议:
+
+- [ ] `v0.2.11` TripBlock POI Embedding + Day Detail Operational Upgrade:扩展 `TripBlock` 可选运营字段,把 Amap rich POI / 后续 FlyAI 合作数据沉淀进 Day detail,并实现 Show Taxi Driver 卡。

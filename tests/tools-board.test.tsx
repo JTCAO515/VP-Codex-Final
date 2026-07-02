@@ -58,4 +58,45 @@ describe("ToolsBoard", () => {
     expect(screen.queryByText(/Exchange-rate API/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Transit data API/i)).not.toBeInTheDocument();
   });
+
+  it("renders a working RMB converter for the currency category", async () => {
+    render(<ToolsBoard />);
+
+    fireEvent.click(await screen.findByRole("button", { name: /^currency$/i }));
+
+    expect(await screen.findByText(/quick rmb converter/i)).toBeInTheDocument();
+    expect(screen.getByText(/¥100 ≈ 14 USD/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /¥500/i }));
+
+    expect(screen.getByText(/¥500 ≈ 70 USD/i)).toBeInTheDocument();
+  });
+
+  it("renders a conservative visa checker for entry planning", async () => {
+    render(<ToolsBoard />);
+
+    fireEvent.click(await screen.findByRole("button", { name: /^visa and entry$/i }));
+
+    expect(await screen.findByText(/entry planning check/i)).toBeInTheDocument();
+    expect(screen.getByText(/Confirm with an official embassy or consulate/i)).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/passport nationality/i), { target: { value: "germany" } });
+
+    expect(screen.getByText(/Likely short-stay visa-free for up to 30 days/i)).toBeInTheDocument();
+  });
+
+  it("renders a payment setup wizard with wallet and card choices", async () => {
+    render(<ToolsBoard />);
+
+    fireEvent.click(await screen.findByRole("button", { name: /^payment setup$/i }));
+
+    expect(await screen.findByText(/payment setup path/i)).toBeInTheDocument();
+    expect(screen.getByText(/Install Alipay before departure/i)).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/^wallet$/i), { target: { value: "wechat-pay" } });
+    fireEvent.change(screen.getByLabelText(/card brand/i), { target: { value: "amex" } });
+
+    expect(screen.getByText(/Install WeChat before departure/i)).toBeInTheDocument();
+    expect(screen.getByText(/Support varies; keep a Visa or Mastercard backup/i)).toBeInTheDocument();
+  });
 });

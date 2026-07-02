@@ -12,6 +12,7 @@ import {
 import { getToolsProvider } from "@/lib/tools";
 import type { ToolCategory } from "@/lib/tools";
 import { useTranslation } from "@/lib/i18n/I18nContext";
+import { ToolWidget } from "@/components/tools/widgets/ToolWidget";
 
 type ToolMeta = { Icon: React.ElementType; accent: string; bg: string; badge: string };
 
@@ -141,6 +142,8 @@ export function ToolsBoard() {
             </div>
 
             <p className="tool-modal__summary">{active.summary}</p>
+
+            <ToolWidget category={active} />
 
             {/* Quick tips */}
             {active.tips.length > 0 && (

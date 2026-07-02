@@ -146,6 +146,49 @@ const categories: ToolCategory[] = [
       "Have proof of onward or return travel and your first night of accommodation ready for entry checks.",
       "Always confirm current rules on the official embassy or consulate website because visa policy changes often.",
     ],
+    interactive: {
+      type: "visa-checker",
+      nationalities: [
+        {
+          id: "us",
+          label: "United States",
+          transitHours: 240,
+          note: "Tourist trips usually need a visa unless the route qualifies for a transit-without-visa policy.",
+        },
+        {
+          id: "uk",
+          label: "United Kingdom",
+          transitHours: 240,
+          note: "Tourist trips usually need a visa unless the route qualifies for transit-without-visa.",
+        },
+        {
+          id: "germany",
+          label: "Germany",
+          visaFreeDays: 30,
+          transitHours: 240,
+          note: "Short ordinary-passport visits may be visa-free under current policy windows, but official confirmation is still required.",
+        },
+        {
+          id: "singapore",
+          label: "Singapore",
+          visaFreeDays: 30,
+          transitHours: 240,
+          note: "Short ordinary-passport visits may be visa-free; keep return/onward travel proof ready.",
+        },
+        {
+          id: "japan",
+          label: "Japan",
+          transitHours: 240,
+          note: "Policy can change quickly; confirm the current tourist-visa requirement before booking.",
+        },
+        {
+          id: "other",
+          label: "Other nationality",
+          transitHours: 240,
+          note: "Use this only as a planning prompt; confirm with the nearest Chinese embassy or consulate.",
+        },
+      ],
+    },
   }),
   withToolDetails({
     id: "payment-setup",
@@ -157,6 +200,19 @@ const categories: ToolCategory[] = [
       "Carry a small amount of cash (RMB) as a backup for small vendors that do not take foreign cards.",
       "Notify your home bank of international travel to avoid your card being flagged for fraud.",
     ],
+    interactive: {
+      type: "payment-wizard",
+      wallets: [
+        { id: "alipay", label: "Alipay", appName: "Alipay" },
+        { id: "wechat-pay", label: "WeChat Pay", appName: "WeChat" },
+      ],
+      cardBrands: [
+        { id: "visa", label: "Visa", note: "Usually supported by tourist wallet setup, subject to issuer verification." },
+        { id: "mastercard", label: "Mastercard", note: "Usually supported by tourist wallet setup, subject to issuer verification." },
+        { id: "amex", label: "Amex", note: "Support varies; keep a Visa or Mastercard backup if possible." },
+        { id: "other", label: "Other card", note: "Check issuer compatibility and carry a second payment method." },
+      ],
+    },
   }),
   withToolDetails({
     id: "currency",
@@ -167,6 +223,19 @@ const categories: ToolCategory[] = [
       "ATMs at major banks generally accept foreign cards for RMB withdrawals; check your home bank's foreign withdrawal fees first.",
       "Check a current exchange-rate reference before large cash exchanges or ATM withdrawals.",
     ],
+    interactive: {
+      type: "currency-converter",
+      baseCurrency: "CNY",
+      defaultTarget: "USD",
+      commonAmounts: [20, 50, 100, 200, 500],
+      fallbackRates: {
+        USD: 0.14,
+        EUR: 0.13,
+        GBP: 0.11,
+        JPY: 22,
+        KRW: 190,
+      },
+    },
   }),
   withToolDetails({
     id: "metro",

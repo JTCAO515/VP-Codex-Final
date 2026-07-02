@@ -413,3 +413,12 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 - `AssistantResponse.toolCards` is optional and backward compatible. Any future provider-generated cards must pass through the parser validation in `lib/ai/butlerPrompt.ts`; malformed cards should be dropped, not crash Chat.
 - Inline tool cards may link only to existing product routes such as `/tools?category=payment-setup`. They must not imply live visa approval, real payment transactions, hotel booking, ticket purchase, or official emergency dispatch unless those production capabilities actually exist.
 - v0.2.9 does not implement Tools widgets. The next recommended implementation is v0.2.10 Tools Widgets I; it should enrich the same Tools/data layer so Chat cards and `/tools` stay consistent.
+
+## v0.2.10 Agent Update - Tools Widgets I
+
+- Tools widgets must be driven by `ToolCategory.interactive`; do not add category-specific widget branches directly inside `ToolsBoard` beyond the single `<ToolWidget category={active} />` mount point.
+- Keep static `tips`, `sections`, and `offlineTips` for every category. Widgets are an action layer above the fallback content, not a replacement.
+- Currency converter may use live rates already injected into the Currency section by `liveToolsProvider`; otherwise it must clearly behave as an offline estimate from descriptor fallback rates.
+- Visa checker output is conservative planning guidance only. Do not phrase it as official eligibility, approval, or legal advice.
+- Payment wizard must not collect or persist card numbers, passport numbers, wallet credentials, or PII. It only provides setup steps and compatibility cautions.
+- Adding another widget type requires updating `ToolInteractiveDescriptor`, `ToolWidget.tsx`, provider metadata, and tests together.

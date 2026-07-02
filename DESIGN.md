@@ -861,3 +861,17 @@ ADR-074: Inline tool cards extend `AssistantResponse`; they do not create a seco
 - Background: Chat already renders structured assistant responses (`headline`, `body`, `highlights`, `watchOut`, `nextStep`). Adding a separate top-level message type for tool cards would split persistence and copy/rendering paths.
 - Decision: make `toolCards?: InlineToolCard[]` an optional field on `AssistantResponse`, with parser validation that drops malformed cards. `ChatPanel` renders cards when present, and historical/plain responses continue to render unchanged.
 - Reason: this keeps message persistence backward compatible and gives future Tools widgets a clear upgrade path: v0.2.10 can replace or enrich individual card bodies without changing the chat transport contract again.
+
+## v0.2.10 Design Update - Tools Widgets I (implemented)
+
+ADR-075: Tools widgets are metadata-driven extensions of `ToolCategory`, not separate page-specific logic.
+
+- Background: Tools already has a provider abstraction and static fallback content. Building a currency converter, visa checker, and payment wizard as hardcoded branches in `ToolsBoard` would make Chat cards and Tools drift.
+- Decision: add `ToolCategory.interactive?: ToolInteractiveDescriptor` and render it through `components/tools/widgets/ToolWidget.tsx`. The static provider owns the widget metadata; `ToolsBoard` only places the widget in the modal. Categories without the descriptor render exactly as before.
+- Reason: this preserves provider boundaries and gives future live providers a clean place to enrich behavior without rewriting the Tools UI. It also keeps static tips/sections/offline notes as fallback content when widgets are incomplete or unavailable.
+
+ADR-076: First Tools widgets provide conservative planning help, not authoritative transactions.
+
+- Background: currency, visa, and payment are high-trust travel concerns. A widget can reduce anxiety, but overclaiming official status or transaction capability would be dangerous.
+- Decision: the RMB converter labels fallback values as estimates, the visa checker always tells users to confirm official rules, and the payment wizard outputs setup steps only. No widget stores sensitive card/passport data, calls a payment API, adjudicates a visa, or pretends to book anything.
+- Reason: VisePanda becomes more useful while staying inside current data/legal boundaries. The next integration step can add official/live sources behind the same descriptor without changing the user-facing structure.
