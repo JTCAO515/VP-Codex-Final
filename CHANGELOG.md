@@ -12,6 +12,30 @@
 - **重排里程碑计划**：下阶段代码研发正式切换为 `v0.3.2` Android 原生 APK 基础脚手架与数据层搭建。
 - **本版本仅作方案规划与逻辑设计，未修改/产出任何 Java/Kotlin、XML 布局或业务实现代码。**
 
+### v0.3.1 补充(同一迭代内追加,未新增版本号)
+
+原始规格书聚焦 4 大主 Tab(Canvas/Chat/Explore/Tools)的对抗性评审,以下内容
+在 `docs/planning/v0.3.1-android-native-spec.md` 新增"阶段 5:补充规划"一节
+中合并进来,填补的是"4 大 Tab 之外还有什么"以及"后端接口逐条能不能直接用"
+这两块此前未展开的空白:
+
+- **4 大 Tab 之外的页面落地**:Home(一次性引导层,非常驻 Tab)、Day 详情
+  (独立页面而非 Bottom Sheet,因内容量大)、Trips(归入 Account 子页面)、
+  Account(独立 Profile 页,顶部头像图标进入)、Translate 子功能(OCR 用
+  `CameraX` 原生采集层,语音优先用系统级 `SpeechRecognizer`)、Community
+  (Web 端本身未实现,本轮明确不展开原生设计)。
+- **`/api/*` 逐路由复用边界表**:`/api/chat`、`/api/explore*`、`/api/tools`、
+  `/api/exchange-rate`、`/api/trips`、`/api/translate/text` 直接复用;仅
+  `/api/translate/ocr`/`stt` 的文件上传格式需要一次兼容性核实(不一定要改
+  代码);Supabase Auth 改用原生 `supabase-kt` SDK,底层项目/表结构/RLS
+  policy 不变。
+- **游客态 vs 登录态权限边界表**:延续现有 Web 端"游客可用、登录增强"逻辑,
+  存储介质从 `localStorage` 换成 Room + DataStore。
+- **iOS 规划边界重申**:本文档全篇是 Android 专项,iOS 技术栈与视觉细节不能
+  直接套用本文档的 Compose/M3 专属内容,留待独立版本展开。
+- 未改变原规格书阶段 1～4 的任何既有结论,不涉及代码,不影响已排定的
+  `v0.3.2`–`v0.3.5` 原生 Sprint 计划。
+
 ## v0.2.17 - 2026-07-02
 
 **景点/餐饮/酒店数据与预订服务拓展评估(纯文档规划,不改代码)。** 操作者要求研究高德之外可以拓宽产品线的同类服务。
