@@ -35,6 +35,7 @@
 | 20 | Reserved-but-unused env keys | `lib/env/placeholders.ts` | `CTRIP_AID/SID`, `MEITUAN_UNION_*` declared, no code | Trip.com / Meituan Union integrations | 🔴 | later |
 | 21 | Placeholder page component | `components/placeholders/PlaceholderPage.tsx` | Generic placeholder scaffold | Replace wherever still mounted | 🟡 | as pages mature |
 | 22 | Supabase not deployed | all Supabase code | Degrades to guest/mock when keys absent | Real Supabase project + migrations run | 🟡 | user action |
+| 23 | Real booking data (flights/trains/hotels/attraction tickets) | Canvas `stay`/`transport` fields, Explore stays/attractions | Fully AI-generated text; no real price, no booking link | FlyAI (飞猪) `search-hotel`/`search-poi`/`search-flight`/`search-train` via official Fliggy server-side partnership | 🔴 | pending official Fliggy partnership; dev-tool available now via `.claude/skills/flyai/` |
 
 ## Replacement principles
 
@@ -70,3 +71,17 @@
   metadata in Explore.
 - Item 12 moved 🔴→🟡: guest preference memory now exists locally and is injected
   into Chat; Supabase cross-device profile persistence is still planned.
+
+## What changed in v0.2.6
+
+- Added item 23: real booking data (flights/trains/hotels/attraction tickets)
+  via FlyAI (飞猪), researched in `docs/planning/flyai-skill-integration.md`.
+  Currently 🔴 — no production code calls it; the CLI is architecturally a
+  developer/agent tool (MCP streamable_http client with device-fingerprinted
+  anti-abuse headers and Alibaba's own embedded trial credentials), not a
+  documented third-party server API, so it cannot move past 🔴 until an
+  official Fliggy server-side partnership is confirmed (same principle as the
+  standing Dianping/Meituan guidance: apply officially, never scrape/reverse
+  engineer). A dev-tool path is available immediately via the vendored
+  `.claude/skills/flyai/` Claude Code skill for research/content-curation use
+  during development only.

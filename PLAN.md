@@ -568,3 +568,17 @@ Next three planned iterations:
 下一步推荐:
 
 - [ ] `v0.2.6` Canvas 行动层+画布交互:在现有 readiness seed 上补全六维 completion 纯函数、Day 快捷动作、Change Digest、patch 演出、撤销、Before you fly 准备区。
+
+
+## v0.2.6 附录 —— FlyAI(飞猪)Skill 研究 + 项目级开发工具接入(纯规划)
+
+- [x] 逐字核实上游 `alibaba-flyai/flyai-skill`(SKILL.md、8 份 references、已发布 npm 包源码),新增 `docs/planning/flyai-skill-integration.md`(技术画像、架构现实判断、逐项功能映射表)。
+- [x] 判断:flyai-cli 是开发者/Agent 工具(MCP streamable_http 瘦客户端,内嵌共享试用凭证 + 设备指纹反滥用),不是生产级第三方 API;生产集成需飞猪官方合作确认,原则与 Dianping/Meituan 一致。
+- [x] 落地开发工具:vendor 上游 `skills/flyai/` 原文进 `.claude/skills/flyai/`(含 `LICENSE-NOTICE.md` 使用边界说明),不触碰任何生产代码。
+- [x] `docs/planning/mock-inventory.md` 新增第 23 项(真实预订数据,🔴)。
+- [x] **编号再次勘误**:本轮占用 v0.2.6,完整代码三轮顺延为 **v0.2.7(Canvas 行动层)/ v0.2.8(Chat 体验)/ v0.2.9(设计系统)**,任务内容不变,继续以 `docs/planning/v0.2.4-interaction-deep-dive.md` 为验收标准。
+
+待办(下一位 coding agent 或本会话下一轮):
+
+- [ ] 同步更新 `docs/planning/handoff-prompt-for-coding-agent.md` 里的版本号引用(目前写的是 v0.2.5/6/7,需改为 v0.2.7/8/9),避免交给外部 agent 时编号过期。
+- [ ] `v0.2.7` Canvas 行动层+画布交互:在现有 readiness seed(`TripSummary` 派生展示)上补全完整六维 `completeness` 纯函数、Day 快捷动作(带天数)、`diffTripState` + Change Digest 摘要卡、patch 演出动画、撤销、Before you fly 准备区。

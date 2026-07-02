@@ -646,3 +646,14 @@ Fixes three reported product problems:
 - 不把当前 readiness 当作完整的六维 completion schema。
 - 不将快捷动作、prep blockers、Change Digest、undo 视为已完成。
 - 不新增外部 key、Supabase schema 或真实 booking/payment/map 闭环。
+
+
+## v0.2.6 更新 —— FlyAI(飞猪)Skill 研究(纯规划 + 开发工具)
+
+依据用户请求研究 `alibaba-flyai/flyai-skill` 并评估集成路径。结论记录于 `docs/planning/flyai-skill-integration.md`:
+
+- 需求缺口确认:VisePanda 目前没有任何真实可预订数据——Canvas 的 `stay`/`transport` 字段和 Explore 的住宿/景点列表全部止步于 AI 生成文字或高德的位置/评分信息,没有一条路径能让用户点一下就去预订酒店、买门票或查真实车次。飞猪 FlyAI 的 `search-hotel`/`search-poi`/`search-flight`/`search-train` 精确对应这个缺口。
+- 生产集成前提:需飞猪官方服务端合作确认(其 CLI 是开发者/Agent 工具,非公开生产 API,内嵌凭证为共享试用额度且带风控反滥用机制)——与既有 Dianping/Meituan「先官方申请、不逆向」原则一致,本轮不写任何调用真实飞猪数据的产品代码。
+- 已落地:项目级开发工具 Skill(`.claude/skills/flyai/`),供开发阶段研究/内容生产使用,不影响任何traveler-facing 行为。
+
+排除:不新增外部 key、不改 Explore/Tools/Chat 的生产运行时代码、不对外发起飞猪官方合作申请(需操作者自行跟进)。

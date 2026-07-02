@@ -4,7 +4,7 @@
  
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）；v0.1.34 桌面横屏前端优化：Tools 6 个模态卡片 + 浮层对话框、Trips 筛选按钮布局修复（过滤器始终可见）、Translator 单页 2×2 网格布局（同时展示四个功能面板无需切换 tab）。
 - 当前分支：`main`
-- 当前版本：`v0.2.5`（版本序列 `0.2.x`）
+- 当前版本：`v0.2.6`（版本序列 `0.2.x`）
 - 重要（已完成）：
   - `supabase/migrations/0002_trip_archive_and_share.sql`：用户已手动在 Supabase SQL Editor 执行，归档/分享 RLS policy 已生效。
   - Google OAuth：用户已在 Google Cloud 创建 OAuth 凭据并在 Supabase Authentication → Providers → Google 填入，Google 登录功能已配置就绪。
@@ -614,3 +614,27 @@ Alternatives if Dianping approval is slow: (a) Amap enriched fields — already 
   3. `v0.2.8` 设计系统收口+Tools widgets:token/组件库、汇率换算、签证问答、支付向导、移动 Chat sheet。
 - 已更新:VERSIONING/CHANGELOG/PLAN/PRD/DESIGN/AGENTS/HANDOFF,以及 `docs/planning/v0.2.4-interaction-deep-dive.md` 和 `docs/planning/handoff-prompt-for-coding-agent.md` 的版本路线。
 - 下一步:跑测试和构建确认 merge 后状态;若通过,提交并尝试推送。
+
+
+## v0.2.6 交接更新 —— FlyAI(飞猪)Skill 研究 + 项目级开发工具接入
+
+- 本轮版本:`v0.2.6`。不改产品运行时代码;新增一个开发工具向的项目级 Claude Code Skill。
+- 用户意图:研究 `https://github.com/alibaba-flyai/flyai-skill`(飞猪官方 Agent Skill),把它加入 VisePanda 项目,并说明可以在哪些现有功能里用上。
+- 已逐字核实(非猜测)的关键事实:
+  - flyai-cli 是通过 **MCP streamable_http 协议**连接飞猪官方托管服务的瘦客户端(npm 包 `@fly-ai/flyai-cli`,仅依赖 `commander`)。
+  - 已发布包内嵌阿里官方**默认试用凭证**(构建期写入),每次请求携带 `x-ff-ctx` **设备指纹头**(gzip+AES-256-GCM,用于风控反滥用)——这是共享试用额度,不是 VisePanda 专属配额。
+  - 没有任何公开文档描述面向第三方网站后端的**生产级 API 合作申请流程**(对比 Dianping 开放平台有明确注册审核路径)。
+- 判断结论:**这目前是开发者/Agent 工具,不是可直接嵌入生产后端的公开 API**。绕过官方渠道复用内嵌凭证违反其风控设计,且与我们对 Dianping/Meituan 的既定原则相悖(先官方申请、不逆向/爬取)。生产集成必须等飞猪官方合作确认。
+- 已落地(零风险,立即可用):将上游 `skills/flyai/`(SKILL.md + 8 份 references,MIT 许可)原文 vendor 进 `.claude/skills/flyai/`,附 `LICENSE-NOTICE.md` 说明使用边界——仅供开发阶段研究/内容生产(丰富 Explore/Tools 静态 fallback 内容、验证行程文案事实合理性、为未来真实 provider 设计数据模型参考样例 JSON),**禁止**任何生产代码调用。任何以后打开本仓库的 coding agent 会话都能直接用。
+- 已产出 `docs/planning/flyai-skill-integration.md`:含 8 子命令精确参数/输出字段表、逐项功能映射(Tools 地铁分类补齐城市间交通空白、Tools 签证/eSIM、Explore 住宿/景点补齐真实价格与预订链接、Chat 工具调用、Canvas Day 详情 stay/transport 字段)。
+- `docs/planning/mock-inventory.md` 新增第 23 项(真实预订数据),🔴,目标"飞猪官方合作确认后"。
+- **版本编号说明(重要)**:本轮为纯规划+开发工具轮,不消耗"Canvas 行动层"等实现轮编号。此前 v0.2.5 融合轮定的完整代码三轮(v0.2.6 Canvas 行动层 → v0.2.7 Chat 体验 → v0.2.8 设计系统)因本轮占用 v0.2.6,**再顺延一位为 v0.2.7 / v0.2.8 / v0.2.9**,任务内容不变。
+- 如需推进生产级飞猪合作:联系 `flyai@alibaba-inc.com` 或 `https://open.fly.ai/`,咨询第三方网站服务端 API 合作方案,不要复用 CLI 内嵌的共享试用凭证。本轮不需要任何 Vercel 环境变量配置。
+
+### 后三轮最新编号(供任何 coding agent 参考,以此为准)
+
+1. `v0.2.7` Canvas 行动层+画布交互:完成度纯函数、可点缺口、Day 快捷动作(带天数)、Change Digest 变更摘要卡、patch 演出、撤销、Before you fly 准备区(在现有 v0.2.5 readiness seed 基础上补全为完整 completion schema)。
+2. `v0.2.8` Chat 体验重塑+内联工具卡:MessageBlock 分块渲染、composer 规格、等待叙事、`ask_factual` <150ms 快通道、实体 chip 双向悬停联动。
+3. `v0.2.9` 设计系统收口+Tools 交互组件:token 层+组件库归一、Tools 三件套 widget(汇率换算/签证问答/支付向导)、移动 Chat sheet。
+
+交互验收标准仍以 `docs/planning/v0.2.4-interaction-deep-dive.md` 为准;交接提示词 `docs/planning/handoff-prompt-for-coding-agent.md` 需要在下一次编辑时同步这次的编号顺延(见 PLAN.md 待办)。

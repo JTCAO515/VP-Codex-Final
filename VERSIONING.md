@@ -4,7 +4,7 @@
 
 - Previous baseline: `v0.1.1`
 - Minor-series reset: `v0.2.1` (operator directive — all subsequent iterations use `0.2.x`)
-- Current iteration: `v0.2.5`
+- Current iteration: `v0.2.6`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -71,6 +71,7 @@
 - **v0.1.53**: documentation-only strategic planning pass. Elevates VisePanda from a general travel tool to a cohesive "China Travel Operating System" with detailed requirements for an Offline-First Travel Vault, Cultural Context Interpreter, Intelligent Payment Card Routing, Contextual Tool Promotion, and Bilingual Export and Print Kits. Adds ADR-060 through ADR-063. No code changes.
 - **v0.1.54**: Interaction Shell I code implementation. Adds Home FIT archetype starts, Chat `?archetype=` auto-send through the Butler pipeline, three first-run starter chips, a primary structured `nextStep` action card, and traveler-facing Trip Canvas title/status copy.
 - **v0.2.4**: 纯文档规划轮(不改代码)。前端 UI 与用户交互深化规格:新增 `docs/planning/v0.2.4-interaction-deep-dive.md`(交互设计哲学五判据、Chat↔Canvas 联动可见性设计——变更摘要卡/双向悬停/patch 演出/撤销、composer 与 MessageBlock 组件级规格、Day 卡与完成度条与出发准备区交互规格、字体/色彩使用细则、毫秒级动效参数总表、移动端手势与无障碍底线、三轮吸收方案);新增 `docs/planning/handoff-prompt-for-coding-agent.md`(可直接交给其他 coding agent 的自包含实现提示词)。当时规划的代码三轮为 v0.2.5/v0.2.6/v0.2.7,后在 v0.2.5 融合轮顺延为 v0.2.6/v0.2.7/v0.2.8。
+- **v0.2.6**: FlyAI(飞猪)Skill 研究与集成规划。逐字核实 `alibaba-flyai/flyai-skill` 上游仓库(SKILL.md + 8 份 references + 已发布 npm 包 `@fly-ai/flyai-cli` 源码),新增 `docs/planning/flyai-skill-integration.md`:技术画像(MCP streamable_http 协议、8 子命令精确参数/输出字段、构建期内嵌凭证 + 设备指纹反滥用机制)、CLI-vs-生产集成的架构现实判断(结论:开发者/Agent 工具,非可直接嵌入生产后端的公开 API,需飞猪官方合作方可生产集成,原则与 Dianping/Meituan 一致——先申请、不逆向)、与现有数据源(高德/大众点评)的互补关系、逐项功能映射表(Tools 地铁/签证/eSIM、Explore 住宿/景点、Chat 工具调用、Canvas Day 详情)。落地:将上游 `skills/flyai/` 原文(MIT 许可)vendor 进 `.claude/skills/flyai/`,作为项目级开发工具 Skill,供后续任何 coding agent 会话在开发阶段调用真实酒店/景点/机票/火车票数据做内容研究,不接入生产运行时。`mock-inventory.md` 新增第 23 项。三轮代码实现顺延为 v0.2.7/v0.2.8/v0.2.9。
 - **v0.2.5**: 规划融合 + FIT travel desk readiness seed。本轮合并远端 v0.2.4 深化规格与本地视觉规划/代码 seed,把 Trip Canvas readiness 初版、summary/readiness rail、Chat first-run starter state、Home launcher polish 纳入 `0.2.x` 主线;后续完整代码三轮顺延为 v0.2.6 Canvas 行动层、v0.2.7 Chat 体验+内联工具卡、v0.2.8 设计系统+Tools widgets。
 - **v0.2.3**: 纯文档规划轮(不改代码)。新增 `docs/planning/v0.2.3-ui-optimization-roadmap.md`:基于一站式 FIT 管家定位的宏观差距审计(10 项差距 G1–G10)、逐界面微观 UI 优化清单(Canvas/Chat/Tools/移动端/空错状态)、前端设计系统迭代规划(token 化 + 组件库首批 + 动效准则),以及后三轮执行承诺 —— v0.2.4 Canvas 行动层+画布 UI 升级、v0.2.5 对话体验重塑+内联工具卡、v0.2.6 设计系统收口+Tools 交互组件。另:项目记忆新增中文规则(思考/回答/汇报一律中文)。
 - **v0.2.2**: Chat core-loop fixes — reply latency, Chat↔Canvas sync, and auto-save. The orchestrator now races all candidate providers in parallel (first valid patch wins) instead of trying them sequentially, and each provider call has an 18s timeout, so a slow/misconfigured model can no longer stall the chat. The mock fallback is now destination-aware (extracts cities + day count from the message and generates a matching skeleton itinerary) so the Live Canvas always reflects the conversation even when live models are unavailable; the system prompt now requires live models to return the complete `days` array on any itinerary change. Every chat auto-saves to Trips for signed-in users and the manual "Save to Trips" button was removed. 105 tests pass; build succeeds.

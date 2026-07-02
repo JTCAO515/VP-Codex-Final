@@ -1,5 +1,19 @@
 # VisePanda Changelog
 
+## v0.2.6 - 2026-07-02
+
+**FlyAI(飞猪)Skill 研究与集成规划 + 项目级开发工具接入。** 不改产品运行时代码;新增一个开发工具向的 Claude Code Skill。
+
+- 逐字核实上游仓库 `alibaba-flyai/flyai-skill`(MIT):`SKILL.md`、8 份 `references/*.md` 子命令文档,以及已发布 npm 包 `@fly-ai/flyai-cli@1.0.16` 的 `package.json`/README 源码,拒绝任何未经证实的能力假设。
+- 新增 `docs/planning/flyai-skill-integration.md`:
+  - **技术画像**:确认 flyai-cli 是通过 MCP `streamable_http` 协议连接飞猪官方托管服务的瘦客户端;8 个子命令(`keyword-search`/`ai-search`/`search-flight`/`search-train`/`search-hotel`/`search-poi`/`search-marriott-hotel`/`search-marriott-package`)的精确参数与输出字段表;`keyword-search` 意图元数据额外覆盖签证/电话卡租赁/租车/邮轮,超出官方 README 首屏总结的"8 大能力"。
+  - **认证与隐私细节**:构建期内嵌阿里官方默认试用凭证 + 每请求携带 `x-ff-ctx` 设备指纹头(gzip+AES-256-GCM,用于风控反滥用)。
+  - **架构现实判断**:Vercel serverless 无法可靠内嵌 CLI 子进程调用(冷启动/进程管理);内嵌凭证是官方共享试用额度非专属配额,绕过官方渠道直接复用违反其风控设计且与 Dianping/Meituan 的既定"先官方申请、不逆向"原则相悖。结论:目前是开发者/Agent 工具,非可直接嵌入生产后端的公开 API。
+  - **逐项功能映射表**(用户要求):Tools 地铁分类(`search-flight`/`search-train` 补齐城市间交通空白)、Tools 签证/eSIM 分类(`keyword-search`)、Explore 住宿/景点列(`search-hotel`/`search-poi` 补齐真实价格与预订链接,精确对应既有 `ExploreRichMeta` 字段)、Chat 工具调用(`lib/ai/toolContext.ts` 未来新增工具函数)、Canvas Day 详情 `stay`/`transport` 字段(升级为真实可预订选项)。
+- **落地**:将上游 `skills/flyai/` 原文(SKILL.md + 8 份 references)vendor 进 `.claude/skills/flyai/`,附 `LICENSE-NOTICE.md` 说明来源与使用边界——仅供开发阶段研究/内容生产,禁止生产代码调用。任何打开本仓库的 coding agent 会话均可直接使用。
+- `docs/planning/mock-inventory.md` 新增第 23 项(真实预订数据),状态 🔴,目标"飞猪官方合作确认后"。
+- 版本编号:本轮为纯规划+开发工具轮,完整代码三轮(Canvas 行动层/Chat 体验/设计系统)再顺延一位为 **v0.2.7/v0.2.8/v0.2.9**。
+
 ## v0.2.5 - 2026-07-02
 
 **规划融合 + FIT travel desk readiness seed。** 本轮把远端 `v0.2.4` 交互深化规格与本地视觉规划/实现 seed 合并到同一条 `0.2.x` 主线,避免 `0.1.55` 本地 UI polish 与远端 `0.2.x` 规划分叉。

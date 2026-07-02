@@ -376,3 +376,12 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 - 当前 readiness 是 UI seed/派生展示,不是完整 completion schema。实现 v0.2.6 时必须补 `completeness` 纯函数、可点缺口、prep blockers、Change Digest、patch 演出和 undo,不能把 seed 当作完成项。
 - 后续三轮最新编号: `v0.2.6` Canvas 行动层+画布交互; `v0.2.7` Chat 体验重塑+内联工具卡; `v0.2.8` 设计系统收口+Tools 交互组件。
 - `docs/planning/handoff-prompt-for-coding-agent.md` 已按新编号更新;交给其他 agent 前仍需先让对方 `git fetch origin main` 检查并行更新。
+
+
+## v0.2.6 Agent 更新 —— FlyAI(飞猪)Skill 使用边界
+
+- `.claude/skills/flyai/`(vendor 自 `alibaba-flyai/flyai-skill`,MIT)是**仅供开发阶段使用**的研究工具,详见该目录下 `LICENSE-NOTICE.md`。
+- **禁止**在任何 `/api/*` 路由或 `lib/**/*.ts` 生产代码里调用 `flyai` CLI 或提取其内嵌的默认试用凭证发起请求——它是官方共享的开发者/Agent 试用额度,不是 VisePanda 的专属配额,绕过官方渠道复用会违反其风控设计。
+- 若要推进生产级飞猪合作,必须先联系飞猪官方获取正式的服务端合作方案(`flyai@alibaba-inc.com` / `https://open.fly.ai/`),不得逆向或爬取,原则与既有 Dianping/Meituan 指引一致。
+- 生产集成一旦获批,必须遵循既有 provider 抽象模式(参考 `lib/explore/amapProvider.ts`):新 provider 通过服务端路由代理、key 服务端环境变量、保留现有 AI 生成文案作为 fallback,不引入新架构范式。
+- **版本号提醒**:近几轮出现多次编号顺延(v0.2.4→5→6→7→8 反复变化),下一位 agent 开工前务必先跑 `grep '"version"' package.json` 与 `git log -5 --oneline` 核实真实状态,不要直接信任任何文档里写死的版本号。

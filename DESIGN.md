@@ -789,3 +789,12 @@ ADR-069: Chats auto-save; no manual Save button.
 - Summary/readiness/action rail 被保留为 Canvas 行动层的视觉基础。后续实现应扩展它,而不是另起一个并列的完成度模块。
 - 本地视觉 polish 与远端深潜规格冲突时,以远端 `docs/planning/v0.2.4-interaction-deep-dive.md` 的组件级规格为最终验收标准;本地 CSS seed 可作为参考,不视为设计系统最终形态。
 - 后续实现版本线统一为 v0.2.6/v0.2.7/v0.2.8,避免再使用过期的 v0.2.5/v0.2.6/v0.2.7 三轮编号。
+
+
+## v0.2.6 设计更新 —— FlyAI(飞猪)Skill 集成路径(纯规划)
+
+无新 ADR(遵循既有 Explore/Tools provider 抽象与 Dianping/Meituan 官方合作原则,未引入新架构决策)。关键判断:
+
+- flyai-cli 是 MCP `streamable_http` 协议的瘦客户端,底层由飞猪官方托管服务提供数据,不是一个有稳定公开 HTTP 端点文档的第三方 API;因此不能像 Amap/ExchangeRate-API 那样直接在 `/api/*` 路由里发 fetch 调用。
+- 若未来飞猪官方开放生产合作,集成方式应严格复用既有模式:新建 `lib/booking/fliggyProvider.ts`,通过服务端 `/api/booking/*` 路由代理,key 全服务端,provider 抽象层不变,静态/AI 生成文案作为 fallback 保留——与 Amap/Dianping 的既定 provider 模式完全一致,不引入新的架构范式。
+- 本轮唯一的仓库改动是新增 `.claude/skills/flyai/`(开发工具向的 Claude Code Skill,vendor 自上游 MIT 项目),不属于产品运行时代码,不影响任何现有 ADR 或组件契约。
