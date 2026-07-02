@@ -4,7 +4,7 @@
  
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）；v0.1.34 桌面横屏前端优化：Tools 6 个模态卡片 + 浮层对话框、Trips 筛选按钮布局修复（过滤器始终可见）、Translator 单页 2×2 网格布局（同时展示四个功能面板无需切换 tab）。
 - 当前分支：`main`
-- 当前版本：`v0.2.6`（版本序列 `0.2.x`）
+- 当前版本：`v0.2.7`（版本序列 `0.2.x`）
 - 重要（已完成）：
   - `supabase/migrations/0002_trip_archive_and_share.sql`：用户已手动在 Supabase SQL Editor 执行，归档/分享 RLS policy 已生效。
   - Google OAuth：用户已在 Google Cloud 创建 OAuth 凭据并在 Supabase Authentication → Providers → Google 填入，Google 登录功能已配置就绪。
@@ -638,3 +638,26 @@ Alternatives if Dianping approval is slow: (a) Amap enriched fields — already 
 3. `v0.2.9` 设计系统收口+Tools 交互组件:token 层+组件库归一、Tools 三件套 widget(汇率换算/签证问答/支付向导)、移动 Chat sheet。
 
 交互验收标准仍以 `docs/planning/v0.2.4-interaction-deep-dive.md` 为准;交接提示词 `docs/planning/handoff-prompt-for-coding-agent.md` 需要在下一次编辑时同步这次的编号顺延(见 PLAN.md 待办)。
+
+
+## v0.2.7 交接更新 —— Canvas 行动层(第一轮代码实现)
+
+- 本轮版本：`v0.2.7`。这是继 v0.2.2 核心环路修复之后的第一轮**真正的功能代码**迭代（v0.2.3–v0.2.6 都是纯文档规划轮）。
+- 交付内容：六维完成度（`lib/trips/completeness.ts`）、变更摘要卡 + diff（`lib/canvas/diffTripState.ts` + `ChangeDigestCard.tsx`）、Day 卡快捷动作（`lib/canvas/quickActions.ts`）、patch 演出动画（新增可重放动效 hook `lib/canvas/useReplayableAnimation.ts`）、撤销、出发准备区（`PrepChecklist.tsx`）。22 个新测试，全部 122 测试通过，构建成功。
+
+### 一个值得记录的架构决策偏离：Undo 为什么没有按规格文档走 AI 管道
+
+`docs/planning/v0.2.4-interaction-deep-dive.md` 原规格写的是"点击撤销发送预制意图 `Undo the last change...`，走既有 AI 管道；若 AI 通道失败，本地快照直接回滚"。实现时我判断这样做**不可靠**：LLM 在没有被喂入"撤销前的权威 TripState"作为上下文的情况下，无法可靠地精确重建出撤销前的行程——它只会即兴生成一个"看起来更宽松"但不是原样的版本，这不是真正的"撤销"，反而会让一个标着"撤销"的按钮做出不可预测的事。所以我把**本地确定性回滚**从"AI 失败时的兜底"提升为**唯一路径**：立即、可靠、零延迟地恢复上一份快照，并追加一条本地生成的确认消息（不调用 `/api/chat`）。这个决策已记录为 DESIGN.md ADR-070，并在 AGENTS.md 里更新了"仅允许 undo 本地直改"的例外条款说明。如果你认为应该严格按原规格走 AI 路径，这是可以讨论调整的一处已知偏离，不是疏漏。
+
+### 修复的架构缺陷（顺带发现，非本轮原计划）
+
+排查一个"摘要卡已出现但 Day 卡内容未同步"的时序竞态（只在特定并发测试场景下复现）时，定位到 `TripCanvas` 内部维护了一份通过 `useEffect` 从 `trip` prop 同步的 `editableTrip` 本地状态——这是 v0.1.43 抽屉从可编辑改为只读之前的历史遗留，早已没有存在必要，却引入了一次多余的渲染周期，是一处真实的、潜伏的正确性风险。已移除，`TripCanvas` 现在直接渲染 `trip` prop。
+
+### 下一步（按已确认的顺延编号）
+
+1. `v0.2.8` Chat 体验重塑 + 内联工具卡：MessageBlock 分块渲染、composer 规格、等待叙事、`ask_factual` <150ms 快通道、实体 chip 双向悬停联动。
+2. `v0.2.9` 设计系统收口 + Tools 交互组件：token 层 + 组件库归一、Tools 三件套 widget、移动 Chat sheet。
+
+### 操作者无需任何手动步骤
+
+本轮不需要新 API key、不需要 Vercel/Supabase 操作。

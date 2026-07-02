@@ -18,7 +18,7 @@
   (未配置时优雅降级 guest/mock)。
 - AI 层:`lib/ai/orchestrator.ts` 多模型并行竞速(DeepSeek/Qwen/GLM/Kimi),
   18s 超时,失败回落 `lib/mock-ai/mockButler.ts`(目的地感知 skeleton)。
-- 当前版本 v0.2.6;仓库根目录 `CLAUDE.md` 是项目记忆,先读它。版本号已多次因并行规划轮顺延,开工前务必先跑 `grep '"version"' package.json` 和 `git log -5 --oneline` 确认最新实际状态,不要直接信任本文档里写死的编号。
+- 当前版本 v0.2.7(v0.2.7「Canvas 行动层」已实现完成,下一轮从 v0.2.8 开始);仓库根目录 `CLAUDE.md` 是项目记忆,先读它。版本号已多次因并行规划轮顺延,开工前务必先跑 `grep '"version"' package.json` 和 `git log -5 --oneline` 确认最新实际状态,不要直接信任本文档里写死的编号。
 
 ## 二、必读文档(按顺序,都在 repo 里)
 

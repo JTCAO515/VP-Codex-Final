@@ -798,3 +798,37 @@ ADR-069: Chats auto-save; no manual Save button.
 - flyai-cli 是 MCP `streamable_http` 协议的瘦客户端,底层由飞猪官方托管服务提供数据,不是一个有稳定公开 HTTP 端点文档的第三方 API;因此不能像 Amap/ExchangeRate-API 那样直接在 `/api/*` 路由里发 fetch 调用。
 - 若未来飞猪官方开放生产合作,集成方式应严格复用既有模式:新建 `lib/booking/fliggyProvider.ts`,通过服务端 `/api/booking/*` 路由代理,key 全服务端,provider 抽象层不变,静态/AI 生成文案作为 fallback 保留——与 Amap/Dianping 的既定 provider 模式完全一致,不引入新的架构范式。
 - 本轮唯一的仓库改动是新增 `.claude/skills/flyai/`(开发工具向的 Claude Code Skill,vendor 自上游 MIT 项目),不属于产品运行时代码,不影响任何现有 ADR 或组件契约。
+
+
+## v0.2.7 Design Update - Canvas Action Layer (implemented)
+
+First code round of the v0.2.4 interaction deep-dive spec, on top of the v0.2.5 readiness seed.
+
+```
+Day-card quick action click
+  -> buildQuickActionMessage(kind, day)          // lib/canvas/quickActions.ts, always includes day number + city
+  -> onSend(message)                              // existing handleSend -> /api/chat -> CanvasPatch pipeline
+  -> applyPatchAndDigest(patch)                    // ButlerWorkspace: snapshots previous trip, applies patch,
+                                                    //   computes diffTripState(previous, next), attaches digest
+                                                    //   to the new assistant ChatMessage
+  -> ChangeDigestCard renders under that reply     // click an entry -> highlightSignal bump -> TripCanvas scrolls
+                                                    //   + DayCard replays its pulse animation (useReplayableAnimation)
+  -> Undo button on the digest -> local deterministic restore from undoSnapshotRef (see ADR-070)
+```
+
+- `lib/trips/completeness.ts` replaces the inline 5-check `getTripReadiness` that lived in `TripSummary.tsx` with a proper six-dimension pure function (route/stay/food/transport/payment/visa). Payment/visa completeness is defined as "no outstanding (not-done) alert of that type" — vacuously complete when no such alert exists at all.
+- `lib/canvas/diffTripState.ts` is a pure day-level (added/revised/removed, content-hash comparison excluding `status`) + alert-level (new alert) diff. Returns `[]` when nothing changed, so the Change Digest card correctly does not render for pure Q&A turns.
+- `lib/canvas/useReplayableAnimation.ts` implements the standard "remove class, force reflow, re-add class" technique so a CSS pulse animation can be replayed on an element whose key (and therefore DOM identity) does not change between two consecutive "revised" patches — a naive class-name toggle would not restart the animation on a second consecutive revision.
+- `ButlerAlert.done?: boolean` (optional, backwards compatible) is the only new field on the existing `TripState` contract this round.
+
+ADR-070: Undo is a local deterministic restore, not an AI-mediated round trip.
+
+- Background: the v0.2.4 interaction deep-dive spec (section 1.4) called for Undo to send a prefab "Undo the last change and restore the previous itinerary" message through the normal AI pipeline, falling back to a local snapshot only if that AI call failed.
+- Decision: implement Undo as a local, deterministic restore from a single-slot `undoSnapshotRef` as the *only* path (not a fallback). No `/api/chat` call is made; a plain confirmation message is appended locally.
+- Reason: the AI pipeline as currently wired sends the *current* (already-patched) `trip` as context, not the state *before* the patch — the model has no authoritative reference to reconstruct exactly. Asking an LLM to "undo" without feeding it the exact prior state produces a plausible-but-different itinerary, not a true undo, which would make a button labeled "Undo" behave unpredictably. A deterministic local restore is strictly more correct, is instant, and is squarely within the spirit of the existing "quick actions must go through the AI pipeine, undo may bypass it" exception already documented in AGENTS.md — this decision makes local restore the primary path instead of a secondary fallback, since routing it through the AI first would only add latency and unreliability for no benefit.
+
+ADR-071: Remove `TripCanvas`'s local `editableTrip` buffer; render the `trip` prop directly.
+
+- Background: `TripCanvas` kept a local `editableTrip` state synced from the `trip` prop via a `useEffect`, dating from the pre-v0.1.43 era when the day drawer was locally editable. The drawer has been read-only since v0.1.43, so nothing writes to `editableTrip` except that sync effect — it was vestigial.
+- Decision: remove `editableTrip`/`setEditableTrip` entirely; render `trip` directly throughout `TripCanvas`.
+- Reason: the two-pass update (prop change commits once, then the sync effect fires and schedules a second commit with the synced copy) created a real timing gap between state that updates directly from props (like `ChatPanel`'s Change Digest, driven by `ButlerWorkspace`'s `messages` state) and state that goes through this extra buffered hop. Under load this gap was observable as the Change Digest card appearing before the corresponding Day card content had visibly updated — a genuine latent correctness risk, not just a test-environment artifact. Removing the redundant buffer removes the risk at its root instead of papering over a symptom.

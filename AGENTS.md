@@ -385,3 +385,13 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 - 若要推进生产级飞猪合作,必须先联系飞猪官方获取正式的服务端合作方案(`flyai@alibaba-inc.com` / `https://open.fly.ai/`),不得逆向或爬取,原则与既有 Dianping/Meituan 指引一致。
 - 生产集成一旦获批,必须遵循既有 provider 抽象模式(参考 `lib/explore/amapProvider.ts`):新 provider 通过服务端路由代理、key 服务端环境变量、保留现有 AI 生成文案作为 fallback,不引入新架构范式。
 - **版本号提醒**:近几轮出现多次编号顺延(v0.2.4→5→6→7→8 反复变化),下一位 agent 开工前务必先跑 `grep '"version"' package.json` 与 `git log -5 --oneline` 核实真实状态,不要直接信任任何文档里写死的版本号。
+
+
+## v0.2.7 Agent Update - Canvas Action Layer Rules (implemented)
+
+- Day-card quick actions, Change Digest entry clicks, and the prep checklist toggle are the only local-state interactions on the canvas. Quick actions and any future canvas controls that change itinerary *content* MUST send a message through the normal `handleSend` -> `/api/chat` -> `CanvasPatch` -> `applyCanvasPatch` pipeline via `lib/canvas/quickActions.ts`-style prefab message builders — never mutate `TripState.days` directly.
+- Two — and only two — exceptions are allowed to bypass the AI pipeline for direct local `TripState` mutation, both because they are not itinerary *content* changes: (1) Undo (`ButlerWorkspace.handleUndo`, restores a snapshot — see ADR-070), and (2) `ButlerAlert.done` toggling in the "Before you fly" prep checklist (operational bookkeeping, not itinerary content — see ADR notes). Do not add a third without updating this list and getting sign-off, and do not let either of these two touch `days`/`summary` route content.
+- `lib/trips/completeness.ts` and `lib/canvas/diffTripState.ts` must stay pure functions with no side effects — this is what makes them cheaply unit-testable and safe to call on every render. When editing them, keep `tests/completeness.test.ts` / `tests/diffTripState.test.ts` green.
+- `TripCanvas` renders the `trip` prop directly — do not reintroduce a locally-buffered copy synced via `useEffect` (see ADR-071). If a future feature genuinely needs local-only draft state that diverges from the prop, treat that as a deliberate, documented exception, not a default pattern.
+- Animation replay: any future canvas element that needs its CSS animation to restart on repeated identical-looking triggers should use `lib/canvas/useReplayableAnimation.ts`, not a key-remount trick (remounting loses scroll-ref identity and any other local DOM state) and not a bare class toggle (does not reliably restart a CSS animation when the class name does not actually change).
+- `Element.prototype.scrollIntoView` is polyfilled as a no-op in `tests/setup.ts` for jsdom; production code that calls it should still guard with `typeof element?.scrollIntoView === "function"` since not every runtime implements it.

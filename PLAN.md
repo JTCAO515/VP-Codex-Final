@@ -582,3 +582,21 @@ Next three planned iterations:
 
 - [ ] 同步更新 `docs/planning/handoff-prompt-for-coding-agent.md` 里的版本号引用(目前写的是 v0.2.5/6/7,需改为 v0.2.7/8/9),避免交给外部 agent 时编号过期。
 - [ ] `v0.2.7` Canvas 行动层+画布交互:在现有 readiness seed(`TripSummary` 派生展示)上补全完整六维 `completeness` 纯函数、Day 快捷动作(带天数)、`diffTripState` + Change Digest 摘要卡、patch 演出动画、撤销、Before you fly 准备区。
+
+
+## v0.2.7 附录 —— Canvas 行动层(第一轮代码实现,已完成)
+
+- [x] `lib/trips/completeness.ts`:六维完成度纯函数(route/stay/food/transport/payment/visa)。
+- [x] `lib/canvas/diffTripState.ts`:day 级(added/revised/removed)+ alert 级 diff 纯函数。
+- [x] `lib/canvas/quickActions.ts` + `DayCard.tsx`:Day 卡快捷动作(Lighten/Add food/Swap morning/Add rest),预制消息带天数+城市,走既有 AI 管道。
+- [x] `components/canvas/ChangeDigestCard.tsx`:变更摘要卡,渲染在助手回复末尾,点击条目画布定位+高亮,无变化不渲染。
+- [x] `lib/canvas/useReplayableAnimation.ts` + patch 演出 CSS:新卡淡入、revised 卡可重放金色脉冲、自动滚动到首个变更 Day。
+- [x] 撤销(Undo):本地确定性回滚(非走 AI 管道,ADR-070,见 DESIGN.md/HANDOFF.md 详细论证)。
+- [x] `components/canvas/PrepChecklist.tsx`(Before you fly):`ButlerAlert.done?` 可选字段,本地勾选更新完成度。
+- [x] 修复架构缺陷:移除 `TripCanvas` 内冗余的 `editableTrip` 本地缓冲状态(v0.1.43 只读化后的历史遗留),直接渲染 `trip` prop,消除一处渲染时序竞态风险。
+- [x] 新增 22 个测试(`completeness`/`diffTripState`/`quickActions`/`canvas-action-layer` 集成测试),更新 `canvas-components.test.tsx` 匹配六维模型;全部 122 测试通过,构建成功。
+
+下一步:
+
+- [ ] `v0.2.8` Chat 体验重塑 + 内联工具卡:MessageBlock 分块渲染、composer 规格、等待叙事、`ask_factual` <150ms 快通道、实体 chip 双向悬停联动。**注意**:操作者已提供 Chat 视觉设计稿(高保真 mockup),v0.2.8 范围可能需要按设计稿扩展或调整(见对应会话记录/HANDOFF)。
+- [ ] `v0.2.9` 设计系统收口 + Tools 交互组件。

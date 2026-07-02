@@ -1,5 +1,23 @@
 # VisePanda Changelog
 
+## v0.2.7 - 2026-07-02
+
+**Canvas 行动层 —— 第一轮代码实现。** 让行程从"能看"变成"能指挥"。
+
+### 新增功能
+- **六维完成度**(`lib/trips/completeness.ts`,纯函数):route/stay/food/transport/payment/visa,payment/visa 维度基于「是否存在未勾选的对应类型 alert」判定,无该类型 alert 时视为完成(vacuous)。`TripSummary` 的进度条改用该函数,替换原先内联的 5 维实现。
+- **变更摘要卡**(`lib/canvas/diffTripState.ts` + `components/canvas/ChangeDigestCard.tsx`):day 级(added/revised/removed)+ alert 级(alert)diff,渲染在对应助手回复末尾;无实质变化时不渲染。点击条目 → 画布滚动定位 + 目标 Day 卡金色脉冲高亮。
+- **Day 卡快捷动作**(`lib/canvas/quickActions.ts` + `DayCard.tsx`):Lighten / Add food / Swap morning / Add rest,预制自然语言消息**始终包含天数与城市**,通过既有 `handleSend` → `/api/chat` → `CanvasPatch` 管道发送,不直接改画布。
+- **Patch 演出动画**:新增 Day(`data-status="new"`)纯 CSS 淡入上滑;修改 Day(`data-status="revised"`)通过可重放动效 hook(`lib/canvas/useReplayableAnimation.ts`,remove-reflow-readd 技术)播放金色脉冲,支持同一天连续两次修改都能正确重放。画布在 patch 落地后自动滚动到第一个变更 Day。
+- **撤销(Undo)**:`ChangeDigestCard` 上的撤销按钮触发**本地确定性回滚**(恢复上一份 `TripState` 快照),而非路由给 AI——见下方 ADR-070,这是一处经过论证的、对规格文档的刻意偏离。
+- **出发准备区**(`components/canvas/PrepChecklist.tsx`,"Before you fly"):聚合 `trip.alerts` 为可勾选清单;`ButlerAlert` 新增可选 `done?: boolean` 字段(向后兼容);勾选为本地操作性状态变更,不路由给 AI(理由见 AGENTS.md)。
+
+### 修复的架构缺陷
+- 排查一个仅在特定并发/高负载测试场景下复现的"摘要卡已出现但 Day 卡内容未同步"竞态时,定位到 `TripCanvas` 内部维护了一份通过 `useEffect` 从 `trip` prop 同步的 `editableTrip` 本地状态——这是 v0.1.43 抽屉从可编辑改为只读之前遗留的历史包袱,早已没有存在的必要,却引入了一次多余的渲染周期。已移除该缓冲状态,`TripCanvas` 现在直接渲染 `trip` prop。这不只是修了一个测试问题,是移除了一处真实的、潜伏的正确性风险。
+
+### 测试
+- 新增 `tests/completeness.test.ts`、`tests/diffTripState.test.ts`、`tests/quickActions.test.ts`(纯函数单测)与 `tests/canvas-action-layer.test.tsx`(端到端交互:快捷动作发消息→摘要卡渲染→点击定位滚动→撤销回滚→准备区勾选联动完成度)。更新 `tests/canvas-components.test.tsx` 以匹配六维模型的新分数与新标签;`tests/setup.ts` 新增 jsdom `scrollIntoView` polyfill。全部 122 测试通过,`npm run build` 成功。
+
 ## v0.2.6 - 2026-07-02
 
 **FlyAI(飞猪)Skill 研究与集成规划 + 项目级开发工具接入。** 不改产品运行时代码;新增一个开发工具向的 Claude Code Skill。

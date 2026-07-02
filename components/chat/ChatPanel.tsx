@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
+import { ChangeDigestCard } from "@/components/canvas/ChangeDigestCard";
 import type { ChatMessage } from "@/lib/types/trip";
 
 interface ChatPanelProps {
@@ -10,9 +11,21 @@ interface ChatPanelProps {
   suggestions: string[];
   profileChips?: string[];
   busy?: boolean;
+  onSelectDay?: (dayNumber: number) => void;
+  onUndo?: () => void;
+  undoMessageId?: string;
 }
 
-export function ChatPanel({ messages, onSend, suggestions, profileChips = [], busy = false }: ChatPanelProps) {
+export function ChatPanel({
+  messages,
+  onSend,
+  suggestions,
+  profileChips = [],
+  busy = false,
+  onSelectDay,
+  onUndo,
+  undoMessageId,
+}: ChatPanelProps) {
   const [draft, setDraft] = useState("");
   const latestNextStep = [...messages].reverse().find((message) => message.role === "assistant" && message.response?.nextStep)?.response?.nextStep;
   const promptLabel = messages.length === 0 ? "First trip starts" : "Suggested prompts";
@@ -83,6 +96,13 @@ export function ChatPanel({ messages, onSend, suggestions, profileChips = [], bu
             ) : (
               <p>{message.content}</p>
             )}
+            {message.role === "assistant" && message.changeDigest?.length ? (
+              <ChangeDigestCard
+                entries={message.changeDigest}
+                onSelectDay={onSelectDay}
+                onUndo={message.id === undoMessageId ? onUndo : undefined}
+              />
+            ) : null}
           </article>
         ))}
       </div>

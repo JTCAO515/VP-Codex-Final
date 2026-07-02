@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { calculateTripCompleteness } from "@/lib/trips/completeness";
 import type { TripState } from "@/lib/types/trip";
 
 const confidenceLabels: Record<string, string> = {
@@ -8,26 +9,10 @@ const confidenceLabels: Record<string, string> = {
   "Ready to save": "Travel-ready",
 };
 
-function getTripReadiness(trip: TripState) {
-  const checks = [
-    { label: "Route", complete: trip.summary.destinations.length > 0 },
-    { label: "Daily plan", complete: trip.days.length > 0 && trip.days.every((day) => day.blocks.length >= 3) },
-    { label: "Stay area", complete: trip.days.length > 0 && trip.days.every((day) => Boolean(day.stay?.trim())) },
-    { label: "Transport", complete: trip.days.length > 0 && trip.days.every((day) => Boolean(day.transport?.trim())) },
-    { label: "Travel-ready", complete: ["Refined", "Ready", "Ready to save"].includes(trip.summary.confidence) },
-  ];
-  const completeCount = checks.filter((check) => check.complete).length;
-
-  return {
-    checks,
-    score: Math.round((completeCount / checks.length) * 100),
-  };
-}
-
 export function TripSummary({ trip, actions }: { trip: TripState; actions?: ReactNode }) {
   const route = trip.summary.destinations.join(" -> ");
   const confidenceLabel = confidenceLabels[trip.summary.confidence] ?? trip.summary.confidence;
-  const readiness = getTripReadiness(trip);
+  const readiness = calculateTripCompleteness(trip);
 
   return (
     <header className="trip-summary">

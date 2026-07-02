@@ -3,14 +3,16 @@
 import type { Session } from "@supabase/supabase-js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChatPanel } from "@/components/chat/ChatPanel";
-import { TripCanvas } from "@/components/canvas/TripCanvas";
+import { TripCanvas, type HighlightSignal } from "@/components/canvas/TripCanvas";
 import { preferenceProfileSummary, updatePreferenceProfile, type UserPreferenceProfile } from "@/lib/ai/preferenceProfile";
 import { applyCanvasPatch } from "@/lib/canvas/applyCanvasPatch";
 import { getTripArchetype, TRIP_ARCHETYPES } from "@/lib/chat/archetypes";
+import { diffTripState } from "@/lib/canvas/diffTripState";
+import type { QuickActionKind } from "@/lib/canvas/quickActions";
 import { createMockButlerPatch, initialTripState } from "@/lib/mock-ai/mockButler";
 import { appendMessage, loadTripWithCanvas, saveTripCanvas } from "@/lib/supabase/tripsRepository";
 import { useSupabaseSession } from "@/lib/supabase/useSupabaseSession";
-import type { ChatMessage, TripState } from "@/lib/types/trip";
+import type { ButlerAlert, ChatMessage, TripState } from "@/lib/types/trip";
 
 const GUEST_DRAFT_KEY = "visepanda:guest-draft";
 const PREFERENCE_PROFILE_KEY = "visepanda:preference-profile";
@@ -23,12 +25,18 @@ interface GuestDraft {
 
 const initialSuggestions = TRIP_ARCHETYPES.map((archetype) => archetype.title);
 
-function createMessage(role: ChatMessage["role"], content: string, response?: ChatMessage["response"]): ChatMessage {
+function createMessage(
+  role: ChatMessage["role"],
+  content: string,
+  response?: ChatMessage["response"],
+  changeDigest?: ChatMessage["changeDigest"],
+): ChatMessage {
   return {
     id: `${role}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
     role,
     content,
     response,
+    changeDigest,
   };
 }
 
@@ -49,12 +57,19 @@ export function ButlerWorkspace() {
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
   const [tripId, setTripId] = useState<string | null>(null);
+  const [highlightSignal, setHighlightSignal] = useState<HighlightSignal | null>(null);
+  const [undoMessageId, setUndoMessageId] = useState<string | undefined>(undefined);
   const persistedMessageCount = useRef(0);
   const lastAutoSavedCount = useRef(0);
   const hasLoadedDraftRef = useRef(false);
   const hasAppliedAddRef = useRef(false);
   const hasAppliedArchetypeRef = useRef(false);
   const previousSessionRef = useRef<Session | null>(null);
+  // Single-slot snapshot of the trip as it was immediately before the most
+  // recent applied patch, so Undo can deterministically restore it. See
+  // ADR-070 (DESIGN.md v0.2.7) for why undo is a local restore rather than an
+  // AI-mediated round trip.
+  const undoSnapshotRef = useRef<TripState | null>(null);
 
   const statusText = useMemo(() => status, [status]);
 
@@ -216,6 +231,19 @@ export function ButlerWorkspace() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages, session, configured, loading, busy, saving]);
 
+  function applyPatchAndDigest(patch: Parameters<typeof applyCanvasPatch>[1], response?: ChatMessage["response"]) {
+    const previousTrip = trip;
+    const nextTrip = applyCanvasPatch(previousTrip, patch);
+    const digest = diffTripState(previousTrip, nextTrip);
+
+    undoSnapshotRef.current = previousTrip;
+    setTrip(nextTrip);
+    const assistantMessage = createMessage("assistant", patch.assistantMessage, response, digest.length ? digest : undefined);
+    setMessages((current) => [...current, assistantMessage]);
+    if (digest.length > 0) setUndoMessageId(assistantMessage.id);
+    return nextTrip;
+  }
+
   async function handleSend(message: string) {
     setBusy(true);
     const nextPreferenceProfile = updatePreferenceProfile(preferenceProfile, message);
@@ -231,7 +259,6 @@ export function ButlerWorkspace() {
       });
       const body = await response.json();
       const patch = body?.patch ?? createMockButlerPatch(message, trip);
-      const nextTrip = applyCanvasPatch(trip, patch);
       const modeNote =
         typeof body?.modelLabel === "string" && body.modelLabel
           ? body.modelLabel
@@ -239,16 +266,12 @@ export function ButlerWorkspace() {
             ? "mock fallback"
             : (body?.mode ?? "mock fallback");
 
-      setTrip(nextTrip);
-      setMessages((current) => [...current, createMessage("assistant", patch.assistantMessage, patch.assistantResponse)]);
+      applyPatchAndDigest(patch, patch.assistantResponse);
       setSuggestions(Array.isArray(body?.suggestions) ? body.suggestions.slice(0, 2) : initialSuggestions.slice(0, 2));
       setStatus(`VisePanda updated the canvas with ${modeNote}: ${patch.reason}`);
     } catch {
       const patch = createMockButlerPatch(message, trip);
-      const nextTrip = applyCanvasPatch(trip, patch);
-
-      setTrip(nextTrip);
-      setMessages((current) => [...current, createMessage("assistant", patch.assistantMessage)]);
+      applyPatchAndDigest(patch);
       setSuggestions(["Can you make one day lighter?", "What should we book first?"]);
       setStatus(`VisePanda updated the canvas with mock fallback: ${patch.reason}`);
     } finally {
@@ -256,18 +279,68 @@ export function ButlerWorkspace() {
     }
   }
 
+  function handleQuickAction(message: string, _kind: QuickActionKind) {
+    void handleSend(message);
+  }
+
+  function handleSelectDay(dayNumber: number) {
+    setHighlightSignal((current) => ({ dayNumber, nonce: (current?.nonce ?? 0) + 1 }));
+  }
+
+  // Undo is a deterministic local restore, not an AI round trip: asking a
+  // model to "undo the last change" without feeding it the authoritative
+  // prior TripState as context cannot reliably reconstruct the exact prior
+  // itinerary (models improvise a plausible-but-different result instead of
+  // restoring it). A local restore is instant and always correct. See
+  // ADR-070 (DESIGN.md v0.2.7).
+  function handleUndo() {
+    const previousTrip = undoSnapshotRef.current;
+    if (!previousTrip) return;
+    setTrip(previousTrip);
+    setMessages((current) => [
+      ...current,
+      createMessage("assistant", "Reverted to the previous version of your itinerary."),
+    ]);
+    undoSnapshotRef.current = null;
+    setUndoMessageId(undefined);
+    setStatus("Reverted the last change.");
+  }
+
+  // Prep-checklist toggles are operational bookkeeping (did the traveler
+  // finish this task?), not itinerary content, so they update TripState
+  // directly instead of going through the AI pipeline. See AGENTS.md v0.2.7.
+  function handleToggleAlertDone(alert: ButlerAlert) {
+    setTrip((current) => ({
+      ...current,
+      alerts: current.alerts.map((existing) =>
+        existing.type === alert.type && existing.title === alert.title
+          ? { ...existing, done: !existing.done }
+          : existing,
+      ),
+    }));
+  }
+
   return (
     <section className="butler-workspace" aria-label="VisePanda AI Butler workspace">
       <div className="butler-workspace__canvas">
-        <TripCanvas trip={trip} />
+        <TripCanvas
+          busy={busy}
+          highlightSignal={highlightSignal}
+          onQuickAction={handleQuickAction}
+          onToggleAlertDone={handleToggleAlertDone}
+          trip={trip}
+        />
       </div>
       <div className="butler-workspace__chat">
         <ChatPanel
           messages={messages}
+          onSelectDay={handleSelectDay}
           onSend={handleSend}
+          onUndo={handleUndo}
           busy={busy}
           suggestions={suggestions}
           profileChips={preferenceProfileSummary(preferenceProfile)}
+          undoMessageId={undoMessageId}
         />
         <p className="workspace-status" role="status" aria-live="polite">
           {statusText}

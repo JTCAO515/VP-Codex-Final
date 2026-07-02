@@ -1,9 +1,19 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import type { TripBlock, TripDay } from "@/lib/types/trip";
+import { DAY_QUICK_ACTIONS, buildQuickActionMessage, type QuickActionKind } from "@/lib/canvas/quickActions";
+import { useReplayableAnimation } from "@/lib/canvas/useReplayableAnimation";
 
 interface DayCardProps {
   day: TripDay;
   isSelected: boolean;
   onSelect: () => void;
+  onQuickAction?: (message: string, kind: QuickActionKind) => void;
+  /** Bumped by the parent (any change, including repeats) to replay the pulse animation, e.g. when a Change Digest entry for this day is clicked. */
+  highlightNonce?: number;
+  busy?: boolean;
+  registerRef?: (day: number, element: HTMLElement | null) => void;
 }
 
 const timeSlots: TripBlock["time"][] = ["Morning", "Afternoon", "Evening"];
@@ -18,11 +28,38 @@ function getBlockForTime(day: TripDay, time: TripBlock["time"]) {
   );
 }
 
-export function DayCard({ day, isSelected, onSelect }: DayCardProps) {
+export function DayCard({ day, isSelected, onSelect, onQuickAction, highlightNonce, busy, registerRef }: DayCardProps) {
   const blocks = timeSlots.map((time) => getBlockForTime(day, time));
+  const [pulseTrigger, setPulseTrigger] = useState(0);
+  const previousContentKeyRef = useRef<string>("");
+
+  // Replay the gold pulse whenever this day is freshly marked "revised" by an
+  // AI patch (identity/content-based, so two consecutive revisions both pulse).
+  useEffect(() => {
+    const contentKey = JSON.stringify({ status: day.status, blocks: day.blocks, stay: day.stay, transport: day.transport });
+    if (day.status === "revised" && contentKey !== previousContentKeyRef.current) {
+      setPulseTrigger((n) => n + 1);
+    }
+    previousContentKeyRef.current = contentKey;
+  }, [day]);
+
+  // Replay the pulse when the parent asks for a Change-Digest-click highlight.
+  useEffect(() => {
+    if (highlightNonce) setPulseTrigger((n) => n + 1);
+  }, [highlightNonce]);
+
+  const pulseRef = useReplayableAnimation<HTMLElement>(pulseTrigger, "day-card--pulse");
 
   return (
-    <article className="day-card" data-selected={isSelected ? "true" : "false"} data-status={day.status ?? "stable"}>
+    <article
+      className="day-card"
+      data-selected={isSelected ? "true" : "false"}
+      data-status={day.status ?? "stable"}
+      ref={(element) => {
+        pulseRef.current = element;
+        registerRef?.(day.day, element);
+      }}
+    >
       <div className="day-card__marker" aria-hidden="true">
         <span>Day</span>
         <strong>{day.day}</strong>
@@ -61,6 +98,20 @@ export function DayCard({ day, isSelected, onSelect }: DayCardProps) {
           Notes
         </button>
       </div>
+      {onQuickAction ? (
+        <div className="day-card__quick-actions" aria-label={`Day ${day.day} quick actions`}>
+          {DAY_QUICK_ACTIONS.map((action) => (
+            <button
+              disabled={busy}
+              key={action.kind}
+              onClick={() => onQuickAction(buildQuickActionMessage(action.kind, day), action.kind)}
+              type="button"
+            >
+              {action.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
       <button
         aria-expanded={isSelected}
         aria-haspopup="dialog"

@@ -34,6 +34,12 @@ export interface ButlerAlert {
   title: string;
   body: string;
   action: string;
+  /**
+   * Operational checklist state (e.g. "Before you fly" prep list), not
+   * itinerary content. Toggling this is a local UI action and does not need
+   * to route through the AI pipeline — see AGENTS.md v0.2.7 note.
+   */
+  done?: boolean;
 }
 
 export interface TripSummary {
@@ -70,9 +76,18 @@ export interface AssistantResponse {
   nextStep: string;
 }
 
+/** One line item in the post-patch "Change Digest" card (see diffTripState). */
+export interface ChangeDigestEntry {
+  kind: "added" | "revised" | "removed" | "alert";
+  dayNumber?: number;
+  label: string;
+}
+
 export interface ChatMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
   response?: AssistantResponse;
+  /** Present only on assistant messages that actually changed the canvas. */
+  changeDigest?: ChangeDigestEntry[];
 }

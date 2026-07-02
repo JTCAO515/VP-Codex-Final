@@ -39,6 +39,14 @@ Object.defineProperty(globalThis, "localStorage", {
   value: localStorageMock,
 });
 
+// jsdom does not implement layout, so Element.prototype.scrollIntoView is
+// undefined by default. Components that scroll changed content into view
+// (v0.2.7 Canvas Action Layer patch reveal) call it defensively, but tests
+// still need a callable stub so those effects don't throw.
+if (typeof Element !== "undefined" && !Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = function scrollIntoView() {};
+}
+
 afterEach(() => {
   cleanup();
   localStorageMock.clear();

@@ -10,9 +10,13 @@ describe("TripCanvas", () => {
     expect(screen.getByLabelText(/live trip canvas/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "China Trip Draft", level: 1 })).toBeInTheDocument();
     expect(screen.getByText("Taking shape")).toBeInTheDocument();
-    expect(screen.getByLabelText(/trip readiness/i)).toHaveTextContent("80%");
+    // Six-dimension completeness (route/stay/food/transport/payment/visa): the
+    // mock initial trip has an unresolved payment alert and no visa alert, so
+    // 5 of 6 dimensions are complete (payment is the outstanding one).
+    expect(screen.getByLabelText(/trip readiness/i)).toHaveTextContent("83%");
     expect(screen.getByText("Route")).toBeInTheDocument();
-    expect(screen.getByText("Travel-ready")).toBeInTheDocument();
+    expect(screen.getByText("Payment")).toBeInTheDocument();
+    expect(screen.getByText("Visa")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /view details for day 1/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /view details for day 2/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /view details for day 3/i })).toBeInTheDocument();
@@ -21,7 +25,11 @@ describe("TripCanvas", () => {
     expect(screen.getAllByText(/^Afternoon$/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/^Evening$/i).length).toBeGreaterThan(0);
     expect(screen.queryByText("Butler reminders")).not.toBeInTheDocument();
-    expect(screen.queryByText("Visa")).not.toBeInTheDocument();
+    // Guards against the removed top-of-canvas five-task-card strip
+    // (CanvasTaskStrip) reappearing. "Visa" now legitimately appears as a
+    // completeness-checklist label (see assertion above), so this checks the
+    // strip's own aria-label instead of a bare text match.
+    expect(screen.queryByLabelText(/butler planning tasks/i)).not.toBeInTheDocument();
   });
 
   it("maps canvas confidence into traveler-facing status copy", () => {
