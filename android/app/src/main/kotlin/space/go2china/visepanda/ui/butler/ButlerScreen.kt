@@ -2,8 +2,6 @@ package space.go2china.visepanda.ui.butler
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -128,7 +127,6 @@ private fun ButlerHeader(state: ButlerUiState) {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun EmptyButlerPrompt(onSuggestion: (String) -> Unit) {
     Card(
@@ -147,11 +145,11 @@ private fun EmptyButlerPrompt(onSuggestion: (String) -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(modifier = Modifier.height(Dimens.SpaceMD))
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(Dimens.SpaceSM),
-                verticalArrangement = Arrangement.spacedBy(Dimens.SpaceSM),
-            ) {
-                ButlerUiState.DEFAULT_SUGGESTIONS.forEach { suggestion ->
+            // v0.3.11: a horizontally-scrollable single row instead of a
+            // wrapping FlowRow — operator feedback was that suggestion chips
+            // took up too much vertical space (DESIGN.md ADR-115).
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(Dimens.SpaceSM)) {
+                items(ButlerUiState.DEFAULT_SUGGESTIONS) { suggestion ->
                     AssistChip(
                         onClick = { onSuggestion(suggestion) },
                         label = { Text(suggestion) },
@@ -224,7 +222,6 @@ private fun MessageBubble(message: ButlerChatMessage) {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ButlerComposer(
     state: ButlerUiState,
@@ -256,42 +253,55 @@ private fun ButlerComposer(
                 )
                 Spacer(modifier = Modifier.height(Dimens.SpaceSM))
             }
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(Dimens.SpaceSM),
-                verticalArrangement = Arrangement.spacedBy(Dimens.SpaceSM),
-            ) {
-                state.suggestions.take(3).forEach { suggestion ->
-                    AssistChip(
-                        onClick = { onSuggestion(suggestion) },
-                        label = { Text(suggestion) },
-                    )
+            // v0.3.11: a horizontally-scrollable single row instead of a
+            // wrapping FlowRow — operator feedback was that the suggestion
+            // row took up too large a share of the composer, crowding out
+            // the input box (DESIGN.md ADR-115).
+            if (state.suggestions.isNotEmpty()) {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(Dimens.SpaceSM)) {
+                    items(state.suggestions.take(5)) { suggestion ->
+                        AssistChip(
+                            onClick = { onSuggestion(suggestion) },
+                            label = { Text(suggestion) },
+                        )
+                    }
                 }
+                Spacer(modifier = Modifier.height(Dimens.SpaceSM))
             }
-            Spacer(modifier = Modifier.height(Dimens.SpaceMD))
             Row(
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.spacedBy(Dimens.SpaceSM),
             ) {
+                // Camera/Mic move inside the text field as leading/trailing
+                // icons (still visual-only placeholders — see the point-of-use
+                // permission note below) instead of separate Row siblings, so
+                // the input box itself gets the row's remaining width instead
+                // of splitting it three ways with two icon buttons.
                 OutlinedTextField(
                     value = state.input,
                     onValueChange = onInputChange,
                     enabled = !state.sending,
                     placeholder = { Text("Ask VisePanda...") },
-                    minLines = 1,
-                    maxLines = 4,
+                    minLines = 2,
+                    maxLines = 6,
                     shape = RoundedCornerShape(Dimens.RadiusXL),
+                    leadingIcon = {
+                        // Visual-only per the Figma reference's composer layout —
+                        // disabled, not wired to the camera, because camera/
+                        // microphone permissions are staged to be requested at
+                        // point-of-use starting with the native Translator round,
+                        // not granted speculatively here.
+                        IconButton(onClick = {}, enabled = false) {
+                            Icon(Icons.Filled.PhotoCamera, contentDescription = "Camera (coming with Translator)")
+                        }
+                    },
+                    trailingIcon = {
+                        IconButton(onClick = {}, enabled = false) {
+                            Icon(Icons.Filled.Mic, contentDescription = "Voice input (coming with Translator)")
+                        }
+                    },
                     modifier = Modifier.weight(1f),
                 )
-                // Visual-only per the Figma reference's composer layout — disabled,
-                // not wired to the camera/mic, because camera/microphone permissions
-                // are staged to be requested at point-of-use starting with the
-                // native Translator round, not granted speculatively here.
-                IconButton(onClick = {}, enabled = false) {
-                    Icon(Icons.Filled.PhotoCamera, contentDescription = "Camera (coming with Translator)")
-                }
-                IconButton(onClick = {}, enabled = false) {
-                    Icon(Icons.Filled.Mic, contentDescription = "Voice input (coming with Translator)")
-                }
                 Button(
                     onClick = onSend,
                     enabled = state.input.isNotBlank() && !state.sending,

@@ -1,5 +1,23 @@
 # VisePanda Changelog
 
+## v0.3.11 - 2026-07-03
+
+**Chat 输入区重新设计:建议问题改为单行可横滑,输入框明显变大。** 操作者在实际用过几轮之后给出反馈:"chat这一轮的布局要重新设计，输入框太小了，建议问题占比太大了"。
+
+### 建议问题:从会换行的 FlowRow 改为单行可横滑的 LazyRow
+- `ButlerScreen.kt` 里两处建议问题(空状态欢迎卡片 `EmptyButlerPrompt` + 消息列表下方常驻的 `ButlerComposer`)之前都用 `FlowRow`,3 个建议 chip 大概率装不下一行,会自动换到第二行,白白占用一整行的竖直空间。改用 `LazyRow` 后,无论有多少个建议,永远只占一行高度,多出来的靠横向滑动查看。`ButlerComposer` 里还加了判断:没有建议时完全不渲染这一行(以前哪怕是空的也会预留位置)。
+- 移除了不再需要的 `FlowRow`/`ExperimentalLayoutApi` import 和两处 `@OptIn(ExperimentalLayoutApi::class)` 标注。
+
+### 输入框:相机/麦克风挪进输入框内部,框本身明显变大
+- 之前 `OutlinedTextField` 和相机、麦克风两个独立 `IconButton`、以及发送按钮挤在同一个 `Row` 里,四份东西平分宽度,输入框被压得很窄;而且 `minLines = 1`,平时看起来就是薄薄一条线。
+- 现在把相机图标改成 `OutlinedTextField` 的 `leadingIcon`、麦克风改成 `trailingIcon`(功能不变,仍是未接线的禁用态占位),这样外层 `Row` 里只剩输入框(`weight(1f)`)和发送按钮两样东西,输入框几乎占满整行宽度。`minLines` 从 1 提到 2、`maxLines` 从 4 提到 6,默认就能看出是一个多行的大输入框,而不是等用户打字换行了才被动变大。`Row` 的垂直对齐从"居中"改成"底部对齐",这样输入框往上长高的时候,发送按钮始终钉在右下角,符合聊天输入区的常见交互习惯。
+
+### 验证
+- `./gradlew :app:testDebugUnitTest :app:assembleDebug`:`BUILD SUCCESSFUL`。
+- Android 34 模拟器手动验收(清空 App 数据后全新启动,确保看到真正的空状态):空状态欢迎卡片的建议问题确认是单行、可横滑,不再换行;常驻输入区下方的建议问题同样单行,横向滑动后能看到被裁切在屏幕外的第三个建议;在输入框里打一段长文字,确认输入框跟着长高到多行,相机/麦克风图标始终贴在输入框内部两端,发送按钮始终贴在右下角,全程无崩溃。
+
+详见 DESIGN.md ADR-115。
+
 ## v0.3.10 - 2026-07-03
 
 **屏幕适配打磨:AndroidManifest 加入 resizeableActivity/max_aspect,导航栏改为真正的悬浮遮罩(不再挤占布局空间),Web 端 viewport 只声明 width。** 操作者在一条消息里给出四条指令:(1)"AndroidManifest application 标签内加入 resizeableActivity="true""；(2)"application 内部加入 max_aspect=2.4 元数据"；(3)"不要写死任何像素尺寸，全部用 match_parent 铺满屏幕"；(4)"viewport 不要限制最大高度，只写 width=device-width"。前三条是 Android 术语,第四条"viewport"/"width=device-width"是纯 Web 术语——本仓库是 monorepo,`android/` 是原生 Android 模块,`app/` 是原 Next.js Web 端(自 v0.2.17 起已冻结,主线全面转向原生),因此把前三条落在 Android 端、第四条落在 Web 端。另外操作者单独指出:"导航栏是浮现在page文字和内容上面的，不需要有边框，要融入"——这是对 v0.3.9 已实现的"悬浮胶囊导航栏"的一个功能性补完:v0.3.9 的导航栏外观是悬浮的,但结构上仍是 `Scaffold` 的 `bottomBar` 插槽,会整体挤占等高的布局空间,内容永远不会真正出现在导航栏"下面"。

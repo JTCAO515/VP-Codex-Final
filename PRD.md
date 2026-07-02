@@ -985,4 +985,16 @@ UI 参考:操作者提供 Lovable 预览与 Figma Make `Design According to MD D
 
 排除:未改动 Android 导航路由/数据流/Supabase schema;Web 端改动严格限定在 `viewport` 这一行,不代表 Web 端开发重新启动。
 
-意外发现:无——本轮 Compose 布局审计确认代码库已合规,没有额外发现的 bug(与 v0.3.8/v0.3.9 每轮都有意外发现不同)。Tools/Explore 占位文案顺延为 v0.3.11/v0.3.12(因本轮用掉了 v0.3.10)。详见 HANDOFF.md/DESIGN.md ADR-114 的完整记录。
+意外发现:无——本轮 Compose 布局审计确认代码库已合规,没有额外发现的 bug(与 v0.3.8/v0.3.9 每轮都有意外发现不同)。Tools/Explore 占位文案顺延为 v0.3.11/v0.3.12(因本轮用掉了 v0.3.10;后因 v0.3.11 又被下方新一轮占用,再顺延为 v0.3.12/v0.3.13)。详见 HANDOFF.md/DESIGN.md ADR-114 的完整记录。
+
+## v0.3.11 需求更新 —— Chat 输入区重新设计(已完成)
+
+需求来源:操作者用过几轮之后直接反馈:"chat这一轮的布局要重新设计，输入框太小了，建议问题占比太大了"。
+
+交付:`ui/butler/ButlerScreen.kt` 里两处建议问题(空状态欢迎卡片 + 常驻输入区)都从会换行的 `FlowRow` 改为单行可横滑的 `LazyRow`;`OutlinedTextField` 把相机/麦克风挪进 `leadingIcon`/`trailingIcon`,不再和输入框平分一行宽度,`minLines`/`maxLines` 从 1/4 提高到 2/6,`Row` 垂直对齐从居中改为底部对齐让发送按钮钉在右下角。
+
+验收标准:`./gradlew :app:testDebugUnitTest :app:assembleDebug` 通过;Android 34 模拟器清空数据全新启动后验收,两处建议问题都确认单行可横滑,长文字能让输入框跟着长高,全程无崩溃。
+
+排除:未改动导航路由/数据流/Supabase schema;相机/麦克风仍是禁用态占位,未提前接入真实权限;发送功能行为不变,纯粹是布局重排。
+
+意外发现:无。Tools/Explore 占位文案顺延为 v0.3.12/v0.3.13(因本轮用掉了 v0.3.11)。详见 HANDOFF.md/DESIGN.md ADR-115 的完整记录。
