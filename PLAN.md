@@ -745,8 +745,31 @@ Next three planned iterations:
 下一步建议:
 
 - [x] `v0.2.16` Explore candidate review / day-detail action polish:已完成。
-- [x] `v0.2.17` 被操作者主动提出的"拓宽产品线数据源调研"占用(纯文档,见下方附录),原计划的 Candidate controls 顺延为 `v0.2.18`。
-- [ ] `v0.2.18` Candidate controls(原 `v0.2.17` 计划):为 Flexible 候选补充 Remove candidate / Keep for later 之类的非交易控制,明确哪些操作走 Chat,哪些属于本地候选管理。
+- [x] `v0.2.17` 被操作者主动提出的"拓宽产品线数据源调研"占用(纯文档,见下方附录)。
+- [x] `v0.3.1` Android 原生 APK 专项规划：编制原生 Android 规格说明书。
+
+## v0.3.1 附录 —— Android 原生 APK 专项规划及主线重排(纯规划)
+
+- [x] **研发主线重构**: 
+  - **核心主线**: 彻底转向原生移动端（iOS App + Android APK）开发，停止 Web 端主线新功能演进，原 `v0.2.18` Candidate controls 及后续 Web 任务降为次要支线，不再活跃迭代。
+  - **规划落地**: 原生 Android APK 规格书 (`docs/planning/v0.3.1-android-native-spec.md`) 编制，完成头脑风暴、筛选收敛、多角色对抗评审及定稿。
+- [x] **版本统一**: 升级当前版本至 `v0.3.1`。
+
+下一步核心原生主线排期建议:
+
+- [ ] `v0.3.2` Android 原生 App 脚手架与 Room 数据层搭建:
+  - 搭建 Hilt 依赖注入、单 Activity + Navigation-Compose、底部 NavigationBar 底导。
+  - 编写 Room 数据库核心 `TripState` 和 `UserPreferenceProfile` 实体及 DAO 接口，完成单向 Flow 状态流转。
+- [ ] `v0.3.3` Android Amap MapsView 容器嵌套与 Marker 动态交互:
+  - 桥接高德地图 SDK Android 版 MapView。
+  - 在 LazyColumn 列表滚动中由 MapController 平滑移镜（Animate Camera），避免性能卡顿。
+- [ ] `v0.3.4` Android Chat screen (M3 对话流与本地 Intent 分发):
+  - 实现原生 Compose 对话 LazyColumn。
+  - 接管 `ask_factual` 意图，本地分发至 Tools 小部件展示。
+- [ ] `v0.3.5` Android Tools Bento Grid (RMB 转换器与摇一摇打车卡):
+  - 实现汇率、签证及离线支付 Benton 界面。
+  - 接入传感器，实现“摇一摇/常驻通知栏”一键弹出景点中文大字司机沟通卡。
+
 
 ## v0.2.17 附录 —— 景点/餐饮/酒店数据与预订服务拓展评估(纯文档,已完成)
 

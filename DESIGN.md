@@ -965,3 +965,25 @@ No new ADR (a pure evaluation of external services against the existing Amap/Exp
 - Dianping is flagged as carrying a documented competitor-clause risk in its own terms of service (recommending content+booking features similar to VisePanda's own could trigger contract termination) — this is a business/legal question that should be resolved *before* any technical spike, not a coding decision.
 - Confidence caveat that matters for any agent picking this up next: this round's findings come from cross-referenced `WebSearch` results, not verbatim first-party document reads (all six target sites' official pages returned `403 Forbidden` to direct `WebFetch`, confirmed as site-side anti-scraping rather than a proxy fault via `curl "$HTTPS_PROXY/__agentproxy/status"`). Treat `docs/planning/data-provider-expansion-assessment.md` as a prioritization aid, not an implementation spec — a future FlyAI-style verbatim technical deep-dive is still required before writing any provider code for whichever service the operator chooses to pursue.
 - Branch reconciliation note: this round was developed on a branch that started from an earlier `main` (v0.2.8) and briefly diverged after `main` was advanced in parallel through v0.2.16. On discovering the divergence, a trial `git merge` produced version-numbering conflicts across the workflow docs and `package.json` (expected — both sides had appended release notes under different version numbers); rather than hand-resolve those line-by-line, the merge was aborted and this round's changes were rebuilt cleanly on top of `main`'s tip, renumbered `v0.2.9` -> `v0.2.17`. No content from either side was lost.
+
+## v0.3.1 Design Update - 原生 Android APK 架构设计 (implemented in docs)
+
+本轮战略转型将项目主线明确调整为“原生移动端应用开发”，并在设计层面制定了以下三个核心原生 Android 架构决策（ADR-088 至 ADR-090）：
+
+ADR-088: 废弃 Web 与跨端混合技术，确立纯原生技术栈 (Pure Native Kotlin + Compose)
+- Background: 境外 FIT 游客在使用应用时需要频繁的地图平滑动画、高精拍照 OCR 翻译、离线 TTS 朗读和极速手势交互。Web 网页端或 WebView 套壳无法保证流畅的交互体验，且容易受到浏览器环境和网络时延的掣肘。
+- Decision: VisePanda 的 Android 端完全使用 Kotlin + Jetpack Compose 原生技术栈。严禁引入 WebView 套壳，严禁在运行时混合 H5 页面。
+- Reason: 原生技术栈能提供最佳的图片解码与高德地图硬件加速渲染，保障 60fps 滚动流畅度；原生 SDK 对系统权限（相机、定位、传感器）和生命周期具有完美掌控，能最大程度降低内存溢出和后台服务被杀的概率。
+
+ADR-089: 采用本地 Room 数据库的 MVI (Model-View-Intent) 离线优先状态管理
+- Background: Web 端过去在 `TripCanvas` 维护本地 `editableTrip` 状态，时序竞态明显。且外宾在华经常面临弱网、断网的景区或地铁环境。
+- Decision: 引入 MVI 单向数据流架构。在 Android 本地部署 Room Database 作为离线优先（Offline-First）缓存。所有的用户交互和后端指令统一转换为本地数据库写入，UI 组件只订阅从 Room 实时映射出的 `Flow<TripState>`，保持视图的绝对单向流转。
+- Reason: 数据修改被本地 Room 事务级锁定，彻底消除内存级状态竞态；断网时 UI 自动展示 Room 缓存数据并支持离线勾选 checklist，保障应用在弱网下的极高容错与坚固性。
+
+ADR-090: 触控手势 NestedScrollConnection 隔离与折叠屏 Fold state 自适应适配
+- Background: 手机（4.7-6.7 寸）单手拇指区（Thumb Zone）内，底部的行程 LazyColumn BottomSheet 会与背景高德地图的 Drag/Pinch 手势产生粘滞冲突。且折叠屏设备的形态多样。
+- Decision: 
+  1. 在 Compose 的 BottomSheet 嵌套结构中应用 `NestedScrollConnection`。当垂直滑动幅度在阈值内，手势被列表拦截消费；在阈值外，手势平滑流转给底层的高德 MapView 摄像头控制。
+  2. 采用 WindowManager 库适配折叠屏，当屏幕处于半折叠（Folding State）时自适应分裂为上半屏地图展示、下半屏交互控制。
+- Reason: 原生 nested scroll 手势阻尼隔离是保障手机单手流畅体验的关键；折叠屏自适应形态可大幅提升用户旅程中驾驶/桌面放置时的阅读体验。
+

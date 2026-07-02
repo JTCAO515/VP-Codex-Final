@@ -873,3 +873,36 @@ Fixes three reported product problems:
 验收标准:诚实披露研究方法的局限——六个候选官方文档站点直接 `WebFetch` 均返回 `403 Forbidden`(已核实非代理故障),因此结论基于 `WebSearch` 结果交叉印证而非逐字源码级核实,与 v0.2.6 FlyAI 研究的严谨度不同,文档内逐条标注「⚠️ 待人工核实」,避免被当作可直接执行的实现依据。
 
 排除:不新增任何产品运行时代码、不新增 provider 抽象、不新增外部 key、不新增 `mock-inventory.md` 条目(六个候选均未进入"代码已就绪等 key"状态)。本轮开工基于较早的 `main`(v0.2.8),完工后发现 `main` 已并行推进至 v0.2.16,`git merge` 试探性合并因工作流文档版本号编号冲突而 `git merge --abort`,改为在 `main` 最新提交上重新构建,版本号顺延为 `v0.2.17`。
+
+## v0.3.1 更新 —— Android 原生 APK 专项规划及主线战略调整(纯规划)
+
+需求来源: 
+为了保障产品的体验上限与核心业务成果的落地，项目研发主线正式从 Web 网页端转向**移动端原生应用开发**（原生 iOS App + 原生 Android APK）。网页端迭代降级为次要维护支线。本迭代版本（v0.3.1）为 Android 原生 APK 专项规划版本，用以全面指导后续的原生 Android 开发。
+
+交付:
+
+- **战略调整决议**: 
+  - 核心主线: 原生移动端应用。Android 使用 Kotlin + Jetpack Compose，iOS 使用 Swift + SwiftUI。
+  - 次要支线: Web 端（Next.js Web App）停止主线功能迭代，仅维持现有代码编译 and 基础修复。
+- **Android 原生布局规范**:
+  - Material Design 3 (M3) 设计体系在原生 App 上的全面设计，包含 8dp 栅格系统、圆角嵌套数学、多屏幕 WindowSizeClass 响应式规则（不采用跨端混合方案，全原生 ConstraintLayout/Column/Row/Box 架构）。
+- **移动页面体验规格**:
+  - 单手操作热区设计（拇指区域）；大图双指缩放及行程-地图双向 nested scroll 手势阻尼隔离；
+  - 双栏布局（平板/折叠屏）与单栏布局（手机）在不同设备下的分屏与层叠机制。
+- **功能模块分类与功能树**:
+  - 底部导航栏 4 大 Tab：Canvas Screen、Chat Screen、Explore Screen、Tools Screen。包含打车司机卡片（一键大字直达及摇一摇唤起）、离线 Before You Fly Checklist 与本地 RMB 估算转换。
+- **原生开发落地选型**:
+  - 架构采用 ViewModel + StateFlow 的 MVI (Model-View-Intent) 模式。
+  - 技术选型: Room DB, DataStore, Retrofit, Coroutine + Flow, Hilt Dependency Injection。
+  - 离线优先（Offline-First）数据同步与 Room 本地缓存容错机制。
+
+验收标准:
+
+- 原生 Android 规格说明书（`docs/planning/v0.3.1-android-native-spec.md`）已完整创建并包含头脑风暴、筛选收敛、多角色对抗评审及定稿规划。
+- 确认下一阶段代码研发里程碑为 `v0.3.2` Android 原生 APK 第一代码迭代阶段（基础脚手架、本地 Room 数据、Amap 地图容器与 DayCard 原生布局）。
+
+排除:
+
+- 本期仅做方案规划与技术选型，禁止产出任何 Java/Kotlin、XML 布局或业务实现代码。
+- 不安装任何新的 npm 依赖或修改 Supabase 线上架构。
+
