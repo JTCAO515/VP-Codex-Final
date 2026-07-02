@@ -599,7 +599,8 @@ Next three planned iterations:
 下一步:
 
 - [x] `v0.2.8` Chat 体验重塑(改为按操作者提供的高保真设计稿实现,范围调整为下方附录所记)。
-- [ ] `v0.2.9` 设计系统收口 + Tools 交互组件;`docs/planning/v0.2.4-interaction-deep-dive.md` 中尚未落地的 MessageBlock 伪流式、`ask_factual` <150ms 快通道、实体 chip 双向悬停联动可并入其中或单独排期。
+- [x] `v0.2.9` Chat factual fast-path + inline Tools cards(本轮完成,替代旧编号里的"设计系统收口"占位)。
+- [ ] `v0.2.10` Tools Widgets I:汇率换算器、签证资格问答、支付设置向导;`docs/planning/v0.2.4-interaction-deep-dive.md` 中尚未落地的完整 MessageBlock 伪流式、实体 chip 双向悬停联动可并入后续单独排期。
 
 ## v0.2.8 附录 —— Chat/Canvas 视觉重设计(按操作者设计稿实现,已完成)
 
@@ -610,3 +611,23 @@ Next three planned iterations:
 - [x] `ButlerWorkspace.tsx`:新增 `handleRenameTrip`/`handleAddDay`/`handleRebalanceRoute` 三个本地/AI-管道处理函数;`ChatMessage.createdAt`(新增可选字段)驱动时间戳。
 - [x] `app/globals.css`:新增约 350 行样式,排查并确认与两处并行会话遗留的层叠覆盖块(`v0.1.55 VISUAL POLISH`、`min-width:900px` 紧凑布局)无实质冲突;修复一处遗留选择器(`.day-card__head span { display:none }`)意外隐藏新徽标的真实回归。
 - [x] 新增 8 个测试(内联改名/Add day/Rebalance route/禁用态/next-step 关闭/反馈切换/复制确认/Enter 发送),全部 134 测试通过,`npm run build` 成功;用 Playwright 对 `/chat` 页面截图核验桌面布局与交互态。
+
+## v0.2.9 附录 —— Chat factual fast-path + inline Tools cards(已完成)
+
+- [x] `AssistantResponse` 新增可选 `toolCards`,作为 Chat 内联工具卡的结构化载体;旧 provider / mock 回复不返回该字段也继续兼容。
+- [x] 新增 `lib/tools/factualToolCards.ts`:基于现有 Tools 静态 provider 生成签证入境、支付、汇率、地铁、eSIM/VPN、应急六类事实卡,不新增外部 key,不依赖 FlyAI 生产集成。
+- [x] `lib/ai/orchestrator.ts`:在调用 LLM provider 之前拦截高置信 `ask_factual` / emergency concern,命中后返回 `mode:"tools"`、`strategy:"tool"`,不调用任何 LLM;未命中则保持原有多模型/Mock fallback 链。
+- [x] `ChatPanel.tsx`:结构化回复中渲染 inline tool cards,链接到对应 `/tools?category=...` 深链;复制回复时包含工具卡内容;busy 时显示可见 thinking 状态。
+- [x] 新增测试:`factualToolCards.test.ts`、orchestrator 快通道绕过 provider 断言、ChatPanel 工具卡/等待态断言。
+
+排除项:
+
+- 不实现完整 MessageBlock 伪流式分阶段动画。
+- 不实现实体 chip 双向悬停定位。
+- 不新增 Tools interactive widgets、签证决策树、支付向导或汇率换算器。
+- 不新增 Supabase schema 或任何生产级 FlyAI/预订接口。
+
+下一步建议:
+
+- [ ] `v0.2.10` Tools Widgets I:在本轮 inline card 数据模型基础上,把 Currency converter、Visa checker、Payment setup wizard 做成真实可交互组件,并让 Chat tool cards 复用同一套 widget metadata。
+- [ ] `v0.2.11` TripBlock POI Embedding + Day Detail Operational Upgrade:将中文地址、营业时间、电话、坐标、booking/map url 等可选运营字段持久化进 `TripBlock`,升级 Day detail 和 Taxi Driver card。

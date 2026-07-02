@@ -675,3 +675,26 @@ Fixes three reported product problems:
 验收标准:所有内容型变更(改名除外的行程内容)仍必须走既有 `handleSend → /api/chat → CanvasPatch → applyCanvasPatch` 管道——本轮未新增任何绕过该管道的内容写入路径;所有非功能性控件(Attach/Mic/Pin/View map/Trip settings)必须是真实 `disabled` 状态并带 `title="Coming soon"`,不得是无 `disabled` 属性的装饰性假按钮——已逐一核对。全部 134 测试通过(新增 8 个),`npm run build` 成功,并用 Playwright 对渲染结果做了视觉核验。
 
 排除:不新增外部 key、不改变任何既有 API 契约、不实现设计稿之外的功能(地图/导出/行程设置等在设计稿中出现但无对应后端能力的项,统一诚实降级为禁用态,留给未来迭代)。
+
+## v0.2.9 更新 —— Chat factual fast-path + inline Tools cards(已完成)
+
+需求来源:在 v0.2.8 视觉重设计后,Chat 仍缺少原 v0.2.4 规格里"事实类问题快速回答 + 内联工具卡"的实用闭环。本轮补齐第一版,优先解决签证、支付、汇率、地铁、eSIM/VPN、应急等外国 FIT 游客最常问、且不应每次都等待 LLM 的基础问题。
+
+交付:
+
+- `ask_factual` / emergency concern 命中高置信 Tools 分类时,Chat 直接返回结构化 inline tool card,不调用 LLM provider。
+- 工具卡内容来自现有 Tools provider 的静态知识,并深链到 `/tools?category=...`;这让 Chat 回答和 Tools 页面保持同一信息源。
+- `AssistantResponse.toolCards` 为可选字段,不会破坏旧 provider、历史消息或 mock fallback。
+- Chat busy 状态增加可见 waiting narrative,避免发送后没有反馈。
+
+验收标准:
+
+- 问 "Do I need a visa?" / "How do I pay with Alipay?" 这类问题时,即使无 LLM key 也能得到可扫的工具卡回答。
+- 命中快通道时不得调用 LLM provider;未命中时仍走原有 orchestrator + mock fallback。
+- 卡片只能指向已有 Tools 深链,不得伪造真实签证审批、支付交易、预订或地图能力。
+
+排除:
+
+- 不做完整签证资格决策树、支付向导、汇率换算器;这些进入 v0.2.10 Tools Widgets I。
+- 不做实体 chip 双向悬停、不做完整 MessageBlock 伪流式。
+- 不新增外部 key、Supabase migration 或生产级 FlyAI 接入。

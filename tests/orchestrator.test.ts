@@ -146,6 +146,23 @@ describe("requestOrchestratedButlerPatch", () => {
     expect(result.fallbackReason).toBeTruthy();
   });
 
+  it("answers factual travel-tool questions without calling an LLM provider", async () => {
+    const provider = makeProvider("deepseek");
+    const result = await requestOrchestratedButlerPatch({
+      message: "Do I need a visa or transit permit for China?",
+      currentTrip: initialTripState,
+      env: { DEEPSEEK_API_KEY: "k" },
+      fetchImpl: vi.fn(),
+      providers: [provider],
+    });
+
+    expect(result.mode).toBe("tools");
+    expect(result.strategy).toBe("tool");
+    expect(result.modelLabel).toBe("VisePanda Tools");
+    expect(result.patch.assistantResponse?.toolCards?.[0].categoryId).toBe("visa-and-entry");
+    expect(provider.complete).not.toHaveBeenCalled();
+  });
+
   it("falls back to the mock butler when every provider throws", async () => {
     const result = await requestOrchestratedButlerPatch({
       message: "Make the plan easier",

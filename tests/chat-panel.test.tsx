@@ -71,6 +71,46 @@ describe("ChatPanel interaction shell", () => {
     expect(writeText).toHaveBeenCalledWith(expect.stringContaining("Your first route is taking shape"));
   });
 
+  it("renders inline tool cards from structured assistant responses", () => {
+    const toolMessage: ChatMessage = {
+      id: "assistant-tools",
+      role: "assistant",
+      content: "Set up payment before arrival.",
+      response: {
+        headline: "Set up mobile payment before arrival",
+        body: "Payment setup reduces friction in China.",
+        highlights: ["Install Alipay or WeChat Pay first"],
+        nextStep: "Open the payment setup guide",
+        toolCards: [
+          {
+            id: "tool-payment-setup",
+            categoryId: "payment-setup",
+            title: "Payment setup",
+            summary: "Set up mobile payment so you are not stuck carrying only cash.",
+            items: ["Install Alipay or WeChat Pay before arrival", "Carry a small RMB cash backup"],
+            nextAction: "Open the payment setup guide",
+            href: "/tools?category=payment-setup",
+            sourceLabel: "VisePanda Tools",
+          },
+        ],
+      },
+    };
+
+    render(<ChatPanel messages={[toolMessage]} onSend={() => undefined} suggestions={[]} />);
+
+    expect(screen.getByLabelText(/helpful travel tools/i)).toHaveTextContent("Payment setup");
+    expect(screen.getByRole("link", { name: /open the payment setup guide/i })).toHaveAttribute(
+      "href",
+      "/tools?category=payment-setup",
+    );
+  });
+
+  it("shows a practical thinking state while waiting", () => {
+    render(<ChatPanel messages={[]} onSend={() => undefined} suggestions={[]} busy />);
+
+    expect(screen.getByText(/checking the practical travel details/i)).toBeInTheDocument();
+  });
+
   it("sends the draft on Enter and inserts a newline on Shift+Enter", () => {
     const onSend = vi.fn();
     render(<ChatPanel messages={[]} onSend={onSend} suggestions={[]} />);

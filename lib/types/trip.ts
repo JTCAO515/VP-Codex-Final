@@ -78,6 +78,19 @@ export interface AssistantResponse {
   highlights: string[];
   watchOut?: string;
   nextStep: string;
+  toolCards?: InlineToolCard[];
+}
+
+export interface InlineToolCard {
+  id: string;
+  categoryId: string;
+  title: string;
+  summary: string;
+  items: string[];
+  nextAction: string;
+  href?: string;
+  tone?: "info" | "warning" | "success";
+  sourceLabel?: string;
 }
 
 /** One line item in the post-patch "Change Digest" card (see diffTripState). */

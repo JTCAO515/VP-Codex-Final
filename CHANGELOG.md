@@ -1,5 +1,17 @@
 # VisePanda Changelog
 
+## v0.2.9 - 2026-07-02
+
+**Chat factual fast-path + inline Tools cards.** This release completes the first practical slice of the remaining Chat interaction work after the v0.2.8 visual redesign.
+
+- Added `InlineToolCard` support to structured assistant responses. Existing provider responses remain compatible because `toolCards` is optional and the parser drops invalid card payloads.
+- Added `lib/tools/factualToolCards.ts`, a deterministic fast-path that maps factual China-travel questions to existing Tools knowledge for visa/entry, payment, currency, metro, eSIM/VPN, and emergency topics.
+- Updated the orchestrator so matching `ask_factual` / emergency concern messages return immediately as `mode: "tools"` / `strategy: "tool"` without calling any LLM provider. Missing provider keys still degrade gracefully.
+- Updated Chat to render inline tool cards inside assistant replies, with links to the matching `/tools?category=...` deep link and copy-to-clipboard support that includes card content.
+- Added a visible thinking state while the Butler is busy so sends no longer feel silent.
+- Added tests for factual tool-card generation, LLM bypass behavior, Chat card rendering, and the thinking state.
+- No new external API keys, no Supabase schema changes, and no production FlyAI integration.
+
 ## v0.2.8 - 2026-07-02
 
 **Chat/Canvas 视觉重设计,对齐操作者提供的高保真设计稿。** 不改变既有交互契约(所有内容变更仍走 AI 管道),纯视觉层与少量新的本地操作性交互。

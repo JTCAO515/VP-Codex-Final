@@ -61,7 +61,7 @@ describe("first-stage API routes", () => {
     const response = await postChat(
       new Request("http://localhost/api/chat", {
         method: "POST",
-        body: JSON.stringify({ message: "Do I need a visa?" }),
+        body: JSON.stringify({ message: "Make Day 1 less tiring" }),
       }),
     );
 

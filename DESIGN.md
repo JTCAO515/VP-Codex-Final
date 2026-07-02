@@ -847,3 +847,17 @@ ADR-072: Non-functional affordances shown in a design mockup are rendered as rea
 - Background: the operator's mockup includes several controls VisePanda cannot yet back with real functionality — Attach, Mic, Pin, View map, Trip settings. A tempting shortcut would be to render them as inert `<span>`s styled to look like buttons, or omit them entirely to "simplify."
 - Decision: every one of these is a real `<button disabled title="Coming soon">` (or, for the composer icons, `.chat-composer__icon-button`), keeping the exact icon and position the mockup specifies.
 - Reason: a disabled button with a native tooltip is honest about capability — assistive technology announces it as unavailable, and a sighted user gets a hover hint instead of clicking a dead decorative element that silently does nothing. This is a direct extension of the project's existing "never remove the mock/static fallback, always degrade gracefully" principle (see CLAUDE.md security constraints) applied to UI affordances rather than data sources: showing the intended future shape of the product without pretending it already works.
+
+## v0.2.9 Design Update - Chat factual fast-path + inline Tools cards (implemented)
+
+ADR-073: Answer high-confidence factual travel questions from Tools before calling an LLM.
+
+- Background: the v0.2.4 interaction spec called for `ask_factual` answers to feel instant and appear as inline cards. Sending every visa/payment/eSIM/currency question through the full multi-model itinerary orchestrator adds latency and risks verbose answers when the project already has conservative Tools knowledge for those topics.
+- Decision: add `lib/tools/factualToolCards.ts` as a deterministic bridge from the local intent classifier to existing Tools provider content. The orchestrator checks this bridge before provider selection; a confident match returns `mode: "tools"` and `strategy: "tool"` with a normal `CanvasPatch` carrying `assistantResponse.toolCards`. Unmatched messages keep the existing multi-provider race and mock fallback.
+- Reason: this preserves the Chat spine while avoiding duplicate knowledge in UI components. The card content comes from the same Tools source as `/tools`, it works without LLM keys, and it keeps the no-fabrication rule intact: cards link only to existing Tools deep links and do not claim live visa/payment/booking authority.
+
+ADR-074: Inline tool cards extend `AssistantResponse`; they do not create a second chat-message protocol.
+
+- Background: Chat already renders structured assistant responses (`headline`, `body`, `highlights`, `watchOut`, `nextStep`). Adding a separate top-level message type for tool cards would split persistence and copy/rendering paths.
+- Decision: make `toolCards?: InlineToolCard[]` an optional field on `AssistantResponse`, with parser validation that drops malformed cards. `ChatPanel` renders cards when present, and historical/plain responses continue to render unchanged.
+- Reason: this keeps message persistence backward compatible and gives future Tools widgets a clear upgrade path: v0.2.10 can replace or enrich individual card bodies without changing the chat transport contract again.

@@ -5,7 +5,7 @@
 import { createMockButlerPatch } from "@/lib/mock-ai/mockButler";
 import type { ButlerToolContext } from "@/lib/ai/toolContext";
 import type { UserPreferenceProfile } from "@/lib/ai/preferenceProfile";
-import type { AssistantResponse, CanvasPatch, ChatMessage, TripState } from "@/lib/types/trip";
+import type { AssistantResponse, CanvasPatch, ChatMessage, InlineToolCard, TripState } from "@/lib/types/trip";
 
 const allowedIntents = new Set<CanvasPatch["intent"]>(["create_trip", "adjust_trip", "add_alerts"]);
 
@@ -88,6 +88,39 @@ function stringArrayValue(value: unknown): string[] {
   return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0).map((item) => item.trim());
 }
 
+function normalizeToolCards(value: unknown): InlineToolCard[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const cards = value
+    .map((item): InlineToolCard | null => {
+      if (!item || typeof item !== "object") return null;
+      const candidate = item as Partial<InlineToolCard>;
+      const id = stringValue(candidate.id);
+      const categoryId = stringValue(candidate.categoryId);
+      const title = stringValue(candidate.title);
+      const summary = stringValue(candidate.summary);
+      const nextAction = stringValue(candidate.nextAction);
+      const items = stringArrayValue(candidate.items).slice(0, 5);
+      if (!id || !categoryId || !title || !summary || !nextAction || items.length === 0) return null;
+      const href = stringValue(candidate.href);
+      const sourceLabel = stringValue(candidate.sourceLabel);
+      const tone = candidate.tone === "warning" || candidate.tone === "success" || candidate.tone === "info" ? candidate.tone : undefined;
+      const card: InlineToolCard = {
+        id,
+        categoryId,
+        title,
+        summary,
+        items,
+        nextAction,
+        href: href || undefined,
+        tone,
+        sourceLabel: sourceLabel || undefined,
+      };
+      return card;
+    })
+    .filter((item): item is InlineToolCard => Boolean(item));
+  return cards.length ? cards.slice(0, 3) : undefined;
+}
+
 function normalizeAssistantResponse(
   value: unknown,
   assistantMessage: string,
@@ -100,6 +133,7 @@ function normalizeAssistantResponse(
     const highlights = stringArrayValue(candidate.highlights).slice(0, 4);
     const watchOut = stringValue(candidate.watchOut);
     const nextStep = stringValue(candidate.nextStep);
+    const toolCards = normalizeToolCards(candidate.toolCards);
 
     if (headline && body && nextStep) {
       return {
@@ -108,6 +142,7 @@ function normalizeAssistantResponse(
         highlights,
         watchOut: watchOut || undefined,
         nextStep,
+        toolCards,
       };
     }
   }

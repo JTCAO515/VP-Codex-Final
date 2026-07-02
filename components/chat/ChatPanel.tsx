@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCheck, Copy, History, Mic, Paperclip, Pin, Send, Sparkles, Star, ThumbsDown, ThumbsUp, X } from "lucide-react";
+import { CheckCheck, Copy, ExternalLink, History, Mic, Paperclip, Pin, Send, Sparkles, Star, ThumbsDown, ThumbsUp, X } from "lucide-react";
 import { useState } from "react";
 import type { ChangeEvent, FormEvent, KeyboardEvent } from "react";
 import { ChangeDigestCard } from "@/components/canvas/ChangeDigestCard";
@@ -73,7 +73,14 @@ export function ChatPanel({
 
   async function handleCopy(message: ChatMessage) {
     const text = message.response
-      ? [message.response.headline, message.response.body, ...message.response.highlights].filter(Boolean).join("\n")
+      ? [
+          message.response.headline,
+          message.response.body,
+          ...message.response.highlights,
+          ...(message.response.toolCards ?? []).flatMap((card) => [card.title, card.summary, ...card.items]),
+        ]
+          .filter(Boolean)
+          .join("\n")
       : message.content;
     try {
       await navigator.clipboard.writeText(text);
@@ -154,6 +161,38 @@ export function ChatPanel({
                   {message.response.watchOut ? (
                     <p className="chat-message__watch">Watch out: {message.response.watchOut}</p>
                   ) : null}
+                  {message.response.toolCards?.length ? (
+                    <div className="chat-message__tool-cards" aria-label="Helpful travel tools">
+                      {message.response.toolCards.map((card) => (
+                        <article className="chat-tool-card" data-tone={card.tone ?? "info"} key={card.id}>
+                          <div className="chat-tool-card__head">
+                            <div>
+                              {card.sourceLabel ? <span>{card.sourceLabel}</span> : null}
+                              <strong>{card.title}</strong>
+                            </div>
+                            {card.href ? (
+                              <a aria-label={`Open ${card.title}`} href={card.href} title={card.nextAction}>
+                                <ExternalLink aria-hidden="true" size={14} strokeWidth={1.8} />
+                              </a>
+                            ) : null}
+                          </div>
+                          <p>{card.summary}</p>
+                          <ul>
+                            {card.items.slice(0, 4).map((item) => (
+                              <li key={item}>{item}</li>
+                            ))}
+                          </ul>
+                          {card.href ? (
+                            <a className="chat-tool-card__action" href={card.href}>
+                              {card.nextAction}
+                            </a>
+                          ) : (
+                            <span className="chat-tool-card__action">{card.nextAction}</span>
+                          )}
+                        </article>
+                      ))}
+                    </div>
+                  ) : null}
                   <p className="chat-message__next">{message.response.nextStep}</p>
                   <div className="chat-message__feedback">
                     <button
@@ -191,6 +230,20 @@ export function ChatPanel({
             </article>
           );
         })}
+        {busy ? (
+          <article className="chat-message chat-message--thinking" data-role="assistant" aria-live="polite">
+            <div className="chat-message__byline">
+              <img alt="" aria-hidden="true" className="chat-message__avatar" src="/visepanda-logo-icon.jpg" />
+              <span>VisePanda</span>
+            </div>
+            <div className="chat-thinking">
+              <span aria-hidden="true" />
+              <span aria-hidden="true" />
+              <span aria-hidden="true" />
+              <p>Checking the practical travel details...</p>
+            </div>
+          </article>
+        ) : null}
       </div>
       {latestNextStep ? (
         <div className="chat-next-step-card" aria-label="Primary next step">

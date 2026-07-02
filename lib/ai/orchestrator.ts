@@ -22,6 +22,7 @@ import { BUTLER_PROVIDERS, getConfiguredProviders, selectProvidersForIntent } fr
 import { buildButlerToolContext, type ButlerToolContext } from "@/lib/ai/toolContext";
 import type { UserPreferenceProfile } from "@/lib/ai/preferenceProfile";
 import { createMockButlerPatch } from "@/lib/mock-ai/mockButler";
+import { buildFactualToolResponse } from "@/lib/tools/factualToolCards";
 import type { ChatCompletionProvider, FetchLike } from "@/lib/ai/providers/types";
 import type { CanvasPatch, ChatMessage, TripState } from "@/lib/types/trip";
 
@@ -39,7 +40,7 @@ export interface OrchestratedButlerResult {
   mode: string; // provider id that produced the patch, or "mock"
   modelLabel: string; // human-readable label for status UI
   intent: ButlerIntent;
-  strategy: "parallel" | "single" | "mock";
+  strategy: "parallel" | "single" | "mock" | "tool";
   providersTried: string[];
   patch: CanvasPatch;
   suggestions: string[];
@@ -116,6 +117,19 @@ export async function requestOrchestratedButlerPatch(
 
   if (!message) {
     return mockResult(input.message, input.currentTrip, intent, [], "Empty message.");
+  }
+
+  const factualToolResponse = await buildFactualToolResponse({ message, currentTrip: input.currentTrip, intent });
+  if (factualToolResponse) {
+    return {
+      mode: "tools",
+      modelLabel: "VisePanda Tools",
+      intent,
+      strategy: "tool",
+      providersTried: [],
+      patch: factualToolResponse.patch,
+      suggestions: factualToolResponse.suggestions,
+    };
   }
 
   const configured = getConfiguredProviders(env, input.providers ?? BUTLER_PROVIDERS);
