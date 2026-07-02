@@ -86,7 +86,12 @@ private fun TripsContent(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(Dimens.SpaceLG),
+            contentPadding = PaddingValues(
+                start = Dimens.SpaceLG,
+                end = Dimens.SpaceLG,
+                top = Dimens.SpaceLG,
+                bottom = Dimens.BottomNavContentClearance,
+            ),
         ) {
             item {
                 Text(

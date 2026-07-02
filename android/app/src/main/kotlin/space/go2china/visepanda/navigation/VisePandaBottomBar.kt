@@ -40,9 +40,16 @@ import space.go2china.visepanda.ui.theme.Paper
  * accessible name for screen readers). Dark (`Ink`) fill reads as a
  * deliberate contrast surface floating over the page background, not a
  * dark-theme switch — the rest of the app stays on the warm light palette.
+ *
+ * v0.3.10: `VisePandaNavHost.kt` renders this as a `Box` overlay on top of
+ * full-screen content, not a Scaffold `bottomBar` slot that reserves layout
+ * space — screen content now actually scrolls/renders behind this bar
+ * instead of stopping short of it (DESIGN.md ADR-114). Screens add
+ * `Dimens.BottomNavContentClearance` bottom padding so their content can
+ * still clear the bar's footprint when scrolled/settled.
  */
 @Composable
-fun VisePandaBottomBar(navController: NavHostController) {
+fun VisePandaBottomBar(navController: NavHostController, modifier: Modifier = Modifier) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
 
@@ -60,7 +67,7 @@ fun VisePandaBottomBar(navController: NavHostController) {
     }
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(
                 horizontal = Dimens.BottomNavHorizontalInset,

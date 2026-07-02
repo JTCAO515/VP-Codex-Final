@@ -1,5 +1,31 @@
 # VisePanda Changelog
 
+## v0.3.10 - 2026-07-03
+
+**屏幕适配打磨:AndroidManifest 加入 resizeableActivity/max_aspect,导航栏改为真正的悬浮遮罩(不再挤占布局空间),Web 端 viewport 只声明 width。** 操作者在一条消息里给出四条指令:(1)"AndroidManifest application 标签内加入 resizeableActivity="true""；(2)"application 内部加入 max_aspect=2.4 元数据"；(3)"不要写死任何像素尺寸，全部用 match_parent 铺满屏幕"；(4)"viewport 不要限制最大高度，只写 width=device-width"。前三条是 Android 术语,第四条"viewport"/"width=device-width"是纯 Web 术语——本仓库是 monorepo,`android/` 是原生 Android 模块,`app/` 是原 Next.js Web 端(自 v0.2.17 起已冻结,主线全面转向原生),因此把前三条落在 Android 端、第四条落在 Web 端。另外操作者单独指出:"导航栏是浮现在page文字和内容上面的，不需要有边框，要融入"——这是对 v0.3.9 已实现的"悬浮胶囊导航栏"的一个功能性补完:v0.3.9 的导航栏外观是悬浮的,但结构上仍是 `Scaffold` 的 `bottomBar` 插槽,会整体挤占等高的布局空间,内容永远不会真正出现在导航栏"下面"。
+
+### AndroidManifest 改动
+- `AndroidManifest.xml` 的 `<application>` 标签内加入 `android:resizeableActivity="true"`,并在 `<application>` 内新增 `<meta-data android:name="android.max_aspect" android:value="2.4" />`,支持分屏/多窗口和超高屏/折叠屏等非常规宽高比,不被系统裁切letterbox。
+
+### Compose 布局审计
+- 全仓库搜索 `.height(`/`.width(`/`.size(` 硬编码像素调用,只发现两处,且都是合理的小尺寸 UI 元素(`VisePandaBottomBar.kt` 里 52dp 的占位 Spacer 和 58dp 的 Chat 悬浮按钮圆),不是应该铺满屏幕的容器级尺寸。所有顶层页面本来就统一用 `fillMaxSize()`/`fillMaxWidth()`/`weight(1f)`(Compose 里 `match_parent` 的等价写法)——代码库在这条指令上本来就合规,无需改动,只是确认。
+
+### 导航栏改为真正的悬浮遮罩
+- `VisePandaNavHost.kt`:`VisePandaApp` 不再用 `Scaffold(bottomBar = VisePandaBottomBar(...))` 包裹 `NavHost`,改为 `Box(Modifier.fillMaxSize())` 内部 `NavHost` 铺满整个 Box(`fillMaxSize()`,不再有底部 padding),`VisePandaBottomBar` 通过 `Modifier.align(Alignment.BottomCenter)` 叠加在最上层(`VisePandaBottomBar` 新增 `modifier` 参数支持这个用法)。
+- `ui/theme/Dimens.kt` 新增 `BottomNavContentClearance`(96dp = 导航栏 64dp 高度 + 16dp 底部 inset + 小段余量),应用到需要"绕开"悬浮导航栏的地方:`TripsScreen`/`MeScreen` 的 `LazyColumn` `contentPadding` 底部,以及 `ButlerScreen` 的聊天输入区(`ButlerComposer`)——后者比滚动列表更重要,因为它是 Chat 页的核心可交互控件(输入框/相机/麦克风/发送按钮),绝不能被不透明的导航栏挡住或劫持点击。
+- `DayDetailScreen` 无需改动:它不是 `TopLevelDestination`,导航栏本来就不会在这个页面显示。
+
+### Web 端 viewport 修正(自 v0.2.17 冻结以来首次触碰 Web 端)
+- `app/layout.tsx` 新增显式 `export const viewport: Viewport = { width: "device-width" }`(Next.js 14+ App Router 的 `Viewport` API),刻意不写 `initialScale`/`maximumScale`/任何高度属性,严格对应操作者"只写 width=device-width"的字面指令。这是本项目自 v0.2.17 Web 端冻结、主线转向原生 Android/iOS 以来第一次触碰 Web 端代码,范围严格限定在这一行低风险的正确性修正,不代表 Web 端开发重新启动。
+
+### 验证
+- `./gradlew :app:testDebugUnitTest :app:assembleDebug`:过程中遇到一次已知的、非代码性质的 Gradle 增量构建陈旧 dex 产物冲突(v0.3.8 就记录过的同一类问题),`./gradlew clean` 后重新编译一次通过。
+- Android 34 模拟器手动验收:把 Trips 页面滚动到底,确认最后一张 Day 卡片和悬浮导航栏之间留有清晰的间隙(滚动过程中内容确实会从导航栏"下方"经过,静止时又能完全避开);Chat 页面的输入框/相机/麦克风/发送按钮整排都在悬浮导航栏之上,没有被遮挡;Me/Explore/Tools 页面渲染无回归。
+- `npx tsc --noEmit` 确认 `app/layout.tsx` 的改动没有引入新的类型错误(仓库里已有的、与本次改动无关的测试文件类型错误保持原样)。
+- `strings.xml` 里 Tools/Explore 占位文案顺延为 v0.3.11/v0.3.12(因本轮用掉了 v0.3.10)。
+
+详见 DESIGN.md ADR-114。
+
 ## v0.3.9 - 2026-07-03
 
 **视觉打磨:导航栏改为圆角悬浮胶囊,文本框/对话框加大圆角,Taxi Driver Card 保留并顺带修复一个对话框布局 bug。** 操作者发来一整套黑色手机 mockup 产品设计参考图(5屏:Chat home/Plan/Explore/Tools/Me),并给出三条明确指令:(1)"导航栏要做圆角悬浮式";(2)"taxi driver card 不重要 优先级极低，如果影响了项目进展可以移除";(3)"所有的文本框，对话框都做成圆角的，弧形"。

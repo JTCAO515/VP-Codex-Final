@@ -237,7 +237,17 @@ private fun ButlerComposer(
         tonalElevation = Dimens.SpaceXS,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Column(modifier = Modifier.padding(Dimens.SpaceLG)) {
+        // Bottom padding clears the v0.3.10 floating overlay nav bar
+        // (DESIGN.md ADR-114) — Chat is a top-level destination, so the
+        // send/camera/mic controls must never render underneath it.
+        Column(
+            modifier = Modifier.padding(
+                start = Dimens.SpaceLG,
+                end = Dimens.SpaceLG,
+                top = Dimens.SpaceLG,
+                bottom = Dimens.BottomNavContentClearance,
+            ),
+        ) {
             if (state.errorMessage != null) {
                 Text(
                     text = state.errorMessage,
@@ -275,12 +285,12 @@ private fun ButlerComposer(
                 // Visual-only per the Figma reference's composer layout — disabled,
                 // not wired to the camera/mic, because camera/microphone permissions
                 // are staged to be requested at point-of-use starting with the
-                // Translator round (v0.3.8), not granted speculatively here.
+                // native Translator round, not granted speculatively here.
                 IconButton(onClick = {}, enabled = false) {
-                    Icon(Icons.Filled.PhotoCamera, contentDescription = "Camera (coming in v0.3.8)")
+                    Icon(Icons.Filled.PhotoCamera, contentDescription = "Camera (coming with Translator)")
                 }
                 IconButton(onClick = {}, enabled = false) {
-                    Icon(Icons.Filled.Mic, contentDescription = "Voice input (coming in v0.3.8)")
+                    Icon(Icons.Filled.Mic, contentDescription = "Voice input (coming with Translator)")
                 }
                 Button(
                     onClick = onSend,

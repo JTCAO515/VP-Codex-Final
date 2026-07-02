@@ -34,4 +34,14 @@ object Dimens {
     val BottomNavFloatingHeight = 64.dp
     val BottomNavHorizontalInset = 16.dp
     val BottomNavBottomInset = 16.dp
+
+    /**
+     * v0.3.10: the floating nav bar overlays screen content instead of
+     * reserving Scaffold padding (operator directive — nav bar should float
+     * over page content, not push it up). Scrollable/interactive content
+     * needs this much bottom clearance so it can scroll or render clear of
+     * the bar's footprint (`BottomNavFloatingHeight` + `BottomNavBottomInset`
+     * + a small margin) instead of being permanently hidden underneath it.
+     */
+    val BottomNavContentClearance = 96.dp
 }

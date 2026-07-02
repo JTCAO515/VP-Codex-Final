@@ -51,7 +51,12 @@ fun MeScreen(
 private fun MeContent(activeTripTitle: String?, contentPadding: PaddingValues) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(contentPadding),
-        contentPadding = PaddingValues(Dimens.SpaceLG),
+        contentPadding = PaddingValues(
+            start = Dimens.SpaceLG,
+            end = Dimens.SpaceLG,
+            top = Dimens.SpaceLG,
+            bottom = Dimens.BottomNavContentClearance,
+        ),
     ) {
         item {
             Text(

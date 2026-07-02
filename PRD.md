@@ -973,4 +973,16 @@ UI 参考:操作者提供 Lovable 预览与 Figma Make `Design According to MD D
 
 排除:未移除 Taxi Driver Card(操作者的移除许可是条件性的——"若影响项目进展",本轮任何改动都不依赖移除它);未改动导航路由/数据流/Supabase schema。
 
-意外发现:给 Taxi Driver Card 对话框加圆角、模拟器截图验收时,发现一个此前就存在的真实布局 bug——对话框 `confirmButton` 里 Copy/Speak/Close 三个按钮塞进同一个 `Row` 装不下,`Close` 被挤压成不可读的窄条。已用 `uiautomator dump` 核实并改用 `FlowRow` 修复,详见 HANDOFF.md/DESIGN.md ADR-113 的完整记录。Tools/Explore 占位文案顺延为 v0.3.10/v0.3.11(因本轮用掉了 v0.3.9)。
+意外发现:给 Taxi Driver Card 对话框加圆角、模拟器截图验收时,发现一个此前就存在的真实布局 bug——对话框 `confirmButton` 里 Copy/Speak/Close 三个按钮塞进同一个 `Row` 装不下,`Close` 被挤压成不可读的窄条。已用 `uiautomator dump` 核实并改用 `FlowRow` 修复,详见 HANDOFF.md/DESIGN.md ADR-113 的完整记录。Tools/Explore 占位文案顺延为 v0.3.10/v0.3.11(因本轮用掉了 v0.3.9;后因 v0.3.10 又被下方新一轮占用,再顺延为 v0.3.11/v0.3.12)。
+
+## v0.3.10 需求更新 —— 屏幕适配打磨:Manifest 标志位 + 导航栏真悬浮遮罩 + Web viewport(已完成)
+
+需求来源:操作者一条消息给出四条指令:(1)"AndroidManifest application 标签内加入 resizeableActivity="true"";(2)"application 内部加入 max_aspect=2.4 元数据";(3)"不要写死任何像素尺寸，全部用 match_parent 铺满屏幕";(4)"viewport 不要限制最大高度，只写 width=device-width"。前三条是 Android 术语,第四条"viewport"是纯 Web 术语——本仓库是 monorepo(`android/` 原生模块 + `app/` 原 Next.js Web 端,后者自 v0.2.17 起冻结),按平台边界拆分处理。操作者还单独指出导航栏"是浮现在page文字和内容上面的，不需要有边框，要融入",是对 v0.3.9 的功能性补完。
+
+交付:`AndroidManifest.xml` 加 `resizeableActivity`/`max_aspect`;审计确认 Compose 布局本来就没有硬编码屏幕级尺寸;导航栏从 `Scaffold` `bottomBar`(会挤占布局空间)改为 `Box` 悬浮遮罩(`VisePandaNavHost.kt`),内容现在真的可以滚动/渲染到导航栏"下面",新增 `Dimens.BottomNavContentClearance` 保证滚动列表和 Chat 输入区仍能避开导航栏;`app/layout.tsx` 新增只写 width 的 `viewport` 导出。
+
+验收标准:`./gradlew :app:testDebugUnitTest :app:assembleDebug` 通过;Android 34 模拟器手动验收 Trips 滚动到底有清晰间隙、Chat 输入区不被遮挡、其余页面无回归;`npx tsc --noEmit` 确认 Web 端改动无新增类型错误。
+
+排除:未改动 Android 导航路由/数据流/Supabase schema;Web 端改动严格限定在 `viewport` 这一行,不代表 Web 端开发重新启动。
+
+意外发现:无——本轮 Compose 布局审计确认代码库已合规,没有额外发现的 bug(与 v0.3.8/v0.3.9 每轮都有意外发现不同)。Tools/Explore 占位文案顺延为 v0.3.11/v0.3.12(因本轮用掉了 v0.3.10)。详见 HANDOFF.md/DESIGN.md ADR-114 的完整记录。
