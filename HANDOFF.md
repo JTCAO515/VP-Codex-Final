@@ -4,7 +4,7 @@
  
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）；v0.1.34 桌面横屏前端优化：Tools 6 个模态卡片 + 浮层对话框、Trips 筛选按钮布局修复（过滤器始终可见）、Translator 单页 2×2 网格布局（同时展示四个功能面板无需切换 tab）。
 - 当前分支：`main`
-- 当前版本：`v0.2.2`（版本序列 `0.2.x`）
+- 当前版本：`v0.2.3`（版本序列 `0.2.x`）
 - 重要（已完成）：
   - `supabase/migrations/0002_trip_archive_and_share.sql`：用户已手动在 Supabase SQL Editor 执行，归档/分享 RLS policy 已生效。
   - Google OAuth：用户已在 Google Cloud 创建 OAuth 凭据并在 Supabase Authentication → Providers → Google 填入，Google 登录功能已配置就绪。
@@ -571,3 +571,19 @@ Alternatives if Dianping approval is slow: (a) Amap enriched fields — already 
 - **v0.2.3 — Canvas Action Layer**: trip-completeness score + progress meter in `TripSummary`; Day quick-actions (Lighten / Add food / Swap morning / Add rest) sending structured Butler intents; prep blockers surfaced on the canvas.
 - **v0.2.4 — Inline Tool Cards + factual fast-path**: `ask_factual` answered instantly from `lib/tools` static data as inline cards in Chat (also speeds those replies by skipping the LLM); "Add reminder / Mark as done" hooks into trip prep.
 - **v0.2.5 — Tools Interactive Widgets I**: currency converter (live rate), visa eligibility checker, payment setup wizard, via an optional `interactive` descriptor on `ToolCategory` (static checklist stays as fallback).
+
+## v0.2.3 交接更新 —— 整体规划 + 前端 UI 优化路线(纯文档)
+
+- 本轮版本:`v0.2.3`,纯文档,产品代码零改动,运行时行为与 v0.2.2 完全一致。
+- 权威新文档:`docs/planning/v0.2.3-ui-optimization-roadmap.md`(宏观差距审计 G1–G10、逐界面微观优化清单、设计系统迭代规划、后三轮执行承诺)。
+- 新操作者规则已入项目记忆:后续所有思考/回答/汇报一律中文。
+
+### 后三轮执行承诺(版本重排:规划占用 v0.2.3,代码轮顺延)
+
+1. **v0.2.4 —— Canvas 行动层 + 画布 UI 升级**:完成度评分与进度条、Day 卡快捷动作(减负/加美食/换上午/加休息,走 AI 管道)、出发准备聚合区、patch 动画与缺口 chips。验收:点"减负"3 秒内画布可见变化且变化处高亮。
+2. **v0.2.5 —— 对话体验重塑 + 内联工具卡**:ask_factual 快通道(<150ms 直出签证/支付/eSIM/汇率/地铁/应急静态卡,跳过 LLM)、MessageBlock 分块渲染、乐观 UI + 打字指示 + 骨架屏、>8s 安抚文案、模型标签弱化。验收:问签证秒出卡片并可一键加入行程提醒。
+3. **v0.2.6 —— 设计系统收口 + Tools 交互组件**:token 层 + 组件库归一(Button/Pill/Card/Sheet/Toast/ProgressMeter/MessageBlock/ToolCard/EmptyState);Tools 三件套 widget(汇率换算器/签证资格问答器/支付设置向导),静态清单降级保留。验收:三工具桌面+移动可完成真实任务,新组件 ≥3 页复用。
+
+### 操作者无需任何手动步骤
+
+- 本轮及后三轮均不需要新 API key、不需要 Vercel/Supabase 操作。之前待办不变:如画布仍偶发不联动,按 v0.1.48 教程核对 `*_CHAT_MODEL` 精确模型 ID。

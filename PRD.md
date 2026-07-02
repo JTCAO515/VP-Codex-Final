@@ -604,3 +604,13 @@ Fixes three reported product problems:
 - Chat replies must be fast: the Butler races configured models in parallel and bounds each call with a timeout, so latency tracks the fastest healthy model.
 - Chat and the Live Canvas must stay in sync: any message that changes the itinerary updates the canvas — guaranteed even in fallback via a destination-aware skeleton, and required of live models via the prompt contract.
 - Chats persist automatically: signed-in chats auto-save to Trips; there is no manual Save button. Guests keep an automatic local draft.
+
+## v0.2.3 需求更新 —— UI 优化路线(纯规划)
+
+依据一站式 FIT 管家定位,确立三条体验需求主线(详见 `docs/planning/v0.2.3-ui-optimization-roadmap.md`):
+
+- 行程可操作:完成度可见(0–100% 进度条 + 缺口 chips)、Day 卡一键快捷动作、画布变化必须有视觉信号、五焦虑聚合为"出发准备"区。
+- 对话像管家:回复分块可扫(headline/✓/⚠/下一步按钮)、任何发送 100ms 内有反馈、事实类问题 <150ms 秒答内联卡且可一键加入行程提醒。
+- 界面成体系:token + 组件库统一(新界面禁手写同类样式)、空/错状态设计化、移动端逐轮附带打磨。
+
+排除项:本轮零代码;不新增路线图阶段;不引入新依赖或新 key。

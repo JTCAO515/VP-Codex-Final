@@ -534,3 +534,15 @@ Next three planned iterations:
 - [ ] v0.2.3 Canvas Action Layer: completeness score + progress meter + Day quick-actions (structured intents) + prep blockers.
 - [ ] v0.2.4 Inline Tool Cards + factual fast-path: `ask_factual` answered from static Tools data as inline chat cards (also faster); reminder/mark-done hooks.
 - [ ] v0.2.5 Tools Interactive Widgets I: currency converter, visa checker, payment wizard via optional `interactive` ToolCategory descriptor (static fallback kept).
+
+## v0.2.3 附录 —— 整体规划 + UI 优化路线(纯文档)
+
+- [x] 新增 `docs/planning/v0.2.3-ui-optimization-roadmap.md`:宏观差距审计(G1–G10)、逐界面微观 UI 清单、设计系统迭代规划、后三轮执行承诺。
+- [x] 项目记忆写入中文规则(思考/回答/汇报一律中文)。
+- [x] 版本重排:代码三轮顺延为 v0.2.4 / v0.2.5 / v0.2.6。
+
+后三轮任务队列(执行承诺):
+
+- [ ] v0.2.4 Canvas 行动层:`lib/trips/completeness.ts` 六维评分 + ProgressMeter + Day 卡快捷动作(预制意图) + 出发准备区 + patch 动画。测试:评分纯函数断言、快捷动作意图断言。
+- [ ] v0.2.5 对话体验:ask_factual <150ms 内联工具卡(静态数据,跳过 LLM) + MessageBlock 分块渲染 + 乐观 UI/骨架屏/安抚文案 + 「加入提醒/标记完成」回写完成度。测试:快通道时延与绕过断言、分块渲染快照。
+- [ ] v0.2.6 设计系统 + Tools widget:token 层 + 首批组件库收编;汇率换算器/签证资格问答器/支付设置向导(`ToolCategory.interactive` 可选描述符,缺数据降级静态清单)。测试:换算断言、决策树多国用例、降级断言。

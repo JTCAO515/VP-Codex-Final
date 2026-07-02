@@ -762,3 +762,11 @@ ADR-069: Chats auto-save; no manual Save button.
 - Background: Users expect their planning to persist without a manual step.
 - Decision: Signed-in chats auto-save to Trips after each assistant reply (silent note), and the manual button is removed. Guests keep the localStorage draft. Sign-in sync claims the message count so it does not double-write with auto-save.
 - Reason: Reduces friction and matches the "single memory butler" positioning; persistence is a background behavior, not a chore.
+
+## v0.2.3 设计更新 —— UI 优化路线(纯规划)
+
+本轮为设计契约补全,无运行时变化、无新 ADR(落实 ADR-049 设计系统、ADR-055/057 对话主线与情境控件、ADR-067~069 核心环路修复的后续)。要点:
+
+- 差距审计 G1–G10 聚类为三轮主题:行程可操作(v0.2.4)→ 对话像管家(v0.2.5)→ 界面成体系(v0.2.6)。顺序理由:先做实"行程实体"(零外部依赖),再顺"对话主线"(消费完成度数据),最后设计系统收口(前两轮组件成为组件库首批客户,避免先建空系统)。
+- 关键机制约束重申:Day 卡快捷动作只发预制意图走 `handleSend`,绝不直改 canvas;内联工具卡数据只来自 `lib/tools` 静态层;`ToolCategory.interactive` 为可选描述符,缺数据整体降级为静态清单;完成度评分为纯函数便于测试。
+- 动效准则:只做有含义的动效(出现 240ms/变更脉冲 1 次/完成打勾),100ms 反馈底线,尊重 prefers-reduced-motion。

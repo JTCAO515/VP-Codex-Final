@@ -2,6 +2,13 @@
 
 Standing rules for every session on this project. Read this before acting.
 
+## Language rule (operator directive)
+
+- **All Claude Code thinking, reasoning chains, replies, and reports to the
+  operator must be in Chinese (中文).** Code, identifiers, and commit messages
+  may stay in English, but every chat-facing explanation, plan, and report is
+  written in Chinese.
+
 ## Workflow rules
 
 - **VPCC is NOT automatic.** Do NOT run the VPCC workflow/ceremony (the Step 0

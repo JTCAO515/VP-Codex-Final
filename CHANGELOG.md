@@ -1,5 +1,17 @@
 # VisePanda Changelog
 
+## v0.2.3 - 2026-07-02
+
+**纯文档规划轮 —— 整体项目规划 + 前端 UI 优化迭代路线。** 不改任何产品代码。
+
+- 新增 `docs/planning/v0.2.3-ui-optimization-roadmap.md`,与既有三份蓝图(v0.1.52 交互蓝图 / v0.1.53 技术蓝图 / v0.1.55 布局规范)互补,构成完整设计契约:
+  - **宏观**:定位到体验的四条推论(管家≠工具箱、一站式=不离开、FIT 买确定性、智能必须可见);10 项体验差距审计(G1 文字墙、G2 画布被动、G3 变化不可感、G4 无加载态、G5 完成度不可知、G6 工具与对话割裂、G7 样式无系统、G8 空错态未设计、G9 移动端未打磨、G10 五焦虑入口分散),并聚类为后三轮主题。
+  - **微观**:逐界面 UI 优化清单——Canvas(完成度进度条/Day 卡快捷动作/patch 动画/出发准备区)、Chat(分块渲染/乐观 UI+骨架屏/内联工具卡/模型标签弱化)、Tools(widget 优先+清单折叠)、移动端专项、空/错状态。
+  - **设计系统**:token 层整理、组件库首批(Button/Pill/Card/Sheet/Toast/ProgressMeter/MessageBlock/ToolCard/EmptyState)、动效与反馈准则(100ms 反馈、有含义的动效、reduced-motion)。
+  - **后三轮执行承诺**:v0.2.4 Canvas 行动层+画布 UI;v0.2.5 对话体验重塑+内联工具卡(含 ask_factual <150ms 快通道);v0.2.6 设计系统收口+Tools 三件套 widget(汇率换算/签证问答/支付向导)。每轮含功能/UI/测试/边界四栏与验收标准。
+- 项目记忆 `CLAUDE.md` 新增操作者指令:**思考、推理、回答、汇报一律中文**(代码与提交信息可保留英文)。
+- 版本占位说明:原口头排期的三轮代码迭代因本规划轮占用 v0.2.3 顺延为 v0.2.4/v0.2.5/v0.2.6。
+
 ## v0.2.2 - 2026-07-01
 
 **Chat core-loop fixes: speed, Chat↔Canvas sync, and auto-save.** Addresses three reported problems.

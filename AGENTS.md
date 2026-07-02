@@ -354,3 +354,9 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 - Live-model prompt requires the full `days` array on itinerary change; keep that instruction when editing `buildSystemPrompt`.
 - Chats auto-save for signed-in users; do not reintroduce a manual Save button unless asked. Keep the sign-in-sync vs auto-save de-duplication (`lastAutoSavedCount`).
 - If a canvas-not-updating report recurs with live models, first suspect a wrong `*_CHAT_MODEL` id (env override), not the wiring.
+
+## v0.2.3 Agent 更新 —— 语言规则与后三轮约束
+
+- **中文规则(操作者指令)**:自本轮起,Claude 的思考、推理、回答、汇报一律使用中文;代码、标识符、提交信息可保留英文。已写入 `CLAUDE.md`。
+- 后三轮(v0.2.4/5/6)实现时以 `docs/planning/v0.2.3-ui-optimization-roadmap.md` 为设计契约,配合 v0.1.55 布局规范执行;每轮功能/UI/测试/边界四栏为验收依据。
+- 重申硬约束:快捷动作与内联卡一律走既有 AI/静态管道,不直改 canvas;`interactive` 描述符可选、降级保留静态清单;完成度为纯函数;新组件进组件库后,新界面禁止手写同类样式。
