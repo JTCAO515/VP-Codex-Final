@@ -4,8 +4,9 @@
  
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）；v0.1.34 桌面横屏前端优化：Tools 6 个模态卡片 + 浮层对话框、Trips 筛选按钮布局修复（过滤器始终可见）、Translator 单页 2×2 网格布局（同时展示四个功能面板无需切换 tab）。
 - 当前分支：`main`
-- 当前版本：`v0.2.16`（版本序列 `0.2.x`）
+- 当前版本：`v0.2.17`（版本序列 `0.2.x`）
 - 重要（已完成）：
+  - v0.2.17 是纯文档规划轮：应操作者要求，评估高德之外可拓宽产品线的景点/餐饮/酒店数据与预订服务，新增 `docs/planning/data-provider-expansion-assessment.md`，覆盖 Trip.com（酒店）、大众点评（餐饮）、百度地图、腾讯位置服务、Klook（门票/活动）、KKday（门票/活动）六个候选。结论：优先研究 Trip.com 与 Klook（两者都是外国游客友好、能补上"能直接付款下单"这个高德完全没覆盖的缺口）；大众点评存在竞品条款法律风险，建议先做商务/法务评估而非技术调研；百度地图/腾讯位置服务与高德数据重合度高，不建议投入。**研究局限已诚实披露**：六个官方文档站点直接 WebFetch 均返回 403（反爬所致，非代理故障），本轮结论基于 WebSearch 结果交叉印证，不是逐字源码级核实，标注「⚠️ 待人工核实」的条目在真正对接前需人工登录官网确认。未改动任何产品运行时代码。**版本协调**：本轮开发时本地分支曾与 `main` 短暂分叉（`main` 已并行推进至 v0.2.16，含 Explore/Tools/TripBlock POI 多轮实现），发现后未强推覆盖，而是在 `main` 最新提交基础上重新构建，版本号顺延为 `v0.2.17`。
   - v0.2.16 完成 Explore candidate review / Day detail action polish：Flexible 候选块只在真实候选存在时显示，用户可见文案改为 “Needs scheduling”；Day detail 为候选 POI 提供 “Ask VisePanda to schedule” 动作，并继续通过 Chat/AI patch 管道重排，不本地硬改行程。未新增 checkout、库存、支付、Supabase schema、新 key 或生产 FlyAI。
   - v0.2.15 完成 Explore Add-to-Trip POI write-through：Explore 的 Add to Trip 现在同时携带自然语言 Chat draft 与结构化 POI payload；Chat 首跑会解析 payload，并确定性 enrich 匹配 TripBlock 或在目标城市 day 追加可见的 Flexible 候选块；Day card 与 Day detail 均显示 Flexible block。未新增 checkout、库存、支付、Supabase schema、新 key 或生产 FlyAI。
   - v0.2.14 完成 Real POI context write-through + booking candidate model：Amap `liveToolContext` 现在携带 id、电话、地图链接、坐标和 info-only booking candidates；orchestrator 在 provider patch 解析后会把匹配 POI 的安全字段确定性写回 TripBlock；Day detail 以 “Info only” 展示 booking candidates。未新增 checkout、库存、支付、Supabase schema、新 key 或生产 FlyAI。
@@ -26,6 +27,15 @@
 - 最新实现 commit：本轮提交后以 `git log -1 --oneline` 为准
 - 当前远端：`https://github.com/JTCAO515/VP-Codex-Final.git`
 - 部署地址：`https://go2china.space`
+
+## v0.2.17 Handoff Update - 数据/预订服务拓展评估（纯文档）
+
+- 触发来源：操作者主动提出"针对景点/餐饮/酒店推荐，除了高德 api 的 poi 之外，市面上还有类似的服务，我想要拓宽产品线"，追问后确认要深挖 Trip.com、大众点评、百度地图、腾讯位置服务、Klook、KKday 六个候选（先给了四个方向的问卷，用户追加要求把 Klook/KKday 也一起研究）。
+- 交付：`docs/planning/data-provider-expansion-assessment.md`。核心结论已写入本文件"当前状态"一节；完整的逐服务分析（申请门槛、佣金/费用模式、认证方式、⚠️ 待人工核实条目清单）在文档本体。
+- 研究方法与 v0.2.6 FlyAI 研究的关键差异：本轮六个官方文档站点直接 `WebFetch` 全部返回 `403 Forbidden`，已用 `curl "$HTTPS_PROXY/__agentproxy/status"` 核实是目标站点反爬所致，非代理故障。因此改用多次独立 `WebSearch` 检索交叉印证，**这是基于搜索引擎摘要的二手信息整理，不是逐字源码级核实**——文档开头和每个条目都明确标注了这一置信度差异，避免下一位读者把它当成和 FlyAI 研究同等严谨度的依据。
+- 未触碰 `mock-inventory.md`：六个候选目前都停留在"要不要研究"的规划阶段，不是"代码已就绪等 key"状态，不满足新增条目的既有标准。
+- **分支协调**：本轮开发时基于较早的 `main`（v0.2.8）开工，完成后发现 `main` 已被并行会话推进到 v0.2.16（Explore/Tools/TripBlock POI 等多轮实现）。`git fetch origin main` 后确认存在真实分叉，`git merge` 试探性合并在 7 份工作流文档 + `package.json` 上产生版本号编号冲突（属预期——双方都在各自版本号下新增了发布说明段落）；判断这类冲突不适合逐行强行合并，遂 `git merge --abort`，改为在 `main` 最新提交上重新构建本轮的纯文档改动，版本号从原计划的 `v0.2.9` 顺延为 `v0.2.17`。**没有丢失任何一方内容**：`main` 的全部 v0.2.9–v0.2.16 代码与文档原样保留，本轮的新增内容（评估文档 + 7 份工作流文档的对应段落）在其基础上追加。
+- 下一步是操作者/团队需要做的事，不是本轮或下一轮 coding agent 能直接推进的：真正启动 Trip.com/Klook 对接需要人工注册对方开发者账号才能拿到一手条款，coding agent 不能代替完成账号注册与商务审核。
 
 ## v0.2.8 Handoff Update - Chat/Canvas 视觉重设计
 

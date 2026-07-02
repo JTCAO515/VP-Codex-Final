@@ -745,7 +745,17 @@ Next three planned iterations:
 下一步建议:
 
 - [x] `v0.2.16` Explore candidate review / day-detail action polish:已完成。
-- [ ] `v0.2.17` Candidate controls:为 Flexible 候选补充 Remove candidate / Keep for later 之类的非交易控制,明确哪些操作走 Chat,哪些属于本地候选管理。
+- [x] `v0.2.17` 被操作者主动提出的"拓宽产品线数据源调研"占用(纯文档,见下方附录),原计划的 Candidate controls 顺延为 `v0.2.18`。
+- [ ] `v0.2.18` Candidate controls(原 `v0.2.17` 计划):为 Flexible 候选补充 Remove candidate / Keep for later 之类的非交易控制,明确哪些操作走 Chat,哪些属于本地候选管理。
+
+## v0.2.17 附录 —— 景点/餐饮/酒店数据与预订服务拓展评估(纯文档,已完成)
+
+- [x] 应操作者要求,评估高德 POI 之外可拓宽产品线的六个候选服务:**Trip.com**(酒店)、**大众点评**(餐饮)、**百度地图**、**腾讯位置服务**、**Klook**(门票/活动)、**KKday**(门票/活动)。新增 `docs/planning/data-provider-expansion-assessment.md`。
+- [x] 筛选标准明确为"离外国游客能在 App 内直接付款拿到票/房间有多近",而非单纯数据完整度——这是高德 POI 层完全没覆盖的缺口。
+- [x] 优先级结论:**Trip.com**(酒店,补 Canvas `stay` 字段可预订能力)与 **Klook**(门票/活动,外国游客定位最精准)并列第一优先;**KKday** 与 Klook 高度同质化,建议只接一家;**大众点评** 存在明确竞品条款法律风险(可能被判定为"用户点评+商户预订"竞品导致协议终止),建议先做商务/法务评估而非技术调研;**百度地图**/**腾讯位置服务** 与高德数据重合度高、无增量价值,不建议投入,仅记录为技术容灾备选。
+- [x] **诚实披露研究局限**:六个候选官方文档站点直接 `WebFetch` 均返回 `403 Forbidden`(已用代理状态端点核实非代理故障),本轮结论基于 `WebSearch` 结果交叉印证,非逐字源码级核实(与 v0.2.6 FlyAI 研究的严谨度不同),文档内逐条标注「⚠️ 待人工核实」。
+- [x] 未新增 `mock-inventory.md` 条目(六候选均未进入"代码已就绪等 key"状态);未改动任何产品运行时代码。
+- [x] **版本协调**:本轮开工时基于较早的 `main`(v0.2.8),完工后发现 `main` 已被并行会话推进至 v0.2.16;`git merge` 试探性合并在工作流文档与 `package.json` 上产生版本号编号冲突,判断不适合逐行强行合并后 `git merge --abort`,改为在 `main` 最新提交上重新构建本轮纯文档改动,版本号顺延为 `v0.2.17`,未丢失任何一方内容。
 
 ## v0.2.16 附录 —— Explore candidate review / Day detail action polish(已完成)
 
