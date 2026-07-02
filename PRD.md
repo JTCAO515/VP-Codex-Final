@@ -723,5 +723,49 @@ Fixes three reported product problems:
 - 不处理真实支付、绑卡、交易、钱包授权。
 - 不新增外部 API key、Supabase migration、FlyAI 生产调用或预订能力。
 
+## v0.2.11 更新 —— Frontend Design Resource Stack 配置(纯文档)
+
+需求来源:操作者要求配置一组前端/设计/Agent 资源,包括 Frontend Design、UI design system、CSS animation、creative aesthetics、Awwwards landing、web design guidelines、Vercel React best practices、Superpowers、Impeccable、better-icons、UI Design Brain、DESIGNmd、awesome-design-md 等。
+
+交付:
+
+- 新增 `PRODUCT.md`,为设计工具和后续 agent 提供简短产品上下文、目标用户、产品语气和设计红线。
+- 新增 `docs/planning/v0.2.11-frontend-design-resource-stack.md`,把各资源归类为 source of truth、流程规则、设计评审词汇、图标发现工具、组件模式参考或待验证资源。
+- 明确 `DESIGN.md`、`app/globals.css`、现有 React 组件和产品能力边界仍是 VisePanda 的权威来源。
+- 明确 Impeccable、better-icons、UI Design Brain、DESIGNmd 等均为可选外部开发辅助;没有安装为运行时依赖。
+
+验收标准:
+
+- 后续前端设计任务能先读 `PRODUCT.md` + `DESIGN.md` + 相关组件/CSS,再使用外部资源作为 critique/reference。
+- 新 UI 不应因为外部设计系统而丢失 VisePanda 旅行管家工作台定位。
+- 图标优先使用现有 `lucide-react`;外部图标工具只能用于缺失图标的发现/检索。
+
+排除:
+
+- 不下载外部 DESIGN.md 覆盖当前 `DESIGN.md`。
+- 不安装 Impeccable、better-icons、MCP server、CLI 或 npm 包。
+- 不新增生产功能、API key、Supabase schema 或用户可见行为。
+
+## v0.2.12 更新 —— 文档/版本交接统一(纯文档)
+
+需求来源:操作者要求把所有 MD 文档更新到 v0.2.12,避免另一台设备或新的 coding agent 接手时误读当前版本、下一轮编号或设计资源栈状态。
+
+交付:
+
+- 当前项目版本统一为 `v0.2.12`。
+- 明确 `v0.2.11` 是已完成的 Frontend Design Resource Stack 配置轮,不是下一轮功能开发。
+- 明确下一轮建议为 `v0.2.13` TripBlock POI Embedding + Day Detail Operational Upgrade。
+- 保留 v0.2.10 Tools Widgets、v0.2.11 设计资源栈配置的历史记录,但当前接手依据以 v0.2.12 文档顶部为准。
+
+验收标准:
+
+- 新接手 agent 阅读 `VERSIONING.md`、`HANDOFF.md`、`PLAN.md` 后能判断当前版本是 v0.2.12。
+- 新接手 agent 不会把 v0.2.11 设计资源配置误认为待执行任务。
+- 下一轮功能开发从 v0.2.13 开始。
+
+排除:
+
+- 不改运行时代码、UI、API key、Supabase schema 或 provider routing。
+
 - 不安装 Impeccable、better-icons、MCP server、CLI 或 npm 包。
 - 不新增生产功能、API key、Supabase schema 或用户可见行为。

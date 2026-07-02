@@ -630,7 +630,7 @@ Next three planned iterations:
 下一步建议:
 
 - [x] `v0.2.10` Tools Widgets I:在本轮 inline card 数据模型基础上,把 Currency converter、Visa checker、Payment setup wizard 做成真实可交互组件,并让 Chat tool cards 与 `/tools` 继续复用同一 Tools 数据源。
-- [ ] `v0.2.12` TripBlock POI Embedding + Day Detail Operational Upgrade:将中文地址、营业时间、电话、坐标、booking/map url 等可选运营字段持久化进 `TripBlock`,升级 Day detail 和 Taxi Driver card。
+- [ ] `v0.2.13` TripBlock POI Embedding + Day Detail Operational Upgrade:将中文地址、营业时间、电话、坐标、booking/map url 等可选运营字段持久化进 `TripBlock`,升级 Day detail 和 Taxi Driver card。
 
 ## v0.2.10 附录 —— Tools Widgets I(已完成)
 
@@ -653,4 +653,31 @@ Next three planned iterations:
 
 下一步建议:
 
-- [ ] `v0.2.11` TripBlock POI Embedding + Day Detail Operational Upgrade:扩展 `TripBlock` 可选运营字段,把 Amap rich POI / 后续 FlyAI 合作数据沉淀进 Day detail,并实现 Show Taxi Driver 卡。
+- [x] `v0.2.11` Frontend Design Resource Stack 配置:把操作者指定的前端/设计/Impeccable/图标/设计系统资源登记为仓库级工作流,不改运行时代码。
+- [ ] `v0.2.13` TripBlock POI Embedding + Day Detail Operational Upgrade:扩展 `TripBlock` 可选运营字段,把 Amap rich POI / 后续 FlyAI 合作数据沉淀进 Day detail,并实现 Show Taxi Driver 卡。
+
+## v0.2.11 附录 —— Frontend Design Resource Stack 配置(纯文档)
+
+- [x] 新增 `PRODUCT.md`,作为 Impeccable/设计 agent 可读取的产品上下文摘要,不替代 `PRD.md`。
+- [x] 新增 `docs/planning/v0.2.11-frontend-design-resource-stack.md`,把操作者指定的 Frontend Design、UI design system、CSS animation、creative aesthetics、Awwwards landing、web design guidelines、Vercel React best practices、Superpowers、Impeccable、better-icons、UI Design Brain、DESIGNmd、awesome-design-md 等资源映射到 VisePanda 工作流。
+- [x] 明确外部资源只作为设计评审/开发辅助,不能覆盖当前 `DESIGN.md`、`app/globals.css`、React 组件契约或产品能力边界。
+- [x] 记录 `designmd.co` 为室内设计站点,不作为本项目前端设计系统来源。
+- [x] 本轮不安装 npm 包、MCP server、插件或 CLI,不新增生产依赖、不改运行时代码。
+
+下一步建议:
+
+- [x] `v0.2.12` 文档/版本交接统一:所有当前状态文档指向 v0.2.12,明确 v0.2.11 为历史完成项,下一轮顺延为 v0.2.13。
+- [ ] `v0.2.13` TripBlock POI Embedding + Day Detail Operational Upgrade:扩展 `TripBlock` 可选运营字段,把 Amap rich POI / 后续 FlyAI 合作数据沉淀进 Day detail,并实现 Show Taxi Driver 卡。
+
+## v0.2.12 附录 —— 文档/版本交接统一(纯文档)
+
+- [x] `VERSIONING.md` 与 `package.json` / `package-lock.json` 当前版本统一为 `0.2.12`。
+- [x] `HANDOFF.md` 顶部当前状态统一为 v0.2.12,并新增本轮交接说明。
+- [x] `CHANGELOG.md` 顶部新增 v0.2.12 release note。
+- [x] `PLAN.md` / `PRD.md` / `DESIGN.md` / `AGENTS.md` 记录 v0.2.12 的接手规则: v0.2.11 已完成,下一轮代码为 v0.2.13。
+- [x] `PRODUCT.md` 与 design resource planning 文档补充当前版本提示,防止设计工具接手时误读为活跃 v0.2.11 任务。
+
+下一步建议:
+
+- [ ] `v0.2.13` TripBlock POI Embedding + Day Detail Operational Upgrade:扩展 `TripBlock` 可选运营字段,把 Amap rich POI / 后续 FlyAI 合作数据沉淀进 Day detail,并实现 Show Taxi Driver 卡。
+- [ ] 后续如操作者明确要求安装 Impeccable 或 better-icons,按官方安装路径单独执行,并把生成文件作为可审查 git diff。

@@ -4,8 +4,10 @@
  
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）；v0.1.34 桌面横屏前端优化：Tools 6 个模态卡片 + 浮层对话框、Trips 筛选按钮布局修复（过滤器始终可见）、Translator 单页 2×2 网格布局（同时展示四个功能面板无需切换 tab）。
 - 当前分支：`main`
-- 当前版本：`v0.2.10`（版本序列 `0.2.x`）
+- 当前版本：`v0.2.12`（版本序列 `0.2.x`）
 - 重要（已完成）：
+  - v0.2.12 完成 MD 交接面统一：所有当前状态/版本头部指向 v0.2.12，明确 v0.2.11 是已完成的 Frontend Design Resource Stack 配置轮，下一轮代码建议顺延为 v0.2.13 TripBlock POI Embedding + Day Detail Operational Upgrade。本轮不改运行时代码。
+  - v0.2.11 完成 Frontend Design Resource Stack 配置：新增 `PRODUCT.md` 与 `docs/planning/v0.2.11-frontend-design-resource-stack.md`，把 Frontend Design / UI design system / CSS animation / creative aesthetics / Awwwards landing / web design guidelines / Vercel React best practices / Superpowers / Impeccable / better-icons / UI Design Brain / DESIGNmd 等资源纳入仓库工作流。纯文档配置，不安装外部工具、不改运行时代码。
   - v0.2.10 完成 Tools Widgets I：`ToolCategory.interactive` 可描述 Currency converter、Visa checker、Payment setup wizard；`/tools` 弹窗在静态清单前渲染相应 widget。所有结果都是保守旅行规划辅助,不做官方签证裁定、不处理真实支付、不新增外部 key。详见 `CHANGELOG.md` v0.2.10 与 `DESIGN.md` ADR-075/076。
   - v0.2.9 完成 Chat factual fast-path + inline Tools cards：签证/支付/汇率/地铁/eSIM/应急等高置信事实问题先从现有 Tools 知识生成结构化工具卡，返回 `mode:"tools"` / `strategy:"tool"`，不等待 LLM；Chat 可渲染工具卡并深链到 `/tools?category=...`，同时保留多模型与 mock fallback。详见 `CHANGELOG.md` v0.2.9 与 `DESIGN.md` ADR-073/074。
   - v0.2.8 完成了操作者提供的高保真 Chat 页面设计稿的视觉重设计：`TripSummary` 新增可内联改名的标题、状态徽标（进度条+下一步单元格）、一览 chip 行、Add day/Rebalance route（真实走 AI 管道）+ View map/Trip settings（诚实禁用）动作行；`DayCard` 新增 Day 级完成度徽标、真实照片或图标占位的三段式 block、主/次两组快捷动作（次要动作收进"…"溢出菜单）；`ChatPanel` 新增头像化头部、消息时间戳与已读对勾、结构化高亮卡片、赞踩/复制反馈、可关闭的 Next Step 卡、图标化输入区与 AI 免责声明。所有非功能性控件（Attach/Mic/Pin/View map/Trip settings）均为真实 `disabled` + `title="Coming soon"`，未伪造任何交互或数据。详见 `CHANGELOG.md` v0.2.8 与 `DESIGN.md` 对应章节。
@@ -43,7 +45,26 @@
   - `tests/factualToolCards.test.ts`、`tests/orchestrator.test.ts`、`tests/chat-panel.test.tsx`：覆盖生成、绕过 provider、渲染。
 - 边界：本轮不做完整 Tools widgets，不做签证决策树/支付向导/汇率换算器，不新增任何外部 key、Supabase schema、生产 FlyAI 调用或预订能力。
 - 验证：受影响测试已通过；本轮收尾前需跑完整 `npm run test` 与 `npm run build`。
-- 下一步建议：`v0.2.11` TripBlock POI Embedding + Day Detail Operational Upgrade,把 Amap rich POI 与后续预订/地图候选字段沉淀到 `TripBlock`,并实现 Show Taxi Driver 卡。
+- 下一步建议：`v0.2.13` TripBlock POI Embedding + Day Detail Operational Upgrade,把 Amap rich POI 与后续预订/地图候选字段沉淀到 `TripBlock`,并实现 Show Taxi Driver 卡。
+
+## v0.2.12 Handoff Update - Documentation Alignment
+
+- 用户意图：把所有 MD 文档都更新到 v0.2.12，防止另一台设备或新的 coding agent 接手时误以为当前仍停在 v0.2.11 或下一轮仍是 v0.2.12。
+- 实现思路：保留 v0.2.11 的设计资源栈作为历史完成项，同时把当前版本、当前接手依据、下一轮建议和版本规则统一到 v0.2.12 / v0.2.13。
+- 主要文件：`VERSIONING.md`、`CHANGELOG.md`、`HANDOFF.md`、`PLAN.md`、`PRD.md`、`DESIGN.md`、`AGENTS.md`、`PRODUCT.md`、`docs/planning/v0.2.11-frontend-design-resource-stack.md`。
+- 边界：本轮是文档与版本交接对齐，不改运行时代码、不新增 API key、不改 Supabase schema、不调整 provider routing。
+- 下一步建议：`v0.2.13` TripBlock POI Embedding + Day Detail Operational Upgrade。
+
+## v0.2.11 Handoff Update - Frontend Design Resource Stack
+
+- 用户意图：配置一组前端/设计/Agent 资源，包括 Frontend Design、UI design system、CSS animation、creative aesthetics、Awwwards landing、web design guidelines、Vercel React best practices、Superpowers、Impeccable、better-icons、UI Design Brain、DESIGNmd、awesome-design-md 等。
+- 实现思路：不把外部资源安装成生产依赖，也不覆盖当前视觉系统；新增一个产品上下文文件和一份资源映射文档，让后续设计/前端任务知道何时使用这些资源、何时以 VisePanda 本地规则为准。
+- 主要文件：
+  - `PRODUCT.md`:简短产品上下文、目标用户、语气和设计红线。
+  - `docs/planning/v0.2.11-frontend-design-resource-stack.md`:资源清单、使用方式、Impeccable readiness、排除项。
+  - `AGENTS.md` / `DESIGN.md` / `PRD.md` / `PLAN.md` / `CHANGELOG.md` / `VERSIONING.md`:同步记录 v0.2.11 规则与状态。
+- 边界：没有安装 Impeccable、better-icons、MCP server、CLI 或 npm 包；没有新增 API key、Supabase schema、运行时代码或用户可见行为。
+- 下一步建议：`v0.2.13` TripBlock POI Embedding + Day Detail Operational Upgrade。
 
 ## v0.2.10 Handoff Update - Tools Widgets I
 
@@ -58,7 +79,7 @@
   - `tests/tools-board.test.tsx`、`tests/tools-provider.test.ts`:覆盖 descriptor 与三件套交互。
 - 边界：不新增官方签证判断、不处理真实支付或银行卡、不新增外部 key、不调用 FlyAI 生产能力;静态 tips/sections/offlineTips 全部保留。
 - 验证：受影响 Tools 测试已通过;收尾前需跑完整 `npm run test` 与 `npm run build`。
-- 下一步建议：`v0.2.12` TripBlock POI Embedding + Day Detail Operational Upgrade,把 Amap rich POI 与后续预订/地图候选字段沉淀到 `TripBlock`,并实现 Show Taxi Driver 卡。
+- 下一步建议：`v0.2.13` TripBlock POI Embedding + Day Detail Operational Upgrade,把 Amap rich POI 与后续预订/地图候选字段沉淀到 `TripBlock`,并实现 Show Taxi Driver 卡。
 
 ## v0.1.53 Handoff Update - Strategic Handoff Snapshot
  
@@ -679,7 +700,7 @@ Alternatives if Dianping approval is slow: (a) Amap enriched fields — already 
 2. `v0.2.8` Chat 体验重塑+内联工具卡:MessageBlock 分块渲染、composer 规格、等待叙事、`ask_factual` <150ms 快通道、实体 chip 双向悬停联动。
 3. `v0.2.9` 设计系统收口+Tools 交互组件:token 层+组件库归一、Tools 三件套 widget(汇率换算/签证问答/支付向导)、移动 Chat sheet。
 
-当前真实状态以文件顶部 `v0.2.10 Handoff Update` 为准:`v0.2.9` 已用于 Chat factual fast-path + inline Tools cards,`v0.2.10` 已用于 Tools Widgets I。后续建议为 `v0.2.11` TripBlock POI/Day detail operational upgrade。
+当前真实状态以文件顶部 `v0.2.12 Handoff Update` 为准:`v0.2.9` 已用于 Chat factual fast-path + inline Tools cards,`v0.2.10` 已用于 Tools Widgets I,`v0.2.11` 已用于 Frontend Design Resource Stack 配置,`v0.2.12` 已用于交接文档/版本线统一。后续建议为 `v0.2.13` TripBlock POI/Day detail operational upgrade。
 
 
 ## v0.2.7 交接更新 —— Canvas 行动层(第一轮代码实现)
@@ -700,7 +721,9 @@ Alternatives if Dianping approval is slow: (a) Amap enriched fields — already 
 1. `v0.2.8` Chat/Canvas 视觉重设计：已完成。
 2. `v0.2.9` Chat factual fast-path + inline Tools cards：已完成。
 3. `v0.2.10` Tools Widgets I：已完成。
-4. `v0.2.11` TripBlock POI embedding + Day detail operational upgrade。
+4. `v0.2.11` Frontend Design Resource Stack 配置：已完成。
+5. `v0.2.12` 文档/版本交接统一：已完成。
+6. `v0.2.13` TripBlock POI embedding + Day detail operational upgrade。
 
 ### 操作者无需任何手动步骤
 

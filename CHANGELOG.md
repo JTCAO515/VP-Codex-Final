@@ -1,5 +1,24 @@
 # VisePanda Changelog
 
+## v0.2.12 - 2026-07-02
+
+**Documentation handoff alignment.** This release updates the active project handoff surface so another device or coding agent can safely continue from the same version line.
+
+- Updated package metadata and active documentation status to `v0.2.12`.
+- Clarified that `v0.2.11` is a completed frontend design-resource configuration pass, not the next coding task.
+- Set the next recommended implementation round to `v0.2.13` TripBlock POI embedding + Day detail operational upgrade.
+- No runtime code, API keys, Supabase schema, provider routing, or user-facing capability changed.
+
+## v0.2.11 - 2026-07-02
+
+**Frontend design resource stack configuration.** This is a documentation-only configuration pass for the operator-requested design and UI-skill resources.
+
+- Added `PRODUCT.md` as a concise product/audience/register context file so future design tools and agents have a stable product brief.
+- Added `docs/planning/v0.2.11-frontend-design-resource-stack.md` mapping frontend-design, UI design system, CSS animation, creative aesthetics, Awwwards landing inspiration, web design guidelines, Vercel React best practices, Superpowers planning, Impeccable, better-icons, UI Design Brain, DESIGNmd, and awesome-design-md into the VisePanda workflow.
+- Recorded that VisePanda's existing `DESIGN.md` and `app/globals.css` remain the source of truth; external resources are advisory unless a later implementation explicitly installs or imports them.
+- Verified `designmd.co` is not a coding design-system source for this project and excluded it from the active stack.
+- No product runtime code, npm dependencies, API keys, Supabase schema, or user-facing behavior changed.
+
 ## v0.2.10 - 2026-07-02
 
 **Tools Widgets I.** This release turns the first three high-anxiety Tools categories into real interactive widgets while preserving the existing static checklists as fallback context.

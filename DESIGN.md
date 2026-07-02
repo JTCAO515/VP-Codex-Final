@@ -875,3 +875,27 @@ ADR-076: First Tools widgets provide conservative planning help, not authoritati
 - Background: currency, visa, and payment are high-trust travel concerns. A widget can reduce anxiety, but overclaiming official status or transaction capability would be dangerous.
 - Decision: the RMB converter labels fallback values as estimates, the visa checker always tells users to confirm official rules, and the payment wizard outputs setup steps only. No widget stores sensitive card/passport data, calls a payment API, adjudicates a visa, or pretends to book anything.
 - Reason: VisePanda becomes more useful while staying inside current data/legal boundaries. The next integration step can add official/live sources behind the same descriptor without changing the user-facing structure.
+
+## v0.2.11 Design Update - Frontend Design Resource Stack (documentation only)
+
+Added `PRODUCT.md` and `docs/planning/v0.2.11-frontend-design-resource-stack.md` as the design-resource configuration layer for the operator-requested frontend/UI skill stack. This does not change runtime UI, dependencies, schema, or provider behavior.
+
+ADR-077: External design resources are advisory; the local VisePanda design system remains authoritative.
+
+- Background: the operator asked to configure a broad list of frontend/design resources: frontend design, UI design system, CSS animation, creative aesthetics, Awwwards landing inspiration, web design guidelines, Vercel React best practices, Superpowers, Impeccable, better-icons, UI Design Brain, DESIGNmd, and related discovery keywords.
+- Decision: record those resources in `docs/planning/v0.2.11-frontend-design-resource-stack.md` as a workflow map instead of importing or installing them as runtime dependencies. `DESIGN.md`, `PRODUCT.md`, `PRD.md`, `AGENTS.md`, `app/globals.css`, and the existing React components remain the active source of truth.
+- Reason: VisePanda already has a specialized travel-desk visual direction and a mature set of product constraints. External design tools are valuable for critique, vocabulary, component-pattern recall, icon discovery, and design-system inspiration, but letting them overwrite local tokens or product contracts would regress consistency.
+
+ADR-078: Impeccable readiness is achieved through product/design context, not a forced install.
+
+- Background: Impeccable's workflow expects product context and design-system files, and can optionally run install/update/detect commands. The current sandbox did not need a tool install to satisfy this configuration pass.
+- Decision: add `PRODUCT.md` and align the design stack document with the existing `DESIGN.md`, but do not install Impeccable, better-icons, UI Design Brain, MCP servers, or new npm packages.
+- Reason: a documentation-only setup is reversible, reviewable, and safe in a production app. If the operator later asks for an actual tool install, that should be a separate explicit step with the official installer for the target agent environment and a normal git diff review.
+
+## v0.2.12 Design Update - Documentation handoff alignment
+
+ADR-079: Version handoff documents must distinguish current state from historical planning rounds.
+
+- Background: v0.2.10 shipped Tools widgets, v0.2.11 configured frontend design resources, and the operator asked to update all MD documents to v0.2.12 so another device can resume without ambiguity.
+- Decision: v0.2.12 is a documentation/version alignment pass. It does not alter runtime architecture, provider selection, schema, CSS behavior, or UI contracts. It updates the active handoff surface so the next implementation is clearly v0.2.13 TripBlock POI / Day detail operational upgrade.
+- Reason: the project uses MD files as cross-device memory. Keeping the current version and next-step numbering explicit is part of the architecture, because it prevents parallel agents from redoing or skipping iterations.

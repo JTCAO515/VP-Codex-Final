@@ -422,3 +422,19 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 - Visa checker output is conservative planning guidance only. Do not phrase it as official eligibility, approval, or legal advice.
 - Payment wizard must not collect or persist card numbers, passport numbers, wallet credentials, or PII. It only provides setup steps and compatibility cautions.
 - Adding another widget type requires updating `ToolInteractiveDescriptor`, `ToolWidget.tsx`, provider metadata, and tests together.
+
+## v0.2.11 Agent Update - Frontend Design Resource Stack
+
+- Read `PRODUCT.md` before broad design work. It is the compact product/register brief for design tools and agents; `PRD.md` remains the full product requirement source.
+- Use `docs/planning/v0.2.11-frontend-design-resource-stack.md` when a task mentions Frontend Design, UI design system, CSS animation, creative aesthetics, Awwwards-style inspiration, web design guidelines, Impeccable, better-icons, UI Design Brain, DESIGNmd, or awesome-design-md.
+- External design resources are advisory. Do not replace the existing VisePanda `DESIGN.md`, `app/globals.css` tokens, component contracts, or Warm New Chinese travel-desk direction with a downloaded design system unless the operator explicitly asks for a redesign.
+- For icons, prefer `lucide-react` first. better-icons may be used only as an optional discovery/retrieval aid when the project icon set lacks a needed symbol; do not paste arbitrary inline SVG if a library icon exists.
+- Impeccable is configured as a design-review vocabulary/readiness path, not installed. Do not run `npx impeccable install`, `npx skills add`, or MCP setup commands unless the operator explicitly requests a tool install.
+- `designmd.co` is excluded from the active frontend resource stack; it is an interior-design business site, not a coding design-system reference for VisePanda.
+
+## v0.2.12 Agent Update - Handoff alignment
+
+- Treat `v0.2.12` as the current active handoff version. `v0.2.11` is a completed documentation/design-resource configuration pass, not the next implementation target.
+- The next recommended coding iteration is `v0.2.13` TripBlock POI Embedding + Day Detail Operational Upgrade.
+- Before starting `v0.2.13`, run VPMCO/sync, read the seven required root docs plus the design resource planning doc, then verify `package.json` and `VERSIONING.md` still agree on `0.2.12`.
+- Do not install external design tools or change runtime code as part of the v0.2.12 handoff alignment itself.

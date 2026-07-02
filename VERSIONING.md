@@ -4,7 +4,7 @@
 
 - Previous baseline: `v0.1.1`
 - Minor-series reset: `v0.2.1` (operator directive — all subsequent iterations use `0.2.x`)
-- Current iteration: `v0.2.10`
+- Current iteration: `v0.2.12`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -16,6 +16,8 @@
 
 ## Release Notes
 
+- `v0.2.12`: Documentation handoff alignment. Updated the active MD handoff surface to `v0.2.12`, clarified that `v0.2.11` is a completed design-resource configuration pass, and set the next implementation round to `v0.2.13` TripBlock POI embedding + Day detail operational upgrade. No runtime behavior changed.
+- `v0.2.11`: Frontend design resource stack configuration. Added `PRODUCT.md` and `docs/planning/v0.2.11-frontend-design-resource-stack.md` to map the requested frontend-design, UI-system, animation, creative-aesthetic, Impeccable, better-icons, UI Design Brain, DESIGNmd, and Vercel React best-practices resources into the VisePanda workflow. No runtime code, dependencies, keys, schema, or production behavior changed.
 - `v0.2.10`: Tools Widgets I. `ToolCategory.interactive` now describes optional widgets; Tools renders an RMB converter, visa/entry planning checker, and payment setup wizard above the existing static checklists. No new keys, no official visa adjudication, no real payment transaction, and no production FlyAI usage.
 - `v0.2.9`: Chat factual fast-path + inline Tools cards. `AssistantResponse` can carry optional `toolCards`; `lib/tools/factualToolCards.ts` maps ask-factual travel questions to existing Tools knowledge; the orchestrator returns `mode: "tools"` / `strategy: "tool"` without calling an LLM when visa/payment/currency/metro/eSIM/emergency questions are confidently matched. Chat renders inline cards with Tools deep links and a visible thinking state. No new keys, no schema changes, no production FlyAI integration.
 - `v0.2.8`: Chat/Canvas visual redesign to match an operator-supplied high-fidelity mockup. `TripSummary` gained an inline-editable title, a status badge with progress bar and next-step cell, at-a-glance chips, and an action row (Add day / Rebalance route wired to the AI pipeline; View map / Trip settings honestly disabled with "Coming soon"). `DayCard` gained a per-day completeness badge, Morning/Afternoon/Evening blocks with photo-or-placeholder art and optional highlight checklists, and split its quick actions into three always-visible primary actions plus a "…" overflow menu for the rest. `ChatPanel` gained an avatar+title header (History link + disabled Pin), message timestamps and per-role avatars, icon-highlight cards for structured AI highlights, thumbs-up/down + copy-to-clipboard feedback (local only, no backend), a dismissible Next Step card, and a redesigned icon composer (disabled Attach/Mic, functional Enter-to-send) with an AI disclaimer footer. No fabricated data: every non-functional affordance is a real disabled control with a "Coming soon" title, never a decorative fake. 8 new tests; 134 total tests pass; build succeeds.
