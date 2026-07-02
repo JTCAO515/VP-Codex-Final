@@ -15,9 +15,10 @@ android {
         minSdk = 26
         targetSdk = 34
         versionCode = 1
-        versionName = "0.3.4"
+        versionName = "0.3.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "VISEPANDA_API_BASE_URL", "\"https://www.go2china.space/\"")
     }
 
     buildTypes {
@@ -43,6 +44,7 @@ android {
     }
 
     buildFeatures {
+        buildConfig = true
         compose = true
     }
 
@@ -90,9 +92,7 @@ dependencies {
     ksp("com.google.dagger:hilt-android-compiler:2.51.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
-    // Networking (wired against the existing Next.js /api/* routes from v0.3.5 onward;
-    // dependency is declared now so the repository layer can compile against Retrofit
-    // types without a second dependency-bump round)
+    // Networking for the native Butler bridge against existing Next.js /api/* routes.
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")

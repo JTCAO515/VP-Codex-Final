@@ -6,6 +6,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import space.go2china.visepanda.data.model.ButlerAlert
+import space.go2china.visepanda.data.model.ButlerChatMessage
+import space.go2china.visepanda.data.model.ButlerMessageRole
+import space.go2china.visepanda.data.model.ButlerTurnResult
 import space.go2china.visepanda.data.model.MockTripData
 import space.go2china.visepanda.data.model.TripState
 
@@ -29,10 +32,37 @@ class MockTripRepository @Inject constructor() : TripRepository {
         MutableStateFlow(MockTripData.initialTripState)
 
     private val offline: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    private val messages: MutableStateFlow<List<ButlerChatMessage>> = MutableStateFlow(emptyList())
 
     override fun observeActiveTrip(): StateFlow<TripState?> = activeTrip
 
     override fun observeOffline(): StateFlow<Boolean> = offline
+
+    override fun observeButlerMessages(): StateFlow<List<ButlerChatMessage>> = messages
+
+    override suspend fun sendButlerMessage(message: String): ButlerTurnResult {
+        val now = System.currentTimeMillis()
+        val userMessage = ButlerChatMessage(
+            id = "mock-user-$now",
+            role = ButlerMessageRole.User,
+            content = message.trim(),
+            createdAtEpochMillis = now,
+        )
+        val assistantMessage = ButlerChatMessage(
+            id = "mock-assistant-$now",
+            role = ButlerMessageRole.Assistant,
+            content = "I can help refine this trip once the native Butler bridge is active.",
+            createdAtEpochMillis = now + 1,
+        )
+        messages.update { it + userMessage + assistantMessage }
+        return ButlerTurnResult(
+            assistantMessage = assistantMessage,
+            trip = activeTrip.value ?: MockTripData.initialTripState,
+            suggestions = listOf("Make this easier to follow", "Show me today's next step"),
+            modelLabel = "mock fallback",
+            offlineFallback = true,
+        )
+    }
 
     override suspend fun renameActiveTrip(newTitle: String) {
         val trimmed = newTitle.trim()

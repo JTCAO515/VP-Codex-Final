@@ -19,5 +19,6 @@ import androidx.room.PrimaryKey
 data class TripCacheEntity(
     @PrimaryKey val id: String,
     val tripStateJson: String,
+    val messagesJson: String,
     val updatedAtEpochMillis: Long,
 )

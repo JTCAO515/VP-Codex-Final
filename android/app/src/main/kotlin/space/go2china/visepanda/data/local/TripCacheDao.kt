@@ -6,10 +6,10 @@ import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
 /**
- * Not yet consumed by [space.go2china.visepanda.data.repository.MockTripRepository] —
- * see that class's doc comment. Defined now so the v0.3.5 sync bridge has an
- * existing, reviewed DAO shape to build against instead of designing Room
- * access patterns under the same deadline as the Supabase bridge itself.
+ * Consumed by the native Butler bridge from v0.3.6 onward. The cache remains
+ * coarse-grained on purpose: one active trip JSON blob plus its chat transcript
+ * is enough for offline continuity while Supabase merge rules stay out of this
+ * round's scope.
  */
 @Dao
 interface TripCacheDao {

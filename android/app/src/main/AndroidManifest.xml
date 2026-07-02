@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- No permissions requested in v0.3.3/v0.3.4: Today/Plan/Butler(placeholder)/
-         Explore(placeholder)/Tools(placeholder) work entirely from local mock data
-         and Room cache. Camera, microphone, and precise-location permissions are
-         staged permissions requested at point-of-use starting with the Translator
-         (v0.3.6) and Explore live-map (later) work, not declared up front here —
-         see docs/planning/v0.3.2-android-planning-synthesis.md "Permission
+    <!-- Network state is declared for the native Butler bridge. Camera,
+         microphone, and precise-location permissions remain staged at
+         point-of-use for later Translator / Explore rounds — see
+         docs/planning/v0.3.2-android-planning-synthesis.md "Permission
          Scaffolding". -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />

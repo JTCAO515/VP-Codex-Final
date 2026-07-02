@@ -1,5 +1,7 @@
 package space.go2china.visepanda.data.model
 
+import com.google.gson.annotations.SerializedName
+
 /**
  * Native mirror of lib/types/trip.ts. Field names and shapes are kept 1:1
  * with the web contract on purpose: the v0.3.5 Butler+Sync round will
@@ -15,19 +17,30 @@ enum class Pace {
 }
 
 enum class AlertPriority {
+    @SerializedName("high")
     High,
+    @SerializedName("medium")
     Medium,
+    @SerializedName("low")
     Low,
 }
 
 enum class AlertType {
+    @SerializedName("visa")
     Visa,
+    @SerializedName("payment")
     Payment,
+    @SerializedName("booking")
     Booking,
+    @SerializedName("transport")
     Transport,
+    @SerializedName("weather")
     Weather,
+    @SerializedName("language")
     Language,
+    @SerializedName("risk")
     Risk,
+    @SerializedName("emergency")
     Emergency,
 }
 
@@ -39,15 +52,21 @@ enum class BlockTime {
 }
 
 enum class BookingCandidateKind {
+    @SerializedName("hotel")
     Hotel,
+    @SerializedName("ticket")
     Ticket,
+    @SerializedName("transport")
     Transport,
+    @SerializedName("restaurant")
     Restaurant,
 }
 
 enum class BookingCandidateStatus {
     /** Never rendered as purchasable — see AGENTS.md booking-trust rules. */
+    @SerializedName("info-only")
     InfoOnly,
+    @SerializedName("planned")
     Planned,
 }
 
@@ -85,8 +104,11 @@ data class TripBlock(
 )
 
 enum class DayStatus {
+    @SerializedName("new")
     New,
+    @SerializedName("revised")
     Revised,
+    @SerializedName("needs-confirmation")
     NeedsConfirmation,
 }
 
@@ -120,6 +142,7 @@ data class ButlerAlert(
 enum class TripConfidence {
     Draft,
     Refined,
+    @SerializedName("Ready to save")
     ReadyToSave,
 }
 

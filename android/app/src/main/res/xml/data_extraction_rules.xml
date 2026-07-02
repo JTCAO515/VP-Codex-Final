@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Android 12+ (API 31+) cloud backup / device transfer rules. Same note as
-     backup_rules.xml: nothing sensitive to exclude until v0.3.5 adds auth
-     tokens. -->
+     backup_rules.xml: exclude auth material once native Supabase login lands. -->
 <data-extraction-rules>
     <cloud-backup>
     </cloud-backup>

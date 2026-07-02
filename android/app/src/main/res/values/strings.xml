@@ -4,7 +4,7 @@
     <!-- Bottom navigation labels — Today-first five-surface model, see
          docs/planning/v0.3.2-android-planning-synthesis.md -->
     <string name="nav_today">Today</string>
-    <string name="nav_butler">Butler</string>
+    <string name="nav_butler">Chat</string>
     <string name="nav_plan">Plan</string>
     <string name="nav_explore">Explore</string>
     <string name="nav_tools">Tools</string>
@@ -36,13 +36,13 @@
     <string name="taxi_card_copied">Copied</string>
     <string name="taxi_card_close">Close</string>
 
-    <string name="butler_placeholder_title">Butler is coming in v0.3.5</string>
-    <string name="butler_placeholder_body">This surface will connect to the existing /api/chat pipeline and the same structured-response contract the web app already uses.</string>
+    <string name="butler_placeholder_title">Chat is ready</string>
+    <string name="butler_placeholder_body">Ask VisePanda to refine the active trip.</string>
 
-    <string name="explore_placeholder_title">Explore is coming in v0.3.7</string>
+    <string name="explore_placeholder_title">Explore is coming in v0.3.8</string>
     <string name="explore_placeholder_body">Attraction, food, and hotel discovery will reuse the existing Explore/Amap API route.</string>
 
-    <string name="tools_placeholder_title">Tools is coming in v0.3.6</string>
+    <string name="tools_placeholder_title">Tools is coming in v0.3.7</string>
     <string name="tools_placeholder_body">Translator, payment setup, currency, and entry checklist utilities land with the native Translator round.</string>
 
     <string name="state_empty_title">Nothing here yet</string>

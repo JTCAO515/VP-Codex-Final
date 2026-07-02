@@ -29,7 +29,7 @@ fun VisePandaApp() {
     ) { scaffoldPadding ->
         NavHost(
             navController = navController,
-            startDestination = TopLevelDestination.Today.route,
+            startDestination = TopLevelDestination.Butler.route,
             modifier = Modifier.padding(scaffoldPadding),
         ) {
             composable(TopLevelDestination.Today.route) {
