@@ -733,3 +733,19 @@ ADR-066: Traveler-facing canvas status is a presentation mapping.
 - Background: Existing canvas confidence values (`Draft`, `Refined`, `Ready to save`) are useful internal state but read like implementation labels to travelers.
 - Decision: `TripSummary` maps confidence to traveler copy (`Taking shape`, `Looking good`, `Travel-ready`) while leaving the underlying `TripState` contract unchanged.
 - Reason: This improves clarity and trust with no data migration or saved-trip compatibility risk.
+
+## v0.1.55 Design Update - FIT Travel Desk Visual Polish
+
+This code iteration improves the perceived product quality and operational hierarchy of the existing shell. It does not introduce a new design-system package, API dependency, provider contract, or database schema.
+
+ADR-067: Readiness is currently derived presentation state.
+
+- Background: The product roadmap calls for Canvas completeness, day quick actions, and prep blockers. The UI needed an immediate readiness signal, but the persisted `TripState` schema should not be expanded until the action layer is designed.
+- Decision: `TripSummary` derives a readiness score from existing fields: destinations, day blocks, stay area, transport, and confidence status. It renders a meter and checklist without writing new fields to saved trips.
+- Reason: Travelers see progress immediately, while future `v0.1.56` action/blocker work can replace or extend the derivation without migration risk.
+
+ADR-068: Visual polish should reinforce the travel operating desk, not add marketing chrome.
+
+- Background: The user requested a plugin-assisted front-end rebuild for stronger visual quality. The named `product-design` plugin was not available in this Codex environment, so the available frontend design workflow was used to create a product-desk concept.
+- Decision: The implementation focuses on work-surface hierarchy: tighter Home launcher, Chat starter state, primary next-step flow, summary/readiness rail, thin dividers, solid paper surfaces, and responsive safeguards. It avoids new marketing sections, decorative blobs, and unrelated business logic.
+- Reason: VisePanda's core value is an operational FIT travel butler. Visual improvements should make planning and execution clearer rather than turning the app into a landing page.

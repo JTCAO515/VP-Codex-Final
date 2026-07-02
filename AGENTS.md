@@ -322,7 +322,7 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 
 **Recommended order**
  
-- After the completed `v0.1.54` Interaction Shell I code pass, the next implementation should start with Canvas Action Layer, then proceed through Inline Tool Cards, TripBlock POI Embedding, Translate Everywhere, Tools Widgets, Account Center, and Admin/Customer Brief work as recorded in `PLAN.md`.
+- After the completed `v0.1.54` Interaction Shell I and `v0.1.55` FIT travel desk visual polish passes, the next implementation should start with Canvas Action Layer in `v0.1.56`, then proceed through Inline Tool Cards, TripBlock POI Embedding, Translate Everywhere, Tools Widgets, Account Center, and Admin/Customer Brief work as recorded in `PLAN.md`.
  
 ## v0.1.53 Agent Update - Offline Vault, Context Interpretation, Payment Cards, Contextual Tool Promotion, and Bilingual Handoff
 
@@ -339,3 +339,11 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 - First-run Chat starter chips are traveler choices, not explanatory feature cards. Keep them concise and action-oriented.
 - The primary `nextStep` card must keep using the normal `onSend` path so it preserves preference extraction, provider fallback, saved messages, and canvas patch handling.
 - Canvas confidence wording is presentation-only. Do not rename `TripState.summary.confidence` values without a migration and parser update.
+
+## v0.1.55 Agent Update - Visual Polish Rules
+
+- The requested `product-design` plugin was not available in this environment. Do not add a dependency or workflow assumption that requires it unless the plugin is later installed and callable.
+- Treat the new Trip Canvas readiness score as derived UI state only. Do not persist it, send it to providers, or use it as authoritative trip state until a future schema/action-layer decision is made.
+- Keep visual polish aligned to the FIT travel desk positioning: compact, operational, warm paper/ink/cinnabar, and focused on itinerary execution rather than marketing decoration.
+- Home visual changes should remain a launcher into `/chat`, not a long landing page that delays the first travel action.
+- CSS overrides added in the `v0.1.55 VISUAL POLISH` block are intentional late-cascade safeguards. Future cleanup can fold them into the main component sections, but do not delete them casually during unrelated feature work.

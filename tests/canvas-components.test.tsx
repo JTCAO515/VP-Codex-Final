@@ -10,6 +10,9 @@ describe("TripCanvas", () => {
     expect(screen.getByLabelText(/live trip canvas/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "China Trip Draft", level: 1 })).toBeInTheDocument();
     expect(screen.getByText("Taking shape")).toBeInTheDocument();
+    expect(screen.getByLabelText(/trip readiness/i)).toHaveTextContent("80%");
+    expect(screen.getByText("Route")).toBeInTheDocument();
+    expect(screen.getByText("Travel-ready")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /view details for day 1/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /view details for day 2/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /view details for day 3/i })).toBeInTheDocument();
@@ -36,7 +39,7 @@ describe("TripCanvas", () => {
     );
 
     expect(screen.getByRole("heading", { name: "Nanjing 3-Day Trip", level: 1 })).toBeInTheDocument();
-    expect(screen.getByText("Travel-ready")).toBeInTheDocument();
+    expect(screen.getAllByText("Travel-ready").length).toBeGreaterThan(0);
     expect(screen.queryByText("Ready to save")).not.toBeInTheDocument();
   });
 

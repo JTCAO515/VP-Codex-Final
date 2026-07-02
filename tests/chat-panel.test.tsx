@@ -22,6 +22,7 @@ describe("ChatPanel interaction shell", () => {
     const starterButtons = screen.getAllByRole("button").filter((button) => button.closest(".prompt-row"));
     expect(starterButtons).toHaveLength(3);
     expect(screen.getByRole("button", { name: /first china 10 days essentials/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/chat starter state/i)).toHaveTextContent("Start with a ready-made China route");
   });
 
   it("promotes the latest structured nextStep into a primary action", () => {

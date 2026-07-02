@@ -17,6 +17,7 @@ export function ChatPanel({ messages, onSend, suggestions, profileChips = [], bu
   const latestNextStep = [...messages].reverse().find((message) => message.role === "assistant" && message.response?.nextStep)?.response?.nextStep;
   const promptLabel = messages.length === 0 ? "First trip starts" : "Suggested prompts";
   const visibleSuggestions = messages.length === 0 ? suggestions.slice(0, 3) : suggestions;
+  const isFirstRun = messages.length === 0;
 
   function submitMessage(message: string) {
     const trimmed = message.trim();
@@ -46,6 +47,12 @@ export function ChatPanel({ messages, onSend, suggestions, profileChips = [], bu
           </div>
         ) : null}
       </div>
+      {isFirstRun ? (
+        <div className="chat-empty-state" aria-label="Chat starter state">
+          <strong>Start with a ready-made China route</strong>
+          <span>Independent, practical, and easy to refine.</span>
+        </div>
+      ) : null}
       <div className="prompt-row" aria-label={promptLabel}>
         {visibleSuggestions.map((prompt) => (
           <button key={prompt} type="button" onClick={() => submitMessage(prompt)} disabled={busy}>

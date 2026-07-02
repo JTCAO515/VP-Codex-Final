@@ -1,4 +1,16 @@
 # VisePanda Changelog
+
+## v0.1.55 - 2026-07-02
+
+**FIT travel desk visual polish.** This release turns the v0.1.54 interaction shell into a more polished, operational travel-desk surface without changing AI providers, Supabase persistence, or canvas mutation rules.
+
+- Added a Trip Canvas readiness module inside the summary card, showing a completion score and compact checklist for route, daily plan, stay area, transport, and travel-ready state.
+- Refined the Live Trip Canvas summary layout with a more structured route/readiness/action rail and responsive fallbacks for Trip Detail pages.
+- Added a concise first-run Chat starter state above the archetype chips, making the empty chat panel feel intentional rather than blank.
+- Promoted the Chat layout order so starter chips, conversation, next-step action, and composer read as a clear planning workflow.
+- Polished Home as a practical product launcher with an implementable travel-canvas preview motif, tighter archetype cards, and less generic landing-page framing.
+- Added targeted tests for the readiness display and Chat starter state.
+- Note: the requested `product-design` plugin was not available in the current Codex environment; the visual direction was generated with the available frontend design workflow and implemented directly in the repo.
  
 ## v0.1.54 - 2026-07-01
 

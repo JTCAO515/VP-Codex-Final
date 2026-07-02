@@ -501,13 +501,14 @@ The required experience loop is:
 ### Roadmap acceptance targets
 
 - `v0.1.54` implements the first 60 seconds: Home archetypes, Chat first-run chips, and primary `nextStep` actions.
-- `v0.1.55` should make Canvas operational: completeness score, day quick actions, and prep blockers.
-- `v0.1.56` should render inline tool cards inside Chat for visa, payment, eSIM, currency, and emergency needs.
-- `v0.1.57` should persist rich POI fields in TripBlocks and upgrade Day detail with real operational fields.
-- `v0.1.58` should make Translate available from anywhere without stranding the user on a separate page.
-- `v0.1.59` should turn top Tools into real widgets.
-- `v0.1.60` should add a real Account center and editable preference/consent review.
-- `v0.1.61` should connect lead/admin planning to customer briefs.
+- `v0.1.55` completes a visual product-desk polish pass: readiness score, tighter Canvas summary rail, first-run Chat starter state, and Home launcher polish.
+- `v0.1.56` should make Canvas operational: day quick actions and prep blockers building on the new readiness display.
+- `v0.1.57` should render inline tool cards inside Chat for visa, payment, eSIM, currency, and emergency needs.
+- `v0.1.58` should persist rich POI fields in TripBlocks and upgrade Day detail with real operational fields.
+- `v0.1.59` should make Translate available from anywhere without stranding the user on a separate page.
+- `v0.1.60` should turn top Tools into real widgets.
+- `v0.1.61` should add a real Account center and editable preference/consent review.
+- `v0.1.62` should connect lead/admin planning to customer briefs.
 
 ### UX writing and metrics
 
@@ -587,3 +588,21 @@ Explicit exclusions:
 - No direct canvas mutation from Home, Chat chips, or archetype starts.
 - No new provider keys, API integrations, Supabase migrations, or booking/payment logic in this iteration.
 - Offline Vault, Payment Wizard, Bilingual Handoff, and Contextual Tool Promotion remain planned follow-up tracks.
+
+## v0.1.55 Requirement Update - FIT Travel Desk Visual Polish
+
+This iteration improves the front-end product experience after the v0.1.54 interaction shell. The user requested using a `product-design` plugin to rebuild the UI, but that plugin was not available in the current Codex environment. The implementation therefore uses the available frontend design workflow and commits the resulting visual polish directly in the Next.js/CSS codebase.
+
+MVP acceptance additions:
+
+- Trip Canvas summary shows a traveler-facing readiness score and checklist for route, daily plan, stay area, transport, and travel-ready status.
+- The summary rail supports both normal Chat Canvas and Trip Detail pages with compact action controls, without pushing the itinerary below excessive controls.
+- Chat first-run state is no longer visually blank; it presents a concise starter surface plus the three existing archetype chips.
+- Home feels more like a practical product launcher for independent China travel, with a lightweight canvas-preview motif and tighter archetype cards.
+- All changes remain presentation-layer only: no AI provider routing changes, no Supabase schema changes, no API key additions, and no direct canvas mutation.
+
+Explicit exclusions:
+
+- No new real booking/payment/map provider integration.
+- No full design system migration or component library extraction yet.
+- No replacement for the upcoming Canvas Action Layer; day quick actions and prep blockers move to `v0.1.56`.
