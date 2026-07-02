@@ -4,6 +4,23 @@
 
 VisePanda 是一个面向外国人来中国旅行的 AI 管家产品。当前主线是：右侧持续 Chat，左侧 Live Trip Canvas 实时刷新；Trip Canvas 会根据当前目的地自动切换水墨背景氛围；Trips 已从占位页升级为真实 Supabase persistence + 归档/分享流程，并有共享状态说明；Explore 已从占位页升级为静态 provider 驱动的城市/景点/美食/住宿骨架，预留真实第三方 provider 接入点，展示 provider readiness，并接入了 Add to Trip 流程（跳转 Chat 后走真实 AI pipeline 加入画布并重新平衡路线）；Account 已从独立页面改为头部图标 + 悬浮窗口，支持邮箱密码登录/注册和 Google 登录，登录后可改名/改密码/登出；Tools 已从占位页升级为静态 provider 驱动的签证入境/支付设置/翻译/汇率/地铁/eSIM-VPN/应急 7 个分类骨架，并支持 `/tools?category=<tool-category-id>` 分类深链、结构化分组、离线 pocket notes、API priority 和 provider readiness；Translate 已作为第五个主导航 Tab，支持文字翻译（DeepSeek）、OCR 扫描翻译（OCR.space）和常用短语/特殊词语词典（静态数据 + TTS）；`ButlerReminders` 已从 TripCanvas 移除（组件文件保留）。
 
+## AI 编程 Agent 分工
+
+本项目由三个 AI Coding Agent 协作开发，各司其职：
+
+| Agent | 职责范围 | 分支策略 |
+|-------|---------|---------|
+| **Claude Code** | 负责 **Android APK** 端开发（Kotlin + Jetpack Compose） | 推送到 `claude/visepanda-phase-3-hym6z9` + force-push 到 `main` |
+| **OpenAI Codex** | 负责 **iOS App** 端开发（待定：SwiftUI / UIKit） | 推送到 `codex/ios-development` + merge 到 `main` |
+| **Antigravity (agy)** | **辅助工作**：文档生成、数据调研、规划融合、视觉资源提取、API 兼容性验证 | 推送到 `agy/auxiliary` + merge 到 `main` |
+
+### 协作规则
+1. 各 Agent **不修改对方负责的代码**（Claude Code 不动 iOS 代码，Codex 不动 Android 代码）
+2. Web 端（Next.js 前端 + API 路由）为共享基础层，三者均可修改，但需在 `HANDOFF.md` 标注
+3. 版本号统一递增（`0.3.x` 序列），每次迭代后同步更新
+4. `PLAN.md` / `PRD.md` / `DESIGN.md` / `AGENTS.md` / `HANDOFF.md` / `CHANGELOG.md` / `VERSIONING.md` 为共享文档，每次迭代必须同步
+5. 分工变更须在 `AGENTS.md` 红字标注变更记录
+
 ## 核心技术栈
 
 - 前端：Next.js App Router、React、TypeScript。

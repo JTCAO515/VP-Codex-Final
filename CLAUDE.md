@@ -44,7 +44,13 @@ Standing rules for every session on this project. Read this before acting.
   gracefully when a key is missing or an upstream fails.
 - Do not commit `.env`, credentials, `node_modules`, or `.next`.
 
-## Product context
+## Agent role
+
+- **Claude Code** is responsible for the **Android APK** (`android/` directory: Kotlin + Jetpack Compose + Material 3).
+- **OpenAI Codex** handles **iOS App** (separate repo or `ios/` directory, TBD).
+- **Antigravity** handles auxiliary work (docs, research, planning, visual asset extraction).
+- Do NOT modify iOS or auxiliary-agent code. Only modify Web (`app/`, `components/`, `lib/`) and Android (`android/`) code.
+- Sync all shared docs (`PLAN.md`, `PRD.md`, `DESIGN.md`, `AGENTS.md`, `HANDOFF.md`, `CHANGELOG.md`, `VERSIONING.md`) every iteration.
 
 - Next.js 15 App Router + React 19 + TypeScript on Vercel; production domain
   `go2china.space`. Supabase for auth/persistence (degrades to guest/mock).
