@@ -18,6 +18,11 @@
 - Android 34 模拟器手动验收:新配色/字体/圆角渲染正常;Taxi Card 52sp 地址文字修复后不再重叠;`Copy Chinese address` 功能未受影响,复制正常;全程无 `FATAL`/`AndroidRuntime` 崩溃。
 - `strings.xml` 里 `Tools`/`Explore` 占位文案顺延为 v0.3.8/v0.3.9(因为这轮用掉了 v0.3.7)。
 
+### 同轮追加:补上两处遗漏的视觉细节
+操作者随后提供了 Figma Make 项目的本地源码导出(比之前浏览器里抠出来的片段更完整可靠),交叉核对确认了上面的配色/字体/圆角/字号都准确,同时发现两处第一遍漏掉的 UI 细节:
+- `ui/butler/ButlerScreen.kt`:Chat 输入框加了 Camera/Mic 图标按钮(禁用态视觉占位,真正的相机/麦克风权限仍按计划留到 v0.3.8 Translator 轮按需申请,不在这里提前要)。
+- `ui/components/TaxiDriverCard.kt`:Taxi Card 加了 Speak 按钮,和 Copy 并列。这个接的是 Android 系统自带 `TextToSpeech` API——因为 TTS 不需要运行时权限,所以没有违反"权限按需申请"的既定原则,直接接了真实功能而不是占位。已在 Android 34 模拟器上验证:真实触发了中文语音合成请求(下载 zh-CN 语音包后 Speak 按钮从禁用变可用),无崩溃。
+
 ## v0.3.6 - 2026-07-02
 
 **Native Android Butler + Sync Bridge I。** 原计划称为 "v0.3.5 Butler + Sync Bridge" 的功能实现,因 v0.3.5 版本号被构建验证收尾轮占用,实际在 v0.3.6 交付。Chat(Butler)从诚实占位页升级为真实的 Jetpack Compose 对话界面,并成为底部导航默认首页。

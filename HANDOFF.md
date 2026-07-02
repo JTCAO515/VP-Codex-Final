@@ -49,6 +49,10 @@
   - `android/app/src/main/res/values/strings.xml`：Tools/Explore 占位版本号顺延为 v0.3.8/v0.3.9(因本轮用掉了 v0.3.7)。
 - 验证：`./gradlew :app:testDebugUnitTest :app:assembleDebug` 先报出一个真实编译错误(`FontVariation`/`FontVariation.weight` 是实验性 API,需要 `@OptIn(ExperimentalTextApi::class)`,与之前 `TopAppBar`/`ExperimentalMaterial3Api` 同一类问题),修复后 `BUILD SUCCESSFUL`；Android 34 模拟器手动验收新配色/字体/圆角渲染正常,Taxi Card 52sp 地址不再重叠,`Copy Chinese address` 功能未受影响,全程无崩溃。
 - 明确排除：底部导航形态、"Me" tab、Needs Scheduling 提前、Tools 8 格 grid、Translator overlay——这些是产品结构/功能层面的改动,不在本轮"视觉层"范围内,留给操作者未来决定是否要单独立项实现。
+- **同轮追加**：操作者随后提供了 Figma Make 项目的本地源码导出(`/Users/jtcao/Downloads/Design According to MD Document/`,比之前浏览器里用 CodeMirror hack 抠出来的片段更完整可靠),交叉核对确认前面记录的配色/字体/圆角/字号均准确,同时发现两处第一遍漏掉的 UI 细节,征询操作者后确认补上：
+  - `ui/butler/ButlerScreen.kt`：Chat composer 加 Camera/Mic 图标按钮,禁用态视觉占位——真正的相机/麦克风权限仍按既定策略留到 v0.3.8 Translator 轮按需申请,这里不提前接权限。
+  - `ui/components/TaxiDriverCard.kt`：加 Speak 按钮和 Copy 并列,接的是 Android 系统自带 `TextToSpeech` API(不需要运行时权限,不违反"权限按需申请"原则,所以直接接了真实功能)。Android 34 模拟器验证:首次使用时 TTS 引擎联网下载 zh-CN 语音包,下载完成后按钮从禁用变可用,点击后 logcat 确认真实触发了中文语音合成请求,无崩溃。
+  - 追加改动同样跑过 `./gradlew :app:testDebugUnitTest :app:assembleDebug`,`BUILD SUCCESSFUL`。
 - 未改动任何 Web 端代码、`/api/*` 路由或 Supabase schema。
 
 ## v0.3.6 Handoff Update - Native Android Butler + Sync Bridge I

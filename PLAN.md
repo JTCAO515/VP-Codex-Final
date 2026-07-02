@@ -811,6 +811,7 @@ Next three planned iterations:
 - [x] **明确未采纳**(超出"视觉层"范围,留给操作者未来决定):底部导航形态(横向 5 等分 → 两侧+中间悬浮 Chat 按钮)、"Me" 新 tab(取代 Today)、Plan 提前加入 Needs Scheduling 候选区、Tools 8 格 utility grid、Translator 全屏 overlay。
 - [x] **真实构建与手动验收**:`./gradlew :app:testDebugUnitTest :app:assembleDebug` 先跑出一个真实编译错误(`FontVariation`/`FontVariation.weight` 需要 `@OptIn(ExperimentalTextApi::class)`,与之前 `TopAppBar`/`ExperimentalMaterial3Api` 同一类问题),修复后 `BUILD SUCCESSFUL`;Android 34 模拟器手动验收新配色/字体/圆角渲染正常,Taxi Card 52sp 地址修复后不再重叠,复制功能正常,全程无崩溃。
 - [x] `strings.xml` 里 Tools/Explore 占位文案顺延为 v0.3.8/v0.3.9(因本轮用掉了 v0.3.7)。
+- [x] **同轮追加**:操作者提供 Figma Make 项目本地源码导出(`/Users/jtcao/Downloads/Design According to MD Document/`),交叉核对确认上述视觉 token 均准确,同时补上两处第一遍漏掉的 UI 细节:`ui/butler/ButlerScreen.kt` Chat composer 加 Camera/Mic 禁用态图标按钮(真实权限仍留到 v0.3.8 Translator 轮按需申请);`ui/components/TaxiDriverCard.kt` 加 Speak 按钮接入 Android 系统 `TextToSpeech`(TTS 不需要运行时权限,不违反既定的权限按需申请原则,直接接了真实功能而非占位)。Android 34 模拟器验证:Speak 按钮在系统下载 zh-CN 语音包后从禁用变可用,点击后 logcat 确认真实触发中文语音合成,无崩溃;`./gradlew :app:testDebugUnitTest :app:assembleDebug` 再次 `BUILD SUCCESSFUL`。
 
 ## v0.2.17 附录 —— 景点/餐饮/酒店数据与预订服务拓展评估(纯文档,已完成)
 

@@ -34,6 +34,7 @@
     <string name="taxi_card_title">Show this to your driver</string>
     <string name="taxi_card_copy_address">Copy Chinese address</string>
     <string name="taxi_card_copied">Copied</string>
+    <string name="taxi_card_speak">Speak</string>
     <string name="taxi_card_close">Close</string>
 
     <string name="butler_placeholder_title">Chat is ready</string>

@@ -948,3 +948,5 @@ UI 参考:操作者提供 Lovable 预览与 Figma Make `Design According to MD D
 排除:不采纳 Figma 的产品结构改动——不做两侧+悬浮按钮底部导航、不加 "Me" tab、不提前做 Needs Scheduling、不做 8 格 Tools grid、不做 Translator overlay,这些留给操作者未来单独决定是否要立项。
 
 观察记录:本轮对 `Color.kt` 的调色是对 DESIGN.md ADR-094/095"Android 配色必须和 Web 端 `app/globals.css` 逐字对齐"规则的一次刻意例外——只改了 Android,没有同步改 Web 端,两端色值从此存在有意但细微的差异,详见 DESIGN.md ADR-105。Tools/Explore 占位文案顺延为 v0.3.8/v0.3.9(因本轮用掉了 v0.3.7)。
+
+同轮追加需求:操作者提供 Figma Make 项目的本地源码导出,交叉核对确认了配色/字体/圆角/字号的准确性,并发现两处第一遍遗漏的 UI 细节。补上:Chat composer 的 Camera/Mic 图标按钮(禁用态视觉占位,真实相机/麦克风权限仍留到 v0.3.8 Translator 轮按需申请);Taxi Card 的 Speak 按钮,接入 Android 系统自带 `TextToSpeech`(不需要运行时权限,不违反既定的权限按需申请原则,因此直接接了真实功能)。已在 Android 34 模拟器验证:TTS 引擎联网下载中文语音包后 Speak 按钮可用,点击触发真实语音合成,无崩溃。
