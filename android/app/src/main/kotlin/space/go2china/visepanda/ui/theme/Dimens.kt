@@ -25,4 +25,13 @@ object Dimens {
     val TouchTargetMin = 48.dp
 
     val BottomNavHeight = 80.dp
+
+    /**
+     * v0.3.9: the floating pill-shaped bottom nav (operator-provided design
+     * reference — see DESIGN.md ADR-113) sits inset from all three screen
+     * edges, not flush like the v0.3.8 full-width bar.
+     */
+    val BottomNavFloatingHeight = 64.dp
+    val BottomNavHorizontalInset = 16.dp
+    val BottomNavBottomInset = 16.dp
 }

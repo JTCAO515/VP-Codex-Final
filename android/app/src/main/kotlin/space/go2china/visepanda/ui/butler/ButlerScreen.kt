@@ -269,6 +269,7 @@ private fun ButlerComposer(
                     placeholder = { Text("Ask VisePanda...") },
                     minLines = 1,
                     maxLines = 4,
+                    shape = RoundedCornerShape(Dimens.RadiusXL),
                     modifier = Modifier.weight(1f),
                 )
                 // Visual-only per the Figma reference's composer layout — disabled,

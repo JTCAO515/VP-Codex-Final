@@ -959,6 +959,18 @@ UI 参考:操作者提供 Lovable 预览与 Figma Make `Design According to MD D
 
 排除:不实现 Tools 8 格 grid、Translator overlay、Needs Scheduling 候选区管理(这些留给后续版本);不接入真实 Supabase auth/account 系统。
 
-意外发现:构建验收过程中发现一个贯穿 `ButlerScreen.kt`/`DayDetailScreen.kt` 等既有屏幕的真实 bug——`Card` 组件内没有显式指定颜色的文字会渲染成意外的红棕色而非中性深色,这个问题在此前的版本里就已存在,只是没有被专门验证过。已用截图像素采样(而非肉眼判断)定位并修复,详见 HANDOFF.md/DESIGN.md 的完整记录。Tools/Explore 占位文案顺延为 v0.3.9/v0.3.10(因本轮用掉了 v0.3.8)。
+意外发现:构建验收过程中发现一个贯穿 `ButlerScreen.kt`/`DayDetailScreen.kt` 等既有屏幕的真实 bug——`Card` 组件内没有显式指定颜色的文字会渲染成意外的红棕色而非中性深色,这个问题在此前的版本里就已存在,只是没有被专门验证过。已用截图像素采样(而非肉眼判断)定位并修复,详见 HANDOFF.md/DESIGN.md 的完整记录。Tools/Explore 占位文案顺延为 v0.3.9/v0.3.10(因本轮用掉了 v0.3.8;后因 v0.3.9 又被下方新一轮占用,再顺延为 v0.3.10/v0.3.11)。
 
-同轮追加需求:操作者提供 Figma Make 项目的本地源码导出,交叉核对确认了配色/字体/圆角/字号的准确性,并发现两处第一遍遗漏的 UI 细节。补上:Chat composer 的 Camera/Mic 图标按钮(禁用态视觉占位,真实相机/麦克风权限仍留到 v0.3.8 Translator 轮按需申请);Taxi Card 的 Speak 按钮,接入 Android 系统自带 `TextToSpeech`(不需要运行时权限,不违反既定的权限按需申请原则,因此直接接了真实功能)。已在 Android 34 模拟器验证:TTS 引擎联网下载中文语音包后 Speak 按钮可用,点击触发真实语音合成,无崩溃。
+同轮追加需求:操作者提供 Figma Make 项目的本地源码导出,交叉核对确认了配色/字体/圆角/字号的准确性,并发现两处第一遍遗漏的 UI 细节。补上:Chat composer 的 Camera/Mic 图标按钮(禁用态视觉占位,真实相机/麦克风权限仍留到 Translator 轮按需申请);Taxi Card 的 Speak 按钮,接入 Android 系统自带 `TextToSpeech`(不需要运行时权限,不违反既定的权限按需申请原则,因此直接接了真实功能)。已在 Android 34 模拟器验证:TTS 引擎联网下载中文语音包后 Speak 按钮可用,点击触发真实语音合成,无崩溃。
+
+## v0.3.9 需求更新 —— 导航栏圆角悬浮化 + 文本框/对话框加大圆角(已完成)
+
+需求来源:操作者提供一整套黑色手机 mockup 产品设计参考图(5屏:Chat home/Plan/Explore/Tools/Me),给出三条直接指令:(1)"导航栏要做圆角悬浮式";(2)"taxi driver card 不重要 优先级极低，如果影响了项目进展可以移除";(3)"所有的文本框，对话框都做成圆角的，弧形"。这是纯视觉打磨轮,不涉及导航结构/路由/数据流改动。
+
+交付:底部导航从贴边、纸白色、80dp 高的横条,改为四周留白 16dp、`RadiusPill` 圆角、`Ink` 深色背景、64dp 高的悬浮胶囊;两侧图标去掉文字标签,未选中态用半透明纸白色保证深色底上的对比度;聊天输入框与 Taxi Driver Card 对话框都加大圆角(`RadiusXL`,20dp)。
+
+验收标准:`./gradlew :app:assembleDebug` 通过;Android 34 模拟器手动验收悬浮胶囊导航栏在 Trips/Explore/Chat/Tools/Me 五个页面都渲染一致、选中态高亮正确,输入框/对话框圆角渲染正确,全程无崩溃。
+
+排除:未移除 Taxi Driver Card(操作者的移除许可是条件性的——"若影响项目进展",本轮任何改动都不依赖移除它);未改动导航路由/数据流/Supabase schema。
+
+意外发现:给 Taxi Driver Card 对话框加圆角、模拟器截图验收时,发现一个此前就存在的真实布局 bug——对话框 `confirmButton` 里 Copy/Speak/Close 三个按钮塞进同一个 `Row` 装不下,`Close` 被挤压成不可读的窄条。已用 `uiautomator dump` 核实并改用 `FlowRow` 修复,详见 HANDOFF.md/DESIGN.md ADR-113 的完整记录。Tools/Explore 占位文案顺延为 v0.3.10/v0.3.11(因本轮用掉了 v0.3.9)。

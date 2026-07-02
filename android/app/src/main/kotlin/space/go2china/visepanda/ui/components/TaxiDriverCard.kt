@@ -6,9 +6,11 @@ import android.content.Context
 import android.speech.tts.TextToSpeech
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -52,6 +54,7 @@ fun TaxiDriverCardButton(block: TripBlock, modifier: Modifier = Modifier) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TaxiDriverCardDialog(block: TripBlock, onDismiss: () -> Unit) {
     val context = LocalContext.current
@@ -82,6 +85,7 @@ private fun TaxiDriverCardDialog(block: TripBlock, onDismiss: () -> Unit) {
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(Dimens.RadiusXL),
         title = { Text(stringResource(R.string.taxi_card_title)) },
         text = {
             Column {
@@ -114,7 +118,7 @@ private fun TaxiDriverCardDialog(block: TripBlock, onDismiss: () -> Unit) {
             }
         },
         confirmButton = {
-            Row(
+            FlowRow(
                 modifier = Modifier.fillMaxWidth().padding(Dimens.SpaceSM),
                 horizontalArrangement = Arrangement.End,
             ) {

@@ -1,5 +1,26 @@
 # VisePanda Changelog
 
+## v0.3.9 - 2026-07-03
+
+**视觉打磨:导航栏改为圆角悬浮胶囊,文本框/对话框加大圆角,Taxi Driver Card 保留并顺带修复一个对话框布局 bug。** 操作者发来一整套黑色手机 mockup 产品设计参考图(5屏:Chat home/Plan/Explore/Tools/Me),并给出三条明确指令:(1)"导航栏要做圆角悬浮式";(2)"taxi driver card 不重要 优先级极低，如果影响了项目进展可以移除";(3)"所有的文本框，对话框都做成圆角的，弧形"。
+
+### 导航栏改为悬浮胶囊
+- `navigation/VisePandaBottomBar.kt`:外层 `Surface` 从贴边、`fillMaxWidth().height(80dp)`、纸白色背景,改为四周留白(水平/底部各 16dp inset)、`RoundedCornerShape(RadiusPill)` 圆角、`Ink` 深棕黑色背景的悬浮胶囊,高度收窄到 64dp。两侧导航项(Trips/Explore/Tools/Me)去掉文字标签,只保留图标(对齐参考图),未选中态图标改用半透明 `Paper` 提供在深色底上的对比度(原先的 `onSurfaceVariant` 是为浅色底设计的);选中态仍保持 Cinnabar 红。中间悬浮的 Chat 圆形按钮形状/颜色不变,只是重新对齐到更矮的新导航栏上。
+- `ui/theme/Dimens.kt`:新增 `BottomNavFloatingHeight`(64dp)、`BottomNavHorizontalInset`(16dp)、`BottomNavBottomInset`(16dp)三个常量。
+
+### 文本框与对话框加大圆角
+- `ui/butler/ButlerScreen.kt`:聊天输入框 `OutlinedTextField` 加上 `shape = RoundedCornerShape(RadiusXL)`(20dp,复用既有 token)。
+- `ui/components/TaxiDriverCard.kt`:`AlertDialog` 同样加上 `shape = RoundedCornerShape(RadiusXL)`。
+
+### Taxi Driver Card:评估后保留,顺带修复一个真实 bug
+按操作者"优先级极低,若影响进展可移除"的指示评估后,判断这轮改动都不依赖移除它,予以保留(`AGENTS.md` 里"必须通过可见按钮触发,不恢复隐藏手势"的既有约束继续生效)。在给对话框加圆角、用模拟器截图验收时,发现一个**这轮之前就存在的真实布局 bug**:`confirmButton` 里 Copy/Speak/Close 三个 `TextButton` 塞进同一个 `Row` 装不下,导致 `Close` 按钮被挤压成几乎不可读的窄条(uiautomator dump 显示其可点击区域只有 54px 宽、307px 高,说明文字被迫逐字换行)。修复方式:把这个 `Row` 换成 `FlowRow`(`Arrangement.End`,装不下会自动换到第二行),模拟器截图确认 `Close` 现在正常换行显示、清晰可读。
+
+### 验证
+- `./gradlew :app:assembleDebug`:`BUILD SUCCESSFUL`(两次,首次改动后 + FlowRow 修复后各跑一次)。
+- Android 34 模拟器手动验收:用 `uiautomator dump` 取精确坐标而非肉眼估算(吸取此前"坐标计算多次出错"的教训),依次点击 Trips/Explore/Tools/Me/Chat 五个入口,确认新悬浮胶囊导航栏在所有页面渲染一致、选中态高亮正确;打开 Taxi Driver Card 对话框确认圆角渲染、Copy/Speak/Close 三个按钮都清晰可读;聊天输入框圆角渲染正确。全程无崩溃。
+
+详见 DESIGN.md ADR-113。
+
 ## v0.3.8 - 2026-07-03
 
 **底部导航重构:Trips / Explore / Chat / Tools / Me,Chat 要求视觉突出。** 操作者发消息"底部导航栏顺序Trips/Explore/Chat/Tools/Me（account），Chat要突出"——这是产品结构层面的改动,不同于 v0.3.7 那轮"只做视觉层"的范围。用 `AskUserQuestion` 确认了两个关键点:Trips = 合并 Today + Plan(顶部保留 Now/Next/Later,下接 Day 列表);Chat 突出 = 中间悬浮圆形按钮(同 Figma 参考)。
