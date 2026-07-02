@@ -7614,6 +7614,15 @@ select {
   text-transform: uppercase;
 }
 
+.day-block__time[data-flexible="true"] {
+  width: fit-content;
+  border: 1px solid rgba(179, 48, 42, 0.18);
+  border-radius: 999px;
+  padding: 3px 7px;
+  color: var(--cinnabar);
+  background: rgba(179, 48, 42, 0.07);
+}
+
 .day-block__body strong {
   color: var(--ink);
   font-size: 0.86rem;
@@ -7717,4 +7726,43 @@ select {
 
 .day-card__overflow-menu button:disabled {
   opacity: 0.5;
+}
+
+.day-drawer__block > span[data-flexible="true"] {
+  width: fit-content;
+  border: 1px solid rgba(179, 48, 42, 0.18);
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: var(--cinnabar);
+  background: rgba(179, 48, 42, 0.07);
+}
+
+.day-drawer__candidate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 2px;
+}
+
+.day-drawer__candidate-actions button {
+  border: 0;
+  border-radius: 999px;
+  padding: 7px 11px;
+  color: #fffaf0;
+  background: var(--cinnabar);
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.day-drawer__candidate-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
+.day-drawer__candidate-actions span {
+  color: var(--ink-muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
 }

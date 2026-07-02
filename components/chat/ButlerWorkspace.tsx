@@ -13,11 +13,11 @@ import {
   parseExploreAddToTripPayload,
   type ExploreAddToTripPayload,
 } from "@/lib/explore/addToTrip";
-import type { QuickActionKind } from "@/lib/canvas/quickActions";
+import { buildScheduleCandidateMessage, type QuickActionKind } from "@/lib/canvas/quickActions";
 import { createMockButlerPatch, initialTripState } from "@/lib/mock-ai/mockButler";
 import { appendMessage, loadTripWithCanvas, saveTripCanvas } from "@/lib/supabase/tripsRepository";
 import { useSupabaseSession } from "@/lib/supabase/useSupabaseSession";
-import type { ButlerAlert, ChatMessage, TripState } from "@/lib/types/trip";
+import type { ButlerAlert, ChatMessage, TripBlock, TripDay, TripState } from "@/lib/types/trip";
 
 const GUEST_DRAFT_KEY = "visepanda:guest-draft";
 const PREFERENCE_PROFILE_KEY = "visepanda:preference-profile";
@@ -357,6 +357,10 @@ export function ButlerWorkspace() {
     void handleSend("Rebalance the route across all days to reduce backtracking and even out the pace.");
   }
 
+  function handleScheduleCandidate(day: TripDay, block: TripBlock) {
+    void handleSend(buildScheduleCandidateMessage(day, block));
+  }
+
   return (
     <section className="butler-workspace" aria-label="VisePanda AI Butler workspace">
       <div className="butler-workspace__canvas">
@@ -367,6 +371,7 @@ export function ButlerWorkspace() {
           onQuickAction={handleQuickAction}
           onRebalanceRoute={handleRebalanceRoute}
           onRenameTrip={handleRenameTrip}
+          onScheduleCandidate={handleScheduleCandidate}
           onToggleAlertDone={handleToggleAlertDone}
           trip={trip}
         />

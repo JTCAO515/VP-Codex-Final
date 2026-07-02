@@ -461,3 +461,11 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 - When `applyExplorePoiToPatch` finds a matching block title, it only fills missing POI fields. Do not overwrite model/provider-provided fields unless the operator explicitly asks for replacement behavior.
 - When no match exists, the fallback block should remain `time: "Flexible"` and visible in Day card/detail. Do not pretend the POI has been scheduled into Morning/Afternoon/Evening until a later AI rebalance does that.
 - Booking candidates added from Explore are `info-only` planning references. They must not be rendered as confirmed availability, checkout, payment, reservation, refund, or order capability.
+
+## v0.2.16 Agent Update - Candidate scheduling rules
+
+- Day card/detail should render Flexible blocks only when they exist in `TripDay.blocks`; do not create generic Flexible placeholders for every day.
+- Traveler-facing copy for `time:"Flexible"` candidates should stay `Needs scheduling` unless a later product decision introduces a richer candidate state model.
+- `Ask VisePanda to schedule` must route through `buildScheduleCandidateMessage` and `handleSend`; do not locally mutate the block into Morning/Afternoon/Evening.
+- The scheduling button is allowed to be disabled when no Chat handler is available. Disabled is better than a fake action.
+- Future Remove/Keep candidate controls must explicitly document whether they are local candidate management or AI-mediated itinerary content changes before implementation.

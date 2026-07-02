@@ -4,7 +4,7 @@
 
 - Previous baseline: `v0.1.1`
 - Minor-series reset: `v0.2.1` (operator directive — all subsequent iterations use `0.2.x`)
-- Current iteration: `v0.2.15`
+- Current iteration: `v0.2.16`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -16,6 +16,7 @@
 
 ## Release Notes
 
+- `v0.2.16`: Explore candidate review / Day detail action polish. Flexible Explore candidates now render only when real candidate blocks exist, appear as "Needs scheduling", and expose an Ask VisePanda to schedule action from Day detail that routes through the normal Chat/AI pipeline. No checkout, inventory, payment, Supabase schema, new key, or production FlyAI usage.
 - `v0.2.15`: Explore Add-to-Trip POI write-through. Explore now sends a structured POI payload alongside the Chat draft message; Chat parses that payload and deterministically enriches or appends a visible Flexible trip block with map/source/phone/hours/coordinates/booking candidates. Day cards and Day detail now render Flexible blocks. No checkout, inventory, payment, Supabase schema, new key, or production FlyAI usage.
 - `v0.2.14`: Real POI context write-through + booking candidate model. Amap `liveToolContext` now carries safe execution fields and non-transactional booking candidates; orchestrator results deterministically enrich matching TripBlocks after provider parsing; Day detail renders booking candidates as "Info only". No checkout, inventory, payment, Supabase schema, new key, or production FlyAI usage.
 - `v0.2.13`: TripBlock POI embedding + Day detail operational upgrade. `TripBlock` now supports optional execution fields (address, Chinese address, phone, opening hours, map/booking links, source label, coordinates); Day detail renders those fields as an operational POI panel with a Show taxi driver card; mock/static fallback data includes representative POI execution details. No new external keys, Supabase schema, real booking transaction, or production FlyAI usage.

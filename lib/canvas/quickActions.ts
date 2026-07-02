@@ -1,4 +1,4 @@
-import type { TripDay } from "@/lib/types/trip";
+import type { TripBlock, TripDay } from "@/lib/types/trip";
 
 export type QuickActionKind =
   | "add_activity"
@@ -52,4 +52,8 @@ export function buildQuickActionMessage(kind: QuickActionKind, day: TripDay): st
     default:
       return `Adjust Day ${day.day} in ${day.city}.`;
   }
+}
+
+export function buildScheduleCandidateMessage(day: TripDay, block: TripBlock): string {
+  return `Schedule ${block.title} into Day ${day.day} in ${day.city}. Keep the route practical, choose the best time slot, and explain what changed.`;
 }

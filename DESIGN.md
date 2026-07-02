@@ -941,3 +941,17 @@ ADR-085: Unmatched Explore POIs become visible Flexible candidate blocks.
 - Background: A model or mock fallback may acknowledge an Add-to-Trip request without creating a new day block. If the POI is only stored in state or ignored, the traveler sees no result after clicking.
 - Decision: If no existing block title matches the payload, append a `Flexible` TripBlock to the matching city day, and render Flexible blocks in both Day cards and Day detail.
 - Reason: Flexible is honest: the POI is a candidate that still needs scheduling/rebalancing, not a fabricated morning/afternoon/evening commitment. Rendering it visibly makes the interaction trustworthy and recoverable.
+
+## v0.2.16 Design Update - Candidate review and scheduling action
+
+ADR-086: Flexible blocks render only when real candidates exist.
+
+- Background: Rendering a Flexible slot as a generic fallback for every day makes the itinerary look noisier and implies there is an extra candidate even when none exists.
+- Decision: Day cards and Day detail render Morning/Afternoon/Evening fallback slots, then append only actual `time:"Flexible"` blocks from `TripDay.blocks`.
+- Reason: This preserves the visible candidate model from v0.2.15 while avoiding false UI affordances.
+
+ADR-087: Scheduling a candidate is an AI-pipeline action, not a local mutation.
+
+- Background: Moving a candidate into Morning/Afternoon/Evening changes itinerary content and route logic. Doing that locally would bypass the Butler pipeline and conflict with the existing canvas action rules.
+- Decision: Add `buildScheduleCandidateMessage(day, block)` and wire the Day detail button through `ButlerWorkspace.handleSend`.
+- Reason: The model/mock fallback remains responsible for itinerary content changes, while the UI gives the traveler a clear next action.

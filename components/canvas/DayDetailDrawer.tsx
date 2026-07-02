@@ -3,12 +3,14 @@ import type { TripBlock, TripDay } from "@/lib/types/trip";
 interface DayDetailDrawerProps {
   day: TripDay;
   onClose: () => void;
+  onScheduleCandidate?: (day: TripDay, block: TripBlock) => void;
+  busy?: boolean;
 }
 
-const displayTimes: TripBlock["time"][] = ["Morning", "Afternoon", "Evening", "Flexible"];
+const displayTimes: TripBlock["time"][] = ["Morning", "Afternoon", "Evening"];
 
 function normalizeBlocks(day: TripDay) {
-  return displayTimes.map(
+  const scheduledBlocks = displayTimes.map(
     (time) =>
       day.blocks.find((block) => block.time === time) ?? {
         time,
@@ -16,6 +18,8 @@ function normalizeBlocks(day: TripDay) {
         description: "",
       },
   );
+
+  return [...scheduledBlocks, ...day.blocks.filter((block) => block.time === "Flexible")];
 }
 
 function hasOperationalDetails(block: TripBlock) {
@@ -41,7 +45,7 @@ function coordinateLabel(block: TripBlock) {
   return `${block.coordinates.lat.toFixed(5)}, ${block.coordinates.lng.toFixed(5)}`;
 }
 
-export function DayDetailDrawer({ day, onClose }: DayDetailDrawerProps) {
+export function DayDetailDrawer({ day, onClose, onScheduleCandidate, busy }: DayDetailDrawerProps) {
   const blocks = normalizeBlocks(day);
 
   return (
@@ -60,9 +64,24 @@ export function DayDetailDrawer({ day, onClose }: DayDetailDrawerProps) {
         <div className="day-drawer__blocks">
           {blocks.map((block) => (
             <section className="day-drawer__block" key={`${day.day}-${block.time}`}>
-              <span>{block.time}</span>
+              <span data-flexible={block.time === "Flexible" ? "true" : "false"}>
+                {block.time === "Flexible" ? "Needs scheduling" : block.time}
+              </span>
               <strong>{block.title}</strong>
               <p>{block.description}</p>
+              {block.time === "Flexible" && block.title ? (
+                <div className="day-drawer__candidate-actions" aria-label={`${block.title} scheduling actions`}>
+                  <button
+                    disabled={!onScheduleCandidate || busy}
+                    onClick={() => onScheduleCandidate?.(day, block)}
+                    title={onScheduleCandidate ? undefined : "Open in Chat to schedule"}
+                    type="button"
+                  >
+                    Ask VisePanda to schedule
+                  </button>
+                  <span>Candidate from Explore; not locked into the day yet.</span>
+                </div>
+              ) : null}
               {hasOperationalDetails(block) ? (
                 <div className="day-drawer__poi" aria-label={`${block.title} execution details`}>
                   <dl className="day-drawer__poi-grid">

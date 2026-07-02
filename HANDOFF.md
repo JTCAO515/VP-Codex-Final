@@ -4,8 +4,9 @@
  
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）；v0.1.34 桌面横屏前端优化：Tools 6 个模态卡片 + 浮层对话框、Trips 筛选按钮布局修复（过滤器始终可见）、Translator 单页 2×2 网格布局（同时展示四个功能面板无需切换 tab）。
 - 当前分支：`main`
-- 当前版本：`v0.2.15`（版本序列 `0.2.x`）
+- 当前版本：`v0.2.16`（版本序列 `0.2.x`）
 - 重要（已完成）：
+  - v0.2.16 完成 Explore candidate review / Day detail action polish：Flexible 候选块只在真实候选存在时显示，用户可见文案改为 “Needs scheduling”；Day detail 为候选 POI 提供 “Ask VisePanda to schedule” 动作，并继续通过 Chat/AI patch 管道重排，不本地硬改行程。未新增 checkout、库存、支付、Supabase schema、新 key 或生产 FlyAI。
   - v0.2.15 完成 Explore Add-to-Trip POI write-through：Explore 的 Add to Trip 现在同时携带自然语言 Chat draft 与结构化 POI payload；Chat 首跑会解析 payload，并确定性 enrich 匹配 TripBlock 或在目标城市 day 追加可见的 Flexible 候选块；Day card 与 Day detail 均显示 Flexible block。未新增 checkout、库存、支付、Supabase schema、新 key 或生产 FlyAI。
   - v0.2.14 完成 Real POI context write-through + booking candidate model：Amap `liveToolContext` 现在携带 id、电话、地图链接、坐标和 info-only booking candidates；orchestrator 在 provider patch 解析后会把匹配 POI 的安全字段确定性写回 TripBlock；Day detail 以 “Info only” 展示 booking candidates。未新增 checkout、库存、支付、Supabase schema、新 key 或生产 FlyAI。
   - v0.2.13 完成 TripBlock POI embedding + Day detail operational upgrade：`TripBlock` 新增可选运营字段（地址、中文地址、电话、营业时间、地图/预订链接、source、坐标），Day detail 抽屉展示 POI 执行卡和 Show taxi driver 卡，mock/static fallback 已有代表性中文地址与地图链接。未新增 key、Supabase schema、真实预订交易或生产 FlyAI。
@@ -56,7 +57,15 @@
 - 实现思路：保持“所有内容变化仍走 Chat/Canvas patch 管道”的产品规则；Explore 负责生成自然语言 draft + 结构化 `poi` payload，Chat 首跑负责把 payload 合并到 AI/mock patch。若模型已经生成匹配 block，则只补齐缺失字段；若没有生成，则在目标城市 day 追加一个 visible Flexible candidate block。
 - 主要文件：`lib/explore/addToTrip.ts`、`components/explore/ExploreBoard.tsx`、`components/chat/ButlerWorkspace.tsx`、`components/canvas/DayCard.tsx`、`components/canvas/DayDetailDrawer.tsx`、`tests/explore-add-to-trip.test.ts`、`tests/explore-board.test.tsx`、`tests/chat-workspace.test.tsx`。
 - 边界：不新增 Supabase schema、不保存新的外部交易数据、不做 checkout/库存/支付/退款、不新增 API key、不生产调用 FlyAI；booking candidates 继续只表示 info-only planning reference。
-- 下一步建议：`v0.2.16` Explore candidate review / day-detail action polish。
+- 历史下一步 `v0.2.16` 已完成；当前下一步建议：`v0.2.17` Candidate controls：为 Flexible 候选补充 Remove candidate / Keep for later 之类的非交易控制,仍走可审计的 Chat 或本地操作边界。
+
+## v0.2.16 Handoff Update - Candidate review and schedule action
+
+- 用户意图：继续 v0.2.15 的 Explore 候选写入,让用户明确知道这些 POI 还是候选,并给出下一步让 Butler 安排进日程的动作。
+- 实现思路：不把 Flexible 候选伪装成 Morning/Afternoon/Evening；在 Day card/detail 中显示 “Needs scheduling”。安排候选的按钮不直接修改 `TripState.days`,而是构造自然语言请求并走 `handleSend` -> `/api/chat` -> `CanvasPatch` 的既有管道。
+- 主要文件：`components/canvas/DayCard.tsx`、`components/canvas/DayDetailDrawer.tsx`、`components/canvas/TripCanvas.tsx`、`components/chat/ButlerWorkspace.tsx`、`lib/canvas/quickActions.ts`、`app/globals.css`、`tests/canvas-components.test.tsx`、`tests/quickActions.test.ts`。
+- 边界：不新增 Supabase schema、不做候选持久化新表、不做 checkout/库存/支付/订单、不新增 API key 或生产 FlyAI。
+- 下一步建议：`v0.2.17` Candidate controls。
 
 ## v0.2.14 Handoff Update - Real POI write-through + booking candidates
 
@@ -64,7 +73,7 @@
 - 实现思路：不相信模型一定会复制字段；在 provider 返回 patch 后用 `applyToolContextToPatch` 做确定性补齐。booking candidate 只表示信息候选，不代表库存、下单或支付能力。
 - 主要文件：`lib/types/trip.ts`、`lib/ai/toolContext.ts`、`lib/ai/toolContextWriteThrough.ts`、`lib/ai/orchestrator.ts`、`components/canvas/DayDetailDrawer.tsx`、`tests/toolContextWriteThrough.test.ts`。
 - 边界：不新增 Supabase schema、不新增外部 key、不接 checkout/库存/退款、不生产调用 FlyAI；后续真实预订能力必须另设交易边界。
-- 历史下一步 `v0.2.15` 已完成；当前下一步建议：`v0.2.16` Explore candidate review / day-detail action polish。
+- 历史下一步 `v0.2.15` 与 `v0.2.16` 已完成；当前下一步建议：`v0.2.17` Candidate controls。
 
 ## v0.2.13 Handoff Update - TripBlock POI + Day detail operations
 

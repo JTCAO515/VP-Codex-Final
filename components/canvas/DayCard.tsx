@@ -23,7 +23,7 @@ interface DayCardProps {
   registerRef?: (day: number, element: HTMLElement | null) => void;
 }
 
-const timeSlots: TripBlock["time"][] = ["Morning", "Afternoon", "Evening", "Flexible"];
+const scheduledTimeSlots: TripBlock["time"][] = ["Morning", "Afternoon", "Evening"];
 
 const TIME_ICON: Record<string, typeof Sunrise> = {
   Morning: Sunrise,
@@ -43,7 +43,9 @@ function getBlockForTime(day: TripDay, time: TripBlock["time"]) {
 }
 
 export function DayCard({ day, isSelected, onSelect, onQuickAction, highlightNonce, busy, registerRef }: DayCardProps) {
-  const blocks = timeSlots.map((time) => getBlockForTime(day, time));
+  const scheduledBlocks = scheduledTimeSlots.map((time) => getBlockForTime(day, time));
+  const flexibleBlocks = day.blocks.filter((block) => block.time === "Flexible");
+  const blocks = [...scheduledBlocks, ...flexibleBlocks];
   const [pulseTrigger, setPulseTrigger] = useState(0);
   const [showMore, setShowMore] = useState(false);
   const previousContentKeyRef = useRef<string>("");
@@ -108,9 +110,9 @@ export function DayCard({ day, isSelected, onSelect, onQuickAction, highlightNon
                 </div>
               )}
               <div className="day-block__body">
-                <span className="day-block__time">
+                <span className="day-block__time" data-flexible={block.time === "Flexible" ? "true" : "false"}>
                   <TimeIcon aria-hidden="true" size={13} strokeWidth={1.8} />
-                  {block.time}
+                  {block.time === "Flexible" ? "Needs scheduling" : block.time}
                 </span>
                 <strong>{block.title}</strong>
                 {items.length > 0 ? (

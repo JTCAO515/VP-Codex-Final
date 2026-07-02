@@ -837,3 +837,26 @@ Fixes three reported product problems:
 
 - 不做真实预订、购票、支付、库存、退款或订单管理。
 - 不新增 Supabase schema、外部 API key 或生产 FlyAI 调用。
+
+## v0.2.16 更新 —— Explore candidate review / Day detail action polish
+
+需求来源:v0.2.15 已让 Explore POI 稳定进入 Canvas,但 FIT 用户仍需要清楚区分“候选”与“已排程”。候选 POI 应该被看见、可理解、可交给 Butler 安排,但不能被伪装成已经确定的上午/下午/晚上行程。
+
+交付:
+
+- 只有真实 Flexible block 存在时才显示候选块,不显示通用 Flexible 占位。
+- Flexible 候选在 Day card / Day detail 中显示为 `Needs scheduling`。
+- Day detail 增加 `Ask VisePanda to schedule` 动作,让用户把候选交给 Butler 重排。
+- 调度动作继续走 Chat/AI patch 管道,不在本地直接硬改行程内容。
+
+验收标准:
+
+- 普通行程不会出现无意义的 Flexible 占位。
+- 从 Explore 加入但尚未排程的 POI 会显示 `Needs scheduling`。
+- 点击调度按钮会生成包含 day number、city、POI title 的请求。
+
+排除:
+
+- 不做候选删除/收藏/排序。
+- 不做真实预订、购票、支付、库存、退款或订单管理。
+- 不新增 Supabase schema、外部 API key 或生产 FlyAI 调用。

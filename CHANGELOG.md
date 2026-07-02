@@ -1,5 +1,16 @@
 # VisePanda Changelog
 
+## v0.2.16 - 2026-07-02
+
+**Explore candidate review / Day detail action polish.** This release makes Add-to-Trip candidates clearer and actionable without pretending they are already scheduled.
+
+- Changed Day cards and Day detail to render Flexible blocks only when a real Flexible candidate exists, avoiding generic open-time placeholders.
+- Renamed visible Flexible candidates to "Needs scheduling" so travelers understand the POI is a candidate, not a locked itinerary slot.
+- Added an "Ask VisePanda to schedule" action in Day detail for Flexible candidates.
+- Routed that action through the existing Chat/AI canvas patch pipeline via a dedicated schedule-candidate message helper.
+- Added tests for visible candidate state, scheduling action routing, and the helper message.
+- No checkout, inventory, payment, Supabase migration, new API key, or production FlyAI integration.
+
 ## v0.2.15 - 2026-07-02
 
 **Explore Add-to-Trip POI write-through.** This release makes Explore selections land in the canvas as structured, visible planning candidates.

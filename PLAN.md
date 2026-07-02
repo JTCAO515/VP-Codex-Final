@@ -633,7 +633,8 @@ Next three planned iterations:
 - [x] `v0.2.13` TripBlock POI Embedding + Day Detail Operational Upgrade:将中文地址、营业时间、电话、坐标、booking/map url 等可选运营字段写入 `TripBlock`,升级 Day detail 和 Taxi Driver card。
 - [x] `v0.2.14` Real POI context write-through + booking candidate model:把 Chat liveToolContext / Amap rich POI 更稳定地写入生成的 TripBlock，并设计非交易型 booking candidate 字段。
 - [x] `v0.2.15` Explore Add-to-Trip POI write-through:从 Explore 选择真实 POI 时将 POI id/map/source/booking candidate 放入 Chat draft,并稳定落入 TripBlock 或可见 Flexible 候选块。
-- [ ] `v0.2.16` Explore candidate review / day-detail action polish:把 Flexible 候选块升级为更明确的 Needs scheduling 状态,并在 Day detail 强化 schedule/map/booking-info 动作分组。
+- [x] `v0.2.16` Explore candidate review / day-detail action polish:把 Flexible 候选块升级为更明确的 Needs scheduling 状态,并在 Day detail 强化 schedule/map/booking-info 动作分组。
+- [ ] `v0.2.17` Candidate controls:为 Flexible 候选补充 Remove candidate / Keep for later 之类的非交易控制,明确哪些操作走 Chat,哪些属于本地候选管理。
 
 ## v0.2.10 附录 —— Tools Widgets I(已完成)
 
@@ -660,7 +661,8 @@ Next three planned iterations:
 - [x] `v0.2.13` TripBlock POI Embedding + Day Detail Operational Upgrade:扩展 `TripBlock` 可选运营字段,把 POI 执行信息沉淀进 Day detail,并实现 Show Taxi Driver 卡。
 - [x] `v0.2.14` Real POI context write-through + booking candidate model:将 Chat liveToolContext / Amap rich POI 稳定写入 TripBlock,并为后续酒店/门票/交通候选建立非交易型数据结构。
 - [x] `v0.2.15` Explore Add-to-Trip POI write-through:从 Explore 选择真实 POI 时将 POI id/map/source/booking candidate 放入 Chat draft,并稳定落入 TripBlock 或可见 Flexible 候选块。
-- [ ] `v0.2.16` Explore candidate review / day-detail action polish:把 Flexible 候选块升级为更明确的 Needs scheduling 状态,并在 Day detail 强化 schedule/map/booking-info 动作分组。
+- [x] `v0.2.16` Explore candidate review / day-detail action polish:把 Flexible 候选块升级为更明确的 Needs scheduling 状态,并在 Day detail 强化 schedule/map/booking-info 动作分组。
+- [ ] `v0.2.17` Candidate controls:为 Flexible 候选补充 Remove candidate / Keep for later 之类的非交易控制,明确哪些操作走 Chat,哪些属于本地候选管理。
 
 ## v0.2.11 附录 —— Frontend Design Resource Stack 配置(纯文档)
 
@@ -722,7 +724,8 @@ Next three planned iterations:
 下一步建议:
 
 - [x] `v0.2.15` Explore Add-to-Trip POI write-through:已完成。
-- [ ] `v0.2.16` Explore candidate review / day-detail action polish:把 Flexible 候选块升级为更明确的 Needs scheduling 状态,并在 Day detail 强化 schedule/map/booking-info 动作分组。
+- [x] `v0.2.16` Explore candidate review / day-detail action polish:已完成。
+- [ ] `v0.2.17` Candidate controls:为 Flexible 候选补充 Remove candidate / Keep for later 之类的非交易控制。
 
 ## v0.2.15 附录 —— Explore Add-to-Trip POI write-through(已完成)
 
@@ -738,3 +741,22 @@ Next three planned iterations:
 - 不做 checkout、库存、支付、退款、订单管理。
 - 不新增 Supabase schema、外部 API key 或生产 FlyAI 调用。
 - Explore 静态 fallback 没有真实地址时不伪造地址,只提供搜索/地图入口和来源。
+
+下一步建议:
+
+- [x] `v0.2.16` Explore candidate review / day-detail action polish:已完成。
+- [ ] `v0.2.17` Candidate controls:为 Flexible 候选补充 Remove candidate / Keep for later 之类的非交易控制,明确哪些操作走 Chat,哪些属于本地候选管理。
+
+## v0.2.16 附录 —— Explore candidate review / Day detail action polish(已完成)
+
+- [x] Day card 只在真实 `time:"Flexible"` block 存在时渲染候选,不再为每个 day 生成通用 Flexible 占位。
+- [x] Flexible 候选的用户可见标签改为 `Needs scheduling`,避免用户误以为已经排进具体时段。
+- [x] Day detail 对候选 POI 显示候选说明和 `Ask VisePanda to schedule` 动作。
+- [x] `buildScheduleCandidateMessage(day, block)` 构造 day-specific 请求,按钮继续走 Chat/AI patch 管道。
+- [x] 新增测试覆盖候选可见性、调度按钮回调、调度消息内容。
+
+排除项:
+
+- 不做候选删除/收藏/排序。
+- 不做 checkout、库存、支付、退款、订单管理。
+- 不新增 Supabase schema、外部 API key 或生产 FlyAI 调用。

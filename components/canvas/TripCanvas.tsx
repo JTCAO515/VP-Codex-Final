@@ -8,7 +8,7 @@ import type { QuickActionKind } from "@/lib/canvas/quickActions";
 import { getDestinationScene } from "@/lib/visual/destinationBackground";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ButlerAlert, TripState } from "@/lib/types/trip";
+import type { ButlerAlert, TripBlock, TripDay, TripState } from "@/lib/types/trip";
 
 export interface HighlightSignal {
   dayNumber: number;
@@ -23,6 +23,7 @@ export function TripCanvas({
   onRenameTrip,
   onAddDay,
   onRebalanceRoute,
+  onScheduleCandidate,
   highlightSignal,
   busy,
 }: {
@@ -33,6 +34,7 @@ export function TripCanvas({
   onRenameTrip?: (nextTitle: string) => void;
   onAddDay?: () => void;
   onRebalanceRoute?: () => void;
+  onScheduleCandidate?: (day: TripDay, block: TripBlock) => void;
   highlightSignal?: HighlightSignal | null;
   busy?: boolean;
 }) {
@@ -124,7 +126,12 @@ export function TripCanvas({
       {onToggleAlertDone ? <PrepChecklist alerts={trip.alerts} onToggle={onToggleAlertDone} /> : null}
       {selectedDay ? (
         <div className="day-drawer-shell" role="presentation">
-          <DayDetailDrawer day={selectedDay} onClose={() => setSelectedDayNumber(null)} />
+          <DayDetailDrawer
+            busy={busy}
+            day={selectedDay}
+            onClose={() => setSelectedDayNumber(null)}
+            onScheduleCandidate={onScheduleCandidate}
+          />
         </div>
       ) : null}
     </section>

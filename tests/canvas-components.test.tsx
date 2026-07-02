@@ -165,4 +165,40 @@ describe("TripCanvas", () => {
     expect(screen.getByRole("button", { name: /view map/i })).toBeDisabled();
     expect(screen.getByRole("button", { name: /trip settings/i })).toBeDisabled();
   });
+
+  it("shows Explore candidates as needs-scheduling blocks and routes scheduling through Chat", () => {
+    const onScheduleCandidate = vi.fn();
+    const trip = {
+      ...initialTripState,
+      days: [
+        {
+          ...initialTripState.days[0],
+          blocks: [
+            ...initialTripState.days[0].blocks,
+            {
+              time: "Flexible" as const,
+              title: "Test Tea House",
+              description: "Added from Explore as a candidate for Beijing.",
+              mapUrl: "https://uri.amap.com/marker?position=116.4%2C39.9&name=Test+Tea+House",
+              sourceLabel: "Amap",
+            },
+          ],
+        },
+        ...initialTripState.days.slice(1),
+      ],
+    };
+
+    render(<TripCanvas trip={trip} onScheduleCandidate={onScheduleCandidate} />);
+
+    expect(screen.getByText("Test Tea House")).toBeInTheDocument();
+    expect(screen.getByText("Needs scheduling")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /view details for day 1/i }));
+
+    const drawer = screen.getByLabelText(/day 1 itinerary details/i);
+    const candidateActions = within(drawer).getByLabelText(/test tea house scheduling actions/i);
+    fireEvent.click(within(candidateActions).getByRole("button", { name: /ask visepanda to schedule/i }));
+
+    expect(onScheduleCandidate).toHaveBeenCalledWith(trip.days[0], expect.objectContaining({ title: "Test Tea House" }));
+  });
 });
