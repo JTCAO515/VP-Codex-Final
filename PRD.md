@@ -356,9 +356,9 @@ The overriding requirement is **user experience and answer quality**. Token/comp
 
 ### Requirement H — Native iOS + Android apps (plan only)
 
-- The product will ship genuinely native mobile apps (not a WebView wrapper of the website). Recommended stack: React Native + Expo, reusing the existing TypeScript domain layer and Next.js API routes as the backend.
+- The product mainline is now a native Android APK first. The active Android baseline is Kotlin + Jetpack Compose + Material 3 + Room/DataStore + MVI/StateFlow, with existing Next.js API routes reused as backend contracts where possible.
 - Must support offline-first travel data (trips, tools checklists, phrasebook cached locally), native camera (OCR), microphone (STT), push notifications (visa/booking reminders), and deep links.
-- China distribution is a distinct track requiring ICP 备案, software copyright 软著, and MIIT registration — treated as a legal/ops workstream with long lead time. This track is planned only; not executed now.
+- China distribution is a distinct track requiring ICP 备案, software copyright 软著, and MIIT registration — treated as a legal/ops workstream with long lead time. iOS is planned separately after the Android shape is proven.
 
 ### Requirement I — Tools deliver real functionality, not just text
 
@@ -890,7 +890,7 @@ Fixes three reported product problems:
   - 单手操作热区设计（拇指区域）；大图双指缩放及行程-地图双向 nested scroll 手势阻尼隔离；
   - 双栏布局（平板/折叠屏）与单栏布局（手机）在不同设备下的分屏与层叠机制。
 - **功能模块分类与功能树**:
-  - 底部导航栏 4 大 Tab：Canvas Screen、Chat Screen、Explore Screen、Tools Screen。包含打车司机卡片（一键大字直达及摇一摇唤起）、离线 Before You Fly Checklist 与本地 RMB 估算转换。
+  - v0.3.2 融合规划后,产品层主导航改为 Today / Butler / Plan / Explore / Tools。Canvas 是 Today/Plan 内部的行程内容模型,Chat 是 Butler 的交互形态。打车司机卡片必须通过 Today、当前行程卡或 Day Detail 的显性按钮大字直达,不采用隐藏/后台式触发。
 - **原生开发落地选型**:
   - 架构采用 ViewModel + StateFlow 的 MVI (Model-View-Intent) 模式。
   - 技术选型: Room DB, DataStore, Retrofit, Coroutine + Flow, Hilt Dependency Injection。
@@ -899,10 +899,9 @@ Fixes three reported product problems:
 验收标准:
 
 - 原生 Android 规格说明书（`docs/planning/v0.3.1-android-native-spec.md`）已完整创建并包含头脑风暴、筛选收敛、多角色对抗评审及定稿规划。
-- 确认下一阶段代码研发里程碑为 `v0.3.2` Android 原生 APK 第一代码迭代阶段（基础脚手架、本地 Room 数据、Amap 地图容器与 DayCard 原生布局）。
+- `v0.3.2` 已新增 `docs/planning/v0.3.2-android-planning-synthesis.md` 作为融合定稿，确认下一阶段代码研发里程碑为 `v0.3.3` Android Native Foundation。
 
 排除:
 
 - 本期仅做方案规划与技术选型，禁止产出任何 Java/Kotlin、XML 布局或业务实现代码。
 - 不安装任何新的 npm 依赖或修改 Supabase 线上架构。
-

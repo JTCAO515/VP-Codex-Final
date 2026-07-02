@@ -215,14 +215,16 @@
 - [x] 任务 13.6：全链 fallback，最终仍回落 mock Butler；新增 key 全服务端并在 `lib/env/placeholders.ts` 文档化：`ZHIPU_API_KEY`/`MOONSHOT_API_KEY`/`ERNIE_API_KEY`/`MINIMAX_API_KEY` + 各家 `*_BASE_URL`/`*_CHAT_MODEL` 覆盖。
 - [x] 任务 13.7：`/api/chat` 切换到 orchestrator；`ButlerWorkspace` 状态显示真实模型标签；新增 3 个测试文件（16 用例）；全套 95 测试通过、build 成功。
 
-### 阶段十四：原生 iOS / Android 应用（仅规划，不执行）
+### 阶段十四：原生 Android APK 主线（v0.3.x）
 
-- [ ] 任务 14.1：技术选型——推荐 React Native + Expo（真原生视图、复用现有 TS 领域层与 API），备选纯 Swift/Kotlin（双代码库）。
-- [ ] 任务 14.2：抽取共享核心包（`lib/types`、`lib/i18n`、provider 接口、orchestrator client），web 与 mobile 共用；现有 Next.js API 路由直接作为移动端后端。
-- [ ] 任务 14.3：原生 UI——底部 tab 导航 + Chat/Trips/Explore/Tools/Account 原生屏；原生地图（react-native-maps + 高德 SDK）。
-- [ ] 任务 14.4：离线优先——本地 SQLite 缓存行程/工具清单/短语库，断网可用，重连同步。
-- [ ] 任务 14.5：原生设备能力——相机 OCR、麦克风 STT、推送（签证截止/预订提醒）、深链、生物识别解锁。
-- [ ] 任务 14.6：应用商店——Apple Developer / Play Console；**中国分发单独 track**（ICP 备案 + 软著 + MIIT 登记），法务/运营与工程并行（提前量长）。
+- [x] 任务 14.1：`v0.3.1` Android 原生 APK 专项规划——建立 Kotlin + Jetpack Compose + Material 3 + Room/DataStore + MVI/StateFlow 的原生方向，明确 Web 降级为维护支线。
+- [x] 任务 14.2：`v0.3.2` Android planning synthesis——审核并行 agent 的 GitHub 规划，融合 Today-first 产品模型，定稿 `docs/planning/v0.3.2-android-planning-synthesis.md`。
+- [ ] 任务 14.3：`v0.3.3` Android Native Foundation——原生工程基础、应用身份、Compose shell、Today / Butler / Plan / Explore / Tools 五 surface、静态 screen skeleton、本地 mock trip adapter。
+- [ ] 任务 14.4：`v0.3.4` Today + Plan Execution MVP——Today 首页、Now/Next/Later、Plan day list、Day Detail、Taxi Driver Card 显性按钮、Needs Scheduling candidates、booking readiness。
+- [ ] 任务 14.5：`v0.3.5` Butler + Sync Bridge——连接 `/api/chat`、`CanvasPatch`/structured response、Supabase auth/trips/messages、guest draft 迁移、Butler change digest。
+- [ ] 任务 14.6：`v0.3.6` Native Translator Utility——文本/相机/语音/短语翻译入口、权限拒绝与离线 fallback。
+- [ ] 任务 14.7：`v0.3.7` Explore + Candidate Pipeline——消费 Explore/Amap route,实现 POI cards、Add to Plan、Save for Later、Needs Scheduling。
+- [ ] 任务 14.8：应用商店与分发——Play Console；中国分发单独 track（ICP 备案 + 软著 + MIIT 登记），法务/运营与工程并行。iOS 作为独立后续规划，不套用 Android Compose 细节。
 
 ### 阶段十五：Tools 功能化升级（6 个工具给真实效果）
 
@@ -754,21 +756,21 @@ Next three planned iterations:
   - **核心主线**: 彻底转向原生移动端（iOS App + Android APK）开发，停止 Web 端主线新功能演进，原 `v0.2.18` Candidate controls 及后续 Web 任务降为次要支线，不再活跃迭代。
   - **规划落地**: 原生 Android APK 规格书 (`docs/planning/v0.3.1-android-native-spec.md`) 编制，完成头脑风暴、筛选收敛、多角色对抗评审及定稿。
 - [x] **版本统一**: 升级当前版本至 `v0.3.1`。
+- [x] **v0.3.2 规划融合**: 读取并审核并行 agent 上传的 Android 规格,新增 `docs/planning/v0.3.2-android-planning-synthesis.md`,保留 Kotlin/Compose/Room/MVI 等原生工程判断,融合 Today-first 产品模型,移除隐藏/后台式打车卡触发。
 
 下一步核心原生主线排期建议:
 
-- [ ] `v0.3.2` Android 原生 App 脚手架与 Room 数据层搭建:
-  - 搭建 Hilt 依赖注入、单 Activity + Navigation-Compose、底部 NavigationBar 底导。
-  - 编写 Room 数据库核心 `TripState` 和 `UserPreferenceProfile` 实体及 DAO 接口，完成单向 Flow 状态流转。
-- [ ] `v0.3.3` Android Amap MapsView 容器嵌套与 Marker 动态交互:
-  - 桥接高德地图 SDK Android 版 MapView。
-  - 在 LazyColumn 列表滚动中由 MapController 平滑移镜（Animate Camera），避免性能卡顿。
-- [ ] `v0.3.4` Android Chat screen (M3 对话流与本地 Intent 分发):
-  - 实现原生 Compose 对话 LazyColumn。
-  - 接管 `ask_factual` 意图，本地分发至 Tools 小部件展示。
-- [ ] `v0.3.5` Android Tools Bento Grid (RMB 转换器与摇一摇打车卡):
-  - 实现汇率、签证及离线支付 Benton 界面。
-  - 接入传感器，实现“摇一摇/常驻通知栏”一键弹出景点中文大字司机沟通卡。
+- [ ] `v0.3.3` Android Native Foundation:
+  - 创建原生 Android 工程基础、包名/应用身份、Compose + Material 3 shell、Today / Butler / Plan / Explore / Tools 五个 surface、静态 screen skeleton、本地 mock trip adapter。
+  - 定义 Room / DataStore / repository 接口,但不要求完整 Supabase sync、地图、相机、语音或支付/预订。
+- [ ] `v0.3.4` Today + Plan Execution MVP:
+  - 实现 Today 当前行程首页、Now / Next / Later、Plan day list、Day Detail、Taxi Driver Card 显性按钮、Needs Scheduling candidates、booking readiness 文案与离线关键卡片。
+- [ ] `v0.3.5` Butler + Sync Bridge:
+  - 连接现有 `/api/chat`、`CanvasPatch`/structured response、Supabase auth/trips/messages、guest draft 迁移、Butler change digest 与 mock fallback。
+- [ ] `v0.3.6` Native Translator Utility:
+  - 实现文本/相机/语音/短语翻译入口、权限拒绝与离线 fallback 状态。
+- [ ] `v0.3.7` Explore + Candidate Pipeline:
+  - 消费现有 Explore/Amap route,实现 POI cards、Add to Plan、Save for Later、Needs Scheduling 与 source/confidence/fit rationale。
 
 
 ## v0.2.17 附录 —— 景点/餐饮/酒店数据与预订服务拓展评估(纯文档,已完成)

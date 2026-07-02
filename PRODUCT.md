@@ -1,8 +1,8 @@
 # VisePanda Product Context
 
-Current handoff version: `v0.2.14`. This file is active product context for future design and frontend work; `v0.2.11` was the configuration pass that introduced it.
+Current handoff version: `v0.3.2`. This file is active product context for future design, native mobile, and frontend work; `v0.2.11` was the configuration pass that introduced it, and `v0.3.2` is the Android planning synthesis that bridges strategy into native APK implementation.
 
-VisePanda is an English-native AI travel butler for independent foreign travelers in China. It should feel like a focused travel operations desk: the traveler talks to the Butler, the trip canvas updates live, and practical anxieties such as entry, payment, connectivity, language, local transit, and itinerary execution are resolved inside the same product surface.
+VisePanda is an English-native AI travel butler for independent foreign travelers in China. The active product mainline is a native Android APK first, with web retained as backend/admin/share/proof and iOS planned separately after Android shape is proven. It should feel like a focused travel operations desk: the traveler sees what to do today, asks the Butler for changes, keeps the plan trustworthy, and resolves practical anxieties such as entry, payment, connectivity, language, local transit, and itinerary execution inside the same mobile product surface.
 
 ## Audience
 

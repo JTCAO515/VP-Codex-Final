@@ -1,5 +1,16 @@
 # VisePanda Changelog
 
+## v0.3.2 - 2026-07-02
+
+**Android planning synthesis.** This documentation-only release reads the parallel agent's GitHub planning, audits it, removes over-scoped interaction ideas, and merges it with the Today-first native Android product plan.
+
+- Added `docs/planning/v0.3.2-android-planning-synthesis.md`.
+- Preserved the strongest Android-native ideas from `v0.3.1`: Kotlin, Jetpack Compose, Material 3, Room, DataStore, MVI/StateFlow, API route reuse, permission scaffolding, and Amap MapView lifecycle caution.
+- Corrected the product model from implementation-led `Canvas / Chat / Explore / Tools` into traveler-led `Today / Butler / Plan / Explore / Tools`.
+- Removed hidden/global taxi-card triggers from the roadmap; taxi-card access should use visible Today / current trip / Day Detail actions.
+- Revised the next implementation path to `v0.3.3` Android Native Foundation, `v0.3.4` Today + Plan Execution MVP, `v0.3.5` Butler + Sync Bridge, then Translator and Explore candidate work.
+- No runtime code, Android implementation code, API keys, Supabase schema, provider integration, or transaction capability changed.
+
 ## v0.3.1 - 2026-07-02
 
 **项目研发主线重大转向：原生移动端应用开发（Android APK + iOS App）主导。** Web 端（Next.js Web App）不再作为核心研发迭代方向，全部降级为次要维护支线。本版本（v0.3.1）专注于 Android 原生 APK 的全维度落地规划。
@@ -8,8 +19,8 @@
 - **确立 Android 原生布局规范**：确立 Material Design 3 (M3)、8dp 原生栅格和圆角嵌套数学。废弃 WebView 套壳与混合开发，使用纯 Jetpack Compose (ConstraintLayout-compose) 响应式 WindowSizeClass。
 - **确立触控体验方案**：针对 4.7-6.7 寸手机拇指热区（Thumb Zone）排布触控，规划 MapView 在 Compose 中生命周期代理托管，及 nested scroll 手势滑动阻尼隔离。
 - **确立 MVI 状态与离线持久化**：采用 ViewModel + StateFlow 单向流动模式，配置本地 Room Database 离线优先缓存，杜绝状态竞态，支持弱网 Checklist 本地落库及 WorkManager 后台同步。
-- **重构产品功能树与底导 Tab**：底部 NavigationBar 4 大一级 Tab（Canvas Screen, Chat Screen, Explore Screen, Tools Screen），集成 Show Taxi Driver 中文大字卡片（支持摇一摇一键直达及通知栏驻留）、Bilingual 翻译等。
-- **重排里程碑计划**：下阶段代码研发正式切换为 `v0.3.2` Android 原生 APK 基础脚手架与数据层搭建。
+- **重构产品功能树与底导 Tab**：底部 NavigationBar 4 大一级 Tab（Canvas Screen, Chat Screen, Explore Screen, Tools Screen），集成 Show Taxi Driver 中文大字卡片（显性按钮直达）、Bilingual 翻译等。
+- **重排里程碑计划**：原建议下阶段进入 Android 原生 APK 基础脚手架与数据层搭建；该建议已由 `v0.3.2` 融合规划修正为 `v0.3.3` 开始实现。
 - **本版本仅作方案规划与逻辑设计，未修改/产出任何 Java/Kotlin、XML 布局或业务实现代码。**
 
 ### v0.3.1 补充(同一迭代内追加,未新增版本号)
@@ -33,8 +44,8 @@
   存储介质从 `localStorage` 换成 Room + DataStore。
 - **iOS 规划边界重申**:本文档全篇是 Android 专项,iOS 技术栈与视觉细节不能
   直接套用本文档的 Compose/M3 专属内容,留待独立版本展开。
-- 未改变原规格书阶段 1～4 的任何既有结论,不涉及代码,不影响已排定的
-  `v0.3.2`–`v0.3.5` 原生 Sprint 计划。
+- 未改变原规格书阶段 1～4 的主体判断,不涉及代码。后续 Sprint 计划已由
+  `v0.3.2` 融合规划重新排序。
 
 ## v0.2.17 - 2026-07-02
 

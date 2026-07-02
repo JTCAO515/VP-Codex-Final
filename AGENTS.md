@@ -219,8 +219,10 @@ v0.1.46 is a documentation-only planning iteration. The deep-dive is `docs/plann
 
 **Native apps (阶段十四)**
 
-- Plan only for now. When building: extract a shared core package (`lib/types`, `lib/i18n`, provider interfaces, orchestrator client) rather than forking logic; the existing Next.js API routes are the mobile backend — do not duplicate business logic in the app.
-- Default to React Native + Expo unless the user explicitly chooses dual native. Keep Supabase auth/RLS shared.
+- As of `v0.3.2`, Android native APK is the active mainline. Use `docs/planning/v0.3.2-android-planning-synthesis.md` as the planning bridge before implementation.
+- Baseline Android direction is Kotlin + Jetpack Compose + Material 3 + Room/DataStore + MVI/StateFlow. Existing Next.js API routes remain the backend where possible — do not duplicate business logic in the app.
+- Product navigation should be Today / Butler / Plan / Explore / Tools. Treat Canvas as itinerary content inside Today/Plan, not as the user-facing navigation label.
+- Taxi Driver Card entry must be visible and intentional from Today/current trip/Day Detail. Do not implement hidden/global shortcut triggers for it.
 - Treat China distribution (备案/软著/MIIT) as a legal/ops workstream, not an engineering afterthought.
 
 **Tools functional upgrade (阶段十五)**

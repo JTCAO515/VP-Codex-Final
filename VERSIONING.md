@@ -4,7 +4,7 @@
 
 - Previous baseline: `v0.1.1`
 - Minor-series reset: `v0.2.1` (operator directive — all subsequent iterations use `0.2.x`)
-- Current iteration: `v0.3.1` (Android 原生 APK 专项规划，切换主线为移动端原生开发)
+- Current iteration: `v0.3.2` (Android 规划融合与后续原生路线定稿)
 - Production domain: `go2china.space`
 
 ## Rule
@@ -16,6 +16,7 @@
 
 ## Release Notes
 
+- `v0.3.2`: Android planning synthesis. Added `docs/planning/v0.3.2-android-planning-synthesis.md`, auditing and merging the parallel agent's Android-native specification with the Today-first product plan. Keeps Kotlin/Jetpack Compose/Room/MVI as the Android baseline, changes the product model to Today / Butler / Plan / Explore / Tools, removes hidden/global taxi-card triggers, and moves implementation start to `v0.3.3` Android Native Foundation. Documentation-only; no runtime code, native implementation, API key, schema, provider, or transaction behavior changed.
 - `v0.3.1`: Android 原生 APK 专项规划与战略转型版本。创建 `docs/planning/v0.3.1-android-native-spec.md` 原生 Android 规格设计书（包含头脑风暴、筛选收敛、对抗性评审和定稿规划），将研发主干全面转移为原生 Android/iOS。未产出业务代码。
 - `v0.2.17`: documentation-only data-provider expansion assessment. Adds `docs/planning/data-provider-expansion-assessment.md` evaluating six candidate services beyond Amap for attractions/dining/hotel data and booking (Trip.com, Dianping, Baidu Maps, Tencent Location Service, Klook, KKday), screened by how close each gets a foreign FIT traveler to actually paying for a ticket/room in-app. Recommends Trip.com (hotels) and Klook (tickets/activities) as the top research priorities, flags Dianping's competitor-clause legal risk as needing business review before technical work, and marks Baidu Maps / Tencent Location Service as low-value duplicates of Amap not worth pursuing. Explicitly discloses that source pages returned HTTP 403 to direct fetches, so findings are cross-referenced from search-result summaries rather than verbatim first-party document reads (lower confidence than the v0.2.6 FlyAI research) — flagged sections need manual verification before any real integration work starts. No code changes. This round was developed on a branch that briefly diverged from `main`; reconciled by rebuilding cleanly on top of `main`'s tip (through `v0.2.16`) rather than force-pushing over the intervening work.
 - `v0.2.16`: Explore candidate review / Day detail action polish. Flexible Explore candidates now render only when real candidate blocks exist, appear as "Needs scheduling", and expose an Ask VisePanda to schedule action from Day detail that routes through the normal Chat/AI pipeline. No checkout, inventory, payment, Supabase schema, new key, or production FlyAI usage.
