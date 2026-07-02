@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Placeholder mark: a cinnabar circle on the paper background, echoing the
+     small "VP" badge used next to the trip title on the web app. Swap for a
+     real brand mark before any store submission — this is not final art. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="@color/cinnabar"
+        android:pathData="M54,30 A24,24 0 1 1 53.99,30 Z" />
+    <path
+        android:fillColor="@color/paper_soft"
+        android:pathData="M54,42 A12,12 0 1 1 53.99,42 Z" />
+</vector>

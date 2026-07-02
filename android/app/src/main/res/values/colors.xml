@@ -1,0 +1,16 @@
+<resources>
+    <!-- Ported verbatim from app/globals.css :root (Warm New Chinese palette).
+         Keep these two files in sync by hand until a shared design-token
+         source of truth is introduced — see DESIGN.md v0.3.1 note on porting
+         this palette instead of using Material 3 dynamic color. -->
+    <color name="paper">#F7EAD5</color>
+    <color name="paper_soft">#FBF4E8</color>
+    <color name="paper_warm">#F0D9BB</color>
+    <color name="ink">#2E251D</color>
+    <color name="ink_muted">#6F5B49</color>
+    <color name="ink_soft">#947F69</color>
+    <color name="cinnabar">#A33A2D</color>
+    <color name="cinnabar_deep">#7D2A21</color>
+    <color name="gold">#B68634</color>
+    <color name="sage">#667B5C</color>
+</resources>

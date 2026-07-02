@@ -905,3 +905,14 @@ Fixes three reported product problems:
 
 - 本期仅做方案规划与技术选型，禁止产出任何 Java/Kotlin、XML 布局或业务实现代码。
 - 不安装任何新的 npm 依赖或修改 Supabase 线上架构。
+
+
+## v0.3.4 需求更新 —— 第一轮真实 Android 原生代码(v0.3.3 + v0.3.4 合并交付,已完成)
+
+需求来源:操作者明确"就放在同一个 repo 里面，现在开始正式开工"，随后追加"0.3.4也一起做完"，把原计划分两轮的 v0.3.3 Android Native Foundation 与 v0.3.4 Today + Plan Execution MVP 合并为一轮交付。
+
+交付:`android/` Gradle 模块(monorepo,包名 `space.go2china.visepanda`),技术栈 Kotlin + Jetpack Compose + Material 3 + Hilt + Room/DataStore(定义未深接)+ Retrofit(预置)。五 surface 底导(Today/Butler/Plan/Explore/Tools);Today 与 Plan+Day Detail 有真实内容,数据层(`MockTripData.kt`/`TripCompleteness.kt`)逐字段/逐规则移植自 Web 端 `lib/mock-ai/mockButler.ts`/`lib/trips/completeness.ts`,确保两端 readiness 百分比永不打架;Butler/Explore/Tools 为诚实占位页;Taxi Driver Card 单一共享组件只能通过显性按钮触发(落实 v0.3.2 对隐藏手势方案的否决)。
+
+验收标准:五 surface 均可切换;Today 能回答"我现在该干嘛";Plan 能查看 day 列表与完成度;Day Detail 能查看 block 详情、地址、booking readiness("Info only"标签,不暗示可下单);Taxi Driver Card 只在显性按钮处可触达,支持大字展示与复制中文地址。**⚠️ 上述验收标准是按代码设计意图描述的,不是实测结果**——本沙箱无 Android SDK 且 Google Maven 仓库域名 `dl.google.com` 被本会话出站网络策略拦截,全部代码未经任何真实 `./gradlew` 构建验证,详见 `android/README.md` 的完整披露与首次构建清单。
+
+排除:不接入真实网络/Supabase/AI Butler 响应;不实现地图、相机、麦克风、任何运行时权限请求;Needs Scheduling 候选态管理推迟到 `v0.3.7`;不改动任何 Web 端代码、`/api/*` 路由或 Supabase schema。

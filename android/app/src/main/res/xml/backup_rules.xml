@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- No custom backup rules yet: v0.3.3/v0.3.4 only has local mock/Room data,
+     nothing sensitive to exclude. Revisit once Supabase auth tokens land in
+     DataStore (v0.3.5) — those must be excluded from auto backup. -->
+<full-backup-content>
+</full-backup-content>

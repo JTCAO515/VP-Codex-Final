@@ -1,0 +1,10 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Minimal system theme used only for the window background before Compose
+         takes over. All real theming (Warm New Chinese palette, typography,
+         shapes) lives in ui/theme/Theme.kt as a Compose MaterialTheme — this
+         XML theme intentionally stays thin. -->
+    <style name="Theme.VisePanda" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/paper</item>
+        <item name="android:statusBarColor" tools:targetApi="21">@color/paper</item>
+    </style>
+</resources>

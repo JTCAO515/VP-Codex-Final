@@ -1006,3 +1006,23 @@ ADR-093: v0.3.3 starts with Android Native Foundation, not full map/translator/b
   1. 在 Compose 的 BottomSheet 嵌套结构中应用 `NestedScrollConnection`。当垂直滑动幅度在阈值内，手势被列表拦截消费；在阈值外，手势平滑流转给底层的高德 MapView 摄像头控制。
   2. 采用 WindowManager 库适配折叠屏，当屏幕处于半折叠（Folding State）时自适应分裂为上半屏地图展示、下半屏交互控制。
 - Reason: 原生 nested scroll 手势阻尼隔离是保障手机单手流畅体验的关键；折叠屏自适应形态可大幅提升用户旅程中驾驶/桌面放置时的阅读体验。
+
+## v0.3.4 Design Update - First Real Android Code (v0.3.3 + v0.3.4, delivered together)
+
+ADR-094: The web/native trip contract is kept as a deliberate 1:1 Kotlin mirror, including behavior, not just field names.
+
+- Background: `android/app/src/main/kotlin/space/go2china/visepanda/data/model/TripModels.kt` mirrors `lib/types/trip.ts` field-for-field, and `TripCompleteness.kt` mirrors `lib/trips/completeness.ts` rule-for-rule, including the "payment/visa complete when no outstanding alert of that type exists" rule and the exact `Math.round` rounding behavior (implemented as `roundToInt()` on a double division, not integer division, which would silently disagree with the web app for some non-exact fractions like 4/6).
+- Decision: any future change to the six-dimension completeness model, the day-completeness four-check model, or the `TripState`/`TripDay`/`TripBlock` shape on the web side must be mirrored into these two Kotlin files in the same round, not left to drift until v0.3.5's sync bridge "figures it out."
+- Reason: a traveler comparing the same trip on web and native should never see two different readiness percentages for identical data — that would look like a bug even though it is "just" two independently-correct implementations of slightly different rounding math. Keeping the port behaviorally identical, not just structurally identical, is what prevents that.
+
+ADR-095: Dynamic Color is explicitly disabled; the Warm New Chinese palette is a fixed `lightColorScheme`.
+
+- Background: Material 3's Dynamic Color feature (Android 12+) derives the app's color scheme from the user's wallpaper. This is Google's recommended default for new Material 3 apps.
+- Decision: `ui/theme/Theme.kt` uses a fixed `lightColorScheme` built from the exact hex values in `app/globals.css` (`--paper`, `--cinnabar`, `--gold`, `--sage`, etc.), never `dynamicColorScheme()`.
+- Reason: VisePanda's brand identity is this specific palette, established across the web app since early iterations and reinforced through every subsequent visual round (v0.2.8's redesign, the FIT travel desk polish, etc.). Letting a user's phone wallpaper silently override it on newer Android versions would mean the same product looks different — and untethered from its own brand — depending on the device, which directly contradicts the goal of keeping web and native visually recognizable as the same product.
+
+ADR-096: No build verification was possible in the authoring sandbox; this is recorded as a standing risk, not silently assumed away.
+
+- Background: this sandbox has no Android SDK installed, and `dl.google.com` — the actual host Gradle's `google()` repository shorthand resolves to, confirmed by following `maven.google.com`'s redirect — returned a policy-denial `403` when probed directly, recorded in the proxy's own failure log (`curl "$HTTPS_PROXY/__agentproxy/status"`). Per the proxy's own operating instructions, a policy denial is not something to route around or retry.
+- Decision: all `android/` code was written from API knowledge and reviewed manually, file by file, rather than validated by any build tool. The one available local tool (`kotlinc` 1.3.31 via `apt`) was tried, found to reject Kotlin 2.0's trailing-comma syntax (a language feature, not a bug in the code), and explicitly excluded as a source of truth for correctness — its errors were not used to "fix" anything.
+- Reason: pretending a build passed when it was never run would be a worse failure mode than clearly disclosing that it wasn't. `android/README.md` carries the same disclosure and a first-build checklist so whoever has real SDK/network access can convert this from "should compile" to "does compile" as their first action, not their last.
