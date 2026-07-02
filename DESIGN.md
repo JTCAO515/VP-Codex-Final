@@ -770,3 +770,13 @@ ADR-069: Chats auto-save; no manual Save button.
 - 差距审计 G1–G10 聚类为三轮主题:行程可操作(v0.2.4)→ 对话像管家(v0.2.5)→ 界面成体系(v0.2.6)。顺序理由:先做实"行程实体"(零外部依赖),再顺"对话主线"(消费完成度数据),最后设计系统收口(前两轮组件成为组件库首批客户,避免先建空系统)。
 - 关键机制约束重申:Day 卡快捷动作只发预制意图走 `handleSend`,绝不直改 canvas;内联工具卡数据只来自 `lib/tools` 静态层;`ToolCategory.interactive` 为可选描述符,缺数据整体降级为静态清单;完成度评分为纯函数便于测试。
 - 动效准则:只做有含义的动效(出现 240ms/变更脉冲 1 次/完成打勾),100ms 反馈底线,尊重 prefers-reduced-motion。
+
+
+## v0.2.4 设计更新 —— 交互深化规格(纯规划)
+
+无新 ADR(细化 ADR-057 情境控件与 v0.2.3 设计契约)。关键机制决定:
+
+- 变更可见性经 `lib/canvas/diffTripState.ts` 纯函数产出 day/alert 级 diff,由"变更摘要卡"承载;点击定位复用金色脉冲通道。
+- 撤销 = 预制 undo 意图走 AI 管道;本地 TripState 快照仅作 AI 失败时的兜底回滚(AGENTS 已注明为唯一直改例外)。
+- 伪流式 = 分阶段呈现(headline 先出,60ms stagger),不改 API、不引入 SSE。
+- 动效实现必须抄 `v0.2.4-interaction-deep-dive.md` 第五部分参数表,统一落为工具类;reduced-motion 全量退化。

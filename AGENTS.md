@@ -360,3 +360,12 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 - **中文规则(操作者指令)**:自本轮起,Claude 的思考、推理、回答、汇报一律使用中文;代码、标识符、提交信息可保留英文。已写入 `CLAUDE.md`。
 - 后三轮(v0.2.4/5/6)实现时以 `docs/planning/v0.2.3-ui-optimization-roadmap.md` 为设计契约,配合 v0.1.55 布局规范执行;每轮功能/UI/测试/边界四栏为验收依据。
 - 重申硬约束:快捷动作与内联卡一律走既有 AI/静态管道,不直改 canvas;`interactive` 描述符可选、降级保留静态清单;完成度为纯函数;新组件进组件库后,新界面禁止手写同类样式。
+
+
+## v0.2.4 Agent 更新 —— 交互实现规则
+
+- 后三轮(v0.2.5/6/7)以 `docs/planning/v0.2.4-interaction-deep-dive.md` 为交互验收标准;交给外部 agent 时使用 `docs/planning/handoff-prompt-for-coding-agent.md`。
+- 快捷动作/摘要卡/实体 chip 一律发预制意图走 `handleSend`;**唯一允许的本地直改**:undo 在 AI 通道失败时用上一份 TripState 快照回滚。
+- `diffTripState`、`completeness` 必须是纯函数并有单测;摘要卡在无实质变化时不渲染。
+- 动效参数不得自创,统一取自深化规格第五部分;金色禁作文字色;朱砂每屏唯一主按钮。
+- 编号勘误:代码三轮为 v0.2.5/v0.2.6/v0.2.7(v0.2.3 附录旧编号作废)。

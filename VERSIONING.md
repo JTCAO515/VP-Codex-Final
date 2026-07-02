@@ -4,7 +4,7 @@
 
 - Previous baseline: `v0.1.1`
 - Minor-series reset: `v0.2.1` (operator directive — all subsequent iterations use `0.2.x`)
-- Current iteration: `v0.2.3`
+- Current iteration: `v0.2.4`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -70,6 +70,7 @@
 - **v0.1.52**: documentation-only product interaction blueprint. Repositions VisePanda as a China travel operating system, defines the five traveler anxieties, journey-stage model, page roles, feature linkage matrix, UX writing rules, metrics, and the original implementation roadmap, later shifted so `v0.1.54` implements Interaction Shell I and `v0.1.55` starts Canvas Action Layer. No runtime product code changes.
 - **v0.1.53**: documentation-only strategic planning pass. Elevates VisePanda from a general travel tool to a cohesive "China Travel Operating System" with detailed requirements for an Offline-First Travel Vault, Cultural Context Interpreter, Intelligent Payment Card Routing, Contextual Tool Promotion, and Bilingual Export and Print Kits. Adds ADR-060 through ADR-063. No code changes.
 - **v0.1.54**: Interaction Shell I code implementation. Adds Home FIT archetype starts, Chat `?archetype=` auto-send through the Butler pipeline, three first-run starter chips, a primary structured `nextStep` action card, and traveler-facing Trip Canvas title/status copy.
+- **v0.2.4**: 纯文档规划轮(不改代码)。前端 UI 与用户交互深化规格:新增 `docs/planning/v0.2.4-interaction-deep-dive.md`(交互设计哲学五判据、Chat↔Canvas 联动可见性设计——变更摘要卡/双向悬停/patch 演出/撤销、composer 与 MessageBlock 组件级规格、Day 卡与完成度条与出发准备区交互规格、字体/色彩使用细则、毫秒级动效参数总表、移动端手势与无障碍底线、三轮吸收方案);新增 `docs/planning/handoff-prompt-for-coding-agent.md`(可直接交给其他 coding agent 的自包含实现提示词)。代码三轮顺延为 v0.2.5/v0.2.6/v0.2.7。
 - **v0.2.3**: 纯文档规划轮(不改代码)。新增 `docs/planning/v0.2.3-ui-optimization-roadmap.md`:基于一站式 FIT 管家定位的宏观差距审计(10 项差距 G1–G10)、逐界面微观 UI 优化清单(Canvas/Chat/Tools/移动端/空错状态)、前端设计系统迭代规划(token 化 + 组件库首批 + 动效准则),以及后三轮执行承诺 —— v0.2.4 Canvas 行动层+画布 UI 升级、v0.2.5 对话体验重塑+内联工具卡、v0.2.6 设计系统收口+Tools 交互组件。另:项目记忆新增中文规则(思考/回答/汇报一律中文)。
 - **v0.2.2**: Chat core-loop fixes — reply latency, Chat↔Canvas sync, and auto-save. The orchestrator now races all candidate providers in parallel (first valid patch wins) instead of trying them sequentially, and each provider call has an 18s timeout, so a slow/misconfigured model can no longer stall the chat. The mock fallback is now destination-aware (extracts cities + day count from the message and generates a matching skeleton itinerary) so the Live Canvas always reflects the conversation even when live models are unavailable; the system prompt now requires live models to return the complete `days` array on any itinerary change. Every chat auto-saves to Trips for signed-in users and the manual "Save to Trips" button was removed. 105 tests pass; build succeeds.
 - **v0.2.1**: version-series reset per operator directive. The product moves from the `0.1.x` line to the `0.2.x` line; `v0.1.55` was the final `0.1.x` iteration and `v0.2.1` is the new baseline. No product code or behavior change — only version metadata and the versioning rule were updated across `package.json` and the workflow docs. All subsequent iterations increment `0.2.x`.

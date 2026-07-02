@@ -546,3 +546,13 @@ Next three planned iterations:
 - [ ] v0.2.4 Canvas 行动层:`lib/trips/completeness.ts` 六维评分 + ProgressMeter + Day 卡快捷动作(预制意图) + 出发准备区 + patch 动画。测试:评分纯函数断言、快捷动作意图断言。
 - [ ] v0.2.5 对话体验:ask_factual <150ms 内联工具卡(静态数据,跳过 LLM) + MessageBlock 分块渲染 + 乐观 UI/骨架屏/安抚文案 + 「加入提醒/标记完成」回写完成度。测试:快通道时延与绕过断言、分块渲染快照。
 - [ ] v0.2.6 设计系统 + Tools widget:token 层 + 首批组件库收编;汇率换算器/签证资格问答器/支付设置向导(`ToolCategory.interactive` 可选描述符,缺数据降级静态清单)。测试:换算断言、决策树多国用例、降级断言。
+
+
+## v0.2.4 附录 —— UI/交互深化规格 + 交接提示词(纯文档)
+
+- [x] 新增 `docs/planning/v0.2.4-interaction-deep-dive.md`(交互哲学五判据、Chat↔Canvas 联动可见性、组件级规格、动效参数总表、三轮吸收方案)。
+- [x] 新增 `docs/planning/handoff-prompt-for-coding-agent.md`(自包含实现提示词,可交给任意 coding agent)。
+- [x] **编号勘误**:v0.2.3 附录中的代码三轮 v0.2.4/5/6 顺延为 **v0.2.5/v0.2.6/v0.2.7**,任务内容不变并按深化规格扩充:
+  - [ ] v0.2.5 Canvas 行动层+画布交互:完成度评分/进度条、Day 卡快捷动作(带天数)、出发准备区(alert.done)、**变更摘要卡 + diffTripState + patch 演出 + 撤销**。
+  - [ ] v0.2.6 Chat 体验重塑+内联工具卡:MessageBlock 伪流式、composer 规格、等待叙事、ask_factual <150ms 快通道、实体 chip 双向悬停联动。
+  - [ ] v0.2.7 设计系统收口+Tools 交互组件:token+动效工具类+组件库归一、三件套 widget、移动 Chat sheet。

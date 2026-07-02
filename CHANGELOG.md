@@ -1,5 +1,19 @@
 # VisePanda Changelog
 
+## v0.2.4 - 2026-07-02
+
+**纯文档规划轮 —— 前端 UI 与用户交互深化规格 + 实现交接提示词。** 不改任何产品代码。
+
+- 新增 `docs/planning/v0.2.4-interaction-deep-dive.md`(v0.2.3 路线图的下钻层,后三轮的交互验收标准):
+  - **交互设计哲学五判据**:对话是手画布是脸 / 可点优于可打 / 100ms 反馈定律 / 一屏一个朱砂 / 动效只为"发生了什么"服务。
+  - **Chat↔Canvas 联动可见性设计**(本轮核心命题):变更摘要卡(Change Digest,基于 `diffTripState` 纯函数的 day/alert 级 diff,点条目画布定位+金色脉冲)、桌面双向悬停联动(共享 highlightDayNumber)、patch 演出编排(600ms staged reveal + 自动滚动到首个变更卡)、撤销机制(预制 undo 意图 + 本地快照兜底)。
+  - **组件级交互规格**:composer(Enter/Shift+Enter、自动长高、乐观清空、轮换占位)、MessageBlock 分层(serif headline → 60ms stagger 伪流式)、等待叙事(100ms/3s/8s 递进)、Day 卡结构与六态、时段块级微操作、完成度六段进度条、出发准备区复选(alert.done 可选字段)。
+  - **视觉系统细则**:五级字体层级表、色彩使用规则(朱砂每屏唯一、金禁作文字、五档墨灰)、三层纸面无阴影、图标两档。
+  - **毫秒级动效参数总表**(实现即抄表)+ 移动端手势(Chat sheet 70dvh/半收 30dvh、visualViewport 键盘适配)+ 无障碍底线(焦点管理、4.5:1 对比度)。
+  - **三轮吸收方案**:v0.2.5 Canvas 行动层+画布交互 / v0.2.6 Chat 体验重塑+内联工具卡 / v0.2.7 设计系统收口+Tools 交互组件(因本轮占号,自 v0.2.4/5/6 顺延)。
+- 新增 `docs/planning/handoff-prompt-for-coding-agent.md`:**自包含实现交接提示词**,可直接复制给其他 coding agent——含 60 秒项目背景、必读文档序、八条硬约束(AI 管道/fallback/key/视觉红线/动效/7 文档+双分支推送/并行防护/中文汇报)、三轮任务规格与操作者视角验收。
+- 真流式 SSE、抽屉下滑手势、Day 卡拖拽排序:记录为三轮之后候选,本三轮不承诺。
+
 ## v0.2.3 - 2026-07-02
 
 **纯文档规划轮 —— 整体项目规划 + 前端 UI 优化迭代路线。** 不改任何产品代码。
