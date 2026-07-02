@@ -322,7 +322,7 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 
 **Recommended order**
  
-- After the completed `v0.1.54` Interaction Shell I and `v0.1.55` FIT travel desk visual polish passes, the next implementation should start with Canvas Action Layer in `v0.1.56`, then proceed through Inline Tool Cards, TripBlock POI Embedding, Translate Everywhere, Tools Widgets, Account Center, and Admin/Customer Brief work as recorded in `PLAN.md`.
+- After the completed `v0.2.5` planning-fusion/readiness-seed pass, the next implementation should start with Canvas Action Layer in `v0.2.6`, then proceed to Chat experience + inline tool cards in `v0.2.7`, and design-system + Tools widgets in `v0.2.8`.
  
 ## v0.1.53 Agent Update - Offline Vault, Context Interpretation, Payment Cards, Contextual Tool Promotion, and Bilingual Handoff
 
@@ -340,10 +340,39 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 - The primary `nextStep` card must keep using the normal `onSend` path so it preserves preference extraction, provider fallback, saved messages, and canvas patch handling.
 - Canvas confidence wording is presentation-only. Do not rename `TripState.summary.confidence` values without a migration and parser update.
 
-## v0.1.55 Agent Update - Visual Polish Rules
+## v0.1.55 Agent Update - UX Layout & Frontend Design Spec
 
-- The requested `product-design` plugin was not available in this environment. Do not add a dependency or workflow assumption that requires it unless the plugin is later installed and callable.
-- Treat the new Trip Canvas readiness score as derived UI state only. Do not persist it, send it to providers, or use it as authoritative trip state until a future schema/action-layer decision is made.
-- Keep visual polish aligned to the FIT travel desk positioning: compact, operational, warm paper/ink/cinnabar, and focused on itinerary execution rather than marketing decoration.
-- Home visual changes should remain a launcher into `/chat`, not a long landing page that delays the first travel action.
-- CSS overrides added in the `v0.1.55 VISUAL POLISH` block are intentional late-cascade safeguards. Future cleanup can fold them into the main component sections, but do not delete them casually during unrelated feature work.
+- `docs/planning/ux-design-and-layout-spec.md` is the design contract for the FIT roadmap phases. When implementing Canvas Action Layer, Inline Tool Cards, Tools Widgets, Translate Everywhere, Account, or Admin, follow that doc's layout + interaction section for the surface you touch.
+- Build with the tokens + reusable component library the spec defines; do not hand-roll new per-page styles when a component exists (or create the shared component, then use it).
+- Butler replies render as structured blocks; keep `nextStep` a tappable primary action routed through `onSend` (never a direct canvas mutation).
+- Parallel-session hygiene: `origin/main` may advance from another session between turns. Before starting an iteration, `git fetch` and check `git log HEAD..origin/main`; if main advanced, rebase/sync onto it rather than force-pushing over it. Never overwrite commits you did not create. Version-number collisions are possible — coordinate or renumber rather than clobber.
+
+## v0.2.2 Agent Update - Chat Core-Loop Rules
+
+- Keep the orchestrator's parallel race (`Promise.any`) — do not revert to sequential provider attempts. Preserve the per-provider timeout in `openaiCompatibleProvider` and the bounded tool-context prefetch.
+- Never let the mock fallback return a create/adjust patch with no `days` for a message that names a destination — the destination-aware skeleton in `mockButler.ts` keeps Chat↔Canvas in sync and must stay.
+- Live-model prompt requires the full `days` array on itinerary change; keep that instruction when editing `buildSystemPrompt`.
+- Chats auto-save for signed-in users; do not reintroduce a manual Save button unless asked. Keep the sign-in-sync vs auto-save de-duplication (`lastAutoSavedCount`).
+- If a canvas-not-updating report recurs with live models, first suspect a wrong `*_CHAT_MODEL` id (env override), not the wiring.
+
+## v0.2.3 Agent 更新 —— 语言规则与后三轮约束
+
+- **中文规则(操作者指令)**:自本轮起,Claude 的思考、推理、回答、汇报一律使用中文;代码、标识符、提交信息可保留英文。已写入 `CLAUDE.md`。
+- 后三轮最初在 v0.2.3 规划为 v0.2.4/5/6;后续已顺延并融合,最新实现编号以 v0.2.5 更新为准: v0.2.6/7/8。实现时仍以 `docs/planning/v0.2.3-ui-optimization-roadmap.md` 为设计契约,配合 v0.1.55 布局规范执行;每轮功能/UI/测试/边界四栏为验收依据。
+- 重申硬约束:快捷动作与内联卡一律走既有 AI/静态管道,不直改 canvas;`interactive` 描述符可选、降级保留静态清单;完成度为纯函数;新组件进组件库后,新界面禁止手写同类样式。
+
+
+## v0.2.4 Agent 更新 —— 交互实现规则
+
+- 后三轮最新编号为 v0.2.6/7/8,以 `docs/planning/v0.2.4-interaction-deep-dive.md` 为交互验收标准;交给外部 agent 时使用 `docs/planning/handoff-prompt-for-coding-agent.md`。
+- 快捷动作/摘要卡/实体 chip 一律发预制意图走 `handleSend`;**唯一允许的本地直改**:undo 在 AI 通道失败时用上一份 TripState 快照回滚。
+- `diffTripState`、`completeness` 必须是纯函数并有单测;摘要卡在无实质变化时不渲染。
+- 动效参数不得自创,统一取自深化规格第五部分;金色禁作文字色;朱砂每屏唯一主按钮。
+- 编号勘误:代码三轮最终顺延为 v0.2.6/v0.2.7/v0.2.8(v0.2.3 与 v0.2.4 附录中的旧编号作废)。
+
+## v0.2.5 Agent 更新 —— 规划融合与版本路线修正
+
+- 本轮已合并远端 v0.2.4 交互深化规格与本地 UI polish seed。后续实现统一使用 `0.2.x` 主线,不要再继续 `0.1.55` 路线。
+- 当前 readiness 是 UI seed/派生展示,不是完整 completion schema。实现 v0.2.6 时必须补 `completeness` 纯函数、可点缺口、prep blockers、Change Digest、patch 演出和 undo,不能把 seed 当作完成项。
+- 后续三轮最新编号: `v0.2.6` Canvas 行动层+画布交互; `v0.2.7` Chat 体验重塑+内联工具卡; `v0.2.8` 设计系统收口+Tools 交互组件。
+- `docs/planning/handoff-prompt-for-coding-agent.md` 已按新编号更新;交给其他 agent 前仍需先让对方 `git fetch origin main` 检查并行更新。

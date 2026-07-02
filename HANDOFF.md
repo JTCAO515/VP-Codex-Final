@@ -4,16 +4,16 @@
  
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）；v0.1.34 桌面横屏前端优化：Tools 6 个模态卡片 + 浮层对话框、Trips 筛选按钮布局修复（过滤器始终可见）、Translator 单页 2×2 网格布局（同时展示四个功能面板无需切换 tab）。
 - 当前分支：`main`
-- 当前版本：`v0.1.55`
+- 当前版本：`v0.2.5`（版本序列 `0.2.x`）
 - 重要（已完成）：
   - `supabase/migrations/0002_trip_archive_and_share.sql`：用户已手动在 Supabase SQL Editor 执行，归档/分享 RLS policy 已生效。
   - Google OAuth：用户已在 Google Cloud 创建 OAuth 凭据并在 Supabase Authentication → Providers → Google 填入，Google 登录功能已配置就绪。
   - ExchangeRate-API：用户已获取 API Key，已配置 `EXCHANGE_RATE_API_KEY` 到 Vercel 环境变量；`/api/exchange-rate` 路由已连接，Tools Currency 分类展示实时 CNY 汇率（每小时刷新）。
   - 高德地图 API：用户已获取 Web Service API Key，已配置 `AMAP_API_KEY` 到 Vercel 环境变量；`/api/explore/amap` 路由已连接，Explore 景点/美食/住宿来自高德 POI 实时搜索。
-  - v0.1.52 是纯文档产品策略/交互规划迭代：新增 `docs/planning/v0.1.52-product-interaction-blueprint.md`，把产品定位、用户旅程、页面职责、功能联动、UX writing 和指标体系定为后续实施依据；路线在 v0.1.54 代码实现与 v0.1.55 视觉打磨后顺延为 v0.1.56-v0.1.62。
+  - v0.1.52 是纯文档产品策略/交互规划迭代：新增 `docs/planning/v0.1.52-product-interaction-blueprint.md`，把产品定位、用户旅程、页面职责、功能联动、UX writing 和指标体系定为后续实施依据；路线在 v0.1.54 代码实现后顺延为 v0.1.55-v0.1.61。
   - v0.1.53 是纯文档战略规划迭代：细化了“中国旅行操作系统”产品方向，设计了离线保险库（Offline Vault）、文化背景解读器（Cultural Context Interpreter）、信用卡智能支付路由（Payment Card Routing）、上下文工具推荐（Contextual Tool Promotion）和双语打印包（Bilingual Export & Print Kit）五大模块及系统关联。
   - v0.1.54 是 Interaction Shell I 代码实现：Home 三个 FIT archetype 入口、Chat `?archetype=` 首跑、3 个免打字 starter chips、结构化 `nextStep` 主行动卡、Trip Canvas 标题/状态友好化。
-  - v0.1.55 是 FIT travel desk 视觉体验代码迭代：Trip Canvas readiness score、summary/readiness/action rail、Chat first-run starter state、Home launcher polish、响应式兜底。
+  - v0.2.5 是规划融合 + readiness seed 迭代：读取并合并远端 `v0.2.1`–`v0.2.4` 更新,将本地 FIT travel desk visual polish/readiness seed 融入 `0.2.x` 主线,并把完整代码三轮修正为 `v0.2.6`/`v0.2.7`/`v0.2.8`。
 - 最新实现 commit：本轮提交后以 `git log -1 --oneline` 为准
 - 当前远端：`https://github.com/JTCAO515/VP-Codex-Final.git`
 - 部署地址：`https://go2china.space`
@@ -48,23 +48,7 @@
 - Dev server note: this Codex sandbox rejected local port binding with `listen EPERM` for both `127.0.0.1:3000` and `127.0.0.1:3001`, and it could not stop the stale local Node listener on port 3000. Run `npm run dev` from a normal Mac terminal after pulling to verify `http://localhost:3000`.
 - Push note: local commit was created, but `git push origin main` failed in this sandbox because DNS could not resolve `github.com`. Push from a normal network-enabled Mac terminal with `git push origin main`.
 - Known issue: Antigravity local repo will need `git pull origin main` after this commit is pushed, because code changes were made in the writable VPMCO workspace.
-- Superseded next-step note: Canvas Action Layer moved from `v0.1.55` to `v0.1.56` after the `v0.1.55` visual polish pass.
-
-## v0.1.55 Handoff Update - FIT Travel Desk Visual Polish
-
-- Current version: `v0.1.55` in `package.json`, `package-lock.json`, and `VERSIONING.md`.
-- User intent: use a product-design-style plugin to rebuild/refresh the front-end UI and improve visual experience after the strategic FIT repositioning.
-- Tooling reality: the explicit `product-design` plugin was not available or installable in this Codex environment. The available frontend design workflow was used instead to generate a product-desk concept and implement the visual pass directly in the repo. Do not assume `product-design` is a project dependency.
-- Implemented:
-  - `TripSummary` now derives and renders a traveler-facing readiness score from existing `TripState` fields: route, daily plan, stay area, transport, and travel-ready confidence.
-  - Trip Summary layout now supports route metadata, readiness, and Trip Detail compact actions in a tighter operational rail.
-  - `ChatPanel` now shows a concise first-run starter state above the three archetype chips, and the chat layout order reads as starter → prompts → conversation → next step → composer.
-  - Home visual system is polished as a practical FIT launcher with a canvas-preview motif and tighter cards.
-  - Added late-cascade responsive CSS safeguards under the `v0.1.55 VISUAL POLISH` block.
-- Key files changed: `components/canvas/TripSummary.tsx`, `components/chat/ChatPanel.tsx`, `app/globals.css`, `tests/canvas-components.test.tsx`, `tests/chat-panel.test.tsx`, and the 7 workflow docs.
-- Verification: targeted component tests passed; full `npm run test` passed (37 files, 103 tests); `npm run build` passed with 20 generated pages.
-- Dev server note: this Codex sandbox still rejects local port binding (`listen EPERM`) when running `npm run dev -- -H 127.0.0.1 -p 3002`, so browser screenshot verification must be done from a normal Mac terminal.
-- Next recommended iteration: `v0.1.56` Canvas Action Layer with day quick actions and prep blockers, building on the readiness score without persisting it yet.
+- Next recommended iteration: Canvas Action Layer (`v0.1.55`) with trip completeness, Day quick actions, and prep blockers.
  
 ## v0.1.41 Handoff Update - Documentation Alignment Snapshot
 
@@ -124,7 +108,7 @@
   - Core loop: intent/archetype → preference extraction → live tools/data → Trip Canvas source of truth → Chat explanation → small next-step controls → Trips readiness/continuity.
   - Journey model: Curious → Planning → Preparing → In China → Share/Get help.
   - Page roles: Home starts archetypes; Chat is command center; Canvas is operational trip object; Trips is continuity/readiness/sharing; Explore feeds Chat/Canvas; Tools resolves anxieties as widgets/cards; Translate becomes an everywhere utility; Account is trust/preference/consent/lead capture; Community is proof and inspiration.
-  - Roadmap was later shifted when `v0.1.54` implemented Interaction Shell I and `v0.1.55` completed the visual polish pass. Active next order: `v0.1.56` Canvas Action Layer, `v0.1.57` Inline Tool Cards, `v0.1.58` TripBlock POI Embedding + Day Detail Upgrade, `v0.1.59` Translate Everywhere, `v0.1.60` Tools Widgets I, `v0.1.61` Account Center + Preference Review, `v0.1.62` Admin + Customer Brief Planning/Build.
+  - Roadmap was later shifted when `v0.1.54` implemented Interaction Shell I. Active next order: `v0.1.55` Canvas Action Layer, `v0.1.56` Inline Tool Cards, `v0.1.57` TripBlock POI Embedding + Day Detail Upgrade, `v0.1.58` Translate Everywhere, `v0.1.59` Tools Widgets I, `v0.1.60` Account Center + Preference Review, `v0.1.61` Admin + Customer Brief Planning/Build.
 - Files changed: `docs/planning/v0.1.52-product-interaction-blueprint.md`, `PLAN.md`, `PRD.md`, `DESIGN.md`, `AGENTS.md`, `HANDOFF.md`, `CHANGELOG.md`, `VERSIONING.md`, `package.json`, `package-lock.json`.
 - Product code intentionally untouched; only docs/version metadata changed.
 - Push note: the user said they will push later. Local repo is expected to remain ahead of `origin/main` until the user pushes from a network-enabled terminal.
@@ -232,10 +216,10 @@
 
 ## 下一步优先级
 
-1. `v0.1.56` Canvas Action Layer：增加 Day quick actions、prep blockers，让 Canvas 从展示行程升级为可操作行程，并复用 v0.1.55 readiness score。
-2. `v0.1.57` Inline Tool Cards：把签证、支付、eSIM、汇率、应急等工具卡放进 Chat 回复流，减少用户跳 tab。
-3. `v0.1.58` TripBlock POI Embedding + Day Detail Upgrade：把真实 POI 字段持久化到行程块，Day detail 显示中文地址、营业时间、电话、地图和“为什么适合你”。
-4. `v0.1.59+`：Translate Everywhere、Tools Widgets、Account Center、Admin/Customer Brief 按 `PLAN.md` 的 v0.1.56-v0.1.62 顺序推进。
+1. `v0.1.55` Canvas Action Layer：增加 trip completeness、Day quick actions、prep blockers，让 Canvas 从展示行程升级为可操作行程。
+2. `v0.1.56` Inline Tool Cards：把签证、支付、eSIM、汇率、应急等工具卡放进 Chat 回复流，减少用户跳 tab。
+3. `v0.1.57` TripBlock POI Embedding + Day Detail Upgrade：把真实 POI 字段持久化到行程块，Day detail 显示中文地址、营业时间、电话、地图和“为什么适合你”。
+4. `v0.1.58+`：Translate Everywhere、Tools Widgets、Account Center、Admin/Customer Brief 按 `PLAN.md` 的 v0.1.55-v0.1.61 顺序推进。
 
 ## 关键文件索引
 
@@ -549,3 +533,84 @@ Alternatives if Dianping approval is slow: (a) Amap enriched fields — already 
 ### Recommended next iteration
 
 - **Chat Intelligence Layer / response normalization** (阶段十二): add the `{headline, body, highlights, watchOut, nextStep}` schema so answers are consistent and scannable, then layer the refine-and-verify loop (task 13.5) on top of the orchestrator. Alternatively, **Tools functional upgrade** (阶段十五) for immediate, self-contained traveler value. See `docs/planning/mock-inventory.md` for the full replace-the-mocks queue.
+
+## v0.1.55 Handoff Update - UX Layout & Frontend Design Spec (docs only)
+
+- Current version after this iteration: `v0.1.55`.
+- Documentation only. Added `docs/planning/ux-design-and-layout-spec.md`, the design/experience companion to the v0.1.52 interaction blueprint and v0.1.53 technical blueprint. No product code changed.
+
+### ⚠️ Parallel-session / version-collision note (important for the operator)
+
+- This session discovered that `origin/main` had already advanced to **v0.1.54** via a **parallel session** (it did the FIT one-stop positioning, model activation, structured chat replies, rich POI context, preference memory, and the interaction shell).
+- To avoid destroying that work, this session **synced onto `origin/main` first** (dropping a now-redundant local v0.1.48 model-selection commit — the parallel session's own v0.1.48 already activated the same models) and then added this docs-only iteration on top. **No history was overwritten.**
+- **Risk:** two sessions both auto-increment `0.1.x` and both push to `main`, so version numbers can collide (this already happened once at v0.1.48). The roadmap reserves `v0.1.55` for the *Canvas Action Layer* code phase; this docs iteration also took `v0.1.55`. If the other session ships Canvas Action Layer, reconcile by renumbering one of them.
+- **Recommendation:** run one session at a time, OR give each session a version lane (e.g. code sessions use even patch numbers, planning sessions use a `-docs` suffix), OR designate this session for design/docs and the other for feature code. Awaiting the operator's preference.
+
+### What this doc adds (not a duplicate of v0.1.52/v0.1.53)
+
+- v0.1.52 = interaction blueprint (what/why); v0.1.53 = plugin/technical architecture; **v0.1.55 = concrete UX layout + component interaction mechanics + frontend visual design system** (the "how it looks and lays out" layer), plus a table mapping each roadmap phase to its governing design section.
+
+## v0.2.2 Handoff Update - Chat Core-Loop Fixes (speed, sync, auto-save)
+
+- Current version after this iteration: `v0.2.2`.
+- Fixes three reported problems in the Chat↔Canvas loop. All keep the mock fallback and keys server-side.
+
+### 1. Slow replies → parallel racing + timeouts
+- The orchestrator (`lib/ai/orchestrator.ts`) now races all configured providers in parallel with `Promise.any` (first valid patch wins) instead of sequential attempts.
+- Each provider call has an 18s abort timeout (`lib/ai/providers/openaiCompatibleProvider.ts`); the Amap tool-context prefetch is bounded to 6s and best-effort.
+- Result: reply latency ≈ the fastest healthy model, and a wrong/hung model can't stall the chat.
+
+### 2. Chat and Live Canvas not syncing → destination-aware fallback + stricter prompt
+- The mock butler (`lib/mock-ai/mockButler.ts`) now detects cities (EN + 中文) and a day/week count in the message and generates a matching skeleton itinerary, so the canvas always reflects the chat even when live models fail.
+- The system prompt now requires live models to return the COMPLETE `days` array on any itinerary change.
+- **If the canvas still doesn't update with live models on, the likely cause is a wrong model id** (see the v0.1.48 tutorial): set `ZHIPU_CHAT_MODEL` / `MOONSHOT_CHAT_MODEL` / `QWEN_CHAT_MODEL` in Vercel to the exact model id from each provider's console, then Redeploy. Until then the destination-aware fallback keeps the canvas in sync.
+
+### 3. Auto-save + button removed
+- Every chat auto-saves to Trips for signed-in users (silent "Saved to your Trips." note in the status line). The manual "Save to Trips" button is gone. Guests keep the automatic localStorage draft. Sign-in sync and auto-save no longer double-write.
+
+### Next three iterations (planned)
+- **v0.2.3 — Canvas Action Layer**: trip-completeness score + progress meter in `TripSummary`; Day quick-actions (Lighten / Add food / Swap morning / Add rest) sending structured Butler intents; prep blockers surfaced on the canvas.
+- **v0.2.4 — Inline Tool Cards + factual fast-path**: `ask_factual` answered instantly from `lib/tools` static data as inline cards in Chat (also speeds those replies by skipping the LLM); "Add reminder / Mark as done" hooks into trip prep.
+- **v0.2.5 — Tools Interactive Widgets I**: currency converter (live rate), visa eligibility checker, payment setup wizard, via an optional `interactive` descriptor on `ToolCategory` (static checklist stays as fallback).
+
+## v0.2.3 交接更新 —— 整体规划 + 前端 UI 优化路线(纯文档)
+
+- 本轮版本:`v0.2.3`,纯文档,产品代码零改动,运行时行为与 v0.2.2 完全一致。
+- 权威新文档:`docs/planning/v0.2.3-ui-optimization-roadmap.md`(宏观差距审计 G1–G10、逐界面微观优化清单、设计系统迭代规划、后三轮执行承诺)。
+- 新操作者规则已入项目记忆:后续所有思考/回答/汇报一律中文。
+
+### 后三轮执行承诺(版本重排:规划占用 v0.2.3,代码轮顺延)
+
+1. **v0.2.4 —— Canvas 行动层 + 画布 UI 升级**:完成度评分与进度条、Day 卡快捷动作(减负/加美食/换上午/加休息,走 AI 管道)、出发准备聚合区、patch 动画与缺口 chips。验收:点"减负"3 秒内画布可见变化且变化处高亮。
+2. **v0.2.5 —— 对话体验重塑 + 内联工具卡**:ask_factual 快通道(<150ms 直出签证/支付/eSIM/汇率/地铁/应急静态卡,跳过 LLM)、MessageBlock 分块渲染、乐观 UI + 打字指示 + 骨架屏、>8s 安抚文案、模型标签弱化。验收:问签证秒出卡片并可一键加入行程提醒。
+3. **v0.2.6 —— 设计系统收口 + Tools 交互组件**:token 层 + 组件库归一(Button/Pill/Card/Sheet/Toast/ProgressMeter/MessageBlock/ToolCard/EmptyState);Tools 三件套 widget(汇率换算器/签证资格问答器/支付设置向导),静态清单降级保留。验收:三工具桌面+移动可完成真实任务,新组件 ≥3 页复用。
+
+### 操作者无需任何手动步骤
+
+- 本轮及后三轮均不需要新 API key、不需要 Vercel/Supabase 操作。之前待办不变:如画布仍偶发不联动,按 v0.1.48 教程核对 `*_CHAT_MODEL` 精确模型 ID。
+
+
+## v0.2.4 交接更新 —— UI/交互深化规格 + 实现交接提示词(纯文档)
+
+- 本轮版本:`v0.2.4`,纯文档,零代码,运行时与 v0.2.2 一致。
+- 两份新文档:
+  1. `docs/planning/v0.2.4-interaction-deep-dive.md` —— 后三轮的**交互验收标准**(变更摘要卡、双向悬停联动、patch 演出、撤销、composer/MessageBlock/Day 卡/完成度条/准备区组件级规格、字体色彩细则、动效参数总表、移动手势、无障碍底线)。
+  2. `docs/planning/handoff-prompt-for-coding-agent.md` —— **可直接复制给其他 coding agent 的实现提示词**(自包含:背景/必读文档/八条硬约束/三轮任务规格/验收)。操作者用法:整段复制「======」之间内容发给实现 agent 即可。
+- 版本重排(当时):代码三轮曾定为 **v0.2.5 Canvas 行动层+画布交互 → v0.2.6 Chat 体验重塑+内联工具卡 → v0.2.7 设计系统收口+Tools 交互组件**;该编号已在 v0.2.5 融合轮再次顺延,最新以 v0.2.5 交接更新为准。
+- 操作者无需任何手动步骤;实现可由本会话继续,也可把提示词交给其他 agent。
+
+## v0.2.5 交接更新 —— 规划融合 + FIT Travel Desk Readiness Seed
+
+- 本轮版本:`v0.2.5`。
+- 用户意图:再次读取 GitHub/repo 更新,把前几轮 UI/产品设计规划融入当前 repo 主线,并修正后续建议路线后汇报。
+- 同步发现:本地存在未推送提交 `47eba46 feat(ui): polish fit travel desk`,远端已推进到 `5414c7e v0.2.4`。本轮没有运行会强制 reset 的 VPMCO 脚本,而是安全 fetch/merge,保留两边工作。
+- 融合结论:
+  - 远端 `v0.2.4` 的交互深化规格仍是最高优先级的实现验收标准。
+  - 本地 UI polish 的 readiness、summary/readiness rail、Chat starter state、Home launcher polish 作为 `0.2.x` 主线的 seed 保留。
+  - 当前 readiness 是派生展示,不是完整 completion schema;完整 Canvas 行动层仍未完成。
+- 最新后续路线:
+  1. `v0.2.6` Canvas 行动层+画布交互:完成度纯函数、可点缺口、Day 快捷动作、Change Digest、patch 演出、undo、Before you fly。
+  2. `v0.2.7` Chat 体验重塑+内联工具卡:MessageBlock、等待叙事、composer、ask_factual 快通道、实体 chip 联动。
+  3. `v0.2.8` 设计系统收口+Tools widgets:token/组件库、汇率换算、签证问答、支付向导、移动 Chat sheet。
+- 已更新:VERSIONING/CHANGELOG/PLAN/PRD/DESIGN/AGENTS/HANDOFF,以及 `docs/planning/v0.2.4-interaction-deep-dive.md` 和 `docs/planning/handoff-prompt-for-coding-agent.md` 的版本路线。
+- 下一步:跑测试和构建确认 merge 后状态;若通过,提交并尝试推送。

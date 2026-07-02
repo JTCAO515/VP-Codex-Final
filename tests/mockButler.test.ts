@@ -14,6 +14,17 @@ describe("createMockButlerPatch", () => {
     expect(patch.days?.some((day) => day.city === "Shanghai")).toBe(true);
   });
 
+  it("builds a destination-aware itinerary so the canvas reflects the chat", () => {
+    const patch = createMockButlerPatch("Plan a 6 day trip to Chengdu and Chongqing", initialTripState);
+
+    expect(patch.intent).toBe("create_trip");
+    expect(patch.tripSummary?.durationDays).toBe(6);
+    expect(patch.tripSummary?.destinations).toEqual(["Chengdu", "Chongqing"]);
+    expect(patch.days).toHaveLength(6);
+    expect(patch.days?.some((day) => day.city === "Chengdu")).toBe(true);
+    expect(patch.days?.some((day) => day.city === "Chongqing")).toBe(true);
+  });
+
   it("adds payment alerts when payment is mentioned", () => {
     const patch = createMockButlerPatch("Add payment reminders", initialTripState);
 

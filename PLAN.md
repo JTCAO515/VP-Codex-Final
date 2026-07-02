@@ -157,7 +157,7 @@
 - [x] 任务 12.20b：建立用户旅程模型：Curious → Planning → Preparing → In China → Share/Get help，并为每一阶段定义用户心理、最佳交互和成功信号。
 - [x] 任务 12.20c：重定义页面职责：Home 负责 archetype start，Chat 负责决策，Canvas 负责可执行行程和动作，Trips 负责连续性/ready 状态，Explore 负责数据发现，Tools 负责旅前/旅中小工具，Translate 变成全局 utility，Account 承担信任/偏好/留资。
 - [x] 任务 12.20d：补齐 feature linkage matrix，明确 Home→Chat、Explore→Chat、Canvas quick actions→Chat、Tools→Chat、Translate→当前上下文、Account/Trips→高意向留资的联动关系。
-- [x] 任务 12.20e：给出后续实施路线；v0.1.54 已完成 Interaction Shell I，v0.1.55 已完成 FIT travel desk visual polish，当前顺延为 v0.1.56–v0.1.62 继续执行 Canvas Action Layer、Inline Tool Cards、TripBlock POI Embedding、Translate Everywhere、Tools Widgets I、Account Center + Preference Review、Admin + Customer Brief。
+- [x] 任务 12.20e：给出后续实施路线；v0.1.54 已完成 Interaction Shell I，当前顺延为 v0.1.55–v0.1.61 继续执行 Canvas Action Layer、Inline Tool Cards、TripBlock POI Embedding、Translate Everywhere、Tools Widgets I、Account Center + Preference Review、Admin + Customer Brief。
 - [x] 任务 12.20f：沉淀 UX writing rules 和指标体系：用 traveler-facing 状态替代 developer-facing 状态，每轮 AI 回复都要有具体下一步；关注 time to first canvas、trip edits/session、prep item completion、translate quick action usage、share/lead conversion 等。
 
 ### v0.1.53：Interaction Shell I / 引导入口 + 画布快捷操作（规划）
@@ -183,17 +183,16 @@
 - [ ] 任务 12.32：注册 `NEXT_PUBLIC_AMAP_MAPS_KEY`（仅用于地图显示、域名白名单、可公开）；在 Day 抽屉/Canvas 加 `DayMapWidget`，对含 2+ 定位块的天渲染标记 + 路线。
 - [ ] 任务 12.33：Chat→Explore 反向联动——行程内 POI 在 Explore 城市视图显示「In your trip」徽标；偏好驱动 Explore 卡片排序。
 
-### v0.1.54–v0.1.62 当前推荐实施顺序（v0.1.54/v0.1.55 已完成）
+### v0.1.54–v0.1.61 当前推荐实施顺序（v0.1.54 已完成 Interaction Shell I）
 
 1. `v0.1.54` Interaction Shell I（已完成）：Home archetype starts、Chat first-run chips、structured `nextStep` 主按钮、Canvas 标题/状态友好化。
-2. `v0.1.55` FIT Travel Desk Visual Polish（已完成）：Trip Canvas readiness score、summary/readiness rail、Chat first-run starter state、Home launcher polish、响应式兜底。
-3. `v0.1.56` Canvas Action Layer：day quick actions、prep blockers，从“展示行程”升级为“可操作行程”。
-4. `v0.1.57` Inline Tool Cards：签证、支付、eSIM、汇率、应急卡在 Chat 内出现，减少 tab 切换。
-5. `v0.1.58` TripBlock POI Embedding + Day Detail Upgrade：把真实 POI 字段持久化到行程块，Day detail 展示中文名/地址/营业时间/电话/地图/为什么适合用户。
-6. `v0.1.59` Translate Everywhere：Translate 作为全局 camera/mic utility，能从 Day detail、Tools、Chat 回到当前上下文。
-7. `v0.1.60` Tools Widgets I：currency converter、visa eligibility checker、payment setup wizard、emergency card generator。
-8. `v0.1.61` Account Center + Preference Review：真实 `/account` 信任中心、偏好编辑、隐私/同意、渐进式留资。
-9. `v0.1.62` Admin + Customer Brief Planning/Build：leads schema、admin role、customer brief、对话/行程摘要视图。
+2. `v0.1.55` Canvas Action Layer：trip completeness、day quick actions、prep blockers，从“展示行程”升级为“可操作行程”。
+3. `v0.1.56` Inline Tool Cards：签证、支付、eSIM、汇率、应急卡在 Chat 内出现，减少 tab 切换。
+4. `v0.1.57` TripBlock POI Embedding + Day Detail Upgrade：把真实 POI 字段持久化到行程块，Day detail 展示中文名/地址/营业时间/电话/地图/为什么适合用户。
+5. `v0.1.58` Translate Everywhere：Translate 作为全局 camera/mic utility，能从 Day detail、Tools、Chat 回到当前上下文。
+6. `v0.1.59` Tools Widgets I：currency converter、visa eligibility checker、payment setup wizard、emergency card generator。
+7. `v0.1.60` Account Center + Preference Review：真实 `/account` 信任中心、偏好编辑、隐私/同意、渐进式留资。
+8. `v0.1.61` Admin + Customer Brief Planning/Build：leads schema、admin role、customer brief、对话/行程摘要视图。
 
 ### 阶段十二关键设计取舍（详见 DESIGN.md ADR-037~042）
 
@@ -429,7 +428,7 @@ Historical sequencing note (superseded by the v0.1.52 blueprint):
 
 - [x] Chat Intelligence / multi-model orchestration shipped in v0.1.47-v0.1.48.
 - [x] Amap enrichment, bounded Chat tool context, and lightweight preference memory shipped in v0.1.49-v0.1.51.
-- [x] v0.1.52 was reassigned to the product interaction blueprint. After the v0.1.54 code pass and v0.1.55 visual polish pass, the next implementation order is now the v0.1.56-v0.1.62 sequence above.
+- [x] v0.1.52 was reassigned to the product interaction blueprint. After the v0.1.54 code pass, the next implementation order is now the v0.1.55-v0.1.61 sequence above.
 - [ ] Dianping/Meituan + map remains a later external-approval track, not the v0.1.52 implementation target.
 
 Immediate no-code actions the user should take this week:
@@ -490,7 +489,6 @@ Next code iterations (recommended order):
 
 Next implementation tasks:
 - [x] v0.1.54 Code implementation: home archetype starts, chat first-run empty state, primary `nextStep` action chips, traveler-facing status wording.
-- [x] v0.1.55 UI/frontend visual polish: readiness score, tighter summary rail, first-run Chat starter state, Home launcher visual refresh, responsive fallbacks.
 
 ## v0.1.54 Addendum - Interaction Shell I Code Implementation
 
@@ -504,15 +502,69 @@ Next implementation tasks:
 
 Next implementation tasks:
 
-- [ ] v0.1.56 Canvas Action Layer: Day quick actions and prep blockers building on the new readiness score.
-- [ ] v0.1.57 Inline Tool Cards or Tools Widgets, depending on whether the next priority is Chat anxiety resolution or standalone utility depth.
+- [ ] v0.1.55 Canvas Action Layer: trip completeness, Day quick actions, and prep blockers.
+- [ ] v0.1.56 Inline Tool Cards or Tools Widgets, depending on whether the next priority is Chat anxiety resolution or standalone utility depth.
 
-## v0.1.55 Addendum - FIT Travel Desk Visual Polish
+## v0.1.55 Addendum - UX Layout & Frontend Design Spec (docs only)
 
-- [x] Generated a product-desk visual direction using the available frontend design workflow after the requested `product-design` plugin was unavailable in this Codex environment.
-- [x] Added Trip Canvas readiness score and compact checklist to make the canvas feel operational, not just descriptive.
-- [x] Refined the Trip Summary layout so route, metadata, readiness, and Trip Detail actions can coexist without dominating the itinerary.
-- [x] Added a concise first-run Chat starter state above the three archetype chips.
-- [x] Polished Home as a practical FIT launcher with a canvas-preview motif and tighter cards.
-- [x] Added responsive CSS safeguards for summary/readiness/action layouts on tablet and mobile.
-- [x] Added targeted tests for Canvas readiness and Chat starter state.
+- [x] Added `docs/planning/ux-design-and-layout-spec.md`: the design/experience companion to the v0.1.52 interaction blueprint and v0.1.53 technical blueprint.
+- [x] Macro: single-surface spatial model, information-architecture table, five-anxiety layout principle.
+- [x] Micro: page-by-page layout + component interaction mechanics for Home, Chat command center + Canvas, Day detail, Explore, Tools, Translate FAB, Trips, Account, Admin.
+- [x] Frontend design system: tokens, reusable component library, per-surface visual hierarchy, motion, mobile-first, accessibility/i18n.
+- [x] Mapped each existing roadmap phase to its governing design section (design contract for implementation).
+- [x] Synced onto origin/main (v0.1.54) before working — parallel session's work preserved, nothing overwritten.
+
+Note: this iteration is the design contract for the already-planned code phases (Canvas Action Layer, Inline Tool Cards, Tools Widgets, etc.); it does not add new phases. Version numbering overlaps with the parallel session's roadmap — see the HANDOFF v0.1.55 parallel-session note.
+
+## v0.2.1 Addendum - Version-Series Reset (operator directive)
+
+- [x] Reset the version series from `0.1.x` to `0.2.x`. `v0.1.55` was the final `0.1.x`; `v0.2.1` is the new baseline; subsequent iterations increment `0.2.x`.
+- [x] Updated `package.json`, `VERSIONING.md` (rule + release note), `CHANGELOG.md`, `HANDOFF.md`, and `CLAUDE.md` (project memory).
+- [x] No product code, provider, or schema change — version metadata only. All prior roadmap phases (阶段一…十八 and the FIT v0.1.5x roadmap) remain valid; only their future version tags renumber onto the `0.2.x` line.
+
+## v0.2.2 Addendum - Chat Core-Loop Fixes
+
+- [x] Speed: orchestrator races providers in parallel (`Promise.any`) + 18s per-provider timeout + 6s bounded tool-context prefetch.
+- [x] Sync: destination-aware mock fallback (city + day-count extraction → skeleton itinerary) + system prompt requires full `days` on itinerary change.
+- [x] Auto-save every chat for signed-in users; removed the manual Save to Trips button; de-duplicated sign-in sync vs auto-save.
+- [x] Tests updated (+ parallel-race, + destination-skeleton); 105 pass; build green.
+
+Next three planned iterations:
+
+- [ ] v0.2.3 Canvas Action Layer: completeness score + progress meter + Day quick-actions (structured intents) + prep blockers.
+- [ ] v0.2.4 Inline Tool Cards + factual fast-path: `ask_factual` answered from static Tools data as inline chat cards (also faster); reminder/mark-done hooks.
+- [ ] v0.2.5 Tools Interactive Widgets I: currency converter, visa checker, payment wizard via optional `interactive` ToolCategory descriptor (static fallback kept).
+
+## v0.2.3 附录 —— 整体规划 + UI 优化路线(纯文档)
+
+- [x] 新增 `docs/planning/v0.2.3-ui-optimization-roadmap.md`:宏观差距审计(G1–G10)、逐界面微观 UI 清单、设计系统迭代规划、后三轮执行承诺。
+- [x] 项目记忆写入中文规则(思考/回答/汇报一律中文)。
+- [x] 版本重排:代码三轮顺延为 v0.2.4 / v0.2.5 / v0.2.6。
+
+后三轮任务队列(执行承诺):
+
+- [ ] v0.2.4 Canvas 行动层:`lib/trips/completeness.ts` 六维评分 + ProgressMeter + Day 卡快捷动作(预制意图) + 出发准备区 + patch 动画。测试:评分纯函数断言、快捷动作意图断言。
+- [ ] v0.2.5 对话体验:ask_factual <150ms 内联工具卡(静态数据,跳过 LLM) + MessageBlock 分块渲染 + 乐观 UI/骨架屏/安抚文案 + 「加入提醒/标记完成」回写完成度。测试:快通道时延与绕过断言、分块渲染快照。
+- [ ] v0.2.6 设计系统 + Tools widget:token 层 + 首批组件库收编;汇率换算器/签证资格问答器/支付设置向导(`ToolCategory.interactive` 可选描述符,缺数据降级静态清单)。测试:换算断言、决策树多国用例、降级断言。
+
+
+## v0.2.4 附录 —— UI/交互深化规格 + 交接提示词(纯文档)
+
+- [x] 新增 `docs/planning/v0.2.4-interaction-deep-dive.md`(交互哲学五判据、Chat↔Canvas 联动可见性、组件级规格、动效参数总表、三轮吸收方案)。
+- [x] 新增 `docs/planning/handoff-prompt-for-coding-agent.md`(自包含实现提示词,可交给任意 coding agent)。
+- [x] **编号勘误**:v0.2.3 附录中的代码三轮 v0.2.4/5/6 先顺延为 v0.2.5/6/7;随后 v0.2.5 被本轮"规划融合 + readiness seed"占用,完整代码三轮最终顺延为 **v0.2.6/v0.2.7/v0.2.8**,任务内容不变并按深化规格扩充:
+  - [ ] v0.2.6 Canvas 行动层+画布交互:完成度评分/进度条、Day 卡快捷动作(带天数)、出发准备区(alert.done)、**变更摘要卡 + diffTripState + patch 演出 + 撤销**。
+  - [ ] v0.2.7 Chat 体验重塑+内联工具卡:MessageBlock 伪流式、composer 规格、等待叙事、ask_factual <150ms 快通道、实体 chip 双向悬停联动。
+  - [ ] v0.2.8 设计系统收口+Tools 交互组件:token+动效工具类+组件库归一、三件套 widget、移动 Chat sheet。
+
+## v0.2.5 附录 —— 规划融合 + FIT Travel Desk Readiness Seed
+
+- [x] 安全读取并合并远端 `v0.2.1`–`v0.2.4` 更新,确认远端已经进入 `0.2.x` 版本线,且 `v0.2.4` 新增交互深化规格与 coding-agent handoff prompt。
+- [x] 将本地未推送的视觉规划/实现 seed 融入 `0.2.x` 主线:Trip Canvas readiness 初版、summary/readiness/action rail、Chat first-run starter state、Home launcher polish、响应式兜底。
+- [x] 将 readiness 明确标记为"派生展示/seed",不是完整 completion schema;完整六维评分、可点缺口、prep blockers、alert.done 仍属于 `v0.2.6`。
+- [x] 修正全部后续建议路线:完整代码三轮为 `v0.2.6 Canvas 行动层` → `v0.2.7 Chat 体验+内联工具卡` → `v0.2.8 设计系统+Tools widgets`。
+- [x] 更新实现交接提示词与交互深化文档,避免下一位 agent 误用旧的 `v0.2.5/v0.2.6/v0.2.7` 编号。
+
+下一步推荐:
+
+- [ ] `v0.2.6` Canvas 行动层+画布交互:在现有 readiness seed 上补全六维 completion 纯函数、Day 快捷动作、Change Digest、patch 演出、撤销、Before you fly 准备区。

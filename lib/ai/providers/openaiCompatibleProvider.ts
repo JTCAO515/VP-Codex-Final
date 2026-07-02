@@ -31,6 +31,10 @@ export interface OpenAiCompatibleConfig {
   modelEnv?: string;
 }
 
+// Hard ceiling on a single provider call. A slow or misconfigured model must
+// fail fast so the orchestrator can race/fall back instead of hanging the chat.
+const DEFAULT_TIMEOUT_MS = 18000;
+
 function readKey(config: OpenAiCompatibleConfig, env: Record<string, string | undefined>): string | undefined {
   const names = [config.apiKeyEnv, ...(config.apiKeyEnvAliases ?? [])];
   for (const name of names) {
@@ -75,15 +79,32 @@ export function createOpenAiCompatibleProvider(config: OpenAiCompatibleConfig): 
         body.response_format = { type: "json_object" };
       }
 
-      const response = await ctx.fetchImpl(`${baseUrl}/chat/completions`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-        signal: options.signal,
-      });
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
+      if (options.signal) {
+        if (options.signal.aborted) controller.abort();
+        else options.signal.addEventListener("abort", () => controller.abort(), { once: true });
+      }
+
+      let response: Response;
+      try {
+        response = await ctx.fetchImpl(`${baseUrl}/chat/completions`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+          signal: controller.signal,
+        });
+      } catch (error) {
+        if (controller.signal.aborted) {
+          throw new Error(`${config.label}: timed out after ${DEFAULT_TIMEOUT_MS}ms.`);
+        }
+        throw error instanceof Error ? error : new Error(`${config.label}: request failed.`);
+      } finally {
+        clearTimeout(timer);
+      }
 
       if (!response.ok) {
         throw new Error(`${config.label}: HTTP ${response.status}.`);

@@ -1,10 +1,12 @@
-// Multi-model Butler orchestrator (阶段十三 / ADR-044).
+// Multi-model Butler orchestrator (阶段十三 / ADR-044, latency-fixed in v0.2.2).
 //
-// Flow: classify intent -> pick candidate providers (specialist first, then a
-// fallback chain) -> for high-stakes intents with 2+ providers run a small
-// parallel ensemble, otherwise try the chain in order -> parse the patch ->
-// on total failure fall back to the mock Butler. Cost is not a concern
-// (ADR-043); redundancy and correctness win.
+// Flow: classify intent -> pick candidate providers (specialist first) -> race
+// them IN PARALLEL and take the first valid patch -> on total failure fall back
+// to the mock Butler. Cost is not a concern (ADR-043), so racing every capable
+// provider in parallel gives the lowest latency and the best resilience: one
+// slow or misconfigured model can no longer stall the chat, because a faster
+// healthy model answers first and hung calls are bounded by a per-provider
+// timeout (see openaiCompatibleProvider).
 //
 // This never removes the mock fallback: if no provider is configured, or every
 // provider fails, the traveler still gets a working canvas patch.
@@ -16,12 +18,7 @@ import {
   parseButlerPatch,
 } from "@/lib/ai/butlerPrompt";
 import { classifyIntent, type ButlerIntent } from "@/lib/ai/intentClassifier";
-import {
-  BUTLER_PROVIDERS,
-  getConfiguredProviders,
-  isHighStakesIntent,
-  selectProvidersForIntent,
-} from "@/lib/ai/modelRegistry";
+import { BUTLER_PROVIDERS, getConfiguredProviders, selectProvidersForIntent } from "@/lib/ai/modelRegistry";
 import { buildButlerToolContext, type ButlerToolContext } from "@/lib/ai/toolContext";
 import type { UserPreferenceProfile } from "@/lib/ai/preferenceProfile";
 import { createMockButlerPatch } from "@/lib/mock-ai/mockButler";
@@ -42,7 +39,7 @@ export interface OrchestratedButlerResult {
   mode: string; // provider id that produced the patch, or "mock"
   modelLabel: string; // human-readable label for status UI
   intent: ButlerIntent;
-  strategy: "single" | "ensemble" | "mock";
+  strategy: "parallel" | "single" | "mock";
   providersTried: string[];
   patch: CanvasPatch;
   suggestions: string[];
@@ -51,6 +48,19 @@ export interface OrchestratedButlerResult {
 }
 
 const MAX_TOKENS = 2200;
+const TOOL_CONTEXT_TIMEOUT_MS = 6000;
+
+async function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<T>((resolve) => {
+    timer = setTimeout(() => resolve(fallback), ms);
+  });
+  try {
+    return await Promise.race([promise, timeout]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
 
 async function tryProvider(
   provider: ChatCompletionProvider,
@@ -59,7 +69,7 @@ async function tryProvider(
   fetchImpl: FetchLike,
   fallbackSuggestions: string[],
   context: { preferenceProfile?: UserPreferenceProfile; toolContext?: ButlerToolContext },
-): Promise<{ patch: CanvasPatch; suggestions: string[] }> {
+): Promise<{ provider: ChatCompletionProvider; patch: CanvasPatch; suggestions: string[] }> {
   const result = await provider.complete(
     {
       messages: [
@@ -71,7 +81,8 @@ async function tryProvider(
     },
     { env, fetchImpl },
   );
-  return parseButlerPatch(result.content, fallbackSuggestions);
+  const parsed = parseButlerPatch(result.content, fallbackSuggestions);
+  return { provider, patch: parsed.patch, suggestions: parsed.suggestions };
 }
 
 function mockResult(
@@ -115,86 +126,41 @@ export async function requestOrchestratedButlerPatch(
   const candidates = selectProvidersForIntent(intent, configured);
   const fallbackSuggestions = fallbackSuggestionsFor(message, input.currentTrip);
   const normalizedInput = { message, currentTrip: input.currentTrip, recentMessages };
-  const toolContext = await buildButlerToolContext({
-    message,
-    currentTrip: input.currentTrip,
-    intent,
-    env,
-    fetchImpl,
-  });
+
+  // Tool-context prefetch is best-effort and time-bounded so a slow Amap call
+  // never stalls the reply.
+  const toolContext = await withTimeout(
+    buildButlerToolContext({ message, currentTrip: input.currentTrip, intent, env, fetchImpl }),
+    TOOL_CONTEXT_TIMEOUT_MS,
+    undefined,
+  );
   const providerContext = { preferenceProfile: input.preferenceProfile, toolContext };
-  const tried: string[] = [];
+  const tried = candidates.map((provider) => provider.id);
 
-  // High-stakes intents with 2+ providers: race the top two in parallel and
-  // take the first valid patch (a simple ensemble). Remaining providers still
-  // act as a fallback chain afterwards.
-  if (isHighStakesIntent(intent) && candidates.length >= 2) {
-    const [a, b] = candidates;
-    tried.push(a.id, b.id);
-    const settled = await Promise.allSettled([
-      tryProvider(a, normalizedInput, env, fetchImpl, fallbackSuggestions, providerContext),
-      tryProvider(b, normalizedInput, env, fetchImpl, fallbackSuggestions, providerContext),
-    ]);
-    // Prefer the primary (a) when both succeed.
-    for (let i = 0; i < settled.length; i += 1) {
-      const outcome = settled[i];
-      if (outcome.status === "fulfilled") {
-        const provider = i === 0 ? a : b;
-        return {
-          mode: provider.id,
-          modelLabel: provider.label,
-          intent,
-          strategy: "ensemble",
-          providersTried: [...tried],
-          patch: outcome.value.patch,
-          suggestions: outcome.value.suggestions,
-          toolContext,
-        };
-      }
-    }
-    // Both raced providers failed; continue the chain with the rest.
-    for (let i = 2; i < candidates.length; i += 1) {
-      const provider = candidates[i];
-      tried.push(provider.id);
-      try {
-        const { patch, suggestions } = await tryProvider(provider, normalizedInput, env, fetchImpl, fallbackSuggestions, providerContext);
-        return {
-          mode: provider.id,
-          modelLabel: provider.label,
-          intent,
-          strategy: "single",
-          providersTried: [...tried],
-          patch,
-          suggestions,
-          toolContext,
-        };
-      } catch {
-        // try next
-      }
-    }
-    return mockResult(message, input.currentTrip, intent, tried, "All configured providers failed.");
+  // Race all candidates in parallel; first valid patch wins.
+  try {
+    const winner = await Promise.any(
+      candidates.map((provider) =>
+        tryProvider(provider, normalizedInput, env, fetchImpl, fallbackSuggestions, providerContext),
+      ),
+    );
+    return {
+      mode: winner.provider.id,
+      modelLabel: winner.provider.label,
+      intent,
+      strategy: candidates.length > 1 ? "parallel" : "single",
+      providersTried: tried,
+      patch: winner.patch,
+      suggestions: winner.suggestions,
+      toolContext,
+    };
+  } catch (error) {
+    const reason =
+      error instanceof AggregateError
+        ? error.errors.map((e) => (e instanceof Error ? e.message : String(e))).filter(Boolean).join("; ")
+        : error instanceof Error
+          ? error.message
+          : "All configured providers failed.";
+    return mockResult(message, input.currentTrip, intent, tried, reason || "All configured providers failed.");
   }
-
-  // Standard path: try the fallback chain in order.
-  let lastError = "";
-  for (const provider of candidates) {
-    tried.push(provider.id);
-    try {
-      const { patch, suggestions } = await tryProvider(provider, normalizedInput, env, fetchImpl, fallbackSuggestions, providerContext);
-      return {
-        mode: provider.id,
-        modelLabel: provider.label,
-        intent,
-        strategy: "single",
-        providersTried: [...tried],
-        patch,
-        suggestions,
-        toolContext,
-      };
-    } catch (error) {
-      lastError = error instanceof Error ? error.message : "Unknown provider error.";
-    }
-  }
-
-  return mockResult(message, input.currentTrip, intent, tried, lastError || "All configured providers failed.");
 }

@@ -501,14 +501,13 @@ The required experience loop is:
 ### Roadmap acceptance targets
 
 - `v0.1.54` implements the first 60 seconds: Home archetypes, Chat first-run chips, and primary `nextStep` actions.
-- `v0.1.55` completes a visual product-desk polish pass: readiness score, tighter Canvas summary rail, first-run Chat starter state, and Home launcher polish.
-- `v0.1.56` should make Canvas operational: day quick actions and prep blockers building on the new readiness display.
-- `v0.1.57` should render inline tool cards inside Chat for visa, payment, eSIM, currency, and emergency needs.
-- `v0.1.58` should persist rich POI fields in TripBlocks and upgrade Day detail with real operational fields.
-- `v0.1.59` should make Translate available from anywhere without stranding the user on a separate page.
-- `v0.1.60` should turn top Tools into real widgets.
-- `v0.1.61` should add a real Account center and editable preference/consent review.
-- `v0.1.62` should connect lead/admin planning to customer briefs.
+- `v0.1.55` should make Canvas operational: completeness score, day quick actions, and prep blockers.
+- `v0.1.56` should render inline tool cards inside Chat for visa, payment, eSIM, currency, and emergency needs.
+- `v0.1.57` should persist rich POI fields in TripBlocks and upgrade Day detail with real operational fields.
+- `v0.1.58` should make Translate available from anywhere without stranding the user on a separate page.
+- `v0.1.59` should turn top Tools into real widgets.
+- `v0.1.60` should add a real Account center and editable preference/consent review.
+- `v0.1.61` should connect lead/admin planning to customer briefs.
 
 ### UX writing and metrics
 
@@ -589,20 +588,61 @@ Explicit exclusions:
 - No new provider keys, API integrations, Supabase migrations, or booking/payment logic in this iteration.
 - Offline Vault, Payment Wizard, Bilingual Handoff, and Contextual Tool Promotion remain planned follow-up tracks.
 
-## v0.1.55 Requirement Update - FIT Travel Desk Visual Polish
+## v0.1.55 Design-Spec Update - UX Layout & Frontend (planning only)
 
-This iteration improves the front-end product experience after the v0.1.54 interaction shell. The user requested using a `product-design` plugin to rebuild the UI, but that plugin was not available in the current Codex environment. The implementation therefore uses the available frontend design workflow and commits the resulting visual polish directly in the Next.js/CSS codebase.
+Documentation-only. Establishes the design contract the FIT roadmap phases build against; deep-dive in `docs/planning/ux-design-and-layout-spec.md`.
 
-MVP acceptance additions:
+- Requirement: the product must present as one spatial system (Canvas + Chat as the home), with every one of the five traveler anxieties resolvable within one tap of the Canvas. Pages that don't answer a traveler question are demoted.
+- Requirement: Butler replies render as structured blocks (headline / body / highlights / watchOut / nextStep), with `nextStep` as a tappable primary action; canvas changes are visually signaled (new/revised animation).
+- Requirement: a formalized frontend design system (tokens + reusable component library + motion + a11y) underpins all new surfaces so Account/Admin/Tools widgets and the future native app inherit one coherent system.
+- Exclusion: no code, no new roadmap phases; this is the design layer for existing phases. Exact tokens/component APIs are targets, refined per implementation iteration.
 
-- Trip Canvas summary shows a traveler-facing readiness score and checklist for route, daily plan, stay area, transport, and travel-ready status.
-- The summary rail supports both normal Chat Canvas and Trip Detail pages with compact action controls, without pushing the itinerary below excessive controls.
-- Chat first-run state is no longer visually blank; it presents a concise starter surface plus the three existing archetype chips.
-- Home feels more like a practical product launcher for independent China travel, with a lightweight canvas-preview motif and tighter archetype cards.
-- All changes remain presentation-layer only: no AI provider routing changes, no Supabase schema changes, no API key additions, and no direct canvas mutation.
+## v0.2.2 Update - Chat Core-Loop Fixes
 
-Explicit exclusions:
+Fixes three reported product problems:
 
-- No new real booking/payment/map provider integration.
-- No full design system migration or component library extraction yet.
-- No replacement for the upcoming Canvas Action Layer; day quick actions and prep blockers move to `v0.1.56`.
+- Chat replies must be fast: the Butler races configured models in parallel and bounds each call with a timeout, so latency tracks the fastest healthy model.
+- Chat and the Live Canvas must stay in sync: any message that changes the itinerary updates the canvas — guaranteed even in fallback via a destination-aware skeleton, and required of live models via the prompt contract.
+- Chats persist automatically: signed-in chats auto-save to Trips; there is no manual Save button. Guests keep an automatic local draft.
+
+## v0.2.3 需求更新 —— UI 优化路线(纯规划)
+
+依据一站式 FIT 管家定位,确立三条体验需求主线(详见 `docs/planning/v0.2.3-ui-optimization-roadmap.md`):
+
+- 行程可操作:完成度可见(0–100% 进度条 + 缺口 chips)、Day 卡一键快捷动作、画布变化必须有视觉信号、五焦虑聚合为"出发准备"区。
+- 对话像管家:回复分块可扫(headline/✓/⚠/下一步按钮)、任何发送 100ms 内有反馈、事实类问题 <150ms 秒答内联卡且可一键加入行程提醒。
+- 界面成体系:token + 组件库统一(新界面禁手写同类样式)、空/错状态设计化、移动端逐轮附带打磨。
+
+排除项:本轮零代码;不新增路线图阶段;不引入新依赖或新 key。
+
+
+## v0.2.4 需求更新 —— 交互深化(纯规划)
+
+在 v0.2.3 三条主线上新增可验收的交互需求(细则见 `docs/planning/v0.2.4-interaction-deep-dive.md`):
+
+- 联动可见:每次 AI 改动生成"本次改动"摘要卡,点条目画布定位并高亮;AI 修改支持一键撤销。
+- 回复可扫:MessageBlock 分层 + 伪流式呈现(<400ms);任何发送 100ms 内有反馈,3s/8s 有等待叙事。
+- 画布可指挥:Day 卡快捷动作意图必须带天数;完成度六段可点补缺;出发准备区可勾选且回写完成度。
+- 视觉纪律:朱砂每屏唯一、金色禁作文字、五档墨灰之外禁新增灰、全站文本对比度 ≥4.5:1。
+
+排除:真流式 SSE、抽屉下滑手势、Day 卡拖拽排序(三轮后候选)。
+
+## v0.2.5 需求更新 —— 规划融合 + Readiness Seed
+
+本轮将远端 `v0.2.4` 交互深化规格与本地视觉规划/实现 seed 融合到同一条 `0.2.x` 主线。它不是完整 Canvas 行动层,而是为下一轮行动层提前落下部分视觉与信息架构基础。
+
+已吸收/确认:
+
+- Trip Canvas 可以展示 traveler-facing readiness 初版,但当前 readiness 仍是从既有 `TripState` 派生的展示值。
+- Summary/readiness/action rail 是后续 Canvas 行动层的视觉基础,但 prep blockers、alert done、可点 completion 分段仍未完整落地。
+- Chat first-run starter state 与 Home launcher polish 继续保留,作为 FIT 用户首分钟入口。
+- 后续完整执行路线修正为:
+  1. `v0.2.6` Canvas 行动层+画布交互。
+  2. `v0.2.7` Chat 体验重塑+内联工具卡。
+  3. `v0.2.8` 设计系统收口+Tools 交互组件。
+
+排除:
+
+- 不把当前 readiness 当作完整的六维 completion schema。
+- 不将快捷动作、prep blockers、Change Digest、undo 视为已完成。
+- 不新增外部 key、Supabase schema 或真实 booking/payment/map 闭环。

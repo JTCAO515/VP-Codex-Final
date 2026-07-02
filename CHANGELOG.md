@@ -1,17 +1,81 @@
 # VisePanda Changelog
 
-## v0.1.55 - 2026-07-02
+## v0.2.5 - 2026-07-02
 
-**FIT travel desk visual polish.** This release turns the v0.1.54 interaction shell into a more polished, operational travel-desk surface without changing AI providers, Supabase persistence, or canvas mutation rules.
+**规划融合 + FIT travel desk readiness seed。** 本轮把远端 `v0.2.4` 交互深化规格与本地视觉规划/实现 seed 合并到同一条 `0.2.x` 主线,避免 `0.1.55` 本地 UI polish 与远端 `0.2.x` 规划分叉。
 
-- Added a Trip Canvas readiness module inside the summary card, showing a completion score and compact checklist for route, daily plan, stay area, transport, and travel-ready state.
-- Refined the Live Trip Canvas summary layout with a more structured route/readiness/action rail and responsive fallbacks for Trip Detail pages.
-- Added a concise first-run Chat starter state above the archetype chips, making the empty chat panel feel intentional rather than blank.
-- Promoted the Chat layout order so starter chips, conversation, next-step action, and composer read as a clear planning workflow.
-- Polished Home as a practical product launcher with an implementable travel-canvas preview motif, tighter archetype cards, and less generic landing-page framing.
-- Added targeted tests for the readiness display and Chat starter state.
-- Note: the requested `product-design` plugin was not available in the current Codex environment; the visual direction was generated with the available frontend design workflow and implemented directly in the repo.
- 
+- 安全同步远端更新:检测到本地 `47eba46 feat(ui): polish fit travel desk` 与远端 `v0.2.1–v0.2.4` 分叉,先读取远端新文档与版本线,再合并而非重置覆盖。
+- 吸收本地视觉规划/seed:Trip Canvas readiness 初版、summary/readiness/action rail、Chat first-run starter state、Home launcher polish 与响应式兜底纳入 `0.2.x` 主线。
+- 修正后续版本路线:完整 Canvas 行动层不再占用 `v0.2.5`,顺延为 `v0.2.6`;Chat 体验重塑 + 内联工具卡顺延为 `v0.2.7`;设计系统收口 + Tools widgets 顺延为 `v0.2.8`。
+- 更新 `PLAN.md`、`PRD.md`、`DESIGN.md`、`AGENTS.md`、`HANDOFF.md`、`VERSIONING.md`、`docs/planning/v0.2.4-interaction-deep-dive.md` 与 `docs/planning/handoff-prompt-for-coding-agent.md` 的路线编号。
+- 保留核心约束:快捷动作仍走 AI 管道;readiness 目前是派生展示/seed,不是完整持久化 completion schema;mock/static fallback 不移除。
+
+## v0.2.4 - 2026-07-02
+
+**纯文档规划轮 —— 前端 UI 与用户交互深化规格 + 实现交接提示词。** 不改任何产品代码。
+
+- 新增 `docs/planning/v0.2.4-interaction-deep-dive.md`(v0.2.3 路线图的下钻层,后三轮的交互验收标准):
+  - **交互设计哲学五判据**:对话是手画布是脸 / 可点优于可打 / 100ms 反馈定律 / 一屏一个朱砂 / 动效只为"发生了什么"服务。
+  - **Chat↔Canvas 联动可见性设计**(本轮核心命题):变更摘要卡(Change Digest,基于 `diffTripState` 纯函数的 day/alert 级 diff,点条目画布定位+金色脉冲)、桌面双向悬停联动(共享 highlightDayNumber)、patch 演出编排(600ms staged reveal + 自动滚动到首个变更卡)、撤销机制(预制 undo 意图 + 本地快照兜底)。
+  - **组件级交互规格**:composer(Enter/Shift+Enter、自动长高、乐观清空、轮换占位)、MessageBlock 分层(serif headline → 60ms stagger 伪流式)、等待叙事(100ms/3s/8s 递进)、Day 卡结构与六态、时段块级微操作、完成度六段进度条、出发准备区复选(alert.done 可选字段)。
+  - **视觉系统细则**:五级字体层级表、色彩使用规则(朱砂每屏唯一、金禁作文字、五档墨灰)、三层纸面无阴影、图标两档。
+  - **毫秒级动效参数总表**(实现即抄表)+ 移动端手势(Chat sheet 70dvh/半收 30dvh、visualViewport 键盘适配)+ 无障碍底线(焦点管理、4.5:1 对比度)。
+  - **三轮吸收方案(当时规划)**:v0.2.5 Canvas 行动层+画布交互 / v0.2.6 Chat 体验重塑+内联工具卡 / v0.2.7 设计系统收口+Tools 交互组件;该编号已在 v0.2.5 融合轮顺延为 v0.2.6/v0.2.7/v0.2.8。
+- 新增 `docs/planning/handoff-prompt-for-coding-agent.md`:**自包含实现交接提示词**,可直接复制给其他 coding agent——含 60 秒项目背景、必读文档序、八条硬约束(AI 管道/fallback/key/视觉红线/动效/7 文档+双分支推送/并行防护/中文汇报)、三轮任务规格与操作者视角验收。
+- 真流式 SSE、抽屉下滑手势、Day 卡拖拽排序:记录为三轮之后候选,本三轮不承诺。
+
+## v0.2.3 - 2026-07-02
+
+**纯文档规划轮 —— 整体项目规划 + 前端 UI 优化迭代路线。** 不改任何产品代码。
+
+- 新增 `docs/planning/v0.2.3-ui-optimization-roadmap.md`,与既有三份蓝图(v0.1.52 交互蓝图 / v0.1.53 技术蓝图 / v0.1.55 布局规范)互补,构成完整设计契约:
+  - **宏观**:定位到体验的四条推论(管家≠工具箱、一站式=不离开、FIT 买确定性、智能必须可见);10 项体验差距审计(G1 文字墙、G2 画布被动、G3 变化不可感、G4 无加载态、G5 完成度不可知、G6 工具与对话割裂、G7 样式无系统、G8 空错态未设计、G9 移动端未打磨、G10 五焦虑入口分散),并聚类为后三轮主题。
+  - **微观**:逐界面 UI 优化清单——Canvas(完成度进度条/Day 卡快捷动作/patch 动画/出发准备区)、Chat(分块渲染/乐观 UI+骨架屏/内联工具卡/模型标签弱化)、Tools(widget 优先+清单折叠)、移动端专项、空/错状态。
+  - **设计系统**:token 层整理、组件库首批(Button/Pill/Card/Sheet/Toast/ProgressMeter/MessageBlock/ToolCard/EmptyState)、动效与反馈准则(100ms 反馈、有含义的动效、reduced-motion)。
+  - **后三轮执行承诺**:v0.2.4 Canvas 行动层+画布 UI;v0.2.5 对话体验重塑+内联工具卡(含 ask_factual <150ms 快通道);v0.2.6 设计系统收口+Tools 三件套 widget(汇率换算/签证问答/支付向导)。每轮含功能/UI/测试/边界四栏与验收标准。
+- 项目记忆 `CLAUDE.md` 新增操作者指令:**思考、推理、回答、汇报一律中文**(代码与提交信息可保留英文)。
+- 版本占位说明:原口头排期的三轮代码迭代因本规划轮占用 v0.2.3 顺延为 v0.2.4/v0.2.5/v0.2.6。
+
+## v0.2.2 - 2026-07-01
+
+**Chat core-loop fixes: speed, Chat↔Canvas sync, and auto-save.** Addresses three reported problems.
+
+### Slow replies
+- `lib/ai/orchestrator.ts` now **races all candidate providers in parallel** (`Promise.any`, first valid patch wins) instead of trying them one-by-one. Latency ≈ the fastest healthy model instead of the sum of failing ones.
+- `lib/ai/providers/openaiCompatibleProvider.ts` gives every provider call an **18s abort timeout**, so a hung or misconfigured model fails fast instead of stalling the reply.
+- The Amap tool-context prefetch is now time-bounded (6s) and best-effort, so a slow POI lookup never blocks the answer.
+
+### Chat and Live Canvas not syncing
+- Root cause: when a provider failed (e.g. a model-id mismatch), the orchestrator fell back to the mock butler, which only produced a full itinerary for "first time"/"5 days" messages — every other message returned no `days`, so `applyCanvasPatch` kept the old canvas.
+- `lib/mock-ai/mockButler.ts` is now **destination-aware**: it extracts city names (EN + 中文) and a day/week count from the message and generates a matching multi-day skeleton itinerary, so the canvas reflects the chat even in fallback mode.
+- `lib/ai/butlerPrompt.ts` system prompt now **requires live models to return the complete `days` array** (and set `tripSummary` title/duration/destinations) whenever the itinerary changes; days may be omitted only for pure factual questions.
+
+### Auto-save
+- `components/chat/ButlerWorkspace.tsx` now **auto-saves every chat** to Trips for signed-in users (silent "Saved to your Trips." note), and the manual **"Save to Trips" button was removed**. Guests keep the automatic localStorage draft. The sign-in sync and auto-save no longer double-write.
+
+### Tests
+- Updated `orchestrator`, `mockButler`, `chat-workspace`, and `chat-workspace-guest-sync` tests; added parallel-race and destination-skeleton coverage. Full suite 105 passing; production build succeeds.
+
+## v0.2.1 - 2026-07-01
+
+**Version-series reset (operator directive).** The product moves from the `0.1.x` line to the `0.2.x` line. `v0.1.55` was the last `0.1.x` iteration; `v0.2.1` is the new baseline, and every subsequent iteration increments `0.2.x`.
+
+- `package.json` version → `0.2.1`.
+- `VERSIONING.md` records the reset and updates the versioning rule to `0.2.x`.
+- `CLAUDE.md` project memory records the new versioning rule so future sessions continue from `0.2.x`.
+- No product code, behavior, provider, or schema change — version metadata only.
+
+## v0.1.55 - 2026-07-01
+
+**Documentation-only iteration — UX layout & frontend design specification.** Complements the existing v0.1.52 interaction blueprint (what/why) and v0.1.53 technical blueprint (plugin architecture) with the missing design/experience layer (how it looks, lays out, and feels) for the one-stop FIT travel-butler positioning.
+
+- Added `docs/planning/ux-design-and-layout-spec.md` with three parts:
+  - **Macro**: the single-surface spatial model (Canvas + Chat as home, not six tabs), a full information-architecture table, and the five-anxiety layout principle (every traveler anxiety must have a resolution path within one tap of the Canvas).
+  - **Micro**: wireframe-level page composition and component-level interaction mechanics for Home, the Chat command center + Live Canvas (desktop two-column and mobile stacked), Day detail, Explore, Tools, Translate FAB, Trips, Account, and Admin — including structured-reply block rendering, canvas-patch animation, day quick-actions, and precise Add-to-Trip.
+  - **Frontend design system**: formalized design tokens (Warm New Chinese palette, type/space/radius/motion scales), a reusable component library, per-surface visual hierarchy, motion/feedback, mobile-first specifics, and accessibility/i18n rules.
+- Mapped each existing roadmap phase (Canvas Action Layer, Inline Tool Cards, TripBlock POI, Translate Everywhere, Tools Widgets, Account, Admin) to its governing design section so implementation has a concrete design contract.
+- No product code changes. Synced this branch onto `origin/main` (v0.1.54) first to preserve the parallel session's work — no history was overwritten.
+
 ## v0.1.54 - 2026-07-01
 
 **Interaction Shell I code implementation.** This release implements the first code slice planned after the v0.1.52/v0.1.53 strategy documents.

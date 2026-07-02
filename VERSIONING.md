@@ -3,12 +3,14 @@
 ## Current Versions
 
 - Previous baseline: `v0.1.1`
-- Current iteration: `v0.1.55`
+- Minor-series reset: `v0.2.1` (operator directive — all subsequent iterations use `0.2.x`)
+- Current iteration: `v0.2.5`
 - Production domain: `go2china.space`
 
 ## Rule
 
-- Default product iteration format is `0.1.x`.
+- Default product iteration format is `0.2.x` (reset from `0.1.x` at operator request; `v0.1.55` was the last `0.1.x` iteration, and `v0.2.1` is the first `0.2.x`).
+- Increment the `0.2.x` patch by 1 each iteration unless the operator specifies a different version.
 - Every iteration must update `package.json` and `CHANGELOG.md`.
 - Use a custom version only when the user explicitly provides one.
 
@@ -65,7 +67,12 @@
 - `v0.1.49`: Amap rich POI enrichment. `/api/explore/amap` uses `extensions=all`; Explore models/cards can show optional rating, price, phone, opening hours, photos, business area, source, and location metadata while static fallback remains valid.
 - **v0.1.50**: first Chat tool-context Butler. Relevant Chat intents now prefetch bounded Amap POI candidates and inject them into the multi-model prompt, so live providers can plan with real POI data before later full function-calling loops.
 - **v0.1.51**: lightweight preference memory. Guest Chat extracts pace, budget, party, dietary, cuisine, and interest signals from natural messages, persists them in localStorage, sends them to `/api/chat`, and shows compact remembered-preference chips.
-- **v0.1.52**: documentation-only product interaction blueprint. Repositions VisePanda as a China travel operating system, defines the five traveler anxieties, journey-stage model, page roles, feature linkage matrix, UX writing rules, metrics, and the original implementation roadmap, later shifted so `v0.1.54` implements Interaction Shell I, `v0.1.55` completes visual polish, and `v0.1.56` starts Canvas Action Layer. No runtime product code changes.
+- **v0.1.52**: documentation-only product interaction blueprint. Repositions VisePanda as a China travel operating system, defines the five traveler anxieties, journey-stage model, page roles, feature linkage matrix, UX writing rules, metrics, and the original implementation roadmap, later shifted so `v0.1.54` implements Interaction Shell I and `v0.1.55` starts Canvas Action Layer. No runtime product code changes.
 - **v0.1.53**: documentation-only strategic planning pass. Elevates VisePanda from a general travel tool to a cohesive "China Travel Operating System" with detailed requirements for an Offline-First Travel Vault, Cultural Context Interpreter, Intelligent Payment Card Routing, Contextual Tool Promotion, and Bilingual Export and Print Kits. Adds ADR-060 through ADR-063. No code changes.
 - **v0.1.54**: Interaction Shell I code implementation. Adds Home FIT archetype starts, Chat `?archetype=` auto-send through the Butler pipeline, three first-run starter chips, a primary structured `nextStep` action card, and traveler-facing Trip Canvas title/status copy.
-- **v0.1.55**: FIT travel desk visual polish. Adds Trip Canvas readiness scoring, a tighter summary/readiness rail, a first-run Chat starter state, Home visual polish inspired by the product-design concept pass, and responsive CSS safeguards while preserving AI/provider/data behavior.
+- **v0.2.4**: 纯文档规划轮(不改代码)。前端 UI 与用户交互深化规格:新增 `docs/planning/v0.2.4-interaction-deep-dive.md`(交互设计哲学五判据、Chat↔Canvas 联动可见性设计——变更摘要卡/双向悬停/patch 演出/撤销、composer 与 MessageBlock 组件级规格、Day 卡与完成度条与出发准备区交互规格、字体/色彩使用细则、毫秒级动效参数总表、移动端手势与无障碍底线、三轮吸收方案);新增 `docs/planning/handoff-prompt-for-coding-agent.md`(可直接交给其他 coding agent 的自包含实现提示词)。当时规划的代码三轮为 v0.2.5/v0.2.6/v0.2.7,后在 v0.2.5 融合轮顺延为 v0.2.6/v0.2.7/v0.2.8。
+- **v0.2.5**: 规划融合 + FIT travel desk readiness seed。本轮合并远端 v0.2.4 深化规格与本地视觉规划/代码 seed,把 Trip Canvas readiness 初版、summary/readiness rail、Chat first-run starter state、Home launcher polish 纳入 `0.2.x` 主线;后续完整代码三轮顺延为 v0.2.6 Canvas 行动层、v0.2.7 Chat 体验+内联工具卡、v0.2.8 设计系统+Tools widgets。
+- **v0.2.3**: 纯文档规划轮(不改代码)。新增 `docs/planning/v0.2.3-ui-optimization-roadmap.md`:基于一站式 FIT 管家定位的宏观差距审计(10 项差距 G1–G10)、逐界面微观 UI 优化清单(Canvas/Chat/Tools/移动端/空错状态)、前端设计系统迭代规划(token 化 + 组件库首批 + 动效准则),以及后三轮执行承诺 —— v0.2.4 Canvas 行动层+画布 UI 升级、v0.2.5 对话体验重塑+内联工具卡、v0.2.6 设计系统收口+Tools 交互组件。另:项目记忆新增中文规则(思考/回答/汇报一律中文)。
+- **v0.2.2**: Chat core-loop fixes — reply latency, Chat↔Canvas sync, and auto-save. The orchestrator now races all candidate providers in parallel (first valid patch wins) instead of trying them sequentially, and each provider call has an 18s timeout, so a slow/misconfigured model can no longer stall the chat. The mock fallback is now destination-aware (extracts cities + day count from the message and generates a matching skeleton itinerary) so the Live Canvas always reflects the conversation even when live models are unavailable; the system prompt now requires live models to return the complete `days` array on any itinerary change. Every chat auto-saves to Trips for signed-in users and the manual "Save to Trips" button was removed. 105 tests pass; build succeeds.
+- **v0.2.1**: version-series reset per operator directive. The product moves from the `0.1.x` line to the `0.2.x` line; `v0.1.55` was the final `0.1.x` iteration and `v0.2.1` is the new baseline. No product code or behavior change — only version metadata and the versioning rule were updated across `package.json` and the workflow docs. All subsequent iterations increment `0.2.x`.
+- **v0.1.55**: documentation-only UX layout & frontend design specification. Adds `docs/planning/ux-design-and-layout-spec.md` — the design/experience companion to the v0.1.52 interaction blueprint and v0.1.53 technical blueprint. Covers the macro single-surface spatial model + information architecture + five-anxiety layout principle, micro page-by-page layout & interaction mechanics (Home, Chat command center + Canvas, Day detail, Explore, Tools, Translate, Trips, Account, Admin), and a frontend visual design system (tokens, reusable component library, visual hierarchy, motion, mobile-first, a11y). Maps each existing roadmap phase to its governing design section. No code changes.

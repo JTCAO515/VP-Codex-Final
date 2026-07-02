@@ -734,18 +734,58 @@ ADR-066: Traveler-facing canvas status is a presentation mapping.
 - Decision: `TripSummary` maps confidence to traveler copy (`Taking shape`, `Looking good`, `Travel-ready`) while leaving the underlying `TripState` contract unchanged.
 - Reason: This improves clarity and trust with no data migration or saved-trip compatibility risk.
 
-## v0.1.55 Design Update - FIT Travel Desk Visual Polish
+## v0.1.55 Design Update - UX Layout & Frontend Design System (planning)
 
-This code iteration improves the perceived product quality and operational hierarchy of the existing shell. It does not introduce a new design-system package, API dependency, provider contract, or database schema.
+Documentation-only. `docs/planning/ux-design-and-layout-spec.md` is the design contract layered on the v0.1.52 interaction blueprint and v0.1.53 technical blueprint. It specifies presentation/layout and a component system, not new data flows, so it adds no new ADR — it operationalizes ADR-049 (design-system) and ADR-055/057 (Chat spine, contextual controls).
 
-ADR-067: Readiness is currently derived presentation state.
+- Single-surface spatial model (persistent top strip / Canvas+Chat workspace / Translate FAB / bottom nav) + an information-architecture table binding each layer to persistence and entry points.
+- Component-level interaction mechanics (structured `assistantResponse` block rendering, canvas-patch animation, day quick-actions via structured intents, precise Add-to-Trip) — consistent with the guardrail that quick actions never mutate the canvas directly (ADR-057) and structured replies (ADR-051).
+- Formalized design tokens + a reusable component library (Button/Card/Field/Pill/Modal/Sheet/Toast/RatingStars/PriceLevel/ProgressMeter/POICard/MessageBlock) so surfaces stop hand-rolling styles — the concrete follow-through ADR-049 called for.
+- A phase→design-section map so each already-planned code phase builds against a defined layout/interaction contract.
 
-- Background: The product roadmap calls for Canvas completeness, day quick actions, and prep blockers. The UI needed an immediate readiness signal, but the persisted `TripState` schema should not be expanded until the action layer is designed.
-- Decision: `TripSummary` derives a readiness score from existing fields: destinations, day blocks, stay area, transport, and confidence status. It renders a meter and checklist without writing new fields to saved trips.
-- Reason: Travelers see progress immediately, while future `v0.1.56` action/blocker work can replace or extend the derivation without migration risk.
+## v0.2.2 Design Update - Chat Core-Loop Fixes
 
-ADR-068: Visual polish should reinforce the travel operating desk, not add marketing chrome.
+ADR-067: Race providers in parallel instead of sequential fallback.
 
-- Background: The user requested a plugin-assisted front-end rebuild for stronger visual quality. The named `product-design` plugin was not available in this Codex environment, so the available frontend design workflow was used to create a product-desk concept.
-- Decision: The implementation focuses on work-surface hierarchy: tighter Home launcher, Chat starter state, primary next-step flow, summary/readiness rail, thin dividers, solid paper surfaces, and responsive safeguards. It avoids new marketing sections, decorative blobs, and unrelated business logic.
-- Reason: VisePanda's core value is an operational FIT travel butler. Visual improvements should make planning and execution clearer rather than turning the app into a landing page.
+- Background: The orchestrator tried candidate providers one-by-one with no timeout. A slow or misconfigured model (e.g. a wrong model id) made every reply crawl through failures before falling back, and the fallback often produced no `days` — so replies were slow AND the canvas stopped reflecting the chat.
+- Decision: Race all candidate providers in parallel (`Promise.any`, first valid patch wins), give each provider call an 18s abort timeout, and time-bound the Amap tool-context prefetch to 6s. Strategy is now `parallel` | `single` | `mock`. Cost is not a concern (ADR-043), so parallel racing is the correct trade for latency and resilience.
+- Reason: Reply latency becomes ≈ the fastest healthy model, and no single provider can stall the chat. The mock fallback is still the final floor.
+
+ADR-068: The mock fallback must keep Chat and Canvas in sync (destination-aware).
+
+- Background: The fallback butler only generated a full itinerary for "first time"/"5 days" messages; everything else returned no `days`, so `applyCanvasPatch` kept the previous canvas and the two surfaces appeared disconnected.
+- Decision: The mock butler extracts city names (EN + 中文) and a day/week count and generates a matching skeleton itinerary for create-style messages. The live-model system prompt additionally requires a complete `days` array on any itinerary change.
+- Reason: The Chat↔Canvas link is the core promise; it must hold even without live models, and live models must not under-return partial itineraries.
+
+ADR-069: Chats auto-save; no manual Save button.
+
+- Background: Users expect their planning to persist without a manual step.
+- Decision: Signed-in chats auto-save to Trips after each assistant reply (silent note), and the manual button is removed. Guests keep the localStorage draft. Sign-in sync claims the message count so it does not double-write with auto-save.
+- Reason: Reduces friction and matches the "single memory butler" positioning; persistence is a background behavior, not a chore.
+
+## v0.2.3 设计更新 —— UI 优化路线(纯规划)
+
+本轮为设计契约补全,无运行时变化、无新 ADR(落实 ADR-049 设计系统、ADR-055/057 对话主线与情境控件、ADR-067~069 核心环路修复的后续)。要点:
+
+- 差距审计 G1–G10 聚类为三轮主题:行程可操作(v0.2.4)→ 对话像管家(v0.2.5)→ 界面成体系(v0.2.6)。顺序理由:先做实"行程实体"(零外部依赖),再顺"对话主线"(消费完成度数据),最后设计系统收口(前两轮组件成为组件库首批客户,避免先建空系统)。
+- 关键机制约束重申:Day 卡快捷动作只发预制意图走 `handleSend`,绝不直改 canvas;内联工具卡数据只来自 `lib/tools` 静态层;`ToolCategory.interactive` 为可选描述符,缺数据整体降级为静态清单;完成度评分为纯函数便于测试。
+- 动效准则:只做有含义的动效(出现 240ms/变更脉冲 1 次/完成打勾),100ms 反馈底线,尊重 prefers-reduced-motion。
+
+
+## v0.2.4 设计更新 —— 交互深化规格(纯规划)
+
+无新 ADR(细化 ADR-057 情境控件与 v0.2.3 设计契约)。关键机制决定:
+
+- 变更可见性经 `lib/canvas/diffTripState.ts` 纯函数产出 day/alert 级 diff,由"变更摘要卡"承载;点击定位复用金色脉冲通道。
+- 撤销 = 预制 undo 意图走 AI 管道;本地 TripState 快照仅作 AI 失败时的兜底回滚(AGENTS 已注明为唯一直改例外)。
+- 伪流式 = 分阶段呈现(headline 先出,60ms stagger),不改 API、不引入 SSE。
+- 动效实现必须抄 `v0.2.4-interaction-deep-dive.md` 第五部分参数表,统一落为工具类;reduced-motion 全量退化。
+
+## v0.2.5 设计更新 —— 规划融合 + Readiness Seed
+
+本轮合并远端 v0.2.4 交互深化规格与本地 FIT travel desk visual polish seed。无新 ADR;这是对 ADR-049(设计系统)、ADR-057(情境控件)、ADR-067~069(核心环路)的路线融合与边界澄清。
+
+- Readiness 现阶段是 `TripSummary` 从既有 `TripState` 派生的展示 seed,不是持久化 completion model。完整六维评分、可点缺口、prep blockers、alert.done 与 Change Digest 仍由 v0.2.6 实现。
+- Summary/readiness/action rail 被保留为 Canvas 行动层的视觉基础。后续实现应扩展它,而不是另起一个并列的完成度模块。
+- 本地视觉 polish 与远端深潜规格冲突时,以远端 `docs/planning/v0.2.4-interaction-deep-dive.md` 的组件级规格为最终验收标准;本地 CSS seed 可作为参考,不视为设计系统最终形态。
+- 后续实现版本线统一为 v0.2.6/v0.2.7/v0.2.8,避免再使用过期的 v0.2.5/v0.2.6/v0.2.7 三轮编号。

@@ -22,6 +22,8 @@ export function buildSystemPrompt(): string {
     "Return only valid json for a live itinerary canvas patch.",
     'Example json shape: {"intent":"adjust_trip","assistantMessage":"...","assistantResponse":{"headline":"...","body":"...","highlights":["..."],"watchOut":"...","nextStep":"..."},"reason":"...","suggestions":["...","..."],"tripSummary":{"confidence":"Refined"},"days":[],"butlerAlerts":[]}.',
     "The json shape must be: intent, assistantMessage, assistantResponse, reason, suggestions, optional tripSummary, optional days, optional butlerAlerts.",
+    "IMPORTANT: whenever the itinerary changes (intent create_trip or adjust_trip) you MUST return the COMPLETE updated days array (every day, morning/afternoon/evening blocks, food, stay, transport, note) — never a partial delta and never omit days — and set tripSummary.title, tripSummary.durationDays, and tripSummary.destinations so the live canvas reflects the plan.",
+    "Only omit days when the user's message does not change the itinerary at all (for example a pure factual question).",
     "assistantResponse must have a short headline, one concise body paragraph, 2-4 practical highlights, an optional watchOut, and one nextStep.",
     "Keep assistantMessage populated as a readable plain-text fallback that combines the same meaning as assistantResponse.",
     "Suggestions must be exactly two short next questions based on the user message, recent conversation, and current trip state.",

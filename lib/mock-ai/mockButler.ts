@@ -222,6 +222,107 @@ function emergencyAlert(): ButlerAlert {
   };
 }
 
+// City detection + skeleton generation so the fallback butler always produces a
+// canvas that reflects what the traveler asked for (fixes Chat<->Canvas "not
+// syncing" when live models are unavailable). Real models still handle nuance;
+// this is the graceful floor.
+const CITY_LOOKUP: Record<string, string> = {
+  beijing: "Beijing", 北京: "Beijing",
+  shanghai: "Shanghai", 上海: "Shanghai",
+  chengdu: "Chengdu", 成都: "Chengdu",
+  "xi'an": "Xi'an", xian: "Xi'an", 西安: "Xi'an",
+  guangzhou: "Guangzhou", 广州: "Guangzhou",
+  hangzhou: "Hangzhou", 杭州: "Hangzhou",
+  suzhou: "Suzhou", 苏州: "Suzhou",
+  chongqing: "Chongqing", 重庆: "Chongqing",
+  nanjing: "Nanjing", 南京: "Nanjing",
+  guilin: "Guilin", 桂林: "Guilin",
+  lijiang: "Lijiang", 丽江: "Lijiang",
+  yunnan: "Yunnan", 云南: "Yunnan",
+  shenzhen: "Shenzhen", 深圳: "Shenzhen",
+  "hong kong": "Hong Kong", 香港: "Hong Kong",
+};
+
+const CITY_HIGHLIGHTS: Record<string, string[]> = {
+  Beijing: ["Forbidden City (故宫)", "Great Wall · Mutianyu (长城·慕田峪)", "Temple of Heaven (天坛)", "Summer Palace (颐和园)", "Hutong walk (胡同)"],
+  Shanghai: ["The Bund (外滩)", "Yu Garden (豫园)", "Nanjing Road (南京路)", "French Concession (法租界)", "Shanghai Tower (上海中心)"],
+  Chengdu: ["Giant Panda Base (大熊猫基地)", "Jinli Ancient Street (锦里)", "People's Park teahouse (人民公园)", "Wuhou Shrine (武侯祠)", "Kuanzhai Alley (宽窄巷子)"],
+  "Xi'an": ["Terracotta Army (兵马俑)", "City Wall (西安城墙)", "Muslim Quarter (回民街)", "Big Wild Goose Pagoda (大雁塔)", "Bell Tower (钟楼)"],
+  Guangzhou: ["Canton Tower (广州塔)", "Shamian Island (沙面)", "Yuexiu Park (越秀公园)", "Beijing Road (北京路)", "Dim sum tea house"],
+  Hangzhou: ["West Lake (西湖)", "Lingyin Temple (灵隐寺)", "Longjing tea village (龙井)", "Hefang Street (河坊街)", "Grand Canal (大运河)"],
+  Suzhou: ["Humble Administrator's Garden (拙政园)", "Pingjiang Road (平江路)", "Tiger Hill (虎丘)", "Silk Museum (丝绸博物馆)", "Shantang Street (山塘街)"],
+  Chongqing: ["Hongya Cave (洪崖洞)", "Yangtze cable car (长江索道)", "Ciqikou old town (磁器口)", "Liziba monorail (李子坝)", "Hotpot dinner (火锅)"],
+  Guilin: ["Li River cruise (漓江)", "Reed Flute Cave (芦笛岩)", "Elephant Trunk Hill (象鼻山)", "Yangshuo West Street (阳朔西街)", "Longji rice terraces (龙脊梯田)"],
+};
+
+function highlightsFor(city: string): string[] {
+  return (
+    CITY_HIGHLIGHTS[city] ?? [
+      `${city} historic center`,
+      `${city} signature landmark`,
+      `${city} local market & street food`,
+      `${city} park or riverside walk`,
+      `${city} evening night view`,
+    ]
+  );
+}
+
+function extractCities(normalized: string): string[] {
+  const found: string[] = [];
+  for (const [alias, display] of Object.entries(CITY_LOOKUP)) {
+    if (normalized.includes(alias) && !found.includes(display)) found.push(display);
+  }
+  return found;
+}
+
+function extractDayCount(normalized: string): number {
+  const weeks = normalized.match(/(\d+)\s*(weeks?|周)/);
+  if (weeks) return Math.min(21, parseInt(weeks[1], 10) * 7);
+  const days = normalized.match(/(\d+)\s*(days?|nights?|天|晚)/);
+  if (days) return Math.min(21, parseInt(days[1], 10));
+  return 0;
+}
+
+function buildSkeletonDay(dayNum: number, city: string, cityDayIndex: number): TripDay {
+  const hl = highlightsFor(city);
+  const pick = (offset: number) => hl[(cityDayIndex * 3 + offset) % hl.length];
+  return {
+    day: dayNum,
+    city,
+    pace: "Balanced",
+    blocks: [
+      { time: "Morning", title: pick(0), description: `Start your ${city} day at an easy pace.` },
+      { time: "Afternoon", title: pick(1), description: `Keep exploring ${city} with manageable walking.` },
+      { time: "Evening", title: pick(2), description: `Wind down with dinner and an easy ${city} evening.` },
+    ],
+    food: [`${city} local specialty`, `${city} street snack`],
+    stay: `${city} central, transit-friendly area`,
+    transport: cityDayIndex === 0 ? `Arrive in ${city}; metro or taxi to the hotel.` : `Metro and short rides within ${city}.`,
+    note: `Reserve popular ${city} sights ahead where booking is required.`,
+    status: "new",
+  };
+}
+
+function buildSkeletonDays(cities: string[], totalDays: number): TripDay[] {
+  const days: TripDay[] = [];
+  const perCity = Math.max(1, Math.floor(totalDays / cities.length));
+  let dayNum = 1;
+  let remaining = totalDays;
+  cities.forEach((city, index) => {
+    const count = index === cities.length - 1 ? remaining : Math.min(perCity, remaining);
+    for (let i = 0; i < count; i += 1) {
+      days.push(buildSkeletonDay(dayNum++, city, i));
+      remaining -= 1;
+    }
+  });
+  let lastIndex = days.filter((d) => d.city === cities[cities.length - 1]).length;
+  while (remaining > 0) {
+    days.push(buildSkeletonDay(dayNum++, cities[cities.length - 1], lastIndex++));
+    remaining -= 1;
+  }
+  return days;
+}
+
 export function createMockButlerPatch(message: string, current: TripState): CanvasPatch {
   const normalized = message.toLowerCase();
   const alerts: ButlerAlert[] = [];
@@ -246,6 +347,37 @@ export function createMockButlerPatch(message: string, current: TripState): Canv
         confidence: "Draft",
       },
       days: firstTripDays,
+      butlerAlerts: alerts.length ? alerts : [paymentAlert(), visaAlert()],
+    };
+  }
+
+  // Destination-aware create: any message naming a city with a planning cue or a
+  // new destination produces a matching itinerary so the canvas reflects the chat.
+  const cities = extractCities(normalized);
+  const requestedDays = extractDayCount(normalized);
+  const createIntent = includesAny(normalized, [
+    "plan", "create", "build", "design", "draft", "itinerary", "trip", "travel",
+    "go to", "visit", "holiday", "vacation", "days", "day", "week",
+    "规划", "计划", "行程", "天", "旅游", "路线", "去",
+  ]);
+  const destinationsLower = current.summary.destinations.map((d) => d.toLowerCase());
+  const hasNewDestination = cities.some((city) => !destinationsLower.includes(city.toLowerCase()));
+
+  if (cities.length > 0 && createIntent && (requestedDays > 0 || hasNewDestination)) {
+    const totalDays = requestedDays > 0 ? requestedDays : Math.min(10, Math.max(3, cities.length * 2));
+    return {
+      intent: "create_trip",
+      assistantMessage: `I drafted a ${totalDays}-day ${cities.join(" + ")} itinerary you can refine from here.`,
+      reason: `Created a ${totalDays}-day itinerary for ${cities.join(", ")}.`,
+      tripSummary: {
+        title: `${cities.join(" + ")} Trip`,
+        durationDays: totalDays,
+        pace: "Balanced",
+        travelerStyle: current.summary.travelerStyle,
+        destinations: cities,
+        confidence: "Draft",
+      },
+      days: buildSkeletonDays(cities, totalDays),
       butlerAlerts: alerts.length ? alerts : [paymentAlert(), visaAlert()],
     };
   }
