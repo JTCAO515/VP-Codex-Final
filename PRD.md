@@ -792,3 +792,25 @@ Fixes three reported product problems:
 - 不做真实酒店/门票/交通预订。
 - 不做支付、库存、退款或订单管理。
 - 不新增 Supabase schema、外部 API key 或生产 FlyAI 调用。
+
+## v0.2.14 更新 —— Real POI context write-through + booking candidate model
+
+需求来源:Chat 已经能拿到 bounded Amap `liveToolContext`,v0.2.13 也让 TripBlock 能存放 POI 执行字段。本轮解决“模型用了真实 POI 名称,但遗漏地址/电话/坐标等字段”的稳定性问题,并先建立非交易型 booking candidate 模型。
+
+交付:
+
+- `BookingCandidate` 非交易型模型,用于酒店、门票、交通、餐厅候选。
+- Amap tool context 携带 id、phone、mapUrl、coordinates、bookingCandidates。
+- provider patch 解析后,`applyToolContextToPatch` 将匹配 POI 的安全字段补入 TripBlock。
+- Day detail 展示 booking candidates,并标记为 Info only。
+
+验收标准:
+
+- 当 liveToolContext 中的 POI 名称匹配 TripBlock title 时,TripBlock 获得地址、电话、营业时间、地图链接、坐标和 booking candidates。
+- 已有 TripBlock 字段不被覆盖。
+- booking candidates 不被描述为可下单、可支付或库存已确认。
+
+排除:
+
+- 不做 checkout、库存、支付、退款、订单管理。
+- 不新增 Supabase schema、外部 API key 或生产 FlyAI 调用。

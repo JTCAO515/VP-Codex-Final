@@ -121,6 +121,9 @@ describe("TripCanvas", () => {
       "href",
       "https://intl.dpm.org.cn/",
     );
+    expect(within(forbiddenCityDetails).getByLabelText(/forbidden city .* booking candidates/i)).toHaveTextContent(
+      /Info only/i,
+    );
     expect(within(forbiddenCityDetails).getByText(/show taxi driver/i)).toBeInTheDocument();
     expect(within(forbiddenCityDetails).getByText(/请带我去：北京市东城区景山前街4号/i)).toBeInTheDocument();
   });

@@ -1,5 +1,16 @@
 # VisePanda Changelog
 
+## v0.2.14 - 2026-07-02
+
+**Real POI context write-through + booking candidate model.** This release makes live Amap POI context more durable by writing safe fields into matching TripBlocks after model parsing.
+
+- Added a non-transactional `BookingCandidate` model and optional `TripBlock.bookingCandidates`.
+- Expanded `ButlerToolPoi` with Amap id, phone, map URL, coordinates, and info-only booking candidates.
+- Added deterministic write-through from `liveToolContext` to provider-generated TripBlocks when names match, so the canvas keeps real POI execution fields even if a model omits them.
+- Updated Day detail to show booking candidates as "Info only" guidance.
+- Added tests for write-through behavior and booking-candidate rendering.
+- No checkout, inventory, payment, Supabase migration, new API key, or production FlyAI integration.
+
 ## v0.2.13 - 2026-07-02
 
 **TripBlock POI embedding + Day detail operational upgrade.** This release makes day details more executable for FIT travelers without adding any booking/payment backend.

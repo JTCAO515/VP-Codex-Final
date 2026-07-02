@@ -26,6 +26,7 @@ function hasOperationalDetails(block: TripBlock) {
       block.openingHours ||
       block.mapUrl ||
       block.bookingUrl ||
+      block.bookingCandidates?.length ||
       block.sourceLabel ||
       block.coordinates,
   );
@@ -106,6 +107,21 @@ export function DayDetailDrawer({ day, onClose }: DayDetailDrawerProps) {
                     ) : null}
                     {block.sourceLabel ? <span>Source: {block.sourceLabel}</span> : null}
                   </div>
+                  {block.bookingCandidates?.length ? (
+                    <div className="day-drawer__booking-candidates" aria-label={`${block.title} booking candidates`}>
+                      <span>Booking candidates</span>
+                      {block.bookingCandidates.map((candidate) => (
+                        <div key={candidate.id}>
+                          <strong>{candidate.label}</strong>
+                          <p>
+                            {candidate.provider} · {candidate.status === "info-only" ? "Info only" : "Planned"} ·{" "}
+                            {candidate.note}
+                          </p>
+                          {candidate.priceHint ? <small>Price hint: {candidate.priceHint}</small> : null}
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
                   <div className="day-drawer__taxi-card">
                     <span>Show taxi driver</span>
                     <strong>{taxiDestination(block)}</strong>

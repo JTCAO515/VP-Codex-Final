@@ -1,6 +1,6 @@
 # VisePanda Product Context
 
-Current handoff version: `v0.2.13`. This file is active product context for future design and frontend work; `v0.2.11` was the configuration pass that introduced it.
+Current handoff version: `v0.2.14`. This file is active product context for future design and frontend work; `v0.2.11` was the configuration pass that introduced it.
 
 VisePanda is an English-native AI travel butler for independent foreign travelers in China. It should feel like a focused travel operations desk: the traveler talks to the Butler, the trip canvas updates live, and practical anxieties such as entry, payment, connectivity, language, local transit, and itinerary execution are resolved inside the same product surface.
 

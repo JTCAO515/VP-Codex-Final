@@ -28,11 +28,23 @@ export interface TripBlock {
   openingHours?: string;
   mapUrl?: string;
   bookingUrl?: string;
+  bookingCandidates?: BookingCandidate[];
   sourceLabel?: string;
   coordinates?: {
     lat: number;
     lng: number;
   };
+}
+
+export interface BookingCandidate {
+  id: string;
+  kind: "hotel" | "ticket" | "transport" | "restaurant";
+  label: string;
+  provider: string;
+  status: "info-only" | "planned";
+  note: string;
+  url?: string;
+  priceHint?: string;
 }
 
 export interface TripDay {

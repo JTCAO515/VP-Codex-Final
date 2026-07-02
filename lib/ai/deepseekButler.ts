@@ -42,7 +42,7 @@ function buildSystemPrompt() {
     "Return only valid json for a live itinerary canvas patch.",
     'Example json shape: {"intent":"adjust_trip","assistantMessage":"...","reason":"...","suggestions":["...","..."],"tripSummary":{"confidence":"Refined"},"days":[],"butlerAlerts":[]}.',
     "The json shape must be: intent, assistantMessage, reason, suggestions, optional tripSummary, optional days, optional butlerAlerts.",
-    "Trip blocks may include optional operational POI fields when known: address, chineseAddress, phone, openingHours, mapUrl, bookingUrl, sourceLabel, and coordinates {lat,lng}. Only include them when sourced or safe static fallback; never invent official booking availability.",
+    "Trip blocks may include optional operational POI fields when known: address, chineseAddress, phone, openingHours, mapUrl, bookingUrl, bookingCandidates, sourceLabel, and coordinates {lat,lng}. Only include them when sourced or safe static fallback; never invent official booking availability.",
     "Suggestions must be exactly two short next questions based on the user message, recent conversation, and current trip state.",
     "Keep the plan practical for China travel: routing, visas, payment, booking, transport, food, stay areas, and fatigue.",
     "Use concise English. Do not include markdown.",
@@ -61,7 +61,7 @@ function buildUserPrompt(message: string, currentTrip: TripState, recentMessages
       alertPriority: ["high", "medium", "low"],
       alertType: ["visa", "payment", "booking", "transport", "weather", "language", "risk", "emergency"],
       suggestions: "Return exactly two short context-aware question strings.",
-      tripBlockPoiFields: "When a POI is used in a day block, keep safe operational fields if known: address, phone, openingHours, sourceLabel, coordinates, mapUrl, bookingUrl, and chineseAddress only when you have Chinese text.",
+      tripBlockPoiFields: "When a POI is used in a day block, keep safe operational fields if known: address, phone, openingHours, sourceLabel, coordinates, mapUrl, bookingUrl, bookingCandidates, and chineseAddress only when you have Chinese text. bookingCandidates are info-only and must not imply checkout or inventory.",
     },
   });
 }

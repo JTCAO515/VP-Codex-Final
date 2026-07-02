@@ -4,8 +4,9 @@
  
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）；v0.1.34 桌面横屏前端优化：Tools 6 个模态卡片 + 浮层对话框、Trips 筛选按钮布局修复（过滤器始终可见）、Translator 单页 2×2 网格布局（同时展示四个功能面板无需切换 tab）。
 - 当前分支：`main`
-- 当前版本：`v0.2.13`（版本序列 `0.2.x`）
+- 当前版本：`v0.2.14`（版本序列 `0.2.x`）
 - 重要（已完成）：
+  - v0.2.14 完成 Real POI context write-through + booking candidate model：Amap `liveToolContext` 现在携带 id、电话、地图链接、坐标和 info-only booking candidates；orchestrator 在 provider patch 解析后会把匹配 POI 的安全字段确定性写回 TripBlock；Day detail 以 “Info only” 展示 booking candidates。未新增 checkout、库存、支付、Supabase schema、新 key 或生产 FlyAI。
   - v0.2.13 完成 TripBlock POI embedding + Day detail operational upgrade：`TripBlock` 新增可选运营字段（地址、中文地址、电话、营业时间、地图/预订链接、source、坐标），Day detail 抽屉展示 POI 执行卡和 Show taxi driver 卡，mock/static fallback 已有代表性中文地址与地图链接。未新增 key、Supabase schema、真实预订交易或生产 FlyAI。
   - v0.2.12 完成 MD 交接面统一：所有当前状态/版本头部指向 v0.2.12，明确 v0.2.11 是已完成的 Frontend Design Resource Stack 配置轮，下一轮代码建议顺延为 v0.2.13 TripBlock POI Embedding + Day Detail Operational Upgrade。本轮不改运行时代码。
   - v0.2.11 完成 Frontend Design Resource Stack 配置：新增 `PRODUCT.md` 与 `docs/planning/v0.2.11-frontend-design-resource-stack.md`，把 Frontend Design / UI design system / CSS animation / creative aesthetics / Awwwards landing / web design guidelines / Vercel React best practices / Superpowers / Impeccable / better-icons / UI Design Brain / DESIGNmd 等资源纳入仓库工作流。纯文档配置，不安装外部工具、不改运行时代码。
@@ -46,7 +47,15 @@
   - `tests/factualToolCards.test.ts`、`tests/orchestrator.test.ts`、`tests/chat-panel.test.tsx`：覆盖生成、绕过 provider、渲染。
 - 边界：本轮不做完整 Tools widgets，不做签证决策树/支付向导/汇率换算器，不新增任何外部 key、Supabase schema、生产 FlyAI 调用或预订能力。
 - 验证：受影响测试已通过；本轮收尾前需跑完整 `npm run test` 与 `npm run build`。
-- 下一步建议：`v0.2.14` Real POI context write-through,把 Chat liveToolContext / Amap rich POI 更稳定地写入生成的 TripBlock，并开始设计酒店/票务候选的非交易型 booking candidate 数据结构。
+- 下一步建议：`v0.2.15` Explore Add-to-Trip POI write-through，把用户在 Explore 选择的真实 POI 直接带入 Chat draft 并稳定落入 TripBlock。
+
+## v0.2.14 Handoff Update - Real POI write-through + booking candidates
+
+- 用户意图：继续 v0.2.13 后的下一轮，让 live Amap POI context 不只进入 prompt，还能稳定沉淀到 TripBlock，并先建立非交易型 booking candidate 模型。
+- 实现思路：不相信模型一定会复制字段；在 provider 返回 patch 后用 `applyToolContextToPatch` 做确定性补齐。booking candidate 只表示信息候选，不代表库存、下单或支付能力。
+- 主要文件：`lib/types/trip.ts`、`lib/ai/toolContext.ts`、`lib/ai/toolContextWriteThrough.ts`、`lib/ai/orchestrator.ts`、`components/canvas/DayDetailDrawer.tsx`、`tests/toolContextWriteThrough.test.ts`。
+- 边界：不新增 Supabase schema、不新增外部 key、不接 checkout/库存/退款、不生产调用 FlyAI；后续真实预订能力必须另设交易边界。
+- 下一步建议：`v0.2.15` Explore Add-to-Trip POI write-through。
 
 ## v0.2.13 Handoff Update - TripBlock POI + Day detail operations
 
@@ -54,7 +63,7 @@
 - 实现思路：先扩展 `TripBlock` 的可选字段，不改 Supabase schema，不破坏旧 trip JSON；Day detail 只在字段存在时显示 POI 执行卡。mock/static fallback 填入代表性地址，真实 live provider 后续可复用同一字段。
 - 主要文件：`lib/types/trip.ts`、`components/canvas/DayDetailDrawer.tsx`、`lib/mock-ai/mockButler.ts`、`lib/ai/butlerPrompt.ts`、`lib/ai/deepseekButler.ts`、`app/globals.css`、`tests/canvas-components.test.tsx`。
 - 边界：不做真实预订/购票/支付，不新增外部 key，不新增 Supabase migration，不生产调用 FlyAI；`bookingUrl` 只是信息链接，不代表库存或交易能力。
-- 下一步建议：`v0.2.14` Real POI context write-through + booking candidate model。
+- 历史下一步 `v0.2.14` 已完成；当前下一步建议：`v0.2.15` Explore Add-to-Trip POI write-through。
 
 ## v0.2.12 Handoff Update - Documentation Alignment
 
@@ -62,7 +71,7 @@
 - 实现思路：保留 v0.2.11 的设计资源栈作为历史完成项，同时把当前版本、当前接手依据、下一轮建议和版本规则统一到 v0.2.12 / v0.2.13。
 - 主要文件：`VERSIONING.md`、`CHANGELOG.md`、`HANDOFF.md`、`PLAN.md`、`PRD.md`、`DESIGN.md`、`AGENTS.md`、`PRODUCT.md`、`docs/planning/v0.2.11-frontend-design-resource-stack.md`。
 - 边界：本轮是文档与版本交接对齐，不改运行时代码、不新增 API key、不改 Supabase schema、不调整 provider routing。
-- 历史下一步 `v0.2.13` 已完成；当前下一步建议：`v0.2.14` Real POI context write-through + booking candidate model。
+- 历史下一步 `v0.2.13` 与 `v0.2.14` 均已完成；当前下一步建议：`v0.2.15` Explore Add-to-Trip POI write-through。
 
 ## v0.2.11 Handoff Update - Frontend Design Resource Stack
 
@@ -73,7 +82,7 @@
   - `docs/planning/v0.2.11-frontend-design-resource-stack.md`:资源清单、使用方式、Impeccable readiness、排除项。
   - `AGENTS.md` / `DESIGN.md` / `PRD.md` / `PLAN.md` / `CHANGELOG.md` / `VERSIONING.md`:同步记录 v0.2.11 规则与状态。
 - 边界：没有安装 Impeccable、better-icons、MCP server、CLI 或 npm 包；没有新增 API key、Supabase schema、运行时代码或用户可见行为。
-- 历史下一步 `v0.2.13` 已完成；当前下一步建议：`v0.2.14` Real POI context write-through + booking candidate model。
+- 历史下一步 `v0.2.13` 与 `v0.2.14` 均已完成；当前下一步建议：`v0.2.15` Explore Add-to-Trip POI write-through。
 
 ## v0.2.10 Handoff Update - Tools Widgets I
 
@@ -88,7 +97,7 @@
   - `tests/tools-board.test.tsx`、`tests/tools-provider.test.ts`:覆盖 descriptor 与三件套交互。
 - 边界：不新增官方签证判断、不处理真实支付或银行卡、不新增外部 key、不调用 FlyAI 生产能力;静态 tips/sections/offlineTips 全部保留。
 - 验证：受影响 Tools 测试已通过;收尾前需跑完整 `npm run test` 与 `npm run build`。
-- 历史下一步 `v0.2.13` 已完成；当前下一步建议：`v0.2.14` Real POI context write-through + booking candidate model。
+- 历史下一步 `v0.2.13` 与 `v0.2.14` 均已完成；当前下一步建议：`v0.2.15` Explore Add-to-Trip POI write-through。
 
 ## v0.1.53 Handoff Update - Strategic Handoff Snapshot
  
@@ -709,7 +718,7 @@ Alternatives if Dianping approval is slow: (a) Amap enriched fields — already 
 2. `v0.2.8` Chat 体验重塑+内联工具卡:MessageBlock 分块渲染、composer 规格、等待叙事、`ask_factual` <150ms 快通道、实体 chip 双向悬停联动。
 3. `v0.2.9` 设计系统收口+Tools 交互组件:token 层+组件库归一、Tools 三件套 widget(汇率换算/签证问答/支付向导)、移动 Chat sheet。
 
-当前真实状态以文件顶部 `v0.2.13 Handoff Update` 为准:`v0.2.9` 已用于 Chat factual fast-path + inline Tools cards,`v0.2.10` 已用于 Tools Widgets I,`v0.2.11` 已用于 Frontend Design Resource Stack 配置,`v0.2.12` 已用于交接文档/版本线统一,`v0.2.13` 已用于 TripBlock POI / Day detail operational upgrade。后续建议为 `v0.2.14` Real POI context write-through + booking candidate model。
+当前真实状态以文件顶部 `v0.2.14 Handoff Update` 为准:`v0.2.9` 已用于 Chat factual fast-path + inline Tools cards,`v0.2.10` 已用于 Tools Widgets I,`v0.2.11` 已用于 Frontend Design Resource Stack 配置,`v0.2.12` 已用于交接文档/版本线统一,`v0.2.13` 已用于 TripBlock POI / Day detail operational upgrade,`v0.2.14` 已用于 Real POI context write-through + booking candidate model。后续建议为 `v0.2.15` Explore Add-to-Trip POI write-through。
 
 
 ## v0.2.7 交接更新 —— Canvas 行动层(第一轮代码实现)
@@ -733,7 +742,8 @@ Alternatives if Dianping approval is slow: (a) Amap enriched fields — already 
 4. `v0.2.11` Frontend Design Resource Stack 配置：已完成。
 5. `v0.2.12` 文档/版本交接统一：已完成。
 6. `v0.2.13` TripBlock POI embedding + Day detail operational upgrade：已完成。
-7. `v0.2.14` Real POI context write-through + booking candidate model。
+7. `v0.2.14` Real POI context write-through + booking candidate model：已完成。
+8. `v0.2.15` Explore Add-to-Trip POI write-through。
 
 ### 操作者无需任何手动步骤
 

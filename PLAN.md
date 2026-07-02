@@ -631,7 +631,8 @@ Next three planned iterations:
 
 - [x] `v0.2.10` Tools Widgets I:在本轮 inline card 数据模型基础上,把 Currency converter、Visa checker、Payment setup wizard 做成真实可交互组件,并让 Chat tool cards 与 `/tools` 继续复用同一 Tools 数据源。
 - [x] `v0.2.13` TripBlock POI Embedding + Day Detail Operational Upgrade:将中文地址、营业时间、电话、坐标、booking/map url 等可选运营字段写入 `TripBlock`,升级 Day detail 和 Taxi Driver card。
-- [ ] `v0.2.14` Real POI context write-through + booking candidate model:把 Chat liveToolContext / Amap rich POI 更稳定地写入生成的 TripBlock，并设计非交易型 booking candidate 字段。
+- [x] `v0.2.14` Real POI context write-through + booking candidate model:把 Chat liveToolContext / Amap rich POI 更稳定地写入生成的 TripBlock，并设计非交易型 booking candidate 字段。
+- [ ] `v0.2.15` Explore Add-to-Trip POI write-through:从 Explore 选择真实 POI 时将 POI id/address/map/booking candidate 放入 Chat draft,并稳定落入 TripBlock。
 
 ## v0.2.10 附录 —— Tools Widgets I(已完成)
 
@@ -656,7 +657,8 @@ Next three planned iterations:
 
 - [x] `v0.2.11` Frontend Design Resource Stack 配置:把操作者指定的前端/设计/Impeccable/图标/设计系统资源登记为仓库级工作流,不改运行时代码。
 - [x] `v0.2.13` TripBlock POI Embedding + Day Detail Operational Upgrade:扩展 `TripBlock` 可选运营字段,把 POI 执行信息沉淀进 Day detail,并实现 Show Taxi Driver 卡。
-- [ ] `v0.2.14` Real POI context write-through + booking candidate model:将 Chat liveToolContext / Amap rich POI 稳定写入 TripBlock,并为后续酒店/门票/交通候选建立非交易型数据结构。
+- [x] `v0.2.14` Real POI context write-through + booking candidate model:将 Chat liveToolContext / Amap rich POI 稳定写入 TripBlock,并为后续酒店/门票/交通候选建立非交易型数据结构。
+- [ ] `v0.2.15` Explore Add-to-Trip POI write-through:从 Explore 选择真实 POI 时将 POI id/address/map/booking candidate 放入 Chat draft,并稳定落入 TripBlock。
 
 ## v0.2.11 附录 —— Frontend Design Resource Stack 配置(纯文档)
 
@@ -700,4 +702,21 @@ Next three planned iterations:
 
 下一步建议:
 
-- [ ] `v0.2.14` Real POI context write-through + booking candidate model:将 Chat liveToolContext / Amap rich POI 稳定写入 TripBlock,并为后续酒店/门票/交通候选建立非交易型数据结构。
+- [x] `v0.2.14` Real POI context write-through + booking candidate model:将 Chat liveToolContext / Amap rich POI 稳定写入 TripBlock,并为后续酒店/门票/交通候选建立非交易型数据结构。
+
+## v0.2.14 附录 —— Real POI write-through + booking candidate model(已完成)
+
+- [x] 新增 `BookingCandidate` 非交易型模型,挂载到 `TripBlock.bookingCandidates?`。
+- [x] `ButlerToolPoi` 扩展 Amap id、phone、mapUrl、coordinates、bookingCandidates。
+- [x] 新增 `lib/ai/toolContextWriteThrough.ts`,在 provider patch 解析后把匹配 POI 的安全字段确定性写回 TripBlock。
+- [x] `DayDetailDrawer` 显示 booking candidates,文案明确为 Info only。
+- [x] 新增 `tests/toolContextWriteThrough.test.ts`,并扩展 Day detail 测试。
+
+排除项:
+
+- 不做 checkout、库存、支付、退款、订单管理。
+- 不新增 Supabase schema、外部 API key 或生产 FlyAI 调用。
+
+下一步建议:
+
+- [ ] `v0.2.15` Explore Add-to-Trip POI write-through:从 Explore 选择真实 POI 时将 POI id/address/map/booking candidate 放入 Chat draft,并稳定落入 TripBlock。

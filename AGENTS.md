@@ -435,7 +435,7 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 ## v0.2.12 Agent Update - Handoff alignment
 
 - Treat `v0.2.12` as the current active handoff version. `v0.2.11` is a completed documentation/design-resource configuration pass, not the next implementation target.
-- Historical note: this rule applied before v0.2.13 started. The active version is now v0.2.13, and the next recommended coding iteration is v0.2.14 Real POI context write-through + booking candidate model.
+- Historical note: this rule applied before v0.2.13 started. The active version is now v0.2.14, and the next recommended coding iteration is v0.2.15 Explore Add-to-Trip POI write-through.
 - Before starting any later iteration, run VPMCO/sync, read the seven required root docs plus the design resource planning doc, then verify `package.json` and `VERSIONING.md` agree on the current version.
 - Do not install external design tools or change runtime code as part of the v0.2.12 handoff alignment itself.
 
@@ -446,3 +446,10 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 - Prefer sourced Amap/live provider data when available; static fallback fields are allowed for mock reliability and local tests.
 - Show taxi driver copy should prioritize Chinese address, then address, then title.
 - Adding real booking candidates later should be a separate non-transactional model first, before any payment or checkout integration.
+
+## v0.2.14 Agent Update - POI write-through
+
+- `applyToolContextToPatch` is the deterministic bridge from bounded Amap `liveToolContext` to TripBlock execution fields. Keep this layer provider-agnostic and side-effect free.
+- `BookingCandidate.status: "info-only"` must not be rendered or described as inventory, checkout, purchase, reservation, or confirmed availability.
+- If a model already provides a TripBlock field, write-through should not overwrite it; it only fills missing operational fields.
+- Future Explore Add-to-Trip work should reuse `BookingCandidate` and the TripBlock optional POI fields instead of inventing a second shape.

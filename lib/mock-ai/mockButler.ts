@@ -24,6 +24,16 @@ export const initialTripState: TripState = {
           openingHours: "Usually daytime entry; timed tickets required",
           mapUrl: "https://uri.amap.com/search?keyword=%E6%95%85%E5%AE%AB",
           bookingUrl: "https://intl.dpm.org.cn/",
+          bookingCandidates: [
+            {
+              id: "static-ticket-forbidden-city",
+              kind: "ticket",
+              label: "Forbidden City official ticket info",
+              provider: "Official venue",
+              status: "info-only",
+              note: "Information link only. Confirm current availability, passport rules, and refund policy before paying.",
+            },
+          ],
           sourceLabel: "Static fallback",
           coordinates: { lat: 39.91635, lng: 116.39715 },
         },
@@ -188,6 +198,16 @@ const firstTripDays: TripDay[] = [
           openingHours: "Usually daytime entry; timed tickets required",
           mapUrl: "https://uri.amap.com/search?keyword=%E6%95%85%E5%AE%AB",
           bookingUrl: "https://intl.dpm.org.cn/",
+          bookingCandidates: [
+            {
+              id: "static-ticket-forbidden-city",
+              kind: "ticket",
+              label: "Forbidden City official ticket info",
+              provider: "Official venue",
+              status: "info-only",
+              note: "Information link only. Confirm current availability, passport rules, and refund policy before paying.",
+            },
+          ],
           sourceLabel: "Static fallback",
           coordinates: { lat: 39.91635, lng: 116.39715 },
         },

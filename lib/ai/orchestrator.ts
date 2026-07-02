@@ -20,6 +20,7 @@ import {
 import { classifyIntent, type ButlerIntent } from "@/lib/ai/intentClassifier";
 import { BUTLER_PROVIDERS, getConfiguredProviders, selectProvidersForIntent } from "@/lib/ai/modelRegistry";
 import { buildButlerToolContext, type ButlerToolContext } from "@/lib/ai/toolContext";
+import { applyToolContextToPatch } from "@/lib/ai/toolContextWriteThrough";
 import type { UserPreferenceProfile } from "@/lib/ai/preferenceProfile";
 import { createMockButlerPatch } from "@/lib/mock-ai/mockButler";
 import { buildFactualToolResponse } from "@/lib/tools/factualToolCards";
@@ -164,7 +165,7 @@ export async function requestOrchestratedButlerPatch(
       intent,
       strategy: candidates.length > 1 ? "parallel" : "single",
       providersTried: tried,
-      patch: winner.patch,
+      patch: applyToolContextToPatch(winner.patch, toolContext),
       suggestions: winner.suggestions,
       toolContext,
     };

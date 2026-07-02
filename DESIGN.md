@@ -913,3 +913,17 @@ ADR-081: Booking links are informational until a real transaction layer exists.
 - Background: A future FlyAI/booking integration may supply hotel, ticket, or transport URLs, but the product does not yet own inventory, checkout, refunds, or payment risk.
 - Decision: `bookingUrl` is rendered as "Booking info" only. It must not be labeled as purchase, reserve, or checkout unless a later production integration implements the full transaction boundary.
 - Reason: This gives travelers practical next steps without overstating capability or trust boundaries.
+
+## v0.2.14 Design Update - Real POI context write-through
+
+ADR-082: Live POI context is written through after provider parsing.
+
+- Background: v0.1.50 injected bounded Amap POI context into the prompt, and v0.2.13 gave TripBlocks a place to store execution fields. Models may still omit safe fields even when they used the POI name.
+- Decision: add a deterministic post-parse write-through layer that matches provider-generated block titles to `liveToolContext.pois` and fills only missing optional fields.
+- Reason: This keeps the canvas grounded in real POI context without making the prompt brittle or trusting every provider to copy metadata perfectly.
+
+ADR-083: Booking candidates are non-transactional planning objects.
+
+- Background: FIT travelers need hotel/ticket/restaurant candidates, but VisePanda does not yet own inventory, checkout, refund, or payment flows.
+- Decision: introduce `BookingCandidate` with `status: "info-only" | "planned"` and render info-only candidates as guidance, not transaction capability.
+- Reason: The product can structure future booking readiness while maintaining a clear trust boundary.
