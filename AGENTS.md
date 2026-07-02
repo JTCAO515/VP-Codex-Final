@@ -435,6 +435,14 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 ## v0.2.12 Agent Update - Handoff alignment
 
 - Treat `v0.2.12` as the current active handoff version. `v0.2.11` is a completed documentation/design-resource configuration pass, not the next implementation target.
-- The next recommended coding iteration is `v0.2.13` TripBlock POI Embedding + Day Detail Operational Upgrade.
-- Before starting `v0.2.13`, run VPMCO/sync, read the seven required root docs plus the design resource planning doc, then verify `package.json` and `VERSIONING.md` still agree on `0.2.12`.
+- Historical note: this rule applied before v0.2.13 started. The active version is now v0.2.13, and the next recommended coding iteration is v0.2.14 Real POI context write-through + booking candidate model.
+- Before starting any later iteration, run VPMCO/sync, read the seven required root docs plus the design resource planning doc, then verify `package.json` and `VERSIONING.md` agree on the current version.
 - Do not install external design tools or change runtime code as part of the v0.2.12 handoff alignment itself.
+
+## v0.2.13 Agent Update - TripBlock POI operations
+
+- `TripBlock` operational fields are optional and must remain backward compatible with old saved trips and model responses.
+- Day detail may show map/booking links only as execution information. Do not imply live ticket inventory, hotel booking, payment, or official availability.
+- Prefer sourced Amap/live provider data when available; static fallback fields are allowed for mock reliability and local tests.
+- Show taxi driver copy should prioritize Chinese address, then address, then title.
+- Adding real booking candidates later should be a separate non-transactional model first, before any payment or checkout integration.

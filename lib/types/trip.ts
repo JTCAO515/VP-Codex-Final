@@ -18,6 +18,21 @@ export interface TripBlock {
   highlights?: string[];
   /** Optional real photo URL (e.g. from a future POI provider). Never fabricated client-side. */
   photoUrl?: string;
+  /**
+   * Optional operational POI fields for day-detail execution. These are
+   * additive so older saved trips and provider responses remain valid.
+   */
+  address?: string;
+  chineseAddress?: string;
+  phone?: string;
+  openingHours?: string;
+  mapUrl?: string;
+  bookingUrl?: string;
+  sourceLabel?: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
 }
 
 export interface TripDay {

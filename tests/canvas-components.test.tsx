@@ -103,6 +103,28 @@ describe("TripCanvas", () => {
     expect(screen.queryByRole("button", { name: /save day 1 changes/i })).not.toBeInTheDocument();
   });
 
+  it("shows TripBlock POI execution details and a taxi-driver card in the day drawer", () => {
+    render(<TripCanvas trip={initialTripState} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /view details for day 1/i }));
+
+    const drawer = screen.getByLabelText(/day 1 itinerary details/i);
+    const forbiddenCityDetails = within(drawer).getByLabelText(/forbidden city .* execution details/i);
+    expect(within(forbiddenCityDetails).getAllByText("北京市东城区景山前街4号").length).toBeGreaterThan(0);
+    expect(within(forbiddenCityDetails).getByText(/4 Jingshan Front Street/i)).toBeInTheDocument();
+    expect(within(forbiddenCityDetails).getByText(/Usually daytime entry/i)).toBeInTheDocument();
+    expect(within(forbiddenCityDetails).getByRole("link", { name: /open map/i })).toHaveAttribute(
+      "href",
+      expect.stringContaining("uri.amap.com"),
+    );
+    expect(within(forbiddenCityDetails).getByRole("link", { name: /booking info/i })).toHaveAttribute(
+      "href",
+      "https://intl.dpm.org.cn/",
+    );
+    expect(within(forbiddenCityDetails).getByText(/show taxi driver/i)).toBeInTheDocument();
+    expect(within(forbiddenCityDetails).getByText(/请带我去：北京市东城区景山前街4号/i)).toBeInTheDocument();
+  });
+
   it("renames the trip title inline via the pencil icon", () => {
     const onRenameTrip = vi.fn();
     render(<TripCanvas trip={initialTripState} onRenameTrip={onRenameTrip} />);

@@ -899,3 +899,17 @@ ADR-079: Version handoff documents must distinguish current state from historica
 - Background: v0.2.10 shipped Tools widgets, v0.2.11 configured frontend design resources, and the operator asked to update all MD documents to v0.2.12 so another device can resume without ambiguity.
 - Decision: v0.2.12 is a documentation/version alignment pass. It does not alter runtime architecture, provider selection, schema, CSS behavior, or UI contracts. It updates the active handoff surface so the next implementation is clearly v0.2.13 TripBlock POI / Day detail operational upgrade.
 - Reason: the project uses MD files as cross-device memory. Keeping the current version and next-step numbering explicit is part of the architecture, because it prevents parallel agents from redoing or skipping iterations.
+
+## v0.2.13 Design Update - TripBlock POI operations
+
+ADR-080: TripBlock owns optional operational POI fields.
+
+- Background: Day detail needed to become executable for FIT travelers: Chinese address, opening hours, map handoff, and taxi-driver copy matter more than another paragraph of itinerary prose.
+- Decision: extend `TripBlock` with optional execution fields (`address`, `chineseAddress`, `phone`, `openingHours`, `mapUrl`, `bookingUrl`, `sourceLabel`, `coordinates`) instead of creating a separate POI store or changing Supabase schema.
+- Reason: Trip JSON is already the canvas source of truth, and optional fields preserve backward compatibility with old saved trips and model/provider output. A later live provider can enrich these same fields.
+
+ADR-081: Booking links are informational until a real transaction layer exists.
+
+- Background: A future FlyAI/booking integration may supply hotel, ticket, or transport URLs, but the product does not yet own inventory, checkout, refunds, or payment risk.
+- Decision: `bookingUrl` is rendered as "Booking info" only. It must not be labeled as purchase, reserve, or checkout unless a later production integration implements the full transaction boundary.
+- Reason: This gives travelers practical next steps without overstating capability or trust boundaries.

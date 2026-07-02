@@ -769,3 +769,26 @@ Fixes three reported product problems:
 
 - 不安装 Impeccable、better-icons、MCP server、CLI 或 npm 包。
 - 不新增生产功能、API key、Supabase schema 或用户可见行为。
+
+## v0.2.13 更新 —— TripBlock POI + Day detail operational upgrade
+
+需求来源:外国 FIT 游客在中国执行行程时,单日详情不能只告诉他“去哪儿”,还要能帮助他落地执行:给司机看中文地址、知道营业时间、打开地图、保留预订信息入口。
+
+交付:
+
+- `TripBlock` 支持可选运营字段:英文地址、中文地址、电话、营业时间、地图链接、预订信息链接、来源标签和坐标。
+- Day detail 抽屉在每个 block 下显示 POI execution details。
+- 新增 Show taxi driver 卡,优先显示中文地址。
+- mock/static fallback 行程包含代表性 POI 地址与地图信息,保证无 API key 时也能演示。
+
+验收标准:
+
+- 打开 Day detail 能看到 POI 地址、营业时间、地图入口和司机卡。
+- 老 trip JSON 没有这些字段时仍正常显示原有详情。
+- 所有 booking/map 字段都以信息入口呈现,不声称真实库存或交易。
+
+排除:
+
+- 不做真实酒店/门票/交通预订。
+- 不做支付、库存、退款或订单管理。
+- 不新增 Supabase schema、外部 API key 或生产 FlyAI 调用。

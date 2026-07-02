@@ -4,7 +4,7 @@
 
 - Previous baseline: `v0.1.1`
 - Minor-series reset: `v0.2.1` (operator directive — all subsequent iterations use `0.2.x`)
-- Current iteration: `v0.2.12`
+- Current iteration: `v0.2.13`
 - Production domain: `go2china.space`
 
 ## Rule
@@ -16,6 +16,7 @@
 
 ## Release Notes
 
+- `v0.2.13`: TripBlock POI embedding + Day detail operational upgrade. `TripBlock` now supports optional execution fields (address, Chinese address, phone, opening hours, map/booking links, source label, coordinates); Day detail renders those fields as an operational POI panel with a Show taxi driver card; mock/static fallback data includes representative POI execution details. No new external keys, Supabase schema, real booking transaction, or production FlyAI usage.
 - `v0.2.12`: Documentation handoff alignment. Updated the active MD handoff surface to `v0.2.12`, clarified that `v0.2.11` is a completed design-resource configuration pass, and set the next implementation round to `v0.2.13` TripBlock POI embedding + Day detail operational upgrade. No runtime behavior changed.
 - `v0.2.11`: Frontend design resource stack configuration. Added `PRODUCT.md` and `docs/planning/v0.2.11-frontend-design-resource-stack.md` to map the requested frontend-design, UI-system, animation, creative-aesthetic, Impeccable, better-icons, UI Design Brain, DESIGNmd, and Vercel React best-practices resources into the VisePanda workflow. No runtime code, dependencies, keys, schema, or production behavior changed.
 - `v0.2.10`: Tools Widgets I. `ToolCategory.interactive` now describes optional widgets; Tools renders an RMB converter, visa/entry planning checker, and payment setup wizard above the existing static checklists. No new keys, no official visa adjudication, no real payment transaction, and no production FlyAI usage.

@@ -18,6 +18,28 @@ function normalizeBlocks(day: TripDay) {
   );
 }
 
+function hasOperationalDetails(block: TripBlock) {
+  return Boolean(
+    block.address ||
+      block.chineseAddress ||
+      block.phone ||
+      block.openingHours ||
+      block.mapUrl ||
+      block.bookingUrl ||
+      block.sourceLabel ||
+      block.coordinates,
+  );
+}
+
+function taxiDestination(block: TripBlock) {
+  return block.chineseAddress || block.address || block.title;
+}
+
+function coordinateLabel(block: TripBlock) {
+  if (!block.coordinates) return "";
+  return `${block.coordinates.lat.toFixed(5)}, ${block.coordinates.lng.toFixed(5)}`;
+}
+
 export function DayDetailDrawer({ day, onClose }: DayDetailDrawerProps) {
   const blocks = normalizeBlocks(day);
 
@@ -40,6 +62,57 @@ export function DayDetailDrawer({ day, onClose }: DayDetailDrawerProps) {
               <span>{block.time}</span>
               <strong>{block.title}</strong>
               <p>{block.description}</p>
+              {hasOperationalDetails(block) ? (
+                <div className="day-drawer__poi" aria-label={`${block.title} execution details`}>
+                  <dl className="day-drawer__poi-grid">
+                    {block.chineseAddress || block.address ? (
+                      <div>
+                        <dt>Address</dt>
+                        <dd>
+                          {block.chineseAddress ? <span>{block.chineseAddress}</span> : null}
+                          {block.address ? <span>{block.address}</span> : null}
+                        </dd>
+                      </div>
+                    ) : null}
+                    {block.openingHours ? (
+                      <div>
+                        <dt>Hours</dt>
+                        <dd>{block.openingHours}</dd>
+                      </div>
+                    ) : null}
+                    {block.phone ? (
+                      <div>
+                        <dt>Phone</dt>
+                        <dd>{block.phone}</dd>
+                      </div>
+                    ) : null}
+                    {coordinateLabel(block) ? (
+                      <div>
+                        <dt>Coordinates</dt>
+                        <dd>{coordinateLabel(block)}</dd>
+                      </div>
+                    ) : null}
+                  </dl>
+                  <div className="day-drawer__poi-actions" aria-label={`${block.title} action links`}>
+                    {block.mapUrl ? (
+                      <a href={block.mapUrl} rel="noreferrer" target="_blank">
+                        Open map
+                      </a>
+                    ) : null}
+                    {block.bookingUrl ? (
+                      <a href={block.bookingUrl} rel="noreferrer" target="_blank">
+                        Booking info
+                      </a>
+                    ) : null}
+                    {block.sourceLabel ? <span>Source: {block.sourceLabel}</span> : null}
+                  </div>
+                  <div className="day-drawer__taxi-card">
+                    <span>Show taxi driver</span>
+                    <strong>{taxiDestination(block)}</strong>
+                    {block.chineseAddress ? <p>请带我去：{block.chineseAddress}</p> : null}
+                  </div>
+                </div>
+              ) : null}
             </section>
           ))}
         </div>

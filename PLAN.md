@@ -630,7 +630,8 @@ Next three planned iterations:
 下一步建议:
 
 - [x] `v0.2.10` Tools Widgets I:在本轮 inline card 数据模型基础上,把 Currency converter、Visa checker、Payment setup wizard 做成真实可交互组件,并让 Chat tool cards 与 `/tools` 继续复用同一 Tools 数据源。
-- [ ] `v0.2.13` TripBlock POI Embedding + Day Detail Operational Upgrade:将中文地址、营业时间、电话、坐标、booking/map url 等可选运营字段持久化进 `TripBlock`,升级 Day detail 和 Taxi Driver card。
+- [x] `v0.2.13` TripBlock POI Embedding + Day Detail Operational Upgrade:将中文地址、营业时间、电话、坐标、booking/map url 等可选运营字段写入 `TripBlock`,升级 Day detail 和 Taxi Driver card。
+- [ ] `v0.2.14` Real POI context write-through + booking candidate model:把 Chat liveToolContext / Amap rich POI 更稳定地写入生成的 TripBlock，并设计非交易型 booking candidate 字段。
 
 ## v0.2.10 附录 —— Tools Widgets I(已完成)
 
@@ -654,7 +655,8 @@ Next three planned iterations:
 下一步建议:
 
 - [x] `v0.2.11` Frontend Design Resource Stack 配置:把操作者指定的前端/设计/Impeccable/图标/设计系统资源登记为仓库级工作流,不改运行时代码。
-- [ ] `v0.2.13` TripBlock POI Embedding + Day Detail Operational Upgrade:扩展 `TripBlock` 可选运营字段,把 Amap rich POI / 后续 FlyAI 合作数据沉淀进 Day detail,并实现 Show Taxi Driver 卡。
+- [x] `v0.2.13` TripBlock POI Embedding + Day Detail Operational Upgrade:扩展 `TripBlock` 可选运营字段,把 POI 执行信息沉淀进 Day detail,并实现 Show Taxi Driver 卡。
+- [ ] `v0.2.14` Real POI context write-through + booking candidate model:将 Chat liveToolContext / Amap rich POI 稳定写入 TripBlock,并为后续酒店/门票/交通候选建立非交易型数据结构。
 
 ## v0.2.11 附录 —— Frontend Design Resource Stack 配置(纯文档)
 
@@ -667,7 +669,7 @@ Next three planned iterations:
 下一步建议:
 
 - [x] `v0.2.12` 文档/版本交接统一:所有当前状态文档指向 v0.2.12,明确 v0.2.11 为历史完成项,下一轮顺延为 v0.2.13。
-- [ ] `v0.2.13` TripBlock POI Embedding + Day Detail Operational Upgrade:扩展 `TripBlock` 可选运营字段,把 Amap rich POI / 后续 FlyAI 合作数据沉淀进 Day detail,并实现 Show Taxi Driver 卡。
+- [x] `v0.2.13` TripBlock POI Embedding + Day Detail Operational Upgrade:扩展 `TripBlock` 可选运营字段,把 POI 执行信息沉淀进 Day detail,并实现 Show Taxi Driver 卡。
 
 ## v0.2.12 附录 —— 文档/版本交接统一(纯文档)
 
@@ -679,5 +681,23 @@ Next three planned iterations:
 
 下一步建议:
 
-- [ ] `v0.2.13` TripBlock POI Embedding + Day Detail Operational Upgrade:扩展 `TripBlock` 可选运营字段,把 Amap rich POI / 后续 FlyAI 合作数据沉淀进 Day detail,并实现 Show Taxi Driver 卡。
+- [x] `v0.2.13` TripBlock POI Embedding + Day Detail Operational Upgrade:已完成。
 - [ ] 后续如操作者明确要求安装 Impeccable 或 better-icons,按官方安装路径单独执行,并把生成文件作为可审查 git diff。
+
+## v0.2.13 附录 —— TripBlock POI + Day detail operational upgrade(已完成)
+
+- [x] `TripBlock` 新增可选运营字段: `address` / `chineseAddress` / `phone` / `openingHours` / `mapUrl` / `bookingUrl` / `sourceLabel` / `coordinates`。
+- [x] Butler prompt 与 legacy DeepSeek prompt 允许模型在有来源时保留这些字段。
+- [x] `DayDetailDrawer` 在字段存在时显示 POI execution details、地图/预订信息链接、source、坐标和 Show taxi driver 卡。
+- [x] mock/static fallback 为代表性景点补充中文地址、地图链接和坐标,无 API key 时也可验证。
+- [x] `tests/canvas-components.test.tsx` 覆盖 Day detail POI 信息与司机卡。
+
+排除项:
+
+- 不做真实预订、购票、支付或库存判断。
+- 不新增外部 API key、Supabase migration 或生产 FlyAI 调用。
+- 不把 `bookingUrl` 表述为可交易能力,仅作为信息入口。
+
+下一步建议:
+
+- [ ] `v0.2.14` Real POI context write-through + booking candidate model:将 Chat liveToolContext / Amap rich POI 稳定写入 TripBlock,并为后续酒店/门票/交通候选建立非交易型数据结构。

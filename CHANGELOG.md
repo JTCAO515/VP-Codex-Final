@@ -1,5 +1,16 @@
 # VisePanda Changelog
 
+## v0.2.13 - 2026-07-02
+
+**TripBlock POI embedding + Day detail operational upgrade.** This release makes day details more executable for FIT travelers without adding any booking/payment backend.
+
+- Added optional operational POI fields to `TripBlock`: address, Chinese address, phone, opening hours, map link, booking info link, source label, and coordinates.
+- Updated Butler prompts so future model/provider output can preserve safe POI execution fields when sourced from live context or static fallback.
+- Upgraded the read-only Day detail drawer with POI execution panels, map/booking links, source labels, coordinates, and a Show taxi driver card.
+- Seeded mock/static fallback itinerary blocks with representative Chinese addresses and map links so the feature works without API keys.
+- Added tests covering Day detail POI rendering and taxi-driver handoff copy.
+- No new external API keys, Supabase migration, real booking transaction, payment flow, or production FlyAI integration.
+
 ## v0.2.12 - 2026-07-02
 
 **Documentation handoff alignment.** This release updates the active project handoff surface so another device or coding agent can safely continue from the same version line.

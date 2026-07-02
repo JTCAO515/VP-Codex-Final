@@ -1,4 +1,4 @@
-import type { ButlerAlert, CanvasPatch, TripDay, TripState } from "@/lib/types/trip";
+import type { ButlerAlert, CanvasPatch, TripBlock, TripDay, TripState } from "@/lib/types/trip";
 
 export const initialTripState: TripState = {
   summary: {
@@ -19,16 +19,35 @@ export const initialTripState: TripState = {
           time: "Morning",
           title: "Forbidden City (故宫)",
           description: "Start with the classic imperial axis and keep the morning focused.",
+          address: "4 Jingshan Front Street, Dongcheng District, Beijing",
+          chineseAddress: "北京市东城区景山前街4号",
+          openingHours: "Usually daytime entry; timed tickets required",
+          mapUrl: "https://uri.amap.com/search?keyword=%E6%95%85%E5%AE%AB",
+          bookingUrl: "https://intl.dpm.org.cn/",
+          sourceLabel: "Static fallback",
+          coordinates: { lat: 39.91635, lng: 116.39715 },
         },
         {
           time: "Afternoon",
           title: "Great Wall · Mutianyu (长城·慕田峪)",
           description: "Use a private car or guided transfer to reduce friction.",
+          address: "Mutianyu Village, Huairou District, Beijing",
+          chineseAddress: "北京市怀柔区慕田峪村",
+          openingHours: "Daytime scenic-area hours; confirm before departure",
+          mapUrl: "https://uri.amap.com/search?keyword=%E6%85%95%E7%94%B0%E5%B3%AA%E9%95%BF%E5%9F%8E",
+          sourceLabel: "Static fallback",
+          coordinates: { lat: 40.43191, lng: 116.57037 },
         },
         {
           time: "Evening",
           title: "Temple of Heaven (天坛)",
           description: "Keep the evening iconic but simple if energy is low.",
+          address: "1 Tiantan East Road, Dongcheng District, Beijing",
+          chineseAddress: "北京市东城区天坛东路1号",
+          openingHours: "Park open into evening; halls close earlier",
+          mapUrl: "https://uri.amap.com/search?keyword=%E5%A4%A9%E5%9D%9B",
+          sourceLabel: "Static fallback",
+          coordinates: { lat: 39.88216, lng: 116.40661 },
         },
       ],
       food: ["Hutong noodles", "Roast duck dinner"],
@@ -46,11 +65,23 @@ export const initialTripState: TripState = {
           time: "Morning",
           title: "The Bund (外滩)",
           description: "Start with an easy riverfront orientation.",
+          address: "Zhongshan East 1st Road, Huangpu District, Shanghai",
+          chineseAddress: "上海市黄浦区中山东一路",
+          openingHours: "Open public promenade",
+          mapUrl: "https://uri.amap.com/search?keyword=%E5%A4%96%E6%BB%A9",
+          sourceLabel: "Static fallback",
+          coordinates: { lat: 31.23969, lng: 121.49976 },
         },
         {
           time: "Afternoon",
           title: "Yu Garden (豫园)",
           description: "Pair old Shanghai lanes with a classic garden stop.",
+          address: "279 Yuyuan Old Street, Huangpu District, Shanghai",
+          chineseAddress: "上海市黄浦区豫园老街279号",
+          openingHours: "Ticketed garden hours vary by season",
+          mapUrl: "https://uri.amap.com/search?keyword=%E8%B1%AB%E5%9B%AD",
+          sourceLabel: "Static fallback",
+          coordinates: { lat: 31.22723, lng: 121.49201 },
         },
         {
           time: "Evening",
@@ -110,16 +141,27 @@ const firstTripDays: TripDay[] = [
     city: "Beijing",
     pace: "Balanced",
     blocks: [
-      {
-        time: "Morning",
-        title: "Arrival and check-in",
-        description: "Stay near Wangfujing (王府井) or Dongcheng for convenient metro access.",
-      },
-      {
-        time: "Afternoon",
-        title: "Temple of Heaven (天坛)",
-        description: "Begin with a spacious, iconic site that is easier after a flight.",
-      },
+        {
+          time: "Morning",
+          title: "Arrival and check-in",
+          description: "Stay near Wangfujing (王府井) or Dongcheng for convenient metro access.",
+          address: "Wangfujing, Dongcheng District, Beijing",
+          chineseAddress: "北京市东城区王府井",
+          openingHours: "Hotel check-in times vary",
+          mapUrl: "https://uri.amap.com/search?keyword=%E7%8E%8B%E5%BA%9C%E4%BA%95",
+          sourceLabel: "Static fallback",
+        },
+        {
+          time: "Afternoon",
+          title: "Temple of Heaven (天坛)",
+          description: "Begin with a spacious, iconic site that is easier after a flight.",
+          address: "1 Tiantan East Road, Dongcheng District, Beijing",
+          chineseAddress: "北京市东城区天坛东路1号",
+          openingHours: "Park open into evening; halls close earlier",
+          mapUrl: "https://uri.amap.com/search?keyword=%E5%A4%A9%E5%9D%9B",
+          sourceLabel: "Static fallback",
+          coordinates: { lat: 39.88216, lng: 116.40661 },
+        },
       {
         time: "Evening",
         title: "Easy hutong (胡同) dinner",
@@ -137,11 +179,18 @@ const firstTripDays: TripDay[] = [
     city: "Beijing",
     pace: "Balanced",
     blocks: [
-      {
-        time: "Morning",
-        title: "Forbidden City (故宫)",
-        description: "Book ahead and enter early to avoid the busiest flow.",
-      },
+        {
+          time: "Morning",
+          title: "Forbidden City (故宫)",
+          description: "Book ahead and enter early to avoid the busiest flow.",
+          address: "4 Jingshan Front Street, Dongcheng District, Beijing",
+          chineseAddress: "北京市东城区景山前街4号",
+          openingHours: "Usually daytime entry; timed tickets required",
+          mapUrl: "https://uri.amap.com/search?keyword=%E6%95%85%E5%AE%AB",
+          bookingUrl: "https://intl.dpm.org.cn/",
+          sourceLabel: "Static fallback",
+          coordinates: { lat: 39.91635, lng: 116.39715 },
+        },
       {
         time: "Afternoon",
         title: "Jingshan Park (景山公园) and hutongs (胡同)",
@@ -164,11 +213,17 @@ const firstTripDays: TripDay[] = [
         title: "High-speed train to Shanghai (高铁)",
         description: "Use the train if you want city-center arrival and fewer airport steps.",
       },
-      {
-        time: "Evening",
-        title: "The Bund (外滩)",
-        description: "Make the first Shanghai moment visually memorable but simple.",
-      },
+        {
+          time: "Evening",
+          title: "The Bund (外滩)",
+          description: "Make the first Shanghai moment visually memorable but simple.",
+          address: "Zhongshan East 1st Road, Huangpu District, Shanghai",
+          chineseAddress: "上海市黄浦区中山东一路",
+          openingHours: "Open public promenade",
+          mapUrl: "https://uri.amap.com/search?keyword=%E5%A4%96%E6%BB%A9",
+          sourceLabel: "Static fallback",
+          coordinates: { lat: 31.23969, lng: 121.49976 },
+        },
     ],
     food: ["Xiaolongbao", "Shanghainese noodles"],
     stay: "People's Square or Jing'an",
@@ -286,14 +341,24 @@ function extractDayCount(normalized: string): number {
 function buildSkeletonDay(dayNum: number, city: string, cityDayIndex: number): TripDay {
   const hl = highlightsFor(city);
   const pick = (offset: number) => hl[(cityDayIndex * 3 + offset) % hl.length];
+  const blockWithPoi = (time: TripBlock["time"], title: string, description: string): TripBlock => ({
+    time,
+    title,
+    description,
+    address: `${title}, ${city}`,
+    chineseAddress: title.includes("（") || title.includes("(") ? title : undefined,
+    openingHours: "Confirm current hours before departure",
+    mapUrl: `https://uri.amap.com/search?keyword=${encodeURIComponent(title)}`,
+    sourceLabel: "Static fallback",
+  });
   return {
     day: dayNum,
     city,
     pace: "Balanced",
     blocks: [
-      { time: "Morning", title: pick(0), description: `Start your ${city} day at an easy pace.` },
-      { time: "Afternoon", title: pick(1), description: `Keep exploring ${city} with manageable walking.` },
-      { time: "Evening", title: pick(2), description: `Wind down with dinner and an easy ${city} evening.` },
+      blockWithPoi("Morning", pick(0), `Start your ${city} day at an easy pace.`),
+      blockWithPoi("Afternoon", pick(1), `Keep exploring ${city} with manageable walking.`),
+      blockWithPoi("Evening", pick(2), `Wind down with dinner and an easy ${city} evening.`),
     ],
     food: [`${city} local specialty`, `${city} street snack`],
     stay: `${city} central, transit-friendly area`,

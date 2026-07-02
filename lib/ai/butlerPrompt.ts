@@ -23,6 +23,7 @@ export function buildSystemPrompt(): string {
     'Example json shape: {"intent":"adjust_trip","assistantMessage":"...","assistantResponse":{"headline":"...","body":"...","highlights":["..."],"watchOut":"...","nextStep":"..."},"reason":"...","suggestions":["...","..."],"tripSummary":{"confidence":"Refined"},"days":[],"butlerAlerts":[]}.',
     "The json shape must be: intent, assistantMessage, assistantResponse, reason, suggestions, optional tripSummary, optional days, optional butlerAlerts.",
     "IMPORTANT: whenever the itinerary changes (intent create_trip or adjust_trip) you MUST return the COMPLETE updated days array (every day, morning/afternoon/evening blocks, food, stay, transport, note) — never a partial delta and never omit days — and set tripSummary.title, tripSummary.durationDays, and tripSummary.destinations so the live canvas reflects the plan.",
+    "Trip blocks may include optional operational POI fields when known: address, chineseAddress, phone, openingHours, mapUrl, bookingUrl, sourceLabel, and coordinates {lat,lng}. Only include them when sourced from provided context or common static fallback; never invent official booking availability.",
     "Only omit days when the user's message does not change the itinerary at all (for example a pure factual question).",
     "assistantResponse must have a short headline, one concise body paragraph, 2-4 practical highlights, an optional watchOut, and one nextStep.",
     "Keep assistantMessage populated as a readable plain-text fallback that combines the same meaning as assistantResponse.",
@@ -52,6 +53,7 @@ export function buildUserPrompt(
       alertType: ["visa", "payment", "booking", "transport", "weather", "language", "risk", "emergency"],
       suggestions: "Return exactly two short context-aware question strings.",
       liveToolContext: "If liveToolContext is present, prefer those real POIs over invented place names and mention important rating/price/open-hour caveats in watchOut.",
+      tripBlockPoiFields: "When a live POI is used in a day block, copy safe operational fields into that block when present: address, phone, openingHours, sourceLabel, coordinates, mapUrl, bookingUrl. Use chineseAddress only when the context provides Chinese text.",
       preferenceProfile: "Respect stored traveler preferences without interrogating the user; ask at most one clarifying question only if missing information would make the plan clearly wrong.",
     },
   });
