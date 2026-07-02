@@ -5,7 +5,7 @@ Kotlin + Jetpack Compose + Material 3, Today-first five-surface navigation
 (Today / Butler / Plan / Explore / Tools), backed by an in-memory mock trip
 repository this round — no real network or Supabase sync yet.
 
-## ✅ Build-verified 2026-07-02 — real device/emulator pass recorded below
+## ✅ Build-verified 2026-07-02 — real emulator pass recorded
 
 This module was originally authored in a sandboxed session with no Android
 SDK and no network access to `dl.google.com`, so none of it had ever been
@@ -59,7 +59,9 @@ and manually exercised the resulting APK on an `android-34`
   because nothing in this round actually reads/writes Room yet — see
   "What's deliberately not here yet" below). Physical-device-specific
   concerns (real GPU, real network stack, different OEM skins) are still
-  unverified — only the emulator was used.
+  unverified — only the emulator was used. Real Supabase sync, real Butler
+  API, real map, real camera, and real voice input are scoped to later
+  iterations.
 
 ## First build checklist (already done once — repeat on a fresh machine)
 

@@ -1,5 +1,20 @@
 # VisePanda Changelog
 
+## v0.3.5 - 2026-07-02
+
+**Android build verification handoff.** This release closes the major v0.3.4 risk: the native Android module has now been build-verified and manually accepted on an Android emulator.
+
+- Generated and committed the Gradle wrapper (`android/gradlew`, `android/gradlew.bat`, `android/gradle/wrapper/*`) for Gradle 8.9.
+- Fixed real Android compile errors found by `./gradlew :app:assembleDebug`:
+  - added `org.jetbrains.kotlin.plugin.compose` to root and app Gradle files for Kotlin 2.0 Compose compiler support;
+  - imported `androidx.compose.runtime.getValue` in `VisePandaBottomBar.kt`;
+  - added `@OptIn(ExperimentalMaterial3Api::class)` to `PlanScreen.kt` and `DayDetailScreen.kt` for Material 3 `TopAppBar`.
+- Updated `android/README.md` from "not build-verified" to a concrete `2026-07-02` verification record.
+- Recorded real successful build output: `./gradlew :app:assembleDebug` produced `android/app/build/outputs/apk/debug/app-debug.apk` (~17.5 MB).
+- Recorded manual emulator acceptance on Android 34: five bottom surfaces switch; Plan opens Day Detail; Today and Day Detail open Taxi Driver Card; copying the Chinese address works; disabling Wi-Fi and mobile data does not crash the mock-data path.
+- Added design-reference context for the next Android UI pass: borrow from the operator's Lovable prototype and Figma Make file `Design According to MD Document`, while preserving the native Android/Material 3/Warm New Chinese direction.
+- No web runtime code, API routes, Supabase schema, real Butler sync, booking/payment, map, camera, microphone, or hidden taxi-card trigger was added.
+
 ## v0.3.4 - 2026-07-02
 
 **第一轮真实原生 Android 代码。** 操作者要求把 v0.3.3(Android Native Foundation)和 v0.3.4(Today + Plan Execution MVP)合并一轮做完,并明确 Android 工程放在本仓库内(monorepo,`android/` 目录)。
@@ -14,15 +29,11 @@
 - **数据层**:`data/model/` 是 `lib/types/trip.ts` 的 1:1 Kotlin 镜像;`MockTripData.kt` 逐字段移植自 `lib/mock-ai/mockButler.ts` 的 `initialTripState`(同样的北京/上海/北京三天行程);`TripCompleteness.kt` 移植自 `lib/trips/completeness.ts`,连四舍五入行为(`Math.round` 对应 `roundToInt`)和"payment/visa 维度在无对应 alert 时视为完成"的规则都保持一致,确保同一份行程在 Web 和原生两端算出的完成度百分比永不打架。
 - **Warm New Chinese 配色移植**:`ui/theme/Color.kt`/`colors.xml` 精确对齐 `app/globals.css` 的 `--paper`/`--cinnabar`/`--gold`/`--sage` 十六进制值,**故意关闭 Material 3 Dynamic Color**(会被用户壁纸取色覆盖品牌配色,与保持 Web/原生视觉一致性的目标冲突)。
 
-### ⚠️ 诚实披露:本轮代码未经真实构建验证
-本沙箱环境**没有安装 Android SDK,且 `dl.google.com`(Google Maven 仓库实际域名)被本会话的出站网络策略拦截**(用 `curl "$HTTPS_PROXY/__agentproxy/status"` 核实为 403 拦截记录,非临时故障,遵照代理使用说明未尝试绕过)。因此:
-- 从未运行过 `./gradlew` 的任何任务——AGP 插件本身都无法解析,遑论依赖解析、Compose 编译、KSP 注解处理(Room/Hilt)或打包。
-- Gradle wrapper 二进制(`gradle-wrapper.jar`)未生成——沙箱内无法离线合成这个二进制文件,`android/README.md` 里写明了首次拿到网络环境后要跑的命令。
-- 唯一可用的本地验证工具(`apt` 装的 `kotlinc` 1.3.31)版本过老(不支持 Kotlin 2.0 惯用的尾随逗号语法),验证时明确判定为不可靠信号,未采纳其报错作为代码有问题的依据,全部代码改为逐文件人工复核。
-- 详见 `android/README.md` 开头的完整披露和"首次构建清单"。**下一位有 Android SDK/网络访问权限的 agent 或人,第一件事应该是跑一次真实构建,把这份披露换成真实的通过/失败记录。**
+### 历史说明:v0.3.4 初始提交时未构建验证
+v0.3.4 初始提交是在受限环境中产出的,当时没有完成真实 Gradle 构建和模拟器验收。这个风险已经在 **v0.3.5** 关闭:Gradle wrapper 已入库,真实编译错误已修复,`./gradlew :app:assembleDebug` 已成功生成 debug APK,并完成 Android 34 模拟器手动验收。
 
 ### 项目计划同步
-- `PLAN.md` 阶段十四勾选任务 14.3/14.4(v0.3.3/v0.3.4)为已完成(代码产出角度,构建验证角度仍待办),下一步排期不变(`v0.3.5` Butler + Sync Bridge)。
+- `PLAN.md` 阶段十四勾选任务 14.3/14.4(v0.3.3/v0.3.4)为已完成;v0.3.5 已补上真实构建验证与模拟器验收。下一步排期不变:继续做 Butler + Sync Bridge 的功能实现。
 - 未改动任何 Web 端代码、`/api/*` 路由或 Supabase schema。
 
 ## v0.3.2 - 2026-07-02

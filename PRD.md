@@ -913,6 +913,14 @@ Fixes three reported product problems:
 
 交付:`android/` Gradle 模块(monorepo,包名 `space.go2china.visepanda`),技术栈 Kotlin + Jetpack Compose + Material 3 + Hilt + Room/DataStore(定义未深接)+ Retrofit(预置)。五 surface 底导(Today/Butler/Plan/Explore/Tools);Today 与 Plan+Day Detail 有真实内容,数据层(`MockTripData.kt`/`TripCompleteness.kt`)逐字段/逐规则移植自 Web 端 `lib/mock-ai/mockButler.ts`/`lib/trips/completeness.ts`,确保两端 readiness 百分比永不打架;Butler/Explore/Tools 为诚实占位页;Taxi Driver Card 单一共享组件只能通过显性按钮触发(落实 v0.3.2 对隐藏手势方案的否决)。
 
-验收标准:五 surface 均可切换;Today 能回答"我现在该干嘛";Plan 能查看 day 列表与完成度;Day Detail 能查看 block 详情、地址、booking readiness("Info only"标签,不暗示可下单);Taxi Driver Card 只在显性按钮处可触达,支持大字展示与复制中文地址。**⚠️ 上述验收标准是按代码设计意图描述的,不是实测结果**——本沙箱无 Android SDK 且 Google Maven 仓库域名 `dl.google.com` 被本会话出站网络策略拦截,全部代码未经任何真实 `./gradlew` 构建验证,详见 `android/README.md` 的完整披露与首次构建清单。
+验收标准:五 surface 均可切换;Today 能回答"我现在该干嘛";Plan 能查看 day 列表与完成度;Day Detail 能查看 block 详情、地址、booking readiness("Info only"标签,不暗示可下单);Taxi Driver Card 只在显性按钮处可触达,支持大字展示与复制中文地址。`v0.3.5` 已补上真实验证: `./gradlew :app:assembleDebug` 构建成功并产出 debug APK,Android 34 模拟器手动验收五 surface、Day Detail、Taxi Driver Card、复制中文地址与断网 mock fallback 均通过。
 
 排除:不接入真实网络/Supabase/AI Butler 响应;不实现地图、相机、麦克风、任何运行时权限请求;Needs Scheduling 候选态管理推迟到 `v0.3.7`;不改动任何 Web 端代码、`/api/*` 路由或 Supabase schema。
+
+## v0.3.5 需求更新 —— 构建验证收尾 + Butler/Sync 下一步
+
+需求来源:上一轮 Android 真实代码已在非沙箱本机完成构建和手动验收,需要把结果写入仓库交接,然后继续 `v0.3.5 Butler + Sync Bridge`。
+
+交付:Gradle wrapper 入库;真实编译错误修复;`android/README.md` 更新为 Build-verified;7 份工作流文档同步记录验收结论。下一步功能仍是 Butler + Sync Bridge,不把本收尾误标为 sync 已完成。
+
+UI 参考:操作者提供 Lovable 预览与 Figma Make `Design According to MD Document` 作为后续 Android UI 借鉴来源。设计可以借鉴其视觉层级与组件感,但必须继续遵守原生 Android、Material 3、Warm New Chinese 固定配色、显性 Taxi Card 入口、无 WebView/混合套壳的边界。

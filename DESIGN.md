@@ -1025,4 +1025,24 @@ ADR-096: No build verification was possible in the authoring sandbox; this is re
 
 - Background: this sandbox has no Android SDK installed, and `dl.google.com` — the actual host Gradle's `google()` repository shorthand resolves to, confirmed by following `maven.google.com`'s redirect — returned a policy-denial `403` when probed directly, recorded in the proxy's own failure log (`curl "$HTTPS_PROXY/__agentproxy/status"`). Per the proxy's own operating instructions, a policy denial is not something to route around or retry.
 - Decision: all `android/` code was written from API knowledge and reviewed manually, file by file, rather than validated by any build tool. The one available local tool (`kotlinc` 1.3.31 via `apt`) was tried, found to reject Kotlin 2.0's trailing-comma syntax (a language feature, not a bug in the code), and explicitly excluded as a source of truth for correctness — its errors were not used to "fix" anything.
-- Reason: pretending a build passed when it was never run would be a worse failure mode than clearly disclosing that it wasn't. `android/README.md` carries the same disclosure and a first-build checklist so whoever has real SDK/network access can convert this from "should compile" to "does compile" as their first action, not their last.
+- Reason: pretending a build passed when it was never run would be a worse failure mode than clearly disclosing that it wasn't. This risk was later closed in `v0.3.5` with a real build and emulator acceptance pass.
+
+## v0.3.5 Design Update - Android Build Verification And UI Reference Intake
+
+ADR-097: Kotlin 2.0 Compose projects must declare the Compose compiler plugin explicitly.
+
+- Background: The real `./gradlew :app:assembleDebug` run failed because Kotlin 2.0 no longer bundles the Compose compiler inside the Kotlin Gradle plugin.
+- Decision: The root Android Gradle file declares `org.jetbrains.kotlin.plugin.compose` version `2.0.20` with `apply false`, and the app module applies `id("org.jetbrains.kotlin.plugin.compose")`.
+- Reason: This is required for any future Compose compilation and should not be removed during v0.3.5 Butler work.
+
+ADR-098: v0.3.4 Android code is now build-verified, but Butler/Sync remains unimplemented.
+
+- Background: The authoring sandbox could not run Gradle, but a later local Android environment completed a real build and manual emulator pass.
+- Decision: `android/README.md`, `CHANGELOG.md`, `VERSIONING.md`, `HANDOFF.md`, and `PLAN.md` now treat the v0.3.4 shell as verified for its stated scope. This verification does not imply Supabase sync, real Butler API, map, camera, microphone, or Explore candidate features are complete.
+- Reason: Future agents should stop treating build verification as the first blocker and instead start on the real v0.3.5 feature scope.
+
+ADR-099: Lovable and Figma Make are design references, not implementation sources of truth.
+
+- Background: The operator provided a Lovable preview and a Figma Make file named `Design According to MD Document` to inspire the APK UI. The Figma connector exposed the Make file resource list, but not readable source contents in this session.
+- Decision: Future Android UI work may borrow visual hierarchy, component density, and polish from those references, while keeping the native Android/Material 3 implementation, fixed Warm New Chinese palette, five-surface navigation, and visible Taxi Driver Card triggers.
+- Reason: Design inspiration is useful, but the repo's MD roadmap and native Android constraints remain the source of truth for behavior and architecture.
