@@ -1,5 +1,31 @@
 # VisePanda Changelog
 
+## v0.3.12 - 2026-07-03
+
+**Chat 真实 API 根因修复:一直显示离线兜底不是因为没接好,而是超时设置太短。** 操作者要求:"将web端已经配好的chat 的api接入，将网页端chat的功能和配置全部导入apk"。
+
+### 调研:两条并行研究线,对比 Web 端 `/api/chat` 与 Android 端现状
+分别彻底梳理了 Web 端 `/api/chat` 路由(6 个 OpenAI 兼容 provider 并行竞速、18 秒单 provider 超时、确定性 mock 兜底、`ask_factual` 事实问题快速通道会跳过 LLM 直接返回 `InlineToolCard`、完整的 `CanvasPatch`/`AssistantResponse` 契约)和 Android 端现状(`ButlerApiService`/`RoomTripRepository`/`CanvasPatchApplier`/`NativeButlerFallback`,自 v0.3.6 起就已经接上)。逐字段对比后发现:请求/响应契约几乎完全对齐,唯一真实缺口是 `AssistantResponse.toolCards` 字段——Android 的数据类里根本没有对应属性(Gson 反序列化时会静默丢弃未知 JSON 字段,所以这不是解析错误,只是数据被悄悄丢掉)。
+
+### 真正的根因:OkHttp 默认 10 秒超时,远短于生产环境真实延迟
+直接 `curl` 生产环境 `/api/chat` 能拿到真实 DeepSeek 回复,证明后端配置完全正常。但计时后发现:一次涉及完整 mock 行程数据的请求耗时 **14.4 秒**;通过新加的调试期 `HttpLoggingInterceptor` 在 Android App 里实测同一类请求,耗时 **20.2 秒**。而 `di/AppModule.kt` 里的 `OkHttpClient` 用的是裸的默认值(connect/read/write 全部 10 秒)。这意味着:**从 v0.3.6 到现在,这个项目里每一次真实的 chat 请求都在服务器还没来得及响应之前就被客户端超时掐断**,`RoomTripRepository.sendButlerMessage()` 用 `runCatching` 包住了这次调用,超时异常被无声地转换成 `NativeButlerFallback` 的离线兜底文案——这正是为什么整个项目历史上,每一次手动验收看到的都是"Saved for the Butler",从来没有一次是真实 AI 回复。
+
+### 修复
+- `di/AppModule.kt`:`provideOkHttpClient()` 显式设置 `connectTimeout(15s)`/`readTimeout(45s)`/`writeTimeout(15s)`,45 秒的读超时在实测约 20 秒最坏情况和后端 orchestrator 自身约 18 秒单 provider 上限之上留了余量。同时加了 `HttpLoggingInterceptor`(仅 `BuildConfig.DEBUG` 时启用,`Level.BODY`),往后再遇到连接问题能直接看 logcat,不用再靠猜。
+- `data/model/ButlerModels.kt`:新增 `InlineToolCard`(`id`/`categoryId`/`title`/`summary`/`items`/`nextAction`/`href`/`tone`/`sourceLabel`)和 `InlineToolCardTone` 枚举,`AssistantResponse` 新增 `toolCards: List<InlineToolCard>? = null` 字段,和 Web 端 `lib/types/trip.ts` 逐字段对齐。
+- `ui/butler/ButlerScreen.kt`:`MessageBubble` 新增 `InlineToolCardView`,把每张 tool card 渲染成消息气泡内嵌的卡片(标题/摘要/要点列表/`nextAction`)。`href` 深链到 Tools 分类页**特意没有接**——`ui/tools/ToolsScreen.kt` 目前还是诚实占位页(要等 Translator 轮才会实现),所以 `nextAction` 渲染成普通文字标签,不是一个点了没反应的假按钮。
+- `android/app/build.gradle.kts`:顺手修复了一个放了好几轮都没更新的遗留问题——`versionCode`/`versionName` 自 v0.3.6 起就一直停在 `1`/`"0.3.6"`,这次更新为 `12`/`"0.3.12"`,和仓库整体版本号对齐。
+
+### 明确不在本轮范围内(记录原因,不是遗漏)
+- **`preferenceProfile`**(Web 端基于正则的静默饮食/预算/节奏/兴趣提取系统,`lib/ai/preferenceProfile.ts`):这是一整套独立子系统,不是一个配置项;且该字段在请求里是可选的,不传不会导致任何错误。
+- **`intent`/`strategy`/`providersTried`/`toolContext`** 这几个响应字段:Web 端只是用来给自己的调试状态文字用的,Android 目前没有对应的调试 UI 展示场景,且 Gson 已经在无害地忽略它们。
+
+### 验证
+- `./gradlew :app:testDebugUnitTest :app:assembleDebug`:过程中遇到一次已知的增量构建产物冲突(`bundleDebugClassesToRuntimeJar` 报重复的 `R.class` 条目,和 v0.3.8 起记录的 dex 冲突是同一类非代码问题),`clean` 后重新编译通过。
+- **真实模拟器端到端验收(对接生产环境,不是 mock)**:发送"What is the best way to see the Great Wall"(带完整初始 mock 行程数据),请求真实耗时 20169ms(以前 10 秒就会被硬性掐断),App 正确渲染了服务器自己优雅降级返回的 `mode: "mock"` 响应(和 `NativeButlerFallback` 的离线兜底文案明显不同,`logcat` 确认是真实的 200 响应,只是服务器端三个 provider 对这个超大上下文请求都失败了才走的服务器自己的 mock);另外发送"Do I need a visa for China",738 毫秒内拿到真实的 `ask_factual` tool card 回复,新写的 `InlineToolCardView` 正确渲染了服务器返回的"Visa and entry"卡片(4 条要点,`tone: warning`)。
+
+详见 DESIGN.md ADR-116。
+
 ## v0.3.11 - 2026-07-03
 
 **Chat 输入区重新设计:建议问题改为单行可横滑,输入框明显变大。** 操作者在实际用过几轮之后给出反馈:"chat这一轮的布局要重新设计，输入框太小了，建议问题占比太大了"。

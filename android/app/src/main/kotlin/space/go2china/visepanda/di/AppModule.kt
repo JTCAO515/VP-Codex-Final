@@ -2,7 +2,9 @@ package space.go2china.visepanda.di
 
 import android.content.Context
 import androidx.room.Room
+import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import space.go2china.visepanda.BuildConfig
@@ -53,9 +55,29 @@ object DatabaseModule {
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
+    /**
+     * v0.3.12: the default OkHttp 10s read timeout was silently killing every
+     * real chat request — the deployed orchestrator races up to 6 providers
+     * in parallel and a measured real request took ~14.4s end to end, so
+     * every native chat message fell back to [NativeButlerFallback] even
+     * though the backend and request/response contract were both correct.
+     * See DESIGN.md ADR-116. 45s read gives headroom above both the observed
+     * latency and the orchestrator's own ~18s per-provider timeout.
+     */
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder().build()
+    fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder()
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(45, TimeUnit.SECONDS)
+        .writeTimeout(15, TimeUnit.SECONDS)
+        .apply {
+            if (BuildConfig.DEBUG) {
+                addInterceptor(
+                    HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY },
+                )
+            }
+        }
+        .build()
 
     @Provides
     @Singleton

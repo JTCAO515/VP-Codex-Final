@@ -17,6 +17,32 @@ data class AssistantResponse(
     val highlights: List<String>,
     val watchOut: String? = null,
     val nextStep: String,
+    // v0.3.12: mirrors the web contract's InlineToolCard[] (lib/types/trip.ts) —
+    // see DESIGN.md ADR-116. Rendered as a read-only card in MessageBubble;
+    // `href` deep-linking to a Tools category is intentionally not wired up
+    // yet because ui/tools/ToolsScreen.kt is still an honest placeholder.
+    val toolCards: List<InlineToolCard>? = null,
+)
+
+enum class InlineToolCardTone {
+    @SerializedName("info")
+    Info,
+    @SerializedName("warning")
+    Warning,
+    @SerializedName("success")
+    Success,
+}
+
+data class InlineToolCard(
+    val id: String,
+    val categoryId: String,
+    val title: String,
+    val summary: String,
+    val items: List<String>,
+    val nextAction: String,
+    val href: String? = null,
+    val tone: InlineToolCardTone? = null,
+    val sourceLabel: String? = null,
 )
 
 data class CanvasPatch(

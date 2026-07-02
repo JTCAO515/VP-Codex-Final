@@ -37,6 +37,8 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import space.go2china.visepanda.data.model.ButlerChatMessage
 import space.go2china.visepanda.data.model.ButlerMessageRole
+import space.go2china.visepanda.data.model.InlineToolCard
+import space.go2china.visepanda.data.model.InlineToolCardTone
 import space.go2china.visepanda.ui.theme.Dimens
 
 @Composable
@@ -216,8 +218,58 @@ private fun MessageBubble(message: ButlerChatMessage) {
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
                     )
+                    response.toolCards.orEmpty().forEach { toolCard ->
+                        Spacer(modifier = Modifier.height(Dimens.SpaceSM))
+                        InlineToolCardView(toolCard)
+                    }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun InlineToolCardView(toolCard: InlineToolCard) {
+    Card(
+        shape = RoundedCornerShape(Dimens.RadiusMD),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(modifier = Modifier.padding(Dimens.SpaceMD)) {
+            Text(
+                text = toolCard.title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = toolCard.summary,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (toolCard.items.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(Dimens.SpaceXS))
+                toolCard.items.forEach { item ->
+                    Text(
+                        text = "- $item",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(Dimens.SpaceXS))
+            // The web version's `href` deep-links straight into a Tools
+            // category; native Tools is still an honest placeholder (lands
+            // with the native Translator round), so this reads as plain
+            // labelled text rather than a fake, non-functional button.
+            Text(
+                text = toolCard.nextAction,
+                style = MaterialTheme.typography.labelMedium,
+                color = when (toolCard.tone) {
+                    InlineToolCardTone.Warning -> MaterialTheme.colorScheme.error
+                    InlineToolCardTone.Success -> MaterialTheme.colorScheme.tertiary
+                    else -> MaterialTheme.colorScheme.primary
+                },
+            )
         }
     }
 }

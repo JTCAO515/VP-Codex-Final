@@ -14,8 +14,8 @@ android {
         applicationId = "space.go2china.visepanda"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "0.3.6"
+        versionCode = 12
+        versionName = "0.3.12"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "VISEPANDA_API_BASE_URL", "\"https://www.go2china.space/\"")
@@ -96,6 +96,7 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
