@@ -949,4 +949,16 @@ UI 参考:操作者提供 Lovable 预览与 Figma Make `Design According to MD D
 
 观察记录:本轮对 `Color.kt` 的调色是对 DESIGN.md ADR-094/095"Android 配色必须和 Web 端 `app/globals.css` 逐字对齐"规则的一次刻意例外——只改了 Android,没有同步改 Web 端,两端色值从此存在有意但细微的差异,详见 DESIGN.md ADR-105。Tools/Explore 占位文案顺延为 v0.3.8/v0.3.9(因本轮用掉了 v0.3.7)。
 
+## v0.3.8 需求更新 —— 底部导航产品结构重构:Trips / Explore / Chat / Tools / Me(已完成)
+
+需求来源:操作者发消息"底部导航栏顺序Trips/Explore/Chat/Tools/Me（account），Chat要突出"。这是产品结构层面的改动请求,不同于 v0.3.7"只做视觉层"的范围限定,已用 `AskUserQuestion` 确认两个关键歧义点:(1) 现有 Today 首页已实现真实内容,新顺序里没有 Today,"Trips" 具体指什么——操作者选择"Trips = 合并 Today + Plan";(2)"Chat 要突出"具体形式——操作者选择"中间悬浮圆形按钮,同 Figma 参考"。
+
+交付:底部导航从横向 5 等分改为两侧(Trips/Explore)+ 中间悬浮 Chat 圆形按钮 + 两侧(Tools/Me)的自定义布局;新增 `Trips` 页面合并原 Today(Now/Next/Later 时间轴 + Ask Butler)和 Plan(readiness + day 列表),删除 `ui/today/` 目录;新增 `Me` 页面(Profile/设置),只有"当前行程"一行是真实数据,其余明确标注为本地占位内容,不假装接入了真实账号系统。
+
+验收标准:`./gradlew :app:testDebugUnitTest :app:assembleDebug` 通过;Android 34 模拟器手动验收新导航渲染正确且可切换,Trips 内容正确合并,Me 页面数据/占位内容正确显示,全程无崩溃。
+
+排除:不实现 Tools 8 格 grid、Translator overlay、Needs Scheduling 候选区管理(这些留给后续版本);不接入真实 Supabase auth/account 系统。
+
+意外发现:构建验收过程中发现一个贯穿 `ButlerScreen.kt`/`DayDetailScreen.kt` 等既有屏幕的真实 bug——`Card` 组件内没有显式指定颜色的文字会渲染成意外的红棕色而非中性深色,这个问题在此前的版本里就已存在,只是没有被专门验证过。已用截图像素采样(而非肉眼判断)定位并修复,详见 HANDOFF.md/DESIGN.md 的完整记录。Tools/Explore 占位文案顺延为 v0.3.9/v0.3.10(因本轮用掉了 v0.3.8)。
+
 同轮追加需求:操作者提供 Figma Make 项目的本地源码导出,交叉核对确认了配色/字体/圆角/字号的准确性,并发现两处第一遍遗漏的 UI 细节。补上:Chat composer 的 Camera/Mic 图标按钮(禁用态视觉占位,真实相机/麦克风权限仍留到 v0.3.8 Translator 轮按需申请);Taxi Card 的 Speak 按钮,接入 Android 系统自带 `TextToSpeech`(不需要运行时权限,不违反既定的权限按需申请原则,因此直接接了真实功能)。已在 Android 34 模拟器验证:TTS 引擎联网下载中文语音包后 Speak 按钮可用,点击触发真实语音合成,无崩溃。

@@ -1,4 +1,4 @@
-package space.go2china.visepanda.ui.today
+package space.go2china.visepanda.ui.trips
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,28 +12,36 @@ import space.go2china.visepanda.data.model.TripCompleteness
 import space.go2china.visepanda.data.model.TripTimeline
 import space.go2china.visepanda.data.repository.TripRepository
 
+/**
+ * Backs the merged Trips surface (former Today + Plan) — see
+ * DESIGN.md ADR-110 for why these two were combined into one destination
+ * in the v0.3.8 nav restructure.
+ */
 @HiltViewModel
-class TodayViewModel @Inject constructor(
+class TripsViewModel @Inject constructor(
     tripRepository: TripRepository,
 ) : ViewModel() {
 
-    val uiState: StateFlow<TodayUiState> = combine(
+    val uiState: StateFlow<TripsUiState> = combine(
         tripRepository.observeActiveTrip(),
         tripRepository.observeOffline(),
     ) { trip, offline ->
         if (trip == null) {
-            TodayUiState.Empty
+            TripsUiState.Empty
         } else {
-            TodayUiState.Content(
+            TripsUiState.Content(
                 trip = trip,
                 timeline = TripTimeline.buildTimeline(trip),
                 readinessScore = TripCompleteness.calculateTripCompleteness(trip).score,
+                dayCompleteness = trip.days.associate { day ->
+                    day.day to TripCompleteness.calculateDayCompleteness(day)
+                },
                 offline = offline,
             )
         }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = TodayUiState.Loading,
+        initialValue = TripsUiState.Loading,
     )
 }

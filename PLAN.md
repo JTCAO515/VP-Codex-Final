@@ -220,11 +220,12 @@
 - [x] 任务 14.1：`v0.3.1` Android 原生 APK 专项规划——建立 Kotlin + Jetpack Compose + Material 3 + Room/DataStore + MVI/StateFlow 的原生方向，明确 Web 降级为维护支线。
 - [x] 任务 14.2：`v0.3.2` Android planning synthesis——审核并行 agent 的 GitHub 规划，融合 Today-first 产品模型，定稿 `docs/planning/v0.3.2-android-planning-synthesis.md`。
 - [x] 任务 14.3：`v0.3.3` Android Native Foundation——原生工程基础、应用身份、Compose shell、Today / Butler / Plan / Explore / Tools 五 surface、静态 screen skeleton、本地 mock trip adapter。**代码已产出**(`android/` 目录),**⚠️ 未经真实 Gradle 构建验证**(沙箱无 SDK 且 Google Maven 被拦截,详见 `android/README.md`)。
-- [x] 任务 14.4：`v0.3.4` Today + Plan Execution MVP——Today 首页、Now/Next/Later、Plan day list、Day Detail、Taxi Driver Card 显性按钮、booking readiness。**代码已产出**,与 14.3 合并一轮交付(操作者要求);v0.3.5 已补上真实 Gradle 构建验证与 Android 34 模拟器手动验收。`Needs Scheduling candidates` 状态未在本轮实现(v0.3.4 范围内的 Plan/Day Detail 只展示 mock 数据里已有的 booking candidate "Info only" 标签,候选态管理逻辑留给 v0.3.9 Explore + Candidate Pipeline 一起做,避免在没有真实候选来源前先造一套候选 UI 状态机)。
+- [x] 任务 14.4：`v0.3.4` Today + Plan Execution MVP——Today 首页、Now/Next/Later、Plan day list、Day Detail、Taxi Driver Card 显性按钮、booking readiness。**代码已产出**,与 14.3 合并一轮交付(操作者要求);v0.3.5 已补上真实 Gradle 构建验证与 Android 34 模拟器手动验收。`Needs Scheduling candidates` 状态未在本轮实现(候选态管理逻辑留给 `v0.3.10` Explore + Candidate Pipeline 一起做,避免在没有真实候选来源前先造一套候选 UI 状态机)。**v0.3.8 更新**:Today 和 Plan 已合并为 `Trips` 单一页面,`ui/today/` 目录已删除,详见下方"v0.3.8 附录"。
 - [x] 任务 14.5：`v0.3.5`(构建验证收尾)+ `v0.3.6`(Butler + Sync Bridge,原计划编号)——已连接 `/api/chat`、`CanvasPatch`/structured response 契约、本地 Room 缓存 + mock fallback;Supabase auth/trips/messages 真实云端同步、guest draft 迁移、Butler change digest 仍未实现,留给后续版本。
-- [x] 任务 14.5b：`v0.3.7` Android 视觉层对齐 Figma Make 设计参考——配色/字体/圆角/Taxi Card 字号对齐操作者提供的 Figma Make 文件,产品结构(导航形态、Today 首页、路线图节奏)保持不变,详见下方"v0.3.7 附录"。
-- [ ] 任务 14.6：`v0.3.8` Native Translator Utility(原 v0.3.6,因 v0.3.6/v0.3.7 被占用顺延两位)——文本/相机/语音/短语翻译入口、权限拒绝与离线 fallback。
-- [ ] 任务 14.7：`v0.3.9` Explore + Candidate Pipeline(原 v0.3.7,顺延两位)——消费 Explore/Amap route,实现 POI cards、Add to Plan、Save for Later、Needs Scheduling。
+- [x] 任务 14.5b：`v0.3.7` Android 视觉层对齐 Figma Make 设计参考——配色/字体/圆角/Taxi Card 字号对齐操作者提供的 Figma Make 文件,详见下方"v0.3.7 附录"。
+- [x] 任务 14.5c：`v0.3.8` 底部导航产品结构重构(操作者临时插入,不在原排期内)——Trips/Explore/Chat/Tools/Me,Chat 中间悬浮凸起,详见下方"v0.3.8 附录"。
+- [ ] 任务 14.6：`v0.3.9` Native Translator Utility(原 v0.3.6,因 v0.3.6/v0.3.7/v0.3.8 被占用顺延三位)——文本/相机/语音/短语翻译入口、权限拒绝与离线 fallback。
+- [ ] 任务 14.7：`v0.3.10` Explore + Candidate Pipeline(原 v0.3.7,顺延三位)——消费 Explore/Amap route,实现 POI cards、Add to Plan、Save for Later、Needs Scheduling。
 - [ ] 任务 14.8：应用商店与分发——Play Console；中国分发单独 track（ICP 备案 + 软著 + MIIT 登记），法务/运营与工程并行。iOS 作为独立后续规划，不套用 Android Compose 细节。
 
 ### 阶段十五：Tools 功能化升级（6 个工具给真实效果）
@@ -768,9 +769,12 @@ Next three planned iterations:
   - **未完成,留给后续版本**:Supabase auth/trips/messages 真实云端同步、guest draft 迁移、Butler change digest UI——当前 `RoomTripRepository` 只做本地缓存,没有远端持久化。
 - [x] `v0.3.7` Android 视觉层对齐 Figma Make 设计参考(操作者临时插入的一轮,不在原排期内,见下方"v0.3.7 附录"):
   - 配色/字体/圆角/Taxi Card 字号对齐操作者提供的 Figma Make 参考文件,产品结构(导航形态、Today 首页、路线图节奏)保持不变——操作者明确选择"只做视觉层"。
-- [ ] `v0.3.8` Native Translator Utility(原 v0.3.6,因 v0.3.6/v0.3.7 被占用顺延两位):
+- [x] `v0.3.8` 底部导航产品结构重构(操作者临时插入的一轮,见下方"v0.3.8 附录"):
+  - Trips(合并 Today+Plan)/Explore/Chat(中间悬浮)/Tools/Me 五个入口,新增 Me 页面。
+  - 意外发现并修复一处贯穿多屏幕的 Card 文字颜色 bug(详见附录)。
+- [ ] `v0.3.9` Native Translator Utility(原 v0.3.6,因 v0.3.6/v0.3.7/v0.3.8 被占用顺延三位):
   - 实现文本/相机/语音/短语翻译入口、权限拒绝与离线 fallback 状态。
-- [ ] `v0.3.9` Explore + Candidate Pipeline(原 v0.3.7,顺延两位):
+- [ ] `v0.3.10` Explore + Candidate Pipeline(原 v0.3.7,顺延三位):
   - 消费现有 Explore/Amap route,实现 POI cards、Add to Plan、Save for Later、Needs Scheduling 与 source/confidence/fit rationale。
 
 ## v0.3.4 / v0.3.5 附录 —— Android Native Foundation + Today/Plan Execution MVP(代码已产出并已真实验证)
@@ -780,13 +784,13 @@ Next three planned iterations:
 - [x] **Today**(`ui/today/`):trip 标题、readiness 百分比、Now/Next/Later 时间轴(已在 `TripTimeline.kt` 注释里诚实标注局限——`TripState` 无真实开始日期字段,当前用首日/前两 block 做演示占位)、Ask Butler 入口、离线横幅。
 - [x] **Plan + Day Detail**(`ui/plan/`):行程 readiness 进度条、Day 卡列表(完成度徽标)、独立 Day Detail 页(非 Bottom Sheet)展示 block 详情/地址/营业时间/booking candidate("Info only" 统一标签)。
 - [x] **Taxi Driver Card**(`ui/components/TaxiDriverCard.kt`):单一共享组件,仅通过 Today 与 Day Detail 的显性按钮触发,落实 v0.3.2 对隐藏手势/电源键触发方案的否决;支持大字展示与复制中文地址到剪贴板。
-- [x] **Butler / Explore / Tools**(`ui/butler`/`ui/explore`/`ui/tools`):当时诚实占位页,分别标注将在 v0.3.5/v0.3.7/v0.3.6 实现——实际交付顺序见下方各版本附录,Butler 已在 v0.3.6 实现,v0.3.7 是插入的视觉对齐轮,Explore/Tools 占位文案已顺延为 v0.3.9/v0.3.8。
+- [x] **Butler / Explore / Tools**(`ui/butler`/`ui/explore`/`ui/tools`):当时诚实占位页,分别标注将在 v0.3.5/v0.3.7/v0.3.6 实现——实际交付顺序见下方各版本附录,Butler 已在 v0.3.6 实现,v0.3.7 是插入的视觉对齐轮,v0.3.8 是插入的底部导航重构轮,Explore/Tools 占位文案已顺延为 v0.3.10/v0.3.9。
 - [x] **数据层**:`data/model/TripModels.kt` 是 `lib/types/trip.ts` 的 1:1 Kotlin 镜像;`MockTripData.kt` 逐字段移植自 `lib/mock-ai/mockButler.ts` 的 `initialTripState`;`TripCompleteness.kt` 移植自 `lib/trips/completeness.ts`,含四舍五入行为对齐(`roundToInt` 而非整数除法截断)。`data/repository/TripRepository.kt` 接口 + `MockTripRepository` 实现;`data/local/`(Room)与 `data/datastore/`(DataStore)已定义但未深接,为 v0.3.5 预留。
 - [x] **视觉**:`ui/theme/` 精确对齐 `app/globals.css` 的 `--paper`/`--cinnabar`/`--gold`/`--sage` 十六进制值,主动关闭 Material 3 Dynamic Color。
-- [x] Needs Scheduling 候选态管理**未在本轮实现**——推迟到 `v0.3.9` 与 Explore 候选管道一起做,避免在没有真实候选来源前先造一套候选 UI 状态机。
+- [x] Needs Scheduling 候选态管理**未在本轮实现**——推迟到 `v0.3.10` 与 Explore 候选管道一起做,避免在没有真实候选来源前先造一套候选 UI 状态机。
 - [x] `v0.3.5` 构建验证收尾:已生成 Gradle wrapper;修复 Kotlin 2.0 Compose compiler plugin、`getValue` import、Material 3 `TopAppBar` opt-in 三类真实编译错误;`./gradlew :app:assembleDebug` 已在非沙箱本机真实通过并产出约 17.5MB debug APK;Android 34 模拟器手动验收五 surface、Day Detail、Taxi Driver Card、复制中文地址和断网 mock fallback 全部通过。
 - [x] `v0.3.6` Butler + Sync Bridge I 已完成:详见下方"v0.3.6 附录"。Chat 现在是默认首页(此前这里写的"如改为 Chat 默认打开需要单独功能轮实现"已在本轮落实)。
-- [x] UI 参考:操作者提供的 Figma Make `Design According to MD Document` 已在 v0.3.7 读取并采纳其视觉系统(配色/字体/圆角/Taxi Card 字号),详见下方"v0.3.7 附录"。底部导航五个 surface 顺序仍是 Today/Chat/Plan/Explore/Tools(未采纳 Figma 的两侧+悬浮按钮形态与 "Me" tab,操作者明确选择只做视觉层)。
+- [x] UI 参考:操作者提供的 Figma Make `Design According to MD Document` 已在 v0.3.7 读取并采纳其视觉系统(配色/字体/圆角/Taxi Card 字号),详见下方"v0.3.7 附录"。**v0.3.8 更新**:操作者随后明确要求采纳 Figma 的两侧+悬浮按钮底部导航形态和 "Me" tab,底部导航五个 surface 顺序现为 Trips/Explore/Chat/Tools/Me,详见下方"v0.3.8 附录"。
 
 ## v0.3.6 附录 —— Butler + Sync Bridge I(代码已产出并已真实验证)
 
@@ -796,7 +800,7 @@ Next three planned iterations:
 - [x] **本地缓存 + API Bridge**:`TripCacheEntity.kt` 加 `messagesJson`,`VisePandaDatabase.kt` 版本号升到 2,新增 `data/serialization/TripJson.kt`、`data/remote/ButlerApiService.kt`(Retrofit 调 `/api/chat`)、`data/repository/RoomTripRepository.kt`(替换 `MockTripRepository` 绑定,失败走本地 fallback)、`NativeButlerFallback.kt`(诚实离线兜底文案,不假装实时 AI,不生成真实交易能力)。
 - [x] **DI/网络**:`di/AppModule.kt` 绑定切到 `RoomTripRepository`,新增 Retrofit/OkHttp/Gson provider;`android/app/build.gradle.kts` 加 `BuildConfig.VISEPANDA_API_BASE_URL`,`AndroidManifest.xml` 加 `INTERNET`/`ACCESS_NETWORK_STATE` 权限。
 - [x] **测试**:新增 `CanvasPatchApplierTest.kt`、`NativeButlerFallbackTest.kt`,均通过。
-- [x] **真实构建与手动验收**(本轮在非沙箱 macOS + Android Studio JBR 环境完成,上一轮 Codex 沙箱因网络/Gradle service 限制无法验证):`./gradlew :app:testDebugUnitTest :app:assembleDebug` 一次性 `BUILD SUCCESSFUL`(没有 v0.3.4 那批遇到的真实编译错误需要修);4 个单元测试全部通过;Android 34 模拟器验收 Chat 默认首页、五 Tab 切换、消息发送→`/api/chat` 失败→`NativeButlerFallback` 完整链路、Today 页面离线横幅与数据完整性均通过;Explore/Tools 占位当时顺延为 v0.3.8/v0.3.7,因 v0.3.7 后来被视觉对齐轮占用,现已再顺延为 v0.3.9/v0.3.8(见下方 v0.3.7 附录)。
+- [x] **真实构建与手动验收**(本轮在非沙箱 macOS + Android Studio JBR 环境完成,上一轮 Codex 沙箱因网络/Gradle service 限制无法验证):`./gradlew :app:testDebugUnitTest :app:assembleDebug` 一次性 `BUILD SUCCESSFUL`(没有 v0.3.4 那批遇到的真实编译错误需要修);4 个单元测试全部通过;Android 34 模拟器验收 Chat 默认首页、五 Tab 切换、消息发送→`/api/chat` 失败→`NativeButlerFallback` 完整链路、Today 页面离线横幅与数据完整性均通过;Explore/Tools 占位当时顺延为 v0.3.8/v0.3.7,因 v0.3.7/v0.3.8 后来分别被视觉对齐轮和底部导航重构轮占用,现已再顺延为 v0.3.10/v0.3.9(见下方各版本附录)。
 - [ ] **观察记录(非阻塞)**:`NativeButlerFallback.createPatch` 用简单关键词匹配(nanjing/shanghai/beijing)决定是否改写行程标题,离线场景下可能误伤,建议后续评估更保守的触发条件。
 - [ ] **留给后续版本**:Supabase auth/trips/messages 真实云端同步、guest draft 迁移路径、Butler change digest UI——当前只是本地 Room 缓存 + `/api/chat` 直连,没有做云端持久化闭环。
 
@@ -811,7 +815,20 @@ Next three planned iterations:
 - [x] **明确未采纳**(超出"视觉层"范围,留给操作者未来决定):底部导航形态(横向 5 等分 → 两侧+中间悬浮 Chat 按钮)、"Me" 新 tab(取代 Today)、Plan 提前加入 Needs Scheduling 候选区、Tools 8 格 utility grid、Translator 全屏 overlay。
 - [x] **真实构建与手动验收**:`./gradlew :app:testDebugUnitTest :app:assembleDebug` 先跑出一个真实编译错误(`FontVariation`/`FontVariation.weight` 需要 `@OptIn(ExperimentalTextApi::class)`,与之前 `TopAppBar`/`ExperimentalMaterial3Api` 同一类问题),修复后 `BUILD SUCCESSFUL`;Android 34 模拟器手动验收新配色/字体/圆角渲染正常,Taxi Card 52sp 地址修复后不再重叠,复制功能正常,全程无崩溃。
 - [x] `strings.xml` 里 Tools/Explore 占位文案顺延为 v0.3.8/v0.3.9(因本轮用掉了 v0.3.7)。
-- [x] **同轮追加**:操作者提供 Figma Make 项目本地源码导出(`/Users/jtcao/Downloads/Design According to MD Document/`),交叉核对确认上述视觉 token 均准确,同时补上两处第一遍漏掉的 UI 细节:`ui/butler/ButlerScreen.kt` Chat composer 加 Camera/Mic 禁用态图标按钮(真实权限仍留到 v0.3.8 Translator 轮按需申请);`ui/components/TaxiDriverCard.kt` 加 Speak 按钮接入 Android 系统 `TextToSpeech`(TTS 不需要运行时权限,不违反既定的权限按需申请原则,直接接了真实功能而非占位)。Android 34 模拟器验证:Speak 按钮在系统下载 zh-CN 语音包后从禁用变可用,点击后 logcat 确认真实触发中文语音合成,无崩溃;`./gradlew :app:testDebugUnitTest :app:assembleDebug` 再次 `BUILD SUCCESSFUL`。
+- [x] **同轮追加**:操作者提供 Figma Make 项目本地源码导出(`/Users/jtcao/Downloads/Design According to MD Document/`),交叉核对确认上述视觉 token 均准确,同时补上两处第一遍漏掉的 UI 细节:`ui/butler/ButlerScreen.kt` Chat composer 加 Camera/Mic 禁用态图标按钮(真实权限仍留到 v0.3.9 Translator 轮按需申请);`ui/components/TaxiDriverCard.kt` 加 Speak 按钮接入 Android 系统 `TextToSpeech`(TTS 不需要运行时权限,不违反既定的权限按需申请原则,直接接了真实功能而非占位)。Android 34 模拟器验证:Speak 按钮在系统下载 zh-CN 语音包后从禁用变可用,点击后 logcat 确认真实触发中文语音合成,无崩溃;`./gradlew :app:testDebugUnitTest :app:assembleDebug` 再次 `BUILD SUCCESSFUL`。
+
+## v0.3.8 附录 —— 底部导航产品结构重构:Trips / Explore / Chat / Tools / Me(代码已产出并已真实验证)
+
+- [x] **触发与范围界定**:操作者发消息"底部导航栏顺序Trips/Explore/Chat/Tools/Me（account），Chat要突出"。这是产品结构改动请求(不同于 v0.3.7"只做视觉层"的范围),用 `AskUserQuestion` 确认两点:Trips = 合并 Today + Plan;"Chat 要突出" = 中间悬浮圆形按钮(同 v0.3.7 附录里记录的、当时未采纳的 Figma 两侧+悬浮导航形态)。
+- [x] **导航结构**:`navigation/AppDestination.kt` 的 `TopLevelDestination` 重写为 Trips/Explore/Butler(Chat)/Tools/Me,新增 `leftOfCenter`/`rightOfCenter` 分组;`navigation/VisePandaBottomBar.kt` 完全重写为自定义 `Box` 叠加布局——底部 `Surface` 放两侧四个入口(中间留白),上层叠一个 58dp 圆形红色 Chat 按钮(`shadow` + `CircleShape` + 负 `offset` 上浮),视觉上明显凸起于其他入口;`navigation/VisePandaNavHost.kt` 路由相应更新。
+- [x] **Trips 页面**(`ui/trips/TripsScreen.kt`/`TripsViewModel.kt`/`TripsUiState.kt`):合并原 `ui/today/`(Now/Next/Later 时间轴 + Ask Butler 入口)和原 `ui/plan/PlanScreen.kt`(readiness 进度条 + Day 列表)为一个页面,`TripsViewModel` 用 `combine` 同时订阅行程与离线状态。已删除整个 `ui/today/` 目录和 `ui/plan/PlanScreen.kt`/`PlanViewModel.kt`/`PlanUiState.kt`(保留 `DayDetailScreen.kt`/`DayDetailViewModel.kt` 不变)。
+- [x] **Me 页面**(`ui/me/MeScreen.kt`/`MeViewModel.kt`):新增的 Profile/设置页。只有"当前行程"一行是真实数据(读自 `TripRepository`,显示为"Active"),其余 Preferences/Data & Privacy 区块都是明确标注"本地示例数据,尚未接入真实账号系统"的诚实占位内容,不伪造虚假的用户偏好数据。
+- [x] **意外发现并修复:贯穿多个既有屏幕的 Card 文字颜色 bug**。构建 Trips/Me 页面验收截图时,发现 `Card` 内没有显式指定颜色的 `Text` 渲染成了意外的红棕色(接近 `error`/`CinnabarDeep` 色值)而非中性深色,这个问题实际上从更早的版本起就存在于 `ButlerScreen.kt`/`DayDetailScreen.kt` 里,只是之前的验收没有专门核实过这个细节。用 Python/Pillow 对截图做像素采样精确定位问题范围(而非仅凭肉眼判断)。
+  - 第一次尝试(未成功):补全 `Theme.kt` 里 `lightColorScheme()` 遗漏的十几个 Material 3 角色(此前只设置约 16/30 个),复测后确认未解决问题。
+  - 最终修复:给所有受影响的 `Text` 显式补上 `onSurface`/`onSurfaceVariant` 颜色,不再依赖 Card 的默认继承色。涉及 `ButlerScreen.kt`(欢迎卡片标题、消息气泡内容)、`DayDetailScreen.kt`(`BlockDetailCard`/`BookingCandidateRow`)、`TripsScreen.kt`(`TimelineEntryCard`/`DayCard`)、`MeScreen.kt`(`SettingsSection`)。
+  - `Color.kt`/`Theme.kt` 补全的完整 `ColorScheme` 予以保留(更规范的写法,即使未直接解决这次的具体 bug)。
+- [x] **真实构建与手动验收**:编译过程中遇到一次 Gradle 增量构建的陈旧产物冲突(`DexArchiveBuilderException: Type ... is defined multiple times`,删除 `PlanScreen.kt` 等文件后的正常现象,非代码错误),`./gradlew clean` 后重新编译通过。`./gradlew :app:testDebugUnitTest :app:assembleDebug` 最终 `BUILD SUCCESSFUL`;Android 34 模拟器验收新底部导航渲染正确且可切换、Trips 页面正确合并显示、Me 页面真实数据+占位内容正确显示、颜色 bug 修复前后像素采样对比确认,全程无崩溃。
+- [x] `strings.xml` 里 Tools/Explore 占位文案顺延为 v0.3.9/v0.3.10(因本轮用掉了 v0.3.8)。
 
 ## v0.2.17 附录 —— 景点/餐饮/酒店数据与预订服务拓展评估(纯文档,已完成)
 

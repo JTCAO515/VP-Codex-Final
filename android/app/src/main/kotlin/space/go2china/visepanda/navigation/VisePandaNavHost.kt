@@ -13,10 +13,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import space.go2china.visepanda.ui.butler.ButlerScreen
 import space.go2china.visepanda.ui.explore.ExploreScreen
+import space.go2china.visepanda.ui.me.MeScreen
 import space.go2china.visepanda.ui.plan.DayDetailScreen
-import space.go2china.visepanda.ui.plan.PlanScreen
-import space.go2china.visepanda.ui.today.TodayScreen
 import space.go2china.visepanda.ui.tools.ToolsScreen
+import space.go2china.visepanda.ui.trips.TripsScreen
 
 @Composable
 fun VisePandaApp() {
@@ -32,24 +32,23 @@ fun VisePandaApp() {
             startDestination = TopLevelDestination.Butler.route,
             modifier = Modifier.padding(scaffoldPadding),
         ) {
-            composable(TopLevelDestination.Today.route) {
-                TodayScreen(onAskButler = {
-                    navController.navigate(TopLevelDestination.Butler.route)
-                })
+            composable(TopLevelDestination.Trips.route) {
+                TripsScreen(
+                    onAskButler = { navController.navigate(TopLevelDestination.Butler.route) },
+                    onOpenDay = { dayNumber -> navController.navigate(DetailDestinations.dayDetailRoute(dayNumber)) },
+                )
             }
             composable(TopLevelDestination.Butler.route) {
                 ButlerScreen()
-            }
-            composable(TopLevelDestination.Plan.route) {
-                PlanScreen(onOpenDay = { dayNumber ->
-                    navController.navigate(DetailDestinations.dayDetailRoute(dayNumber))
-                })
             }
             composable(TopLevelDestination.Explore.route) {
                 ExploreScreen()
             }
             composable(TopLevelDestination.Tools.route) {
                 ToolsScreen()
+            }
+            composable(TopLevelDestination.Me.route) {
+                MeScreen()
             }
             composable(
                 route = DetailDestinations.DAY_DETAIL_ROUTE,

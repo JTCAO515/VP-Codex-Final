@@ -27,3 +27,33 @@ val Cinnabar = Color(0xFFC1292E)
 val CinnabarDeep = Color(0xFFA02226)
 val Gold = Color(0xFFC9A84C)
 val Sage = Color(0xFF667B5C)
+
+/**
+ * v0.3.8 addition: Material 3's `ColorScheme` has ~30 roles, and the
+ * original set above only ever specified ~16 of them. Every role left
+ * unspecified in `lightColorScheme(...)` silently falls back to Material's
+ * baseline purple palette, not anything derived from our brand colors —
+ * and `Card`'s default tonal-elevation surface blend uses exactly those
+ * unspecified roles (`surfaceTint`, `surfaceContainer*`), which can resolve
+ * to a color that doesn't byte-match any named role, making
+ * `contentColorFor()` return an unexpected value instead of a neutral
+ * ink tone. This surfaced as real, screenshot-confirmed bug: `Card`-embedded
+ * `Text` with no explicit color rendered in a reddish tone (matching
+ * `error`/`CinnabarDeep`) instead of `onSurface`/`Ink` — see DESIGN.md
+ * ADR-112. These fill in the remaining roles so every part of the scheme is
+ * deliberately chosen, not left to an off-brand baseline default.
+ */
+val InversePrimaryTint = Color(0xFFFFDAD4)
+val SecondaryContainerTint = Color(0xFFFFF3D6)
+val TertiaryContainerTint = Color(0xFFDCE8D1)
+val OnTertiaryContainerDark = Color(0xFF1F2E17)
+val ErrorContainerTint = Color(0xFFFFDAD4)
+val OnErrorContainerDark = Color(0xFF410E0B)
+val OutlineVariantLight = Color(0xFFD8CCC0)
+val SurfaceBright = Color(0xFFFFFBF7)
+val SurfaceDim = Color(0xFFE8E1D8)
+val SurfaceContainerLowest = Color(0xFFFFFFFF)
+val SurfaceContainerLow = Color(0xFFFAF3EA)
+val SurfaceContainer = Color(0xFFF5EFE1)
+val SurfaceContainerHigh = Color(0xFFEFE8DB)
+val SurfaceContainerHighest = Color(0xFFE9E1D3)

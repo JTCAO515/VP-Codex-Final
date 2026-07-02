@@ -112,13 +112,13 @@ private fun BlockDetailCard(block: TripBlock) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(Dimens.SpaceMD)) {
             Text(text = block.time.name, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
-            Text(text = block.title, style = MaterialTheme.typography.titleMedium)
-            Text(text = block.description, style = MaterialTheme.typography.bodyMedium)
+            Text(text = block.title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+            Text(text = block.description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
 
             if (block.highlights.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(Dimens.SpaceXS))
                 block.highlights.forEach { highlight ->
-                    Text(text = "• $highlight", style = MaterialTheme.typography.bodyMedium)
+                    Text(text = "• $highlight", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                 }
             }
 
@@ -145,7 +145,7 @@ private fun BlockDetailCard(block: TripBlock) {
 @Composable
 private fun BookingCandidateRow(candidate: BookingCandidate) {
     Column(modifier = Modifier.padding(top = Dimens.SpaceSM)) {
-        Text(text = candidate.label, style = MaterialTheme.typography.bodyMedium)
+        Text(text = candidate.label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
         Text(
             text = when (candidate.status) {
                 BookingCandidateStatus.InfoOnly -> stringResource(R.string.day_detail_booking_readiness_info_only)

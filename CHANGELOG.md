@@ -1,5 +1,29 @@
 # VisePanda Changelog
 
+## v0.3.8 - 2026-07-03
+
+**底部导航重构:Trips / Explore / Chat / Tools / Me,Chat 要求视觉突出。** 操作者发消息"底部导航栏顺序Trips/Explore/Chat/Tools/Me（account），Chat要突出"——这是产品结构层面的改动,不同于 v0.3.7 那轮"只做视觉层"的范围。用 `AskUserQuestion` 确认了两个关键点:Trips = 合并 Today + Plan(顶部保留 Now/Next/Later,下接 Day 列表);Chat 突出 = 中间悬浮圆形按钮(同 Figma 参考)。
+
+### 导航结构改动
+- `navigation/AppDestination.kt`:`TopLevelDestination` 重写为 Trips/Explore/Butler(Chat)/Tools/Me,新增 `leftOfCenter`/`rightOfCenter` 分组供底部导航使用。
+- `navigation/VisePandaBottomBar.kt`:完全重写,从标准 Material3 `NavigationBar` 改为自定义布局——左侧 Trips/Explore、右侧 Tools/Me,中间一个凸起的圆形红色 Chat 按钮(`Modifier.shadow` + `CircleShape` + 负 offset 上浮),视觉上明显比其他四个入口突出。
+- `navigation/VisePandaNavHost.kt`:路由注册更新为新的五个目的地。
+
+### 页面合并与新增
+- 新增 `ui/trips/`(`TripsScreen.kt`/`TripsViewModel.kt`/`TripsUiState.kt`):合并原 `Today`(Now/Next/Later 时间轴 + Ask Butler 入口)和 `Plan`(readiness 进度条 + Day 列表)为一个页面。删除整个 `ui/today/` 目录和 `ui/plan/PlanScreen.kt`/`PlanViewModel.kt`/`PlanUiState.kt`(保留 `DayDetailScreen.kt`/`DayDetailViewModel.kt`)。
+- 新增 `ui/me/`(`MeScreen.kt`/`MeViewModel.kt`):全新的 Profile/设置页面。只有"当前行程"这一行是真实数据(从 `TripRepository` 读取),其余(Preferences/Data & Privacy)都是明确标注"本地占位数据,尚未接入真实账号系统"的诚实占位内容,不假装有真实的 Supabase auth/account 系统。
+
+### 意外发现并修复:Card 内文字颜色 bug(贯穿多个既有屏幕)
+构建 Trips/Me 新页面时,通过截图像素采样(而非肉眼判断)发现:`Card` 组件内没有显式指定颜色的 `Text`,会渲染成一种意外的红棕色(接近 `error`/`CinnabarDeep` 色值),而不是预期的中性深色文字。这是个**贯穿 `ButlerScreen.kt`、`DayDetailScreen.kt` 等既有屏幕的系统性问题**,不是这轮新增代码才引入的,只是之前的验收测试没有专门核实过这个细节。
+- 根因排查:先尝试补全 `Theme.kt` 里 `lightColorScheme()` 遗漏的十几个 Material 3 角色(之前只设置了约 16/30 个,其余会静默回退到 Material 基线的紫色系默认值),但复测后确认这个补全没有解决问题。
+- 最终修复:给所有依赖"Card 默认继承色"的 `Text` 都显式补上 `MaterialTheme.colorScheme.onSurface`/`onSurfaceVariant`,不再依赖不透明的默认解析链路。已在 `ButlerScreen.kt`(欢迎卡片标题、消息气泡内容)、`DayDetailScreen.kt`(`BlockDetailCard`/`BookingCandidateRow`)、`TripsScreen.kt`(`TimelineEntryCard`/`DayCard`)、`MeScreen.kt`(`SettingsSection`)里补齐。
+- `Color.kt`/`Theme.kt` 仍然保留了补全后的完整 `ColorScheme`(更规范,即使没有直接解决这个具体 bug,也消除了未来出现类似问题的一类风险)。
+
+### 验证
+- `./gradlew :app:testDebugUnitTest :app:assembleDebug`:`BUILD SUCCESSFUL`。
+- Android 34 模拟器手动验收:新底部导航两侧+悬浮 Chat 按钮渲染正确;Trips 页面正确合并 Now/Next/Later + Day 列表;Me 页面正确显示真实行程数据 + 诚实占位内容;颜色 bug 修复前后用像素采样对比确认(而非仅凭肉眼判断),`Dietary`/`Forbidden City` 等文字从错误的红棕色变为正确的深色,`Not set`/`Active`/`NOW`/`NEXT` 等本来就该是强调色的文字未受影响;全程无崩溃。
+- `strings.xml` 里 `Tools`/`Explore` 占位文案顺延为 v0.3.9/v0.3.10(因为这轮用掉了 v0.3.8)。
+
 ## v0.3.7 - 2026-07-03
 
 **Android 视觉层对齐 Figma Make 设计参考(纯视觉,产品结构不变)。** 操作者提供了 Figma Make 文件 `Design According to MD Document`(https://www.figma.com/make/8J1WnuwCHwx60bSC6f7fQn/),要求"将布局修改为figma的设计"。读取该文件后发现它的产品结构(五屏 Chat/Plan/Explore/Tools/Me、两侧+中间悬浮按钮的底部导航)和现有 repo 路线图(Today/Chat/Plan/Explore/Tools 横向导航)有实质性差异,遂就采纳范围征询操作者,操作者选择"只做视觉层"——保留现有产品结构和路线图节奏,只对齐配色/字体/圆角/Taxi Card 字号等视觉细节。

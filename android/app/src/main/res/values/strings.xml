@@ -1,25 +1,25 @@
 <resources>
     <string name="app_name">VisePanda</string>
 
-    <!-- Bottom navigation labels — Today-first five-surface model, see
-         docs/planning/v0.3.2-android-planning-synthesis.md -->
-    <string name="nav_today">Today</string>
+    <!-- Bottom navigation labels — v0.3.8 restructure: Trips / Explore / Chat
+         (center, raised) / Tools / Me, replacing the v0.3.2-v0.3.7
+         Today-first five-surface horizontal model. See
+         docs/planning/v0.3.2-android-planning-synthesis.md for the original
+         model and DESIGN.md ADR-110 for why it changed. -->
+    <string name="nav_trips">Trips</string>
     <string name="nav_butler">Chat</string>
-    <string name="nav_plan">Plan</string>
     <string name="nav_explore">Explore</string>
     <string name="nav_tools">Tools</string>
+    <string name="nav_me">Me</string>
 
-    <string name="today_headline">Today</string>
-    <string name="today_next_action">Next</string>
-    <string name="today_now_label">Now</string>
-    <string name="today_next_label">Next</string>
-    <string name="today_later_label">Later</string>
     <string name="today_show_taxi_card">Show taxi driver card</string>
     <string name="today_ask_butler">Ask VisePanda</string>
     <string name="today_open_map">Open map</string>
     <string name="today_offline_banner">You are offline. Showing the last saved trip.</string>
 
-    <string name="plan_title">Plan</string>
+    <string name="trips_title">Trips</string>
+    <string name="trips_empty_message">Start a conversation with the Butler to build your first trip.</string>
+    <string name="trips_day_by_day_label">Day by day</string>
     <string name="plan_readiness_label">Trip readiness</string>
     <string name="plan_day_label">Day %1$d</string>
     <string name="plan_needs_scheduling">Needs scheduling</string>
@@ -40,11 +40,25 @@
     <string name="butler_placeholder_title">Chat is ready</string>
     <string name="butler_placeholder_body">Ask VisePanda to refine the active trip.</string>
 
-    <string name="explore_placeholder_title">Explore is coming in v0.3.9</string>
+    <string name="explore_placeholder_title">Explore is coming in v0.3.10</string>
     <string name="explore_placeholder_body">Attraction, food, and hotel discovery will reuse the existing Explore/Amap API route.</string>
 
-    <string name="tools_placeholder_title">Tools is coming in v0.3.8</string>
+    <string name="tools_placeholder_title">Tools is coming in v0.3.9</string>
     <string name="tools_placeholder_body">Translator, payment setup, currency, and entry checklist utilities land with the native Translator round.</string>
+
+    <string name="me_title">Me</string>
+    <string name="me_placeholder_notice">This profile view uses local example data — no real account system is connected yet.</string>
+    <string name="me_section_preferences">Preferences</string>
+    <string name="me_pref_dietary">Dietary</string>
+    <string name="me_pref_budget">Daily budget</string>
+    <string name="me_pref_crowd">Crowd preference</string>
+    <string name="me_section_trips">Trips</string>
+    <string name="me_trip_active">Active</string>
+    <string name="me_trips_empty">No active trip yet</string>
+    <string name="me_section_privacy">Data &amp; privacy</string>
+    <string name="me_privacy_offline_data">Offline data</string>
+    <string name="me_value_not_set">Not set</string>
+    <string name="me_value_not_available">Not available yet</string>
 
     <string name="state_empty_title">Nothing here yet</string>
     <string name="state_loading">Loading…</string>

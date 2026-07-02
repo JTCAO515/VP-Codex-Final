@@ -139,6 +139,7 @@ private fun EmptyButlerPrompt(onSuggestion: (String) -> Unit) {
             Text(
                 text = "Start with what you need in China.",
                 style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
                 text = "Ask for a lighter day, booking gaps, food ideas, or a practical next step. The plan updates in Today and Plan.",
@@ -186,16 +187,21 @@ private fun MessageBubble(message: ButlerChatMessage) {
         ) {
             Column(modifier = Modifier.padding(Dimens.SpaceMD)) {
                 val response = message.response
-                if (response == null) {
-                    Text(text = message.content, style = MaterialTheme.typography.bodyLarge)
+                val bubbleContentColor = if (isUser) {
+                    MaterialTheme.colorScheme.onPrimary
                 } else {
-                    Text(text = response.headline, style = MaterialTheme.typography.titleMedium)
+                    MaterialTheme.colorScheme.onSurface
+                }
+                if (response == null) {
+                    Text(text = message.content, style = MaterialTheme.typography.bodyLarge, color = bubbleContentColor)
+                } else {
+                    Text(text = response.headline, style = MaterialTheme.typography.titleMedium, color = bubbleContentColor)
                     Spacer(modifier = Modifier.height(Dimens.SpaceXS))
-                    Text(text = response.body, style = MaterialTheme.typography.bodyMedium)
+                    Text(text = response.body, style = MaterialTheme.typography.bodyMedium, color = bubbleContentColor)
                     if (response.highlights.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(Dimens.SpaceSM))
                         response.highlights.forEach { highlight ->
-                            Text(text = "- $highlight", style = MaterialTheme.typography.bodySmall)
+                            Text(text = "- $highlight", style = MaterialTheme.typography.bodySmall, color = bubbleContentColor)
                         }
                     }
                     response.watchOut?.let {
