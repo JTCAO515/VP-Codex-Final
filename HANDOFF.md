@@ -4,8 +4,9 @@
  
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）；v0.1.34 桌面横屏前端优化：Tools 6 个模态卡片 + 浮层对话框、Trips 筛选按钮布局修复（过滤器始终可见）、Translator 单页 2×2 网格布局（同时展示四个功能面板无需切换 tab）。
 - 当前分支：`main`
-- 当前版本：`v0.3.5`（版本序列 `0.3.x` 原生 Android APK 主干；v0.3.4 原生代码已完成真实构建验证）
+- 当前版本：`v0.3.6`（版本序列 `0.3.x` 原生 Android APK 主干；Butler + Sync Bridge I 已实现并完成真实构建验证）
 - 重要（已完成）：
+  - v0.3.6:Native Android Butler + Sync Bridge I(原计划编号 "v0.3.5 Butler + Sync Bridge",因 v0.3.5 被构建验证收尾轮占用,实际在 v0.3.6 交付)。Chat(Butler)从诚实占位页升级为真实 Jetpack Compose 对话界面并成为默认首页(底部导航顺序 Today/Chat/Plan/Explore/Tools);新增 `data/model/ButlerModels.kt`/`CanvasPatchApplier.kt` 镜像 Web 端 `CanvasPatch`/`AssistantResponse`/merge 规则;`data/repository/RoomTripRepository.kt` 替换 `MockTripRepository` 成为真实绑定,通过 Retrofit 调用现有 `/api/chat`,失败时走 `NativeButlerFallback` 诚实兜底(不假装有实时 AI,不生成真实交易能力);Room 存储当前行程 + Butler 消息记录。上一轮 Codex 会话因沙箱无法跑 Gradle(网络/native service 受限)未能验证,已在本轮真实 macOS/Android Studio 环境补上:`./gradlew :app:testDebugUnitTest :app:assembleDebug` 一次性 `BUILD SUCCESSFUL`(与 v0.3.4 那批不同,这批代码没有真实编译错误需要修),4 个单元测试全部通过,Android 34 模拟器手动验收 Chat 默认首页、五 Tab 切换、消息发送→API 失败→offline fallback 完整链路、Today 页面数据未被破坏均通过。观察到一处非阻塞设计风险:`NativeButlerFallback` 用简单关键词匹配(nanjing/shanghai/beijing)决定是否改写行程标题,离线场景下有被误伤的可能,记录供后续评估。未做 WebView、未恢复隐藏打车卡触发、未开 Dynamic Color、未新增 Supabase schema、未实现真实支付/预订/地图/相机/麦克风。Tools/Explore 占位文案已顺延为 v0.3.7/v0.3.8。
   - v0.3.5:Android 构建验证与验收交接收尾。上一轮非沙箱 macOS/Android Studio 环境已完整跑通 `./gradlew :app:assembleDebug`，生成 `android/app/build/outputs/apk/debug/app-debug.apk`（约 17.5 MB），并在 Android 34 `google_apis/arm64-v8a` 模拟器上完成手动验收：五个底部 surface 可切换；Plan -> Day Detail 正常；Today 和 Day Detail 均可打开 Taxi Driver Card；`Copy Chinese address` 复制 `北京市东城区景山前街4号` 成功；真实关闭 Wi-Fi/data 后 mock 数据路径不崩溃。已补齐 Gradle wrapper，修复 Kotlin 2.0 Compose compiler plugin、`getValue` import、Material 3 `TopAppBar` opt-in 三类真实编译错误，并更新 `android/README.md`。操作者还提供 Lovable 预览和 Figma Make `Design According to MD Document` 作为后续 Android UI 借鉴来源；当前 Figma connector 可读取该 Make 文件的资源列表，但源码资源读取未开放，后续若要精确复刻需要截图或 node 级设计链接。下一步仍是功能性 `v0.3.5 Butler + Sync Bridge`，本收尾版本不代表 Butler sync 已完成。
   - v0.3.4:第一轮真实 Android 原生代码(v0.3.3 Native Foundation + v0.3.4 Today/Plan Execution MVP 合并交付,操作者明确要求 Android 工程放在本仓库 `android/` 子目录,monorepo)。技术栈 Kotlin + Jetpack Compose + Material 3 + Hilt + Room/DataStore(已定义未深接)+ Retrofit(为 v0.3.5 预置)。五 surface 底导(Today/Butler/Plan/Explore/Tools);Today 与 Plan+Day Detail 有真实内容,数据层从 Web 端 `lib/mock-ai/mockButler.ts`/`lib/trips/completeness.ts` 逐字段/逐规则移植,确保两端 readiness 百分比一致;Butler/Explore/Tools 为诚实占位页;打车卡组件只能通过显性按钮触发(v0.3.2 已否决隐藏手势方案)。该轮原本因沙箱无 Android SDK 而未验证；v0.3.5 已补上真实构建与模拟器验收。
   - v0.3.2 是纯文档规划融合轮：操作者说明另一个 coding agent 已把 Android 规划上传到 GitHub，要求读取、审核、蒸馏并与 Codex 自己的规划合成新版本。新增 `docs/planning/v0.3.2-android-planning-synthesis.md`，保留对方规划中 Kotlin/Jetpack Compose/Material 3/Room/DataStore/MVI/StateFlow/API 复用/权限分步/MapView 生命周期等强工程判断，同时把产品模型修正为 Today / Butler / Plan / Explore / Tools。按操作者最新要求，已从规划中移除非常规后台式打车卡入口，改为 Today / 当前行程卡 / Day Detail 显性按钮。下一轮建议 `v0.3.3 Android Native Foundation`，再到 `v0.3.4 Today + Plan Execution MVP`、`v0.3.5 Butler + Sync Bridge`。本轮不写业务代码、不创建 Android 工程、不新增 key/schema/provider/交易能力。
@@ -31,6 +32,37 @@
 - 最新实现 commit：本轮提交后以 `git log -1 --oneline` 为准
 - 当前远端：`https://github.com/JTCAO515/VP-Codex-Final.git`
 - 部署地址：`https://go2china.space`
+
+## v0.3.6 Handoff Update - Native Android Butler + Sync Bridge I
+
+- 触发来源：v0.3.5 构建验证收尾完成后，按既定路线图继续做原计划的 "Butler + Sync Bridge" 功能实现；因版本号 v0.3.5 已被验证收尾占用，本轮功能实现顺延为 v0.3.6。上一轮 Codex 会话在自己的沙箱里完成了全部代码改动并提交、推送，但因沙箱缺 Android SDK、`services.gradle.org` 网络被拦、原生 Gradle service 受限，无法运行 `./gradlew` 做真实验证，写了详细的交接提示词记录已知状态和待办清单。
+- 本轮任务：`git status`/`git diff` 确认工作区（发现其实已经干净——上一轮 Codex 会话的提交已经完成并推送到 `origin/main`，不是"未提交"状态，说明交接文档写成时的状态和最终状态之间发生了变化），随后聚焦在真实验证而非重新实现。
+- 代码改动内容（继承自上一轮，未做修改，因为编译/测试全部一次通过）：
+  - `ui/butler/ButlerScreen.kt`/`ButlerViewModel.kt`/`ButlerUiState.kt`：真实 Chat 界面（输入、发送、消息列表、starter chips、结构化 response、offline 提示）。
+  - `navigation/AppDestination.kt`：`TopLevelDestination.all` 改为 Today/Butler/Plan/Explore/Tools（Butler 居中），`VisePandaNavHost.kt` 的 `startDestination` 改为 `Butler.route`。
+  - `data/model/ButlerModels.kt`（新增）、`CanvasPatchApplier.kt`（新增）：镜像 Web 端 `CanvasPatch`/`AssistantResponse`/`TripSummaryPatch`，合并规则与 Web 端 `applyCanvasPatch` 对齐。
+  - `data/model/TripModels.kt`：枚举加 `@SerializedName` 对齐 Web JSON 序列化值。
+  - `data/local/TripCacheEntity.kt`（加 `messagesJson`）、`VisePandaDatabase.kt`（版本号升到 2）、`data/serialization/TripJson.kt`（新增，统一 Gson 编解码）。
+  - `data/remote/ButlerApiService.kt`（新增）：Retrofit 接口调用 `/api/chat`。
+  - `data/repository/RoomTripRepository.kt`（新增，替换 `MockTripRepository` 绑定）、`NativeButlerFallback.kt`（新增，诚实离线兜底文案与建议）、`TripRepository.kt`（新增 `observeButlerMessages()`/`sendButlerMessage()`）、`MockTripRepository.kt`（补齐新接口，供测试/未来复用）。
+  - `di/AppModule.kt`：`TripRepository` 绑定切到 `RoomTripRepository`；新增 Retrofit/OkHttp/Gson provider。
+  - `android/app/build.gradle.kts`：`buildFeatures.buildConfig = true`，新增 `BuildConfig.VISEPANDA_API_BASE_URL = "https://www.go2china.space/"`，`versionName` 升到 `0.3.6`。
+  - `AndroidManifest.xml`：新增 `INTERNET`/`ACCESS_NETWORK_STATE` 权限。
+  - 新增测试：`CanvasPatchApplierTest.kt`、`NativeButlerFallbackTest.kt`。
+- **本轮真实验证记录**（在真实 macOS + Android Studio 自带 JBR JDK 21 环境完成，非沙箱）：
+  - `local.properties` 补上 `sdk.dir`（不同工作区拷贝需要各自的 `local.properties`，不入库）。
+  - `./gradlew :app:testDebugUnitTest :app:assembleDebug` **一次性 `BUILD SUCCESSFUL`**，没有出现 v0.3.4 那批代码曾经遇到的真实编译错误类型（Compose compiler plugin/getValue import/Material3 opt-in 这次全部提前写对了）。
+  - 单元测试结果：`CanvasPatchApplierTest` 2/2 通过、`NativeButlerFallbackTest` 2/2 通过，0 failures/errors。
+  - Android 34 `google_apis/arm64-v8a` 模拟器手动验收：
+    - 冷启动默认落在 Chat 页；第一次截图时底部导航高亮看似缺失，第二次冷启动多等待几秒后确认正确高亮 Chat——判定为截图时机竞态的误报，不是真实 bug。
+    - 五个 Tab 顺序 Today/Chat/Plan/Explore/Tools 正确，均可点击切换。
+    - 点击 Chat 的 "Make today easier" starter chip，真实发起 `/api/chat` 调用，因模拟器无法访问 `https://www.go2china.space/api/chat`（该路由不对本地模拟器开放/不存在），请求失败，`runCatching` 正确捕获，走 `NativeButlerFallback`：标题栏显示 "Offline fallback · native mock fallback"，assistant 气泡展示 "Saved for the Butler" 诚实文案（"The native app could not reach the live AI service..."），后续 suggestion chips 变为 "Try again when online"/"Show my current plan"。
+    - 切到 Today 页面确认正确显示 "You are offline. Showing the last saved trip." 横幅，行程标题（"China Trip Draft"）和 83% readiness 未被破坏——因为这次消息不含城市关键词，`NativeButlerFallback` 的标题改写分支未触发。
+    - Explore/Tools 占位页文案确认已正确顺延为 v0.3.8/v0.3.7，彼此不冲突。
+    - `logcat` 全程无 `FATAL`/`AndroidRuntime` 崩溃。
+  - **观察记录（非阻塞）**：`NativeButlerFallback.createPatch` 里，判断是否改写行程标题用的是 `lower.contains("nanjing"/"shanghai"/"beijing")` 简单关键词匹配，即便是完全离线、无法做真实语义理解的兜底路径也会生效。这意味着用户发一条提到城市名但意图并非改标题的消息（例如"别把行程搞得像南京团一样敷衍"），标题可能被误改。建议后续版本收紧触发条件或去掉这个"伪智能"分支。
+- 未改动任何 Web 端代码、`/api/*` 路由或 Supabase schema；未做 WebView 套壳；未恢复隐藏打车卡触发方式；未开启 Material 3 Dynamic Color；未实现真实支付/预订/订单/地图/相机/麦克风能力。
+- 下一步建议：真正接入 Supabase auth/trips/messages 持久化（当前 `RoomTripRepository` 只做本地 Room 缓存，没有云端同步）、guest draft 迁移路径、Butler change digest UI。
 
 ## v0.3.4 Handoff Update - 第一轮真实 Android 原生代码（v0.3.3 + v0.3.4 合并交付）
 

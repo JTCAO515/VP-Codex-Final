@@ -761,11 +761,13 @@ Next three planned iterations:
 下一步核心原生主线排期建议:
 
 - [x] `v0.3.3` + `v0.3.4` 已合并一轮完成(操作者要求),见下方"v0.3.4 附录"。
-- [ ] `v0.3.5` Butler + Sync Bridge:
-  - 连接现有 `/api/chat`、`CanvasPatch`/structured response、Supabase auth/trips/messages、guest draft 迁移、Butler change digest 与 mock fallback。
-- [ ] `v0.3.6` Native Translator Utility:
+- [x] `v0.3.5` 构建验证收尾(版本号被此收尾轮占用,见下方"v0.3.5 附录")。
+- [x] `v0.3.6` Butler + Sync Bridge I(原计划编号 "v0.3.5",因上一条占用版本号顺延至此,见下方"v0.3.6 附录"):
+  - 已连接现有 `/api/chat`、镜像 `CanvasPatch`/structured response 契约、本地 Room 缓存 + mock fallback。
+  - **未完成,留给后续版本**:Supabase auth/trips/messages 真实云端同步、guest draft 迁移、Butler change digest UI——当前 `RoomTripRepository` 只做本地缓存,没有远端持久化。
+- [ ] `v0.3.7` Native Translator Utility(原 v0.3.6,顺延一位):
   - 实现文本/相机/语音/短语翻译入口、权限拒绝与离线 fallback 状态。
-- [ ] `v0.3.7` Explore + Candidate Pipeline:
+- [ ] `v0.3.8` Explore + Candidate Pipeline(原 v0.3.7,顺延一位):
   - 消费现有 Explore/Amap route,实现 POI cards、Add to Plan、Save for Later、Needs Scheduling 与 source/confidence/fit rationale。
 
 ## v0.3.4 / v0.3.5 附录 —— Android Native Foundation + Today/Plan Execution MVP(代码已产出并已真实验证)
@@ -775,13 +777,25 @@ Next three planned iterations:
 - [x] **Today**(`ui/today/`):trip 标题、readiness 百分比、Now/Next/Later 时间轴(已在 `TripTimeline.kt` 注释里诚实标注局限——`TripState` 无真实开始日期字段,当前用首日/前两 block 做演示占位)、Ask Butler 入口、离线横幅。
 - [x] **Plan + Day Detail**(`ui/plan/`):行程 readiness 进度条、Day 卡列表(完成度徽标)、独立 Day Detail 页(非 Bottom Sheet)展示 block 详情/地址/营业时间/booking candidate("Info only" 统一标签)。
 - [x] **Taxi Driver Card**(`ui/components/TaxiDriverCard.kt`):单一共享组件,仅通过 Today 与 Day Detail 的显性按钮触发,落实 v0.3.2 对隐藏手势/电源键触发方案的否决;支持大字展示与复制中文地址到剪贴板。
-- [x] **Butler / Explore / Tools**(`ui/butler`/`ui/explore`/`ui/tools`):诚实占位页,分别标注将在 v0.3.5/v0.3.7/v0.3.6 实现。
+- [x] **Butler / Explore / Tools**(`ui/butler`/`ui/explore`/`ui/tools`):当时诚实占位页,分别标注将在 v0.3.5/v0.3.7/v0.3.6 实现——实际交付顺序见下方 v0.3.6/v0.3.7/v0.3.8 附录,Butler 已在 v0.3.6 实现,Explore/Tools 占位文案已顺延为 v0.3.8/v0.3.7。
 - [x] **数据层**:`data/model/TripModels.kt` 是 `lib/types/trip.ts` 的 1:1 Kotlin 镜像;`MockTripData.kt` 逐字段移植自 `lib/mock-ai/mockButler.ts` 的 `initialTripState`;`TripCompleteness.kt` 移植自 `lib/trips/completeness.ts`,含四舍五入行为对齐(`roundToInt` 而非整数除法截断)。`data/repository/TripRepository.kt` 接口 + `MockTripRepository` 实现;`data/local/`(Room)与 `data/datastore/`(DataStore)已定义但未深接,为 v0.3.5 预留。
 - [x] **视觉**:`ui/theme/` 精确对齐 `app/globals.css` 的 `--paper`/`--cinnabar`/`--gold`/`--sage` 十六进制值,主动关闭 Material 3 Dynamic Color。
 - [x] Needs Scheduling 候选态管理**未在本轮实现**——推迟到 `v0.3.7` 与 Explore 候选管道一起做,避免在没有真实候选来源前先造一套候选 UI 状态机。
 - [x] `v0.3.5` 构建验证收尾:已生成 Gradle wrapper;修复 Kotlin 2.0 Compose compiler plugin、`getValue` import、Material 3 `TopAppBar` opt-in 三类真实编译错误;`./gradlew :app:assembleDebug` 已在非沙箱本机真实通过并产出约 17.5MB debug APK;Android 34 模拟器手动验收五 surface、Day Detail、Taxi Driver Card、复制中文地址和断网 mock fallback 全部通过。
-- [ ] `v0.3.5` 后续功能实现:Butler + Sync Bridge 仍未开始,下一步接 `/api/chat`、CanvasPatch/structured response、Supabase auth/trips/messages、guest draft 迁移和 Butler change digest。
-- [ ] UI 参考:后续 Android UI 优化可借鉴操作者提供的 Lovable 预览和 Figma Make `Design According to MD Document`;底部导航必须保持五个 surface,Chat/Butler 需要成为中心体验,但当前真实代码仍是 Today 默认首页,如改为 Chat 默认打开需要单独功能轮实现。
+- [x] `v0.3.6` Butler + Sync Bridge I 已完成:详见下方"v0.3.6 附录"。Chat 现在是默认首页(此前这里写的"如改为 Chat 默认打开需要单独功能轮实现"已在本轮落实)。
+- [ ] UI 参考:后续 Android UI 优化可借鉴操作者提供的 Lovable 预览和 Figma Make `Design According to MD Document`;底部导航五个 surface 顺序已确认为 Today/Chat/Plan/Explore/Tools,Chat 现在是中心体验且为默认首页。
+
+## v0.3.6 附录 —— Butler + Sync Bridge I(代码已产出并已真实验证)
+
+- [x] **Butler Chat 真实界面**(`ui/butler/ButlerScreen.kt`/`ButlerViewModel.kt`/`ButlerUiState.kt`):输入框、发送、消息列表、starter chips、结构化 assistant response 展示、offline fallback 状态提示,替换掉此前的诚实占位页。
+- [x] **导航调整**:`TopLevelDestination.all` 改为 Today/Butler/Plan/Explore/Tools(Butler 居中),`VisePandaNavHost.kt` 的 `startDestination` 改为 Butler,`strings.xml` 的 `nav_butler` 文案改为 "Chat"。
+- [x] **CanvasPatch 契约镜像**:`data/model/ButlerModels.kt`(新增,镜像 Web `CanvasPatch`/`AssistantResponse`/`TripSummaryPatch`)、`data/model/CanvasPatchApplier.kt`(新增,合并规则对齐 Web `applyCanvasPatch`——summary 部分合并/days 替换/alerts 按 type+title 去重/`lastUpdatedReason` 更新)、`TripModels.kt` 枚举加 `@SerializedName` 对齐 Web JSON 值。
+- [x] **本地缓存 + API Bridge**:`TripCacheEntity.kt` 加 `messagesJson`,`VisePandaDatabase.kt` 版本号升到 2,新增 `data/serialization/TripJson.kt`、`data/remote/ButlerApiService.kt`(Retrofit 调 `/api/chat`)、`data/repository/RoomTripRepository.kt`(替换 `MockTripRepository` 绑定,失败走本地 fallback)、`NativeButlerFallback.kt`(诚实离线兜底文案,不假装实时 AI,不生成真实交易能力)。
+- [x] **DI/网络**:`di/AppModule.kt` 绑定切到 `RoomTripRepository`,新增 Retrofit/OkHttp/Gson provider;`android/app/build.gradle.kts` 加 `BuildConfig.VISEPANDA_API_BASE_URL`,`AndroidManifest.xml` 加 `INTERNET`/`ACCESS_NETWORK_STATE` 权限。
+- [x] **测试**:新增 `CanvasPatchApplierTest.kt`、`NativeButlerFallbackTest.kt`,均通过。
+- [x] **真实构建与手动验收**(本轮在非沙箱 macOS + Android Studio JBR 环境完成,上一轮 Codex 沙箱因网络/Gradle service 限制无法验证):`./gradlew :app:testDebugUnitTest :app:assembleDebug` 一次性 `BUILD SUCCESSFUL`(没有 v0.3.4 那批遇到的真实编译错误需要修);4 个单元测试全部通过;Android 34 模拟器验收 Chat 默认首页、五 Tab 切换、消息发送→`/api/chat` 失败→`NativeButlerFallback` 完整链路、Today 页面离线横幅与数据完整性均通过;Explore/Tools 占位顺延为 v0.3.8/v0.3.7 确认自洽。
+- [ ] **观察记录(非阻塞)**:`NativeButlerFallback.createPatch` 用简单关键词匹配(nanjing/shanghai/beijing)决定是否改写行程标题,离线场景下可能误伤,建议后续评估更保守的触发条件。
+- [ ] **留给后续版本**:Supabase auth/trips/messages 真实云端同步、guest draft 迁移路径、Butler change digest UI——当前只是本地 Room 缓存 + `/api/chat` 直连,没有做云端持久化闭环。
 
 ## v0.2.17 附录 —— 景点/餐饮/酒店数据与预订服务拓展评估(纯文档,已完成)
 

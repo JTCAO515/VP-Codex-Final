@@ -1,5 +1,41 @@
 # VisePanda Changelog
 
+## v0.3.6 - 2026-07-02
+
+**Native Android Butler + Sync Bridge I。** 原计划称为 "v0.3.5 Butler + Sync Bridge" 的功能实现,因 v0.3.5 版本号被构建验证收尾轮占用,实际在 v0.3.6 交付。Chat(Butler)从诚实占位页升级为真实的 Jetpack Compose 对话界面,并成为底部导航默认首页。
+
+### 新增:Butler Chat 真实界面
+- `ui/butler/ButlerScreen.kt` + `ButlerViewModel.kt` + `ButlerUiState.kt`:输入框、发送按钮、消息列表、starter chips(首次进入展示三个引导问题)、结构化 assistant response 展示(headline/body/highlights/watchOut/nextStep)、offline fallback 状态提示。
+- 底部导航顺序改为 Today / Butler(Chat)/ Plan / Explore / Tools,Chat 居中且为 `NavHost` 的 `startDestination`;`strings.xml` 里 `nav_butler` 文案改为 "Chat"。
+
+### 新增:Web 端 CanvasPatch 契约的 Kotlin 镜像
+- `data/model/ButlerModels.kt`:镜像 Web 端 `CanvasPatch`、`AssistantResponse`、`TripSummaryPatch`、聊天消息模型。
+- `data/model/CanvasPatchApplier.kt`:按 Web 端 `applyCanvasPatch` 同样的规则合并 patch —— summary 部分合并、days 整体替换、alerts 按 type+title 去重、`lastUpdatedReason` 更新。
+- `data/model/TripModels.kt` 给枚举加了 `@SerializedName`,对齐 Web 端 JSON 序列化值(`high`/`medium`/`low`、`info-only`、`needs-confirmation`、`Ready to save` 等)。
+
+### 新增:本地缓存 + API Bridge
+- `data/local/TripCacheEntity.kt` 增加 `messagesJson` 字段存 Butler 消息记录;`VisePandaDatabase.kt` 版本号升到 2。
+- `data/remote/ButlerApiService.kt`:Retrofit 接口,调用现有 `/api/chat` 路由(`BuildConfig.VISEPANDA_API_BASE_URL = "https://www.go2china.space/"`)。
+- `data/repository/RoomTripRepository.kt`:替换 `MockTripRepository` 成为 `TripRepository` 的真实绑定 —— 从 Room 读取/保存当前行程和 Butler 消息;发消息时先调 `/api/chat`,失败时(`runCatching` 兜底)走本地 fallback。
+- `data/repository/NativeButlerFallback.kt`:网络失败时的诚实兜底文案 —— 明确告诉用户"已本地保存,联网后再试",不假装有实时 AI 理解、不生成真实预订/支付/交易能力。
+- `di/AppModule.kt`:`TripRepository` 绑定从 `MockTripRepository` 切到 `RoomTripRepository`;新增 Retrofit/OkHttp/Gson provider。
+
+### 新增测试
+- `CanvasPatchApplierTest.kt`、`NativeButlerFallbackTest.kt`。
+
+### 真实构建与手动验收(本轮在非沙箱 macOS + Android Studio JBR 环境完成)
+- 上一轮 Codex 会话在其沙箱里无法跑 Gradle(缺 Android SDK、`services.gradle.org` 网络被拦、原生 Gradle service 受限),已提交代码但标注"未验证"。本轮在真实环境重新验证:
+  - `./gradlew :app:testDebugUnitTest :app:assembleDebug` **一次性 `BUILD SUCCESSFUL`**,没有发现真实编译错误(与 v0.3.4 那批不同,这批代码本身没有语法/API 问题)。
+  - 4 个单元测试全部通过(`CanvasPatchApplierTest` ×2、`NativeButlerFallbackTest` ×2,0 failures/errors)。
+  - Android 34 模拟器手动验收:冷启动默认落在 Chat 页(底部导航正确高亮,验证了两次冷启动排除截图时机竞态的误报);五个 Tab 顺序 Today/Chat/Plan/Explore/Tools 正确;点击 starter chip 发送消息,真实调用 `/api/chat` 失败后正确走 `NativeButlerFallback`,标题栏显示 "Offline fallback · native mock fallback",气泡展示诚实的 "Saved for the Butler" 文案;Today 页面正确显示 "You are offline. Showing the last saved trip." 且行程数据(标题、83% readiness)未被破坏。
+  - `strings.xml` 里 Tools/Explore 占位文案已正确顺延为 v0.3.7/v0.3.8,内部自洽。
+- **观察记录(非阻塞,供后续参考)**:`NativeButlerFallback.createPatch` 用简单的 `lower.contains("nanjing"/"shanghai"/"beijing")` 关键词匹配来决定是否改写行程标题,即使是完全离线兜底路径。这在语义上有被误伤的风险(例如用户消息里恰好提到城市名但意图并非改标题),建议后续版本评估是否需要更保守的触发条件。
+
+### 项目计划同步
+- 未做 WebView 套壳、未恢复隐藏打车卡触发方式、未开启 Material 3 Dynamic Color、未新增 Supabase schema、未实现真实支付/预订/订单/地图/相机/麦克风能力。
+- `AndroidManifest.xml` 新增 `INTERNET`/`ACCESS_NETWORK_STATE` 权限(Retrofit 网络调用所需,普通权限无需运行时弹窗)。
+- `package.json`/`package-lock.json` 已更新到 `0.3.6`。
+
 ## v0.3.5 - 2026-07-02
 
 **Android build verification handoff.** This release closes the major v0.3.4 risk: the native Android module has now been build-verified and manually accepted on an Android emulator.

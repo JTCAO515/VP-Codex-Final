@@ -924,3 +924,15 @@ Fixes three reported product problems:
 交付:Gradle wrapper 入库;真实编译错误修复;`android/README.md` 更新为 Build-verified;7 份工作流文档同步记录验收结论。下一步功能仍是 Butler + Sync Bridge,不把本收尾误标为 sync 已完成。
 
 UI 参考:操作者提供 Lovable 预览与 Figma Make `Design According to MD Document` 作为后续 Android UI 借鉴来源。设计可以借鉴其视觉层级与组件感,但必须继续遵守原生 Android、Material 3、Warm New Chinese 固定配色、显性 Taxi Card 入口、无 WebView/混合套壳的边界。
+
+## v0.3.6 需求更新 —— Butler + Sync Bridge I(原计划编号 v0.3.5,已完成)
+
+需求来源:v0.3.5 构建验证收尾完成后,按既定路线图继续实现原计划称为 "v0.3.5 Butler + Sync Bridge" 的功能;因 v0.3.5 版本号被验证收尾轮占用,本轮功能实现顺延为 v0.3.6。上一轮 Codex 会话已完成全部代码改动并提交推送,但因沙箱无法跑 Gradle(网络/native service 受限)未能真实验证。
+
+交付:Chat(Butler)从诚实占位页升级为真实 Jetpack Compose 对话界面,成为底部导航默认首页(Today/Chat/Plan/Explore/Tools,Chat 居中);新增 Kotlin 镜像的 `CanvasPatch`/`AssistantResponse`/`TripSummaryPatch` 契约与合并规则(`ButlerModels.kt`/`CanvasPatchApplier.kt`);`RoomTripRepository` 替换 `MockTripRepository` 成为真实绑定,通过 Retrofit 调用现有 `/api/chat`,失败时走 `NativeButlerFallback` 诚实兜底(明确告知用户"已本地保存,联网后再试",不假装有实时 AI 理解、不生成真实交易能力);Room 存储当前行程与 Butler 消息记录。
+
+验收标准:本轮在真实 macOS + Android Studio JBR 环境完成验证(上一轮沙箱无法做到)—— `./gradlew :app:testDebugUnitTest :app:assembleDebug` 一次性 `BUILD SUCCESSFUL`,4 个单元测试全部通过;Android 34 模拟器手动验收:Chat 默认首页正确加载,五 Tab 顺序正确且可切换,点击 starter chip 发送消息触发真实 `/api/chat` 调用,失败后正确展示离线兜底文案且不崩溃,Today 页面正确显示离线横幅且行程数据未被破坏。
+
+排除:不接入真实 Supabase auth/trips/messages 云端同步(仍留给后续版本);不做 guest draft 迁移;不做 Butler change digest UI;不做 WebView 混合方案;不恢复隐藏打车卡触发;不开启 Material 3 Dynamic Color;不新增 Supabase schema;不实现真实支付/预订/订单/地图/相机/麦克风能力。
+
+观察记录(非阻塞):`NativeButlerFallback` 用简单关键词匹配(城市名)决定是否改写行程标题的离线兜底分支,存在语义误伤风险,记录供后续版本评估收紧。Tools/Explore 占位文案已顺延为 v0.3.7/v0.3.8。

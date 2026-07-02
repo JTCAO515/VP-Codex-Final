@@ -1046,3 +1046,35 @@ ADR-099: Lovable and Figma Make are design references, not implementation source
 - Background: The operator provided a Lovable preview and a Figma Make file named `Design According to MD Document` to inspire the APK UI. The Figma connector exposed the Make file resource list, but not readable source contents in this session.
 - Decision: Future Android UI work may borrow visual hierarchy, component density, and polish from those references, while keeping the native Android/Material 3 implementation, fixed Warm New Chinese palette, five-surface navigation, and visible Taxi Driver Card triggers.
 - Reason: Design inspiration is useful, but the repo's MD roadmap and native Android constraints remain the source of truth for behavior and architecture.
+
+## v0.3.6 Design Update - Native Butler + Sync Bridge I
+
+ADR-100: Chat (Butler) becomes the app's default/centered destination, not Today.
+
+- Background: `VisePandaNavHost.kt`'s `startDestination` was `Today` through v0.3.4/v0.3.5. The v0.3.2 synthesis already named Chat/Butler as the intended center of the experience, per `AppDestination.kt`'s own doc comment ("so Chat sits in the center and opens first"), but the code had not caught up until this round.
+- Decision: `TopLevelDestination.all` is now `listOf(Today, Butler, Plan, Explore, Tools)` (Butler placed second so it renders in the visual center of a five-item `NavigationBar`), and `NavHost`'s `startDestination` is `TopLevelDestination.Butler.route`. `strings.xml`'s `nav_butler` label is changed to "Chat" to match the web app's terminology.
+- Reason: matches the product's stated positioning as an AI-first travel butler, and mirrors the web app where Chat is the primary entry surface, not a secondary tab.
+
+ADR-101: The native `CanvasPatch`/`AssistantResponse` contract and merge rules are a deliberate 1:1 Kotlin mirror of the web app's, continuing the ADR-094 precedent.
+
+- Background: `data/model/ButlerModels.kt` mirrors the web app's `CanvasPatch`/`AssistantResponse`/`TripSummaryPatch` shapes, and `data/model/CanvasPatchApplier.kt` mirrors `applyCanvasPatch`'s merge behavior — summary fields partial-merge, `days` replace wholesale, alerts dedupe by `type`+`title`, and `lastUpdatedReason` updates on every apply.
+- Decision: any future change to the web app's patch shape or merge rules must be mirrored into these two Kotlin files in the same round, following the same discipline ADR-094 established for `TripModels.kt`/`TripCompleteness.kt`.
+- Reason: a patch applied identically on both platforms is what lets the same `/api/chat` response drive two independently-rendered UIs without ever disagreeing on the resulting trip state.
+
+ADR-102: Network failures fall back to an honest, clearly-labeled local mock — never a silent or deceptive substitute for a live AI response.
+
+- Background: `data/repository/NativeButlerFallback.kt` is invoked whenever the real `ButlerApiService.chat()` call throws (network unreachable, server error, or any other failure caught by `runCatching` in `RoomTripRepository.sendButlerMessage()`). Its response headline is literally "Saved for the Butler," and its body states plainly that "the native app could not reach the live AI service."
+- Decision: fallback copy must always disclose that this is a local, non-AI response and must never claim real-time understanding, a booking action, or a transaction capability it did not perform. The UI surfaces this state explicitly via a header subtitle ("Offline fallback · native mock fallback"), not just inside the message bubble.
+- Reason: matches the project's standing principle (see `AGENTS.md`/`CLAUDE.md`) that mock/fallback paths must degrade honestly rather than pretend to be the real thing — a user who can't tell they're talking to a canned response when the network is down would lose trust in every other exchange with the Butler.
+
+ADR-103 (observation, not yet acted on): `NativeButlerFallback`'s title-rewrite heuristic uses substring keyword matching, which risks acting on the wrong signal in a path explicitly designed to avoid pretending at understanding.
+
+- Background: `NativeButlerFallback.createPatch()` decides whether to rewrite the trip's `summary.title` by checking `lower.contains("nanjing"/"shanghai"/"beijing")` against the raw user message — no real intent parsing, since this is the offline path precisely because no model is reachable.
+- Decision: recorded here as a known design tension rather than fixed immediately, since it does not crash, does not corrupt other trip data, and only misfires on messages that happen to contain a city name without meaning to rename the trip. A future iteration should either drop this heuristic (leave the title untouched offline) or gate it behind a more deliberate trigger.
+- Reason: ADR-102 establishes that the fallback path must not pretend to understand the user — this keyword match is a small instance of exactly that pretense, so it is flagged for follow-up rather than left undocumented.
+
+ADR-104: v0.3.6 Android code is build-verified on a real machine on first attempt; the authoring sandbox's inability to run Gradle did not indicate a code problem this time.
+
+- Background: the authoring Codex session could not run `./gradlew` in its sandbox for the same environmental reasons recorded in ADR-096 (no reachable Gradle distribution, native Gradle service restrictions) — not a repeat of the same *kind* of gap, since this sandbox at least had the Gradle wrapper already committed from v0.3.5. A later session on a real macOS + Android Studio (bundled JBR, JDK 21) machine ran `./gradlew :app:testDebugUnitTest :app:assembleDebug` and got `BUILD SUCCESSFUL` on the very first attempt, with all 4 unit tests passing and zero code changes required.
+- Decision: unlike v0.3.4 (which needed three real compiler-error fixes before it built), v0.3.6's code is treated as verified as committed — no retroactive fixes were needed or made. `android/README.md`, `CHANGELOG.md`, `VERSIONING.md`, `HANDOFF.md`, and `PLAN.md` all record this as a first-attempt pass, distinct from v0.3.4/v0.3.5's fix-then-verify pattern.
+- Reason: this distinction matters for future agents deciding how much to trust code written in a sandbox without SDK access — it is possible to write correct Compose/Hilt/Room code from training knowledge without a build tool catching an error, and this round is evidence of that, not just a lucky one-off to be treated with the same suspicion as v0.3.4's disclosure.
