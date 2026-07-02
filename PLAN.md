@@ -632,7 +632,8 @@ Next three planned iterations:
 - [x] `v0.2.10` Tools Widgets I:在本轮 inline card 数据模型基础上,把 Currency converter、Visa checker、Payment setup wizard 做成真实可交互组件,并让 Chat tool cards 与 `/tools` 继续复用同一 Tools 数据源。
 - [x] `v0.2.13` TripBlock POI Embedding + Day Detail Operational Upgrade:将中文地址、营业时间、电话、坐标、booking/map url 等可选运营字段写入 `TripBlock`,升级 Day detail 和 Taxi Driver card。
 - [x] `v0.2.14` Real POI context write-through + booking candidate model:把 Chat liveToolContext / Amap rich POI 更稳定地写入生成的 TripBlock，并设计非交易型 booking candidate 字段。
-- [ ] `v0.2.15` Explore Add-to-Trip POI write-through:从 Explore 选择真实 POI 时将 POI id/address/map/booking candidate 放入 Chat draft,并稳定落入 TripBlock。
+- [x] `v0.2.15` Explore Add-to-Trip POI write-through:从 Explore 选择真实 POI 时将 POI id/map/source/booking candidate 放入 Chat draft,并稳定落入 TripBlock 或可见 Flexible 候选块。
+- [ ] `v0.2.16` Explore candidate review / day-detail action polish:把 Flexible 候选块升级为更明确的 Needs scheduling 状态,并在 Day detail 强化 schedule/map/booking-info 动作分组。
 
 ## v0.2.10 附录 —— Tools Widgets I(已完成)
 
@@ -658,7 +659,8 @@ Next three planned iterations:
 - [x] `v0.2.11` Frontend Design Resource Stack 配置:把操作者指定的前端/设计/Impeccable/图标/设计系统资源登记为仓库级工作流,不改运行时代码。
 - [x] `v0.2.13` TripBlock POI Embedding + Day Detail Operational Upgrade:扩展 `TripBlock` 可选运营字段,把 POI 执行信息沉淀进 Day detail,并实现 Show Taxi Driver 卡。
 - [x] `v0.2.14` Real POI context write-through + booking candidate model:将 Chat liveToolContext / Amap rich POI 稳定写入 TripBlock,并为后续酒店/门票/交通候选建立非交易型数据结构。
-- [ ] `v0.2.15` Explore Add-to-Trip POI write-through:从 Explore 选择真实 POI 时将 POI id/address/map/booking candidate 放入 Chat draft,并稳定落入 TripBlock。
+- [x] `v0.2.15` Explore Add-to-Trip POI write-through:从 Explore 选择真实 POI 时将 POI id/map/source/booking candidate 放入 Chat draft,并稳定落入 TripBlock 或可见 Flexible 候选块。
+- [ ] `v0.2.16` Explore candidate review / day-detail action polish:把 Flexible 候选块升级为更明确的 Needs scheduling 状态,并在 Day detail 强化 schedule/map/booking-info 动作分组。
 
 ## v0.2.11 附录 —— Frontend Design Resource Stack 配置(纯文档)
 
@@ -719,4 +721,20 @@ Next three planned iterations:
 
 下一步建议:
 
-- [ ] `v0.2.15` Explore Add-to-Trip POI write-through:从 Explore 选择真实 POI 时将 POI id/address/map/booking candidate 放入 Chat draft,并稳定落入 TripBlock。
+- [x] `v0.2.15` Explore Add-to-Trip POI write-through:已完成。
+- [ ] `v0.2.16` Explore candidate review / day-detail action polish:把 Flexible 候选块升级为更明确的 Needs scheduling 状态,并在 Day detail 强化 schedule/map/booking-info 动作分组。
+
+## v0.2.15 附录 —— Explore Add-to-Trip POI write-through(已完成)
+
+- [x] 新增 `lib/explore/addToTrip.ts`,统一构建/解析 Explore POI payload,并复用 `BookingCandidate` 的 info-only planning reference 边界。
+- [x] `ExploreBoard` 的 Add to Trip 同时传递 traveler-facing Chat draft 和结构化 `poi` payload。
+- [x] `ButlerWorkspace` 在 `?add=&poi=` 首跑时解析 payload,并在 AI/mock patch 应用前执行确定性写入。
+- [x] 若 POI 名称匹配现有 TripBlock,只补齐缺失的 map/source/phone/hours/coordinates/booking candidates;若不匹配,追加目标城市 day 的 Flexible candidate block。
+- [x] `DayCard` 与 `DayDetailDrawer` 显示 Flexible block,避免候选 POI 写入状态但用户看不到。
+- [x] 新增/更新测试覆盖 payload 构建、Explore URL、Chat auto-apply 和 Canvas 可见化。
+
+排除项:
+
+- 不做 checkout、库存、支付、退款、订单管理。
+- 不新增 Supabase schema、外部 API key 或生产 FlyAI 调用。
+- Explore 静态 fallback 没有真实地址时不伪造地址,只提供搜索/地图入口和来源。

@@ -453,3 +453,11 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 - `BookingCandidate.status: "info-only"` must not be rendered or described as inventory, checkout, purchase, reservation, or confirmed availability.
 - If a model already provides a TripBlock field, write-through should not overwrite it; it only fills missing operational fields.
 - Future Explore Add-to-Trip work should reuse `BookingCandidate` and the TripBlock optional POI fields instead of inventing a second shape.
+
+## v0.2.15 Agent Update - Explore Add-to-Trip POI payloads
+
+- `lib/explore/addToTrip.ts` owns the Explore Add-to-Trip payload shape, parser, encoder, and deterministic patch merge. Do not duplicate this logic inside `ExploreBoard` or `ButlerWorkspace`.
+- Explore Add to Trip must continue sending a normal traveler-facing `add` message through Chat. The `poi` payload is additive metadata, not a second content-write channel.
+- When `applyExplorePoiToPatch` finds a matching block title, it only fills missing POI fields. Do not overwrite model/provider-provided fields unless the operator explicitly asks for replacement behavior.
+- When no match exists, the fallback block should remain `time: "Flexible"` and visible in Day card/detail. Do not pretend the POI has been scheduled into Morning/Afternoon/Evening until a later AI rebalance does that.
+- Booking candidates added from Explore are `info-only` planning references. They must not be rendered as confirmed availability, checkout, payment, reservation, refund, or order capability.

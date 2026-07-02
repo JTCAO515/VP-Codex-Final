@@ -814,3 +814,26 @@ Fixes three reported product problems:
 
 - 不做 checkout、库存、支付、退款、订单管理。
 - 不新增 Supabase schema、外部 API key 或生产 FlyAI 调用。
+
+## v0.2.15 更新 —— Explore Add-to-Trip POI write-through
+
+需求来源:Explore 是 FIT 用户发现景点/餐厅/住宿候选的入口。Add to Trip 不能只把一句自然语言请求交给 Chat,否则真实 POI 的 id、地图入口、来源、营业时间、电话和 booking candidate 会在页面跳转时丢失。
+
+交付:
+
+- Explore Add to Trip 同时传递 Chat draft 与结构化 POI payload。
+- Chat 首跑解析 `poi` payload,并在应用 AI/mock patch 前执行确定性写入。
+- 若行程里已有匹配 POI block,只补齐缺失的执行字段;若没有匹配,在目标城市 day 追加一个可见的 Flexible candidate block。
+- Day card 与 Day detail 显示 Flexible block,让候选 POI 在画布上可见,而不是只存在状态里。
+- booking candidates 继续以 Info only / planning reference 方式呈现。
+
+验收标准:
+
+- 从 Explore 点击 Add to Trip 后,Chat 自动发送 draft,Trip Canvas 能看到该 POI 名称。
+- 该 POI block 保留 map/source/coordinates/booking candidate 等可用字段,已有字段不被覆盖。
+- 静态 fallback 没有地址/电话时不伪造,只提供地图搜索入口。
+
+排除:
+
+- 不做真实预订、购票、支付、库存、退款或订单管理。
+- 不新增 Supabase schema、外部 API key 或生产 FlyAI 调用。

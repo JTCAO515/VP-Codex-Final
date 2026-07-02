@@ -4,8 +4,9 @@
  
 - 完成阶段：阶段一 AI Butler Chat MVP 骨架；阶段二真实 AI provider + Supabase 登录 + guest draft 自动迁移已接入；阶段三 Trips 已接入真实 Supabase persistence 首个闭环，加入了 trip detail 页面、归档/分享链接流程和状态说明系统（任务 3.6）；阶段四 Explore 已升级为 Amap 实时 POI 驱动（景点/美食/住宿），完成 provider abstraction、Add to Trip、route rebalance 文案和 provider readiness metadata（任务 4.1-4.5、7.1-7.2、9.2）；阶段五 Tools 已从占位页升级为静态 provider 驱动的 7 个分类骨架，支持分类深链、结构化内容、离线 pocket notes、API priority、provider readiness metadata，以及实时 ExchangeRate-API 汇率接入（任务 5.1-5.3、7.3-7.4、9.1）；阶段六目的地感知水墨背景切换已完成第一版（任务 6.1-6.4）；阶段八 Canvas ButlerReminders 深链 Tools 分类已完成（任务 8.1）；Account 已从独立页面改为头部图标 + 悬浮窗口，登录方式从 magic link 改为邮箱密码 + Google OAuth，登录后支持改名/改密码/登出（任务 2.5）；阶段十翻译页面已全部实现（任务 10.1-10.4），含文字翻译、OCR 扫描翻译、短语词典，ButlerReminders 已从 TripCanvas 移除（v0.1.28）；v0.1.34 桌面横屏前端优化：Tools 6 个模态卡片 + 浮层对话框、Trips 筛选按钮布局修复（过滤器始终可见）、Translator 单页 2×2 网格布局（同时展示四个功能面板无需切换 tab）。
 - 当前分支：`main`
-- 当前版本：`v0.2.14`（版本序列 `0.2.x`）
+- 当前版本：`v0.2.15`（版本序列 `0.2.x`）
 - 重要（已完成）：
+  - v0.2.15 完成 Explore Add-to-Trip POI write-through：Explore 的 Add to Trip 现在同时携带自然语言 Chat draft 与结构化 POI payload；Chat 首跑会解析 payload，并确定性 enrich 匹配 TripBlock 或在目标城市 day 追加可见的 Flexible 候选块；Day card 与 Day detail 均显示 Flexible block。未新增 checkout、库存、支付、Supabase schema、新 key 或生产 FlyAI。
   - v0.2.14 完成 Real POI context write-through + booking candidate model：Amap `liveToolContext` 现在携带 id、电话、地图链接、坐标和 info-only booking candidates；orchestrator 在 provider patch 解析后会把匹配 POI 的安全字段确定性写回 TripBlock；Day detail 以 “Info only” 展示 booking candidates。未新增 checkout、库存、支付、Supabase schema、新 key 或生产 FlyAI。
   - v0.2.13 完成 TripBlock POI embedding + Day detail operational upgrade：`TripBlock` 新增可选运营字段（地址、中文地址、电话、营业时间、地图/预订链接、source、坐标），Day detail 抽屉展示 POI 执行卡和 Show taxi driver 卡，mock/static fallback 已有代表性中文地址与地图链接。未新增 key、Supabase schema、真实预订交易或生产 FlyAI。
   - v0.2.12 完成 MD 交接面统一：所有当前状态/版本头部指向 v0.2.12，明确 v0.2.11 是已完成的 Frontend Design Resource Stack 配置轮，下一轮代码建议顺延为 v0.2.13 TripBlock POI Embedding + Day Detail Operational Upgrade。本轮不改运行时代码。
@@ -47,7 +48,15 @@
   - `tests/factualToolCards.test.ts`、`tests/orchestrator.test.ts`、`tests/chat-panel.test.tsx`：覆盖生成、绕过 provider、渲染。
 - 边界：本轮不做完整 Tools widgets，不做签证决策树/支付向导/汇率换算器，不新增任何外部 key、Supabase schema、生产 FlyAI 调用或预订能力。
 - 验证：受影响测试已通过；本轮收尾前需跑完整 `npm run test` 与 `npm run build`。
-- 下一步建议：`v0.2.15` Explore Add-to-Trip POI write-through，把用户在 Explore 选择的真实 POI 直接带入 Chat draft 并稳定落入 TripBlock。
+- 下一步建议：`v0.2.16` Explore candidate review / day-detail action polish：把 Flexible 候选块升级为更明确的 "Needs scheduling" 状态，并在 Day detail 提供 ask-to-schedule / open map / booking-info 的更清晰动作分组。
+
+## v0.2.15 Handoff Update - Explore Add-to-Trip POI write-through
+
+- 用户意图：继续上一轮 POI/booking candidate 基础，让 Explore 页面里的 Add to Trip 不只是把一句话交给 Chat，而是把景点/餐厅/住宿的结构化 POI 信息稳定带入 Trip Canvas。
+- 实现思路：保持“所有内容变化仍走 Chat/Canvas patch 管道”的产品规则；Explore 负责生成自然语言 draft + 结构化 `poi` payload，Chat 首跑负责把 payload 合并到 AI/mock patch。若模型已经生成匹配 block，则只补齐缺失字段；若没有生成，则在目标城市 day 追加一个 visible Flexible candidate block。
+- 主要文件：`lib/explore/addToTrip.ts`、`components/explore/ExploreBoard.tsx`、`components/chat/ButlerWorkspace.tsx`、`components/canvas/DayCard.tsx`、`components/canvas/DayDetailDrawer.tsx`、`tests/explore-add-to-trip.test.ts`、`tests/explore-board.test.tsx`、`tests/chat-workspace.test.tsx`。
+- 边界：不新增 Supabase schema、不保存新的外部交易数据、不做 checkout/库存/支付/退款、不新增 API key、不生产调用 FlyAI；booking candidates 继续只表示 info-only planning reference。
+- 下一步建议：`v0.2.16` Explore candidate review / day-detail action polish。
 
 ## v0.2.14 Handoff Update - Real POI write-through + booking candidates
 
@@ -55,7 +64,7 @@
 - 实现思路：不相信模型一定会复制字段；在 provider 返回 patch 后用 `applyToolContextToPatch` 做确定性补齐。booking candidate 只表示信息候选，不代表库存、下单或支付能力。
 - 主要文件：`lib/types/trip.ts`、`lib/ai/toolContext.ts`、`lib/ai/toolContextWriteThrough.ts`、`lib/ai/orchestrator.ts`、`components/canvas/DayDetailDrawer.tsx`、`tests/toolContextWriteThrough.test.ts`。
 - 边界：不新增 Supabase schema、不新增外部 key、不接 checkout/库存/退款、不生产调用 FlyAI；后续真实预订能力必须另设交易边界。
-- 下一步建议：`v0.2.15` Explore Add-to-Trip POI write-through。
+- 历史下一步 `v0.2.15` 已完成；当前下一步建议：`v0.2.16` Explore candidate review / day-detail action polish。
 
 ## v0.2.13 Handoff Update - TripBlock POI + Day detail operations
 

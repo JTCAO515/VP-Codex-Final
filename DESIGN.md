@@ -927,3 +927,17 @@ ADR-083: Booking candidates are non-transactional planning objects.
 - Background: FIT travelers need hotel/ticket/restaurant candidates, but VisePanda does not yet own inventory, checkout, refund, or payment flows.
 - Decision: introduce `BookingCandidate` with `status: "info-only" | "planned"` and render info-only candidates as guidance, not transaction capability.
 - Reason: The product can structure future booking readiness while maintaining a clear trust boundary.
+
+## v0.2.15 Design Update - Explore Add-to-Trip POI write-through
+
+ADR-084: Explore Add to Trip carries a structured POI payload alongside the Chat draft.
+
+- Background: The previous Explore flow sent only `?add=<message>`. That preserved the user intent but dropped useful POI metadata already available in Explore, such as id, source, coordinates, hours, phone, map URL, and non-transactional booking candidates.
+- Decision: Add `lib/explore/addToTrip.ts` as the shared encoder/parser/write-through helper. `ExploreBoard` passes both `add` and `poi` params; `ButlerWorkspace` parses `poi` during first-run auto-send and merges it into the resulting canvas patch.
+- Reason: This keeps the Chat pipeline as the content-change spine while making Add to Trip deterministic. The AI can still rebalance, but the client no longer depends on the model to remember or invent POI execution fields.
+
+ADR-085: Unmatched Explore POIs become visible Flexible candidate blocks.
+
+- Background: A model or mock fallback may acknowledge an Add-to-Trip request without creating a new day block. If the POI is only stored in state or ignored, the traveler sees no result after clicking.
+- Decision: If no existing block title matches the payload, append a `Flexible` TripBlock to the matching city day, and render Flexible blocks in both Day cards and Day detail.
+- Reason: Flexible is honest: the POI is a candidate that still needs scheduling/rebalancing, not a fabricated morning/afternoon/evening commitment. Rendering it visibly makes the interaction trustworthy and recoverable.

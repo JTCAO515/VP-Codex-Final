@@ -1,6 +1,6 @@
 "use client";
 
-import { MoonStar, MoreHorizontal, Sun, Sunrise } from "lucide-react";
+import { Clock3, MoonStar, MoreHorizontal, Sun, Sunrise } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { TripBlock, TripDay } from "@/lib/types/trip";
 import { calculateDayCompleteness } from "@/lib/trips/completeness";
@@ -23,12 +23,13 @@ interface DayCardProps {
   registerRef?: (day: number, element: HTMLElement | null) => void;
 }
 
-const timeSlots: TripBlock["time"][] = ["Morning", "Afternoon", "Evening"];
+const timeSlots: TripBlock["time"][] = ["Morning", "Afternoon", "Evening", "Flexible"];
 
 const TIME_ICON: Record<string, typeof Sunrise> = {
   Morning: Sunrise,
   Afternoon: Sun,
   Evening: MoonStar,
+  Flexible: Clock3,
 };
 
 function getBlockForTime(day: TripDay, time: TripBlock["time"]) {

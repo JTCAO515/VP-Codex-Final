@@ -1,5 +1,16 @@
 # VisePanda Changelog
 
+## v0.2.15 - 2026-07-02
+
+**Explore Add-to-Trip POI write-through.** This release makes Explore selections land in the canvas as structured, visible planning candidates.
+
+- Added a structured Explore POI payload for Add to Trip, carrying POI id, city, category, map URL, source, coordinates, hours/phone when present, and info-only booking candidates.
+- Updated Explore navigation to pass both the traveler-facing Chat draft message and the structured POI payload.
+- Updated Chat auto-send handling to parse the POI payload and deterministically enrich a matching TripBlock or append a visible Flexible candidate block to the relevant city day.
+- Updated Day cards and Day detail drawers to render Flexible blocks, so Add-to-Trip candidates do not disappear from the traveler view.
+- Added tests for payload construction, deterministic write-through, Explore navigation, and Chat auto-apply behavior.
+- No checkout, inventory, payment, Supabase migration, new API key, or production FlyAI integration.
+
 ## v0.2.14 - 2026-07-02
 
 **Real POI context write-through + booking candidate model.** This release makes live Amap POI context more durable by writing safe fields into matching TripBlocks after model parsing.

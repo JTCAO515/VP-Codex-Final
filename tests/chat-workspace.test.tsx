@@ -62,6 +62,41 @@ describe("ButlerWorkspace", () => {
     expect(window.location.search).toBe("");
   });
 
+  it("writes an Explore POI payload into the trip canvas when opening from Add to Trip", async () => {
+    const params = new URLSearchParams({
+      add: "Add Test Tea House in Beijing to my trip.",
+      poi: JSON.stringify({
+        id: "beijing-test-tea-house",
+        name: "Test Tea House",
+        cityId: "beijing",
+        cityName: "Beijing",
+        category: "attraction",
+        phone: "010-12345678",
+        openingHours: "09:00-18:00",
+        mapUrl: "https://uri.amap.com/marker?position=116.4%2C39.9&name=Test+Tea+House",
+        sourceLabel: "Amap",
+        coordinates: { lat: 39.9, lng: 116.4 },
+        bookingCandidates: [
+          {
+            id: "beijing-test-tea-house-ticket",
+            kind: "ticket",
+            label: "Ticket planning reference",
+            provider: "Amap",
+            status: "info-only",
+            note: "Added from Explore for planning context only.",
+          },
+        ],
+      }),
+    });
+    window.history.replaceState(null, "", `/chat?${params.toString()}`);
+
+    render(<ButlerWorkspace />);
+
+    expect(await screen.findByText("Add Test Tea House in Beijing to my trip.")).toBeInTheDocument();
+    expect(await screen.findByText("Test Tea House")).toBeInTheDocument();
+    expect(await screen.findAllByText(/Explore POI was added as a flexible candidate block/i)).not.toHaveLength(0);
+  });
+
   it("auto-sends an archetype starter found in the ?archetype= URL param", async () => {
     window.history.replaceState(null, "", "/chat?archetype=foodie-china");
 

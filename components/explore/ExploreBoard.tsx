@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { getExploreProvider } from "@/lib/explore";
+import {
+  buildExploreAddToTripPayload,
+  encodeExploreAddToTripPayload,
+  type ExploreAddToTripCategory,
+} from "@/lib/explore/addToTrip";
 import type {
   ExploreAttraction,
   ExploreCity,
@@ -40,9 +45,20 @@ export function ExploreBoard() {
 
   const activeCity = cities.find((city) => city.id === activeCityId) ?? null;
 
-  function addToTrip(message: string) {
+  function addToTrip(
+    item: ExploreAttraction | ExploreFoodSpot | ExploreStay,
+    category: ExploreAddToTripCategory,
+    context?: string,
+  ) {
+    if (!activeCity) return;
     if (typeof window === "undefined") return;
-    window.location.href = `/chat?add=${encodeURIComponent(message)}`;
+    const message = buildAddToTripMessage(item.name, activeCity.name, context);
+    const payload = buildExploreAddToTripPayload(item, activeCity, category, context);
+    const params = new URLSearchParams({
+      add: message,
+      poi: encodeExploreAddToTripPayload(payload),
+    });
+    window.location.href = `/chat?${params.toString()}`;
   }
 
   function buildAddToTripMessage(name: string, cityName: string, context?: string) {
@@ -136,7 +152,7 @@ export function ExploreBoard() {
                     <button
                       type="button"
                       className="explore-add-button"
-                      onClick={() => addToTrip(buildAddToTripMessage(attraction.name, activeCity.name))}
+                      onClick={() => addToTrip(attraction, "attraction")}
                     >
                       {t.explore.addToTrip}
                     </button>
@@ -156,9 +172,7 @@ export function ExploreBoard() {
                     <button
                       type="button"
                       className="explore-add-button"
-                      onClick={() =>
-                        addToTrip(buildAddToTripMessage(spot.name, activeCity.name, spot.dish))
-                      }
+                      onClick={() => addToTrip(spot, "food", spot.dish)}
                     >
                       {t.explore.addToTrip}
                     </button>
@@ -178,9 +192,7 @@ export function ExploreBoard() {
                     <button
                       type="button"
                       className="explore-add-button"
-                      onClick={() =>
-                        addToTrip(buildAddToTripMessage(stay.name, activeCity.name, stay.area))
-                      }
+                      onClick={() => addToTrip(stay, "stay", stay.area)}
                     >
                       {t.explore.addToTrip}
                     </button>

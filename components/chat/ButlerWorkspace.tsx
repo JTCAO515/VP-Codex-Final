@@ -8,6 +8,11 @@ import { preferenceProfileSummary, updatePreferenceProfile, type UserPreferenceP
 import { applyCanvasPatch } from "@/lib/canvas/applyCanvasPatch";
 import { getTripArchetype, TRIP_ARCHETYPES } from "@/lib/chat/archetypes";
 import { diffTripState } from "@/lib/canvas/diffTripState";
+import {
+  applyExplorePoiToPatch,
+  parseExploreAddToTripPayload,
+  type ExploreAddToTripPayload,
+} from "@/lib/explore/addToTrip";
 import type { QuickActionKind } from "@/lib/canvas/quickActions";
 import { createMockButlerPatch, initialTripState } from "@/lib/mock-ai/mockButler";
 import { appendMessage, loadTripWithCanvas, saveTripCanvas } from "@/lib/supabase/tripsRepository";
@@ -124,11 +129,13 @@ export function ButlerWorkspace() {
 
   useEffect(() => {
     if (typeof window === "undefined" || hasAppliedAddRef.current) return;
-    const addParam = new URLSearchParams(window.location.search).get("add");
+    const params = new URLSearchParams(window.location.search);
+    const addParam = params.get("add");
     if (!addParam) return;
+    const explorePoi = parseExploreAddToTripPayload(params.get("poi"));
     hasAppliedAddRef.current = true;
     window.history.replaceState(null, "", "/chat");
-    void handleSend(addParam);
+    void handleSend(addParam, { explorePoi });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -245,7 +252,12 @@ export function ButlerWorkspace() {
     return nextTrip;
   }
 
-  async function handleSend(message: string) {
+  async function handleSend(
+    message: string,
+    options?: {
+      explorePoi?: ExploreAddToTripPayload | null;
+    },
+  ) {
     setBusy(true);
     const nextPreferenceProfile = updatePreferenceProfile(preferenceProfile, message);
     setPreferenceProfile(nextPreferenceProfile);
@@ -259,7 +271,11 @@ export function ButlerWorkspace() {
         body: JSON.stringify({ message, messages: nextMessages, trip, preferenceProfile: nextPreferenceProfile }),
       });
       const body = await response.json();
-      const patch = body?.patch ?? createMockButlerPatch(message, trip);
+      const patch = applyExplorePoiToPatch(
+        body?.patch ?? createMockButlerPatch(message, trip),
+        trip,
+        options?.explorePoi ?? null,
+      );
       const modeNote =
         typeof body?.modelLabel === "string" && body.modelLabel
           ? body.modelLabel
@@ -271,7 +287,11 @@ export function ButlerWorkspace() {
       setSuggestions(Array.isArray(body?.suggestions) ? body.suggestions.slice(0, 2) : initialSuggestions.slice(0, 2));
       setStatus(`VisePanda updated the canvas with ${modeNote}: ${patch.reason}`);
     } catch {
-      const patch = createMockButlerPatch(message, trip);
+      const patch = applyExplorePoiToPatch(
+        createMockButlerPatch(message, trip),
+        trip,
+        options?.explorePoi ?? null,
+      );
       applyPatchAndDigest(patch);
       setSuggestions(["Can you make one day lighter?", "What should we book first?"]);
       setStatus(`VisePanda updated the canvas with mock fallback: ${patch.reason}`);

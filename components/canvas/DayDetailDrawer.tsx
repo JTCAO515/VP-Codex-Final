@@ -5,7 +5,7 @@ interface DayDetailDrawerProps {
   onClose: () => void;
 }
 
-const displayTimes: TripBlock["time"][] = ["Morning", "Afternoon", "Evening"];
+const displayTimes: TripBlock["time"][] = ["Morning", "Afternoon", "Evening", "Flexible"];
 
 function normalizeBlocks(day: TripDay) {
   return displayTimes.map(
