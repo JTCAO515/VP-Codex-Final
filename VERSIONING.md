@@ -4,8 +4,9 @@
 
 - Previous baseline: `v0.1.1`
 - Minor-series reset: `v0.2.1` (operator directive — all subsequent iterations use `0.2.x`)
-- Current iteration: `v0.3.18` (LLM providers live in production: vendor extraBody for hybrid-reasoning models, kimi temperature=1, parse-boundary day normalization; first real AI itinerary generated in production)
-- Previous: `v0.3.17` (chatbot reliability round: truncation-tolerant JSON parsing, per-intent token/timeout budgets, provider circuit breaker, constitution-layered system prompt, gap-driven suggestions, acute-distress fast-path)
+- Current iteration: `v0.3.19` (Chat mock fallback fully removed — honest connection-failed state (ADR-120); four-provider real-key connectivity deepening — DeepSeek hybrid-reasoning disable, Kimi minTimeoutMs/minMaxTokens floors, findObjectEnd JSON-corruption fix (ADR-121))
+- Previous: `v0.3.18` (LLM providers live in production: vendor extraBody for hybrid-reasoning models, kimi temperature=1, parse-boundary day normalization; first real AI itinerary generated in production)
+- Earlier: `v0.3.17` (chatbot reliability round: truncation-tolerant JSON parsing, per-intent token/timeout budgets, provider circuit breaker, constitution-layered system prompt, gap-driven suggestions, acute-distress fast-path)
 - Note: `v0.3.13` (Tools full implementation) and `v0.3.14` (Android APK feature-completion) shipped on `main` — see git history (`fc519ab`…`4239bce`); their long-form doc entries were superseded during an operator working-tree rollback. `v0.3.15`/`v0.3.16` are pre-assigned to GitHub Issues #3/#4 (Android Translator / Android Explore real data) per the multi-agent workflow (`WORKFLOW.md`).
 - Production domain: `go2china.space`
 

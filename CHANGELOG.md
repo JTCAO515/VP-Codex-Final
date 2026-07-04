@@ -1,5 +1,22 @@
 # VisePanda Changelog
 
+## v0.3.19 - 2026-07-05
+
+**Chat mock 兜底彻底移除（诚实报错）+ 四家真实 LLM 连通性深化轮。** 操作者直接指令"CHAT只调用真实LLM来对话，移除所有Mock对话，连接失败就真实显示连接失败"（ADR-120），随后提供 DeepSeek/Kimi/Qwen/GLM 四把真实 key，由架构师自派任务深化连通性（ADR-121）。
+
+### Chat mock 兜底移除（PR #30/#31，之前已合并，本轮补版本号）
+- `lib/ai/orchestrator.ts` 三处 mock 兜底调用点（无 provider 配置/全部 provider 失败/空消息）全部改为抛出，不再返回"看起来像真实 AI"的假 CanvasPatch。`app/api/chat/route.ts` 捕获失败后返回非 2xx（503）+ `{ok:false,error,message}`。`components/chat/ButlerWorkspace.tsx` 移除前端自己的两处 mock 兜底，改为展示诚实的"连接失败"状态。Android 端因此自动受益（原本就有诚实失败检测，但从未被真正触发过）。
+- 范围明确：Explore/Tools 静态数据兜底、Translate 占位、离线缓存展示不受影响，仍适用 AGENTS.md 五条硬规则第③条。
+
+### 四家 LLM 连通性深化（本轮新增）
+- **DeepSeek 混合推理禁用**：`deepseek-v4-flash` 与 Qwen/GLM 同属混合推理模型，默认思考会烧光小 max_tokens 预算返回空 content。`extraBody:{thinking:{type:"disabled"}}` 修复，验证无质量损失。
+- **Kimi 双重浮动下限**：实测 3 种参数组合均无法关闭 kimi-k2.6 的推理；发现 reasoning_content 与 content 共享同一 max_tokens 上限。新增 `minMaxTokens` 机制（与既有 `minTimeoutMs` 同款），Kimi 设为 `minTimeoutMs:90000` + `minMaxTokens:8192`——真实系统提示词下完整耗时在 61.5s-82s 之间波动，接受这个已知代价（Kimi 平时排在其他三家之后，此延迟不可见）。
+- **JSON 静默损坏修复（本轮最高价值发现）**：`lib/ai/jsonRepair.ts` 新增 `findObjectEnd()`——真实 Kimi 响应证实，完整合法 JSON 对象后跟着模型自我验证的人类语言时，若这段废话含逗号，旧的回退算法会在真正 JSON 体内的逗号之前找到它，可能悄悄切掉内部字段（复现：`"title":"Yu Garden"` 被静默清空，外层 `days.length` 看起来完全正常）。现在先精确扫描匹配括号切一刀，只有真正截断的内容才走回退修复。
+
+### 验证
+- 179 个单元测试通过（新增 5 个：`findObjectEnd` 4 个 + 复现回归测试 1 个）；`npm run build` 通过。
+- 真实网络路径验证（临时探针，用后即删）：四家 provider 通过真实 `requestOrchestratedButlerPatch` 一起竞速，DeepSeek 26.4s 首先胜出并返回合法 3 天行程；单独只配置 Kimi 时在新下限下真实完整跑通（82.2s）。
+
 ## v0.3.18 - 2026-07-04
 
 **LLM 修复轮 + 生产环境首次真实 AI 行程生成。** 操作者提供三家真实 key(Qwen 专属网关/智谱/Kimi),实测根治:Qwen 与 GLM-5.x 默认思考模式烧光延迟预算(禁用后 1.9s/6.6s 直出 JSON);kimi-k2.x 只接受 temperature=1(400 根因);Qwen 专属网关正确路径为 `/compatible-mode/v1`。四家真跑后又暴露解析边界缺口:LLM 返回的 day 缺 `blocks` 字段导致 write-through 崩溃丢弃获胜 patch —— `normalizeDays` 在解析边界归一化修复(与 Android TripJson.normalizeNulls 同一思想)。合并 main 上并行会话的模型名升级(glm-5.1/kimi-k2.6/qwen3.7-plus),文档冲突仲裁为架构师版本。**生产实测:`mode:"zhipu"`,完整 2 天行程,零降级 —— 项目生产历史上第一次真实 AI 生成行程。** 173 测试通过。

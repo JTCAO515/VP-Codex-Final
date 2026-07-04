@@ -24,6 +24,15 @@ export const BUTLER_PROVIDERS: ChatCompletionProvider[] = [
     baseUrlEnv: "DEEPSEEK_BASE_URL",
     defaultModel: "deepseek-v4-flash",
     modelEnv: "DEEPSEEK_MODEL",
+    // deepseek-v4-flash is also a hybrid-reasoning model — same shape as
+    // Qwen/GLM (v0.3.18): thinking on by default, verified via real key
+    // (2026-07-05) that a small max_tokens burns the whole budget on
+    // reasoning_content and returns empty content with finish_reason:"length".
+    // The existing per-intent budgets (1400/4096) are large enough that this
+    // was never a production outage, but disabling thinking (same
+    // thinking:{type:"disabled"} shape as Zhipu) is strictly faster/cheaper
+    // with no quality loss for structured CanvasPatch generation.
+    extraBody: { thinking: { type: "disabled" } },
   }),
   createOpenAiCompatibleProvider({
     id: "qwen",
@@ -69,6 +78,22 @@ export const BUTLER_PROVIDERS: ChatCompletionProvider[] = [
     // temperature: only 1 is allowed for this model", measured v0.3.18).
     // extraBody is spread after the default temperature so this wins.
     extraBody: { temperature: 1 },
+    // kimi-k2.6 is a genuine reasoning model — verified with a real key
+    // (2026-07-05) that none of the usual disable-thinking parameters
+    // actually suppress its reasoning pass, and its reasoning_content shares
+    // the same max_tokens ceiling as content. On the actual (long) butler
+    // system prompt, measured real completions ranged from 61.5s up to
+    // timing out past 75s across repeated runs — the reasoning pass length is
+    // highly variable and scales unpredictably with prompt complexity, not a
+    // single fixed constant. Rather than chase this indefinitely, the floor
+    // is set generously (90s) and this variance is accepted as a known
+    // characteristic: Kimi is always raced behind 3 faster providers
+    // (DeepSeek/Qwen/Zhipu, 7-27s), so this latency is normally invisible; it
+    // only surfaces if Kimi becomes the last surviving candidate, in which
+    // case a slow real answer (or an honest timeout per ADR-120) still beats
+    // a fake instant mock.
+    minTimeoutMs: 90000,
+    minMaxTokens: 8192,
   }),
   createOpenAiCompatibleProvider({
     id: "ernie",
