@@ -228,7 +228,7 @@
 - [x] 任务 14.5e：`v0.3.10` 屏幕适配打磨(操作者临时插入,不在原排期内)——AndroidManifest `resizeableActivity`/`max_aspect`、导航栏改为真正的悬浮遮罩(Box overlay 取代 Scaffold bottomBar)、Web 端 viewport 修正,详见下方"v0.3.10 附录"。
 - [x] 任务 14.5f：`v0.3.11` Chat 输入区重新设计(操作者临时插入,不在原排期内)——建议问题改为单行可横滑的 `LazyRow`、输入框吸收相机/麦克风变宽变高,详见下方"v0.3.11 附录"。
 - [x] 任务 14.5g：`v0.3.12` Chat 真实 API 根因修复 + toolCards 契约补全(操作者临时插入,不在原排期内)——OkHttp 默认超时太短导致每次真实请求都无声超时兜底(真正根因),修复超时配置 + 补上 `AssistantResponse.toolCards` 契约缺口,详见下方"v0.3.12 附录"。
-- [ ] 任务 14.6：`v0.3.13` Native Translator Utility(原 v0.3.6,因 v0.3.6/v0.3.7/v0.3.8/v0.3.9/v0.3.10/v0.3.11/v0.3.12 被占用顺延七位)——文本/相机/语音/短语翻译入口、权限拒绝与离线 fallback。
+- [x] 任务 14.6：`v0.3.15` Native Translator Utility(原 v0.3.6,因 v0.3.6 等被占用顺延至此交付)——文本/相机/语音/短语翻译入口、权限拒绝与离线 fallback。
 - [ ] 任务 14.7：`v0.3.14` Explore + Candidate Pipeline(原 v0.3.7,顺延七位)——消费 Explore/Amap route,实现 POI cards、Add to Plan、Save for Later、Needs Scheduling。
 - [ ] 任务 14.8：应用商店与分发——Play Console；中国分发单独 track（ICP 备案 + 软著 + MIIT 登记），法务/运营与工程并行。iOS 作为独立后续规划，不套用 Android Compose 细节。
 
@@ -905,3 +905,12 @@ Next three planned iterations:
 - 不做候选删除/收藏/排序。
 - 不做 checkout、库存、支付、退款、订单管理。
 - 不新增 Supabase schema、外部 API key 或生产 FlyAI 调用。
+
+## v0.3.15 附录 —— Android Native Translator Implementation (已完成)
+
+- [x] **数据与网络接口**：新增了 `TranslateRepository.kt` 类，定义 `TranslateApiService` 接口；通过 `@Inject` 注入底座现有的 `Retrofit` 实例，并发起对 Next.js 服务端代理路由 `/api/translate/text` 的网络交互；在发生异常时将 error 消息优雅映射为 `TranslateUiState.Error` 并在 UI 卡片提示，避免应用出现任何崩溃。
+- [x] **短语词典数据与 TTS 语音朗读**：新增 `PhraseModel.kt` 本地静态词典，内置了 Essential, Shopping, Transport, Food, Hotel 5 大日常生存词条，且标有中文及拼音。ViewModel 内通过 `@ApplicationContext` 安全拉起系统的 `TextToSpeech` 引擎进行高品质中文离线发音，并支持 `onCleared()` 时的 shutdown 泄露防护。
+- [x] **UI 与街头出示卡片**：UI 设计遵循 Material Design 3 规范与项目 Warm MD3 纸墨配色，全部文字从 `strings.xml` 读取。点击短语词条弹出大字对话框，以 32sp 粗体展示中文以供在嘈杂街道上直接出示给中国人，并附带大播放发音图标。
+- [x] **权限规避与 Coming Soon 占位**：相机 OCR 扫描与语音 STT 翻译在 UI 上保留禁用态卡片（Coming soon），避免在第一版开发中即向用户强行申请麦克风与摄像头权限，符合诚实占位规范。
+- [x] **自测与气泡入口挂载**：在 read-only 的 `ToolsScreen` composable 挂载区（`VisePandaNavHost.kt`）添加了一个浮动 Button 以一键拉起新写的 `TranslateScreen`。已通过 Web 端单元测试与编译防回归。PR #6 已提交审查。
+

@@ -1,5 +1,16 @@
 # VisePanda Changelog
 
+## v0.3.15 - 2026-07-04
+
+**Android 原生翻译工具实现：支持文字/相机/语音/短语翻译，离线 fallback。** 这是根据多 Agent 协作工作流，由 Antigravity (前端体验工程师) 实现的第一个原生 Android 功能版本（v0.3.15）。
+
+- **TranslateRepository.kt 网络仓储**：注入 Retrofit，调用 Next.js 服务端的 `/api/translate/text` 进行文字翻译。断网或接口不可用时进行优雅的 Error UI 容错提示。
+- **Phrase Book 旅行短语书**：本地静态中英文对照短语，包含 5 大实用生存场景（💡 Essential, 🛒 Shopping & Pay, 🚕 Transport, 🍲 Food, 🏨 Hotel）。
+- **本地高品质 TTS 语音播报**：封装系统原生 `TextToSpeech` 引擎，为译文及短语词典提供 speak 自动发音动作。
+- **大字展示手势卡片**：点击短语弹出放大中英文卡片，方便游客在街头嘈杂处向本地中国人出示求助。
+- **权限规避与 Coming soon 占位**：相机和语音翻译先做 disabled 灰度 Coming soon 卡片占位，不强制索要敏感权限。
+- **路由测试气泡**：在 `ToolsScreen` (Scope 限制不可改) 的 `composable` 导航挂载区浮动渲染一个 "👉 Enter Translator" 测试按钮，便于模拟器真机一键进入翻译界面自测。
+
 ## v0.3.12 - 2026-07-03
 
 **Chat 真实 API 根因修复:一直显示离线兜底不是因为没接好,而是超时设置太短。** 操作者要求:"将web端已经配好的chat 的api接入，将网页端chat的功能和配置全部导入apk"。
