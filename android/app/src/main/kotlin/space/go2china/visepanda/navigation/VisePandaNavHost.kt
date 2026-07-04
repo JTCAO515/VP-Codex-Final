@@ -23,6 +23,7 @@ import space.go2china.visepanda.ui.plan.DayDetailScreen
 import space.go2china.visepanda.ui.tools.ToolCategoryDetailScreen
 import space.go2china.visepanda.ui.tools.ToolsScreen
 import space.go2china.visepanda.ui.trips.TripsScreen
+import space.go2china.visepanda.ui.translate.TranslateScreen
 
 /**
  * v0.3.10: the bottom nav floats as a `Box` overlay on top of full-screen
@@ -37,7 +38,8 @@ import space.go2china.visepanda.ui.trips.TripsScreen
 fun VisePandaApp() {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val isTopLevelDestination = TopLevelDestination.all.any { it.route == backStackEntry?.destination?.route }
+    val currentRoute = backStackEntry?.destination?.route?.split("?")?.firstOrNull()
+    val isTopLevelDestination = TopLevelDestination.all.any { it.route == currentRoute }
 
     // v0.3.14: scoped to the Activity (this composable, not any single nav
     // route) so Me's language toggle affects every screen — see DESIGN.md
@@ -49,7 +51,7 @@ fun VisePandaApp() {
     Box(modifier = Modifier.fillMaxSize()) {
         NavHost(
             navController = navController,
-            startDestination = TopLevelDestination.Butler.route,
+            startDestination = "${TopLevelDestination.Butler.route}?message={message}",
             modifier = Modifier.fillMaxSize(),
         ) {
             composable(TopLevelDestination.Trips.route) {
@@ -58,10 +60,17 @@ fun VisePandaApp() {
                     onOpenDay = { dayNumber -> navController.navigate(DetailDestinations.dayDetailRoute(dayNumber)) },
                 )
             }
-            composable(TopLevelDestination.Butler.route) {
+            composable(
+                route = "${TopLevelDestination.Butler.route}?message={message}",
+                arguments = listOf(navArgument("message") { type = NavType.StringType; nullable = true; defaultValue = null })
+            ) {
                 ButlerScreen(
                     onOpenToolCategory = { categoryId ->
-                        navController.navigate(DetailDestinations.toolCategoryRoute(categoryId))
+                        if (categoryId == "language" || categoryId == "translate") {
+                            navController.navigate(DetailDestinations.TRANSLATE_ROUTE)
+                        } else {
+                            navController.navigate(DetailDestinations.toolCategoryRoute(categoryId))
+                        }
                     },
                 )
             }
@@ -71,7 +80,11 @@ fun VisePandaApp() {
             composable(TopLevelDestination.Tools.route) {
                 ToolsScreen(
                     onOpenCategory = { categoryId ->
-                        navController.navigate(DetailDestinations.toolCategoryRoute(categoryId))
+                        if (categoryId == "language" || categoryId == "translate") {
+                            navController.navigate(DetailDestinations.TRANSLATE_ROUTE)
+                        } else {
+                            navController.navigate(DetailDestinations.toolCategoryRoute(categoryId))
+                        }
                     },
                 )
             }
@@ -85,13 +98,26 @@ fun VisePandaApp() {
                 route = DetailDestinations.DAY_DETAIL_ROUTE,
                 arguments = listOf(navArgument(DetailDestinations.DAY_NUMBER_ARG) { type = NavType.StringType }),
             ) {
-                DayDetailScreen(onBack = { navController.popBackStack() })
+                DayDetailScreen(
+                    onBack = { navController.popBackStack() },
+                    onScheduleCandidate = { day, block ->
+                        val message = "Schedule ${block.title} into Day ${day.day} in ${day.city}. Keep the route practical, choose the best time slot, and explain what changed."
+                        navController.navigate("butler?message=${android.net.Uri.encode(message)}") {
+                            popUpTo(TopLevelDestination.Butler.route) {
+                                inclusive = false
+                            }
+                        }
+                    }
+                )
             }
             composable(
                 route = DetailDestinations.TOOL_CATEGORY_ROUTE,
                 arguments = listOf(navArgument(DetailDestinations.TOOL_CATEGORY_ARG) { type = NavType.StringType }),
             ) {
                 ToolCategoryDetailScreen(onBack = { navController.popBackStack() })
+            }
+            composable(DetailDestinations.TRANSLATE_ROUTE) {
+                TranslateScreen(onBack = { navController.popBackStack() })
             }
         }
 

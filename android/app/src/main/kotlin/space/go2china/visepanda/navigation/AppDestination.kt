@@ -58,4 +58,6 @@ object DetailDestinations {
     const val TOOL_CATEGORY_ARG = "categoryId"
 
     fun toolCategoryRoute(categoryId: String): String = "tool_category/$categoryId"
+
+    const val TRANSLATE_ROUTE = "translate"
 }

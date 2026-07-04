@@ -66,4 +66,26 @@
     <string name="state_offline_title">当前离线</string>
     <string name="state_error_title">出了点问题</string>
     <string name="state_error_retry">重试</string>
+    
+    <!-- Translate Screen Strings -->
+    <string name="translate_title">翻译</string>
+    <string name="translate_tab_translator">文本翻译</string>
+    <string name="translate_tab_phrasebook">常用短语</string>
+    <string name="translate_input_placeholder">请输入要翻译的内容…</string>
+    <string name="translate_output_placeholder">翻译结果将在此显示…</string>
+    <string name="translate_btn_translate">翻译</string>
+    <string name="translate_btn_translating">正在翻译…</string>
+    <string name="translate_direction_en_zh">英文 ↔ 中文</string>
+    <string name="translate_direction_zh_en">中文 ↔ 英文</string>
+    <string name="translate_copy_success">已复制到剪贴板</string>
+    <string name="translate_speak_not_ready">语音合成未就绪</string>
+    <string name="translate_camera_title">相机翻译</string>
+    <string name="translate_voice_title">语音翻译</string>
+    <string name="translate_coming_soon">即将推出</string>
+    <string name="translate_pinyin">拼音</string>
+    <string name="translate_error_unavailable">翻译服务当前不可用，请检查你的网络连接。</string>
+    <string name="translate_show_local">向当地人展示此内容</string>
+    <string name="day_detail_needs_scheduling">需要安排日程</string>
+    <string name="day_detail_candidate_hint">来自 Explore 的候选景点；尚未锁定至当日日程。</string>
+    <string name="day_detail_ask_schedule">让 VisePanda 安排行程</string>
 </resources>

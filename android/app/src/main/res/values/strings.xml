@@ -71,4 +71,26 @@
     <string name="state_offline_title">You are offline</string>
     <string name="state_error_title">Something went wrong</string>
     <string name="state_error_retry">Retry</string>
+    
+    <!-- Translate Screen Strings -->
+    <string name="translate_title">Translate</string>
+    <string name="translate_tab_translator">Translator</string>
+    <string name="translate_tab_phrasebook">Phrasebook</string>
+    <string name="translate_input_placeholder">Enter text here…</string>
+    <string name="translate_output_placeholder">Translation will appear here…</string>
+    <string name="translate_btn_translate">Translate</string>
+    <string name="translate_btn_translating">Translating…</string>
+    <string name="translate_direction_en_zh">English ↔ Chinese</string>
+    <string name="translate_direction_zh_en">Chinese ↔ English</string>
+    <string name="translate_copy_success">Copied to clipboard</string>
+    <string name="translate_speak_not_ready">TTS not ready</string>
+    <string name="translate_camera_title">Camera Translate</string>
+    <string name="translate_voice_title">Voice Translate</string>
+    <string name="translate_coming_soon">Coming soon</string>
+    <string name="translate_pinyin">Pinyin</string>
+    <string name="translate_error_unavailable">Translation service is currently offline. Please check your network connection.</string>
+    <string name="translate_show_local">Show this to local people</string>
+    <string name="day_detail_needs_scheduling">Needs scheduling</string>
+    <string name="day_detail_candidate_hint">Candidate from Explore; not locked into the day yet.</string>
+    <string name="day_detail_ask_schedule">Ask VisePanda to schedule</string>
 </resources>

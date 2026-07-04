@@ -21,6 +21,13 @@ data class ExplorePoi(
     val rating: Double,
     val priceHint: String,
     val description: String,
+    val address: String? = null,
+    val phone: String? = null,
+    val openingHours: String? = null,
+    val mapUrl: String? = null,
+    val bookingCandidates: List<space.go2china.visepanda.data.model.BookingCandidate> = emptyList(),
+    val sourceLabel: String? = null,
+    val coordinates: space.go2china.visepanda.data.model.Coordinates? = null
 )
 
 object MockExploreData {

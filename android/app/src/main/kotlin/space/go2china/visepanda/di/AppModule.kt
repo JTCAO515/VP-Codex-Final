@@ -19,9 +19,15 @@ import space.go2china.visepanda.data.local.TripCacheDao
 import space.go2china.visepanda.data.local.VisePandaDatabase
 import space.go2china.visepanda.data.remote.ButlerApiService
 import space.go2china.visepanda.data.remote.ExchangeRateApiService
+import space.go2china.visepanda.data.remote.ExploreApiService
+import space.go2china.visepanda.data.remote.TranslateApiService
+import space.go2china.visepanda.data.repository.ExploreRepository
+import space.go2china.visepanda.data.repository.LiveExploreRepository
 import space.go2china.visepanda.data.repository.LiveToolsRepository
 import space.go2china.visepanda.data.repository.RoomTripRepository
 import space.go2china.visepanda.data.repository.ToolsRepository
+import space.go2china.visepanda.data.repository.TranslateRepository
+import space.go2china.visepanda.data.repository.LiveTranslateRepository
 import space.go2china.visepanda.data.repository.TripRepository
 import space.go2china.visepanda.data.serialization.TripJson
 
@@ -38,10 +44,18 @@ abstract class RepositoryModule {
     @Singleton
     abstract fun bindTripRepository(impl: RoomTripRepository): TripRepository
 
+    @Binds
+    @Singleton
+    abstract fun bindExploreRepository(impl: LiveExploreRepository): ExploreRepository
+
     /** v0.3.13: checklist content + live exchange-rate merge — see DESIGN.md ADR-117. */
     @Binds
     @Singleton
     abstract fun bindToolsRepository(impl: LiveToolsRepository): ToolsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindTranslateRepository(impl: LiveTranslateRepository): TranslateRepository
 }
 
 @Module
@@ -105,6 +119,16 @@ object NetworkModule {
     @Singleton
     fun provideExchangeRateApiService(retrofit: Retrofit): ExchangeRateApiService =
         retrofit.create(ExchangeRateApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideTranslateApiService(retrofit: Retrofit): TranslateApiService =
+        retrofit.create(TranslateApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideExploreApiService(retrofit: Retrofit): ExploreApiService =
+        retrofit.create(ExploreApiService::class.java)
 
     private fun String.ensureTrailingSlash(): String =
         if (endsWith("/")) this else "$this/"
