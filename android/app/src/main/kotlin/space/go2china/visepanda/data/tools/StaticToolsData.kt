@@ -199,7 +199,7 @@ object StaticToolsData {
         ),
         ToolCategory(
             id = "esim-vpn",
-            name = "eSIM/VPN",
+            name = "Network",
             summary = "Stay connected and reach the apps you rely on at home.",
             tips = listOf(
                 "Buy a China-compatible eSIM or local SIM before you need it; activation can take time.",
@@ -252,6 +252,56 @@ object StaticToolsData {
             ),
             offlineTips = sharedOfflineTips + "Pin your hotel address and nearest hospital in your maps app.",
             apiPriority = "Not planned yet: emergency content should stay conservative unless verified local data is available.",
+        ),
+        ToolCategory(
+            id = "translate",
+            name = "Translator",
+            summary = "Translate text, common travel phrases, or signs instantly.",
+            tips = listOf(
+                "Translate simple English questions into Chinese characters to show locals.",
+                "Use Pinyin display to help you pronounce common Chinese phrases.",
+                "Save the most common travel queries to your clipboard for quick access.",
+            ),
+            sections = listOf(
+                ToolSection(
+                    title = "Translation basics",
+                    items = listOf(
+                        "Input English text to get immediate Chinese translation.",
+                        "Copy translated Chinese characters to paste into maps or chat apps.",
+                    ),
+                ),
+            ),
+            offlineTips = sharedOfflineTips + "Take photos of translation results for easy offline access.",
+            apiPriority = "Translate page is fully operational locally.",
+        ),
+        ToolCategory(
+            id = "booking",
+            name = "Booking",
+            summary = "Information and guidelines for travel bookings.",
+            tips = listOf(
+                "This tool displays preparing guides only; bookings cannot be made through this application.",
+                "Always reserve transport and stays through official platforms before departure.",
+                "Double-check refund policies and keep your booking confirmations saved offline.",
+            ),
+            sections = listOf(
+                ToolSection(
+                    title = "Pre-trip preparation",
+                    items = listOf(
+                        "Compile hotel names and addresses in English and Chinese characters.",
+                        "Verify passport matching for all booked train or flight tickets.",
+                        "Ensure your arrival timings are communicated to the accommodation in advance.",
+                    ),
+                ),
+                ToolSection(
+                    title = "Local transit bookings",
+                    items = listOf(
+                        "Train tickets can be queried on official platforms like 12306.",
+                        "Some local attractions require real-name booking with your passport details.",
+                    ),
+                ),
+            ),
+            offlineTips = sharedOfflineTips + "Keep PDF or screenshot confirmations of all your bookings.",
+            apiPriority = "Info-only reference block; no transactional integrations are planned.",
         ),
     )
 }

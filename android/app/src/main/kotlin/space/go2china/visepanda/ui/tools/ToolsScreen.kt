@@ -21,6 +21,8 @@ import androidx.compose.material.icons.filled.FactCheck
 import androidx.compose.material.icons.filled.SimCard
 import androidx.compose.material.icons.filled.Train
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material.icons.filled.ConfirmationNumber
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -49,6 +51,8 @@ import space.go2china.visepanda.ui.theme.ToolsAccentEsim
 import space.go2china.visepanda.ui.theme.ToolsAccentMetro
 import space.go2china.visepanda.ui.theme.ToolsAccentPayment
 import space.go2china.visepanda.ui.theme.ToolsAccentVisa
+import space.go2china.visepanda.ui.theme.ToolsAccentTranslate
+import space.go2china.visepanda.ui.theme.ToolsAccentBooking
 
 private data class ToolCategoryMeta(val icon: ImageVector, val accent: Color, val badge: String)
 
@@ -64,6 +68,8 @@ private val toolCategoryMeta = mapOf(
     "metro" to ToolCategoryMeta(Icons.Filled.Train, ToolsAccentMetro, "Transit"),
     "esim-vpn" to ToolCategoryMeta(Icons.Filled.SimCard, ToolsAccentEsim, "Connectivity"),
     "emergency" to ToolCategoryMeta(Icons.Filled.Warning, ToolsAccentEmergency, "Emergency"),
+    "translate" to ToolCategoryMeta(Icons.Filled.Translate, ToolsAccentTranslate, "Utility"),
+    "booking" to ToolCategoryMeta(Icons.Filled.ConfirmationNumber, ToolsAccentBooking, "Info only"),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)

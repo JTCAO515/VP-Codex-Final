@@ -122,9 +122,9 @@ private fun ButlerHeader(state: ButlerUiState) {
             )
             Text(
                 text = if (state.offlineFallback) {
-                    "Offline · ${state.modelLabel}"
+                    "Offline"
                 } else {
-                    state.modelLabel
+                    "Ready"
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,

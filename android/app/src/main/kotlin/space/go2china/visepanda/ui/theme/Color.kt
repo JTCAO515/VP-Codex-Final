@@ -71,3 +71,5 @@ val ToolsAccentCurrency = Sage
 val ToolsAccentMetro = Color(0xFF4A6080)
 val ToolsAccentEsim = Color(0xFF7A5C8A)
 val ToolsAccentEmergency = Color(0xFF9D2F24)
+val ToolsAccentTranslate = Color(0xFF3B7A57)
+val ToolsAccentBooking = Color(0xFF2E658E)
