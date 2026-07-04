@@ -180,6 +180,30 @@ describe("requestOrchestratedButlerPatch", () => {
     expect(result.fallbackReason).toContain("deepseek failed");
   });
 
+  it("normalizes days missing blocks so write-through never crashes (v0.3.18)", async () => {
+    const patchWithHoleyDays = JSON.stringify({
+      intent: "create_trip",
+      assistantMessage: "Planned!",
+      reason: "model omitted blocks on day 2",
+      suggestions: ["A?", "B?"],
+      days: [
+        { day: 1, city: "Beijing", blocks: [{ time: "Morning", title: "Forbidden City", description: "Go early" }] },
+        { day: 2, city: "Beijing" }, // no blocks at all — crashed production before
+      ],
+    });
+    const result = await requestOrchestratedButlerPatch({
+      message: "Plan me a 2 day trip in Beijing",
+      currentTrip: initialTripState,
+      env: { DEEPSEEK_API_KEY: "k" },
+      fetchImpl: vi.fn(),
+      providers: [makeProvider("deepseek", { content: patchWithHoleyDays })],
+    });
+
+    expect(result.mode).toBe("deepseek");
+    expect(result.patch.days).toHaveLength(2);
+    expect(result.patch.days?.[1].blocks).toEqual([]);
+  });
+
   it("recovers a patch from JSON truncated at max_tokens (v0.3.17)", async () => {
     const truncated =
       '{"intent":"adjust_trip","assistantMessage":"Made Day 1 lighter","reason":"pace","suggestions":["A?","B?"],"tripSummary":{"confidence":"Refined"},"days":[{"day":1,"city":"Beijing","note":"Cut mid stri';

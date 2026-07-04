@@ -34,9 +34,12 @@ export function applyToolContextToPatch(patch: CanvasPatch, toolContext?: Butler
 
   return {
     ...patch,
+    // Defensive ?? [] — parse-boundary normalization (butlerPrompt.normalizeDays)
+    // should guarantee blocks exists, but this ran against raw LLM output in
+    // production once and crashed; cheap insurance stays (v0.3.18).
     days: patch.days.map((day) => ({
       ...day,
-      blocks: day.blocks.map((block) => {
+      blocks: (day.blocks ?? []).map((block) => {
         const matchedPoi = toolContext.pois.find((poi) => matchesPoi(block, poi));
         return matchedPoi ? enrichBlock(block, matchedPoi) : block;
       }),

@@ -6,7 +6,7 @@ import { createMockButlerPatch } from "@/lib/mock-ai/mockButler";
 import { safeParseLlmJson } from "@/lib/ai/jsonRepair";
 import type { ButlerToolContext } from "@/lib/ai/toolContext";
 import type { UserPreferenceProfile } from "@/lib/ai/preferenceProfile";
-import type { AssistantResponse, CanvasPatch, ChatMessage, InlineToolCard, TripState } from "@/lib/types/trip";
+import type { AssistantResponse, CanvasPatch, ChatMessage, InlineToolCard, TripDay, TripState } from "@/lib/types/trip";
 
 const allowedIntents = new Set<CanvasPatch["intent"]>(["create_trip", "adjust_trip", "add_alerts"]);
 
@@ -113,6 +113,44 @@ export function createMockSuggestions(message: string, patch: CanvasPatch): stri
 
 function stringValue(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
+}
+
+/**
+ * Normalize LLM-produced days at the parse boundary (v0.3.18). Real model
+ * output can omit any field the TypeScript type claims is required — a day
+ * without `blocks` crashed `applyToolContextToPatch` in production
+ * ("Cannot read properties of undefined (reading 'map')"), throwing away an
+ * otherwise-winning patch. Same philosophy as the Android TripJson
+ * normalizeNulls fix: nulls/holes must never leave the decode layer.
+ */
+function normalizeDays(value: unknown): TripDay[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const days = value
+    .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === "object")
+    .map((raw, index) => {
+      const blocks = Array.isArray(raw.blocks)
+        ? raw.blocks
+            .filter((block): block is Record<string, unknown> => Boolean(block) && typeof block === "object")
+            .map((block) => ({
+              ...block,
+              time: typeof block.time === "string" && block.time ? block.time : "Flexible",
+              title: stringValue(block.title) || "Untitled stop",
+              description: stringValue(block.description),
+            }))
+        : [];
+      return {
+        ...raw,
+        day: typeof raw.day === "number" ? raw.day : index + 1,
+        city: stringValue(raw.city),
+        pace: typeof raw.pace === "string" && raw.pace ? raw.pace : "Balanced",
+        blocks,
+        food: Array.isArray(raw.food) ? raw.food.filter((f): f is string => typeof f === "string") : [],
+        stay: stringValue(raw.stay),
+        transport: stringValue(raw.transport),
+        note: stringValue(raw.note),
+      } as unknown as TripDay;
+    });
+  return days;
 }
 
 function stringArrayValue(value: unknown): string[] {
@@ -228,7 +266,7 @@ export function parseButlerPatch(
     assistantResponse,
     reason: parsed.reason,
     tripSummary: parsed.tripSummary,
-    days: Array.isArray(parsed.days) ? parsed.days : undefined,
+    days: normalizeDays(parsed.days),
     butlerAlerts: Array.isArray(parsed.butlerAlerts) ? parsed.butlerAlerts : undefined,
   };
 
