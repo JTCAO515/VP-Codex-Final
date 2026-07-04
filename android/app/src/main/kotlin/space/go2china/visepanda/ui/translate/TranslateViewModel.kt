@@ -20,6 +20,9 @@ data class TranslateUiState(
     val translationResult: TranslateResult? = null,
     val errorMessage: String? = null,
     val phrases: List<Phrase> = emptyList(),
+    val isProcessing: Boolean = false,
+    val isRecording: Boolean = false,
+    val permissionError: String? = null,
 )
 
 @HiltViewModel
@@ -50,7 +53,86 @@ class TranslateViewModel @Inject constructor(
             it.copy(
                 input = "",
                 translationResult = null,
-                errorMessage = null
+                errorMessage = null,
+                permissionError = null,
+                isProcessing = false,
+                isRecording = false
+            )
+        }
+    }
+
+    fun setPermissionError(message: String?) {
+        _uiState.update { it.copy(permissionError = message) }
+    }
+
+    fun setRecordingState(recording: Boolean) {
+        _uiState.update { it.copy(isRecording = recording) }
+    }
+
+    fun performOcr(imageBase64: String, mimeType: String = "image/jpeg") {
+        _uiState.update {
+            it.copy(
+                isProcessing = true,
+                errorMessage = null,
+                permissionError = null,
+                translationResult = null
+            )
+        }
+
+        viewModelScope.launch {
+            val result = translateRepository.translateOcr(imageBase64, mimeType)
+            result.fold(
+                onSuccess = { ocrText ->
+                    _uiState.update {
+                        it.copy(
+                            isProcessing = false,
+                            input = ocrText
+                        )
+                    }
+                    translate()
+                },
+                onFailure = { error ->
+                    _uiState.update {
+                        it.copy(
+                            isProcessing = false,
+                            errorMessage = "ocr_failed"
+                        )
+                    }
+                }
+            )
+        }
+    }
+
+    fun performStt(audioBase64: String, mimeType: String = "audio/mpeg", language: String = "zh") {
+        _uiState.update {
+            it.copy(
+                isProcessing = true,
+                errorMessage = null,
+                permissionError = null,
+                translationResult = null
+            )
+        }
+
+        viewModelScope.launch {
+            val result = translateRepository.translateStt(audioBase64, mimeType, language)
+            result.fold(
+                onSuccess = { sttText ->
+                    _uiState.update {
+                        it.copy(
+                            isProcessing = false,
+                            input = sttText
+                        )
+                    }
+                    translate()
+                },
+                onFailure = { error ->
+                    _uiState.update {
+                        it.copy(
+                            isProcessing = false,
+                            errorMessage = "stt_failed"
+                        )
+                    }
+                }
             )
         }
     }
@@ -61,7 +143,8 @@ class TranslateViewModel @Inject constructor(
                 translateToChinese = !it.translateToChinese,
                 // Automatically clear prior results to keep UI fresh
                 translationResult = null,
-                errorMessage = null
+                errorMessage = null,
+                permissionError = null
             )
         }
     }
@@ -75,7 +158,8 @@ class TranslateViewModel @Inject constructor(
             it.copy(
                 translating = true,
                 translationResult = null,
-                errorMessage = null
+                errorMessage = null,
+                permissionError = null
             )
         }
 
