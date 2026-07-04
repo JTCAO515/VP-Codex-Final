@@ -3,10 +3,12 @@ package space.go2china.visepanda.butler.agent;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import space.go2china.visepanda.butler.context.ContextSnapshot;
 import space.go2china.visepanda.butler.memory.MemoryContext;
 import space.go2china.visepanda.butler.model.CanvasPatch;
 import space.go2china.visepanda.butler.model.ChatResponse;
 import space.go2china.visepanda.butler.model.TripState;
+import space.go2china.visepanda.butler.tools.ToolBudget;
 
 @Service
 public class TripPlannerAgent {
@@ -30,6 +32,13 @@ public class TripPlannerAgent {
 
     public boolean liveConfigured() {
         return !apiKey.isBlank();
+    }
+
+    public AgentResult run(ButlerIntent routedIntent, ExecutionStep step, String message, TripState trip, MemoryContext memory,
+                           ContextSnapshot context, ToolBudget budget) {
+        CanvasPatch patch = mockButler.createPatch(message, trip);
+        return new AgentResult("TripPlannerAgent", patch.assistantMessage(), patch,
+                patch.assistantResponse() == null ? List.of() : patch.assistantResponse().highlights(), List.of("Mock Butler"), false);
     }
 
     private List<String> suggestionsFor(String patchIntent) {
