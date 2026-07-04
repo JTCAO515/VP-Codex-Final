@@ -78,5 +78,6 @@ VP-Codex-Final/
 1. 架构级改动先更新本文件 + `DESIGN.md` ADR。
 2. 端到端契约变化（新字段/新路由）先更新 `API_SPEC.md`。
 3. 移动端专属规范变化更新 `MOBILE_STANDARD.md`。
-4. Issue 必须标注 Scope + Do not touch + Acceptance，PR 必须在描述里链接对应 Issue。
-5. Reviewer（本 session）只审架构合规性，不改 PR 内容；不合规驳回并说明具体违反哪条规则。
+4. Issue 必须标注 Scope + Do not touch + Acceptance + 架构师预分配的版本号；PR 必须链接对应 Issue 并逐项填写 `.github/PULL_REQUEST_TEMPLATE.md`。
+5. Reviewer（架构师会话）只审架构合规性，不改 PR 内容；不合规驳回并说明违反哪条规则。
+6. 完整的多 Agent 协作规则（角色分工、六道防线、版本号所有权、冲突仲裁、发布线）见 `AGENTS.md` 末尾"多 Agent GitHub 协作规则"章节——该章节为协作权威。

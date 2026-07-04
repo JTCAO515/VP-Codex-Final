@@ -560,3 +560,51 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 - **Two web-side subsystems were deliberately NOT ported this round — this was a scoping decision, not an oversight:** `preferenceProfile` (`lib/ai/preferenceProfile.ts`, a whole regex-based extraction subsystem for dietary/budget/pace/interest signals) and the `intent`/`strategy`/`providersTried`/`toolContext` response fields (used only for the web's own debugging status text, with no Android UI surface to show them in — Gson already drops them harmlessly). If a future round wants preference-aware chat, that's new subsystem work, not a quick field addition.
 - **`android/app/build.gradle.kts`'s `versionCode`/`versionName` had been stuck at `1`/`"0.3.6"` since that round** — every subsequent round (v0.3.7 through v0.3.11) bumped `package.json` but never touched the Android module's own version fields. Now corrected to `12`/`"0.3.12"`. **Bump these two fields every round going forward alongside `package.json`** — don't let this drift again.
 - **When diagnosing "why does the app always show fallback/offline behavior," measure real end-to-end latency first, before re-reading request/response code.** This round's two research passes correctly mapped both sides of the contract and found it was ~95% correct — the actual bug was invisible in the code itself (a bare `OkHttpClient.Builder().build()` looks completely unremarkable) and only surfaced by timing a real request. Static code review alone would not have found this.
+
+## 多 Agent GitHub 协作规则（架构师轮起生效，本节为权威）
+
+自 dev 分支建立起，项目进入多 Agent 并行开发模式。本节是协作的权威规则；与本节冲突的早期单 Agent 惯例（如"每轮迭代每个人都更新 7 份共享文档"），在多 Agent 并行期间一律按本节执行。
+
+### 角色分工
+
+- **架构师 / Reviewer（Claude Code 架构师会话）**：拆需求建 Issue（含版本号预分配）、审核所有 PR 的架构合规性、唯一合并权、独占维护共享文档、仲裁冲突、掌控 dev→main 发布节奏。**不写端侧业务代码，不直接修改 PR 内容。** 可以写：CI workflow、模板、跨端契约类型定义。
+- **Codex**：iOS 开发，独占 `ios/` 目录。
+- **Antigravity**：Android 开发，独占 `android/` 目录。
+- 端侧 Agent 都不得修改：`app/`、`lib/`、`components/`、`supabase/`（Web 前后端已冻结在 v0.2.17，只允许架构师批准的例外）、共享 md 文档。
+
+### 六道推进防线
+
+1. **Issue 边界**：每个 Issue 必含 Scope（只许改的文件清单）+ Do-not-touch（禁改清单）+ Acceptance（验收条件）+ 架构师预分配的版本号。PR 越界即驳回。
+2. **分支隔离**：分支命名 `agent/{ios|android}-issue{N}`。每个 Agent 必须使用**独立 clone 或 git worktree**——严禁多个 Agent 共享同一工作目录做 git 操作（本项目已实际发生 index.lock 争用与推送失败事故）。任何人不得直推 dev/main。**另注意：本仓库主副本位于 iCloud 同步的 Documents 目录下，git 对象文件可能被 iCloud 驱逐导致 mmap 超时/SIGBUS（症状：`pack-objects died of signal 10`、`mmap 失败: Operation timed out`）；遇到时优先从 GitHub 重新 clone 到非 iCloud 路径（如家目录根下），而不是反复重试。**
+3. **PR 自查模板**：`.github/PULL_REQUEST_TEMPLATE.md` 的自查清单必须逐项填写，缺项驳回。
+4. **CI 机器防线**：Web（`npm run build` + `vitest`）与 Android（`:app:testDebugUnitTest :app:assembleDebug`）由 GitHub Actions 自动执行，红灯不合并。iOS 暂无 CI（macOS runner 成本），以 PR 附带的构建截图/录屏验收代偿。
+5. **人工审核五条硬规则**：① CanvasPatch 管道不被绕开（本地写入白名单见 `ARCHITECTURE.md` §4.2）；② 所有密钥只在服务端；③ mock/static fallback 不删除；④ Scope 不越界；⑤ 字段命名与 `API_SPEC.md` 一致。违反任意一条驳回，评论注明违反哪条。
+6. **合并后文档同步**：`PLAN.md`/`PRD.md`/`DESIGN.md`/`AGENTS.md`/`HANDOFF.md`/`CHANGELOG.md`/`VERSIONING.md` + `PROJECT_CONTEXT.md`/`ARCHITECTURE.md`/`API_SPEC.md`/`MOBILE_STANDARD.md` **只由架构师落笔**。端侧 PR 只改自己端的代码 + 自己端的 README（`android/README.md` / `ios/README.md`）。
+
+### 版本号所有权
+
+- `android/app/build.gradle.kts` 的 `versionCode`/`versionName`：号由 Issue 预分配，Android owner 在 PR 内修改。
+- iOS 版本（Info.plist 的 `CFBundleShortVersionString`）：同理，号由 Issue 预分配。
+- `package.json`/`VERSIONING.md`/`CHANGELOG.md`：**只有架构师修改**。端侧 PR 碰这三个文件即驳回。
+
+### 工作循环
+
+```
+操作者把 Issue 链接交给对应 Agent（GitHub @提及对 AI Agent 不产生真实通知）
+→ Agent 独立 clone，开 agent/* 分支
+→ 开发 + 逐项填 PR 模板 → PR 到 dev
+→ CI 绿 + 架构师人工审核
+→ 合规合并 / 不合规驳回（评论注明违反第几道防线）
+→ 架构师更新共享文档、关闭 Issue
+```
+
+### 冲突仲裁
+
+- 同文件冲突：先合并者赢，后到者 rebase。
+- 契约分歧（字段/接口语义两端理解不一致）：架构师裁决，并记录 `DESIGN.md` ADR。
+- 同端多个 Issue：串行开发，禁止同端并行开两个分支改同一模块。
+
+### 发布线
+
+- `dev` = 集成分支，合并后必须随时可构建。
+- `main` = 稳定分支，架构师按里程碑合并 dev→main 并打版本 tag。

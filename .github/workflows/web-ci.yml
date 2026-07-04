@@ -1,0 +1,37 @@
+name: Web CI
+
+on:
+  pull_request:
+    branches: [dev, main]
+    paths:
+      - "app/**"
+      - "lib/**"
+      - "components/**"
+      - "tests/**"
+      - "package.json"
+      - "package-lock.json"
+      - "next.config.*"
+      - "tsconfig.json"
+  push:
+    branches: [dev]
+    paths:
+      - "app/**"
+      - "lib/**"
+      - "components/**"
+      - "tests/**"
+      - "package.json"
+      - "package-lock.json"
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      # 缺 key 不应导致构建崩溃(AGENTS.md 约束),CI 不配置任何真实密钥
+      - run: npm run build
+      - run: npm run test
