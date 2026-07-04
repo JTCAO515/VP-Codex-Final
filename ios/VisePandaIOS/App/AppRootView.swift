@@ -4,6 +4,22 @@ struct AppRootView: View {
     @EnvironmentObject private var store: TripStore
 
     var body: some View {
+        #if DEBUG
+        if let scenario = TranslateScreenshotScenario.launchArgument {
+            NavigationStack {
+                TranslateView(screenshotScenario: scenario)
+            }
+            .background(VPColor.paper)
+            .tint(VPColor.cinnabar)
+        } else {
+            rootContent
+        }
+        #else
+        rootContent
+        #endif
+    }
+
+    private var rootContent: some View {
         ZStack(alignment: .bottom) {
             VPColor.paper.ignoresSafeArea()
 
