@@ -56,10 +56,11 @@ Claude Code 二选一：
 
 ## 当前泳道状态（由 Claude Code 在每轮审核后更新）
 
-- **Android 泳道**（Antigravity）：#3、#4、#16、#20、#24 均已合并 ✅ → **进行中 #28**（Web冻结例外:Chat移除mock兜底,ADR-120）→ 排队 #22 真实 Supabase 登录 Phase 1
-- **iOS 泳道**（Codex）：#5、#19(PR #21) 已合并 ✅ → **进行中/排队 #25** OCR/语音翻译（Translator 直接延续，优先于 #14）→ 排队 #14 Me 页画像 → 排队 #23 真实 Supabase 登录 Phase 1
-- **Butler 泳道**：#8+#11+#13 已合并 ✅ → **已部署** https://visepanda-butler-service.fly.dev（sin 区域，健康检查通过）→ **进行中 #27** 接入真实 LLM
-  - ⚠️ 生产 `BUTLER_SERVICE_URL` 仍不打开：部署验证发现四个 Agent 目前全硬编码 mock，切流量会让生产从"真实 AI 回答"倒退成"永久 mock"。#27 修完并经架构师验证等效后才考虑开关
+- **Android 泳道**（Antigravity）：#3、#4、#16、#20、#24 均已合并 ✅ → **#28 已改派给 Codex**（PR #30 CI 红灯,操作者决定换人接手,Antigravity 不再碰这个分支）→ 排队 #22 真实 Supabase 登录 Phase 1
+- **iOS 泳道**（Codex）：#5、#19(PR #21) 已合并 ✅ → **#25** OCR/语音翻译（状态待确认）→ 排队 #14 → 排队 #23
+- **Butler 泳道**：#8+#11+#13 已合并 ✅ → **已部署** https://visepanda-butler-service.fly.dev（sin 区域）→ **#27** 接入真实 LLM(空闲无人认领)
+  - ⚠️ 生产 `BUTLER_SERVICE_URL` 仍不打开，等 #27 完成并验证等效
+- **Web 泳道（跨端，本次由 Codex 负责）**：**进行中 #28**（PR #30，在既有分支 `agent/web-issue28` 上修复 CI 红灯,不新建分支）——这是 Codex 第一次做 Web 任务,同 Antigravity 之前的 #20/#26 一样是一次性 Web 冻结例外
 
 
 ## 完整规则出处
