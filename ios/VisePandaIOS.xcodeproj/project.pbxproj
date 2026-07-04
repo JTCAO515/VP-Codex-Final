@@ -1,0 +1,488 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		AA2000000000000000000001 /* VisePandaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000001 /* VisePandaApp.swift */; };
+		AA2000000000000000000002 /* AppRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000002 /* AppRootView.swift */; };
+		AA2000000000000000000003 /* VisePandaTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000003 /* VisePandaTheme.swift */; };
+		AA2000000000000000000004 /* RootTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000004 /* RootTab.swift */; };
+		AA2000000000000000000005 /* TripModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000005 /* TripModels.swift */; };
+		AA2000000000000000000006 /* ButlerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000006 /* ButlerModels.swift */; };
+		AA2000000000000000000007 /* StarterTripData.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000007 /* StarterTripData.swift */; };
+		AA2000000000000000000008 /* CanvasPatchApplier.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000008 /* CanvasPatchApplier.swift */; };
+		AA2000000000000000000009 /* VisePandaAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000009 /* VisePandaAPIClient.swift */; };
+		AA2000000000000000000011 /* TripStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000011 /* TripStore.swift */; };
+		AA2000000000000000000012 /* VisePandaBottomBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000012 /* VisePandaBottomBar.swift */; };
+		AA2000000000000000000013 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000013 /* ChatView.swift */; };
+		AA2000000000000000000014 /* TripsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000014 /* TripsView.swift */; };
+		AA2000000000000000000015 /* DayDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000015 /* DayDetailView.swift */; };
+		AA2000000000000000000016 /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000016 /* ExploreView.swift */; };
+		AA2000000000000000000017 /* ToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000017 /* ToolsView.swift */; };
+		AA2000000000000000000018 /* MeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000018 /* MeView.swift */; };
+		AA4000000000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA3000000000000000000001 /* Assets.xcassets */; };
+		AA4000000000000000000002 /* DMSans.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA3000000000000000000002 /* DMSans.ttf */; };
+		AA4000000000000000000003 /* PlayfairDisplay.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA3000000000000000000003 /* PlayfairDisplay.ttf */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		AA0000000000000000000004 /* VisePandaIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VisePandaIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA1000000000000000000001 /* VisePandaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisePandaApp.swift; sourceTree = "<group>"; };
+		AA1000000000000000000002 /* AppRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRootView.swift; sourceTree = "<group>"; };
+		AA1000000000000000000003 /* VisePandaTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisePandaTheme.swift; sourceTree = "<group>"; };
+		AA1000000000000000000004 /* RootTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTab.swift; sourceTree = "<group>"; };
+		AA1000000000000000000005 /* TripModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripModels.swift; sourceTree = "<group>"; };
+		AA1000000000000000000006 /* ButlerModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButlerModels.swift; sourceTree = "<group>"; };
+		AA1000000000000000000007 /* StarterTripData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StarterTripData.swift; sourceTree = "<group>"; };
+		AA1000000000000000000008 /* CanvasPatchApplier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasPatchApplier.swift; sourceTree = "<group>"; };
+		AA1000000000000000000009 /* VisePandaAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisePandaAPIClient.swift; sourceTree = "<group>"; };
+		AA1000000000000000000011 /* TripStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripStore.swift; sourceTree = "<group>"; };
+		AA1000000000000000000012 /* VisePandaBottomBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisePandaBottomBar.swift; sourceTree = "<group>"; };
+		AA1000000000000000000013 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		AA1000000000000000000014 /* TripsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripsView.swift; sourceTree = "<group>"; };
+		AA1000000000000000000015 /* DayDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayDetailView.swift; sourceTree = "<group>"; };
+		AA1000000000000000000016 /* ExploreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreView.swift; sourceTree = "<group>"; };
+		AA1000000000000000000017 /* ToolsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolsView.swift; sourceTree = "<group>"; };
+		AA1000000000000000000018 /* MeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeView.swift; sourceTree = "<group>"; };
+		AA3000000000000000000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AA3000000000000000000002 /* DMSans.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = DMSans.ttf; sourceTree = "<group>"; };
+		AA3000000000000000000003 /* PlayfairDisplay.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = PlayfairDisplay.ttf; sourceTree = "<group>"; };
+		AA3000000000000000000004 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AA0000000000000000000007 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		AA0000000000000000000002 = {
+			isa = PBXGroup;
+			children = (
+				AA5000000000000000000001 /* App */,
+				AA5000000000000000000002 /* DesignSystem */,
+				AA5000000000000000000003 /* Models */,
+				AA5000000000000000000004 /* Data */,
+				AA5000000000000000000005 /* Views */,
+				AA5000000000000000000011 /* Resources */,
+				AA0000000000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		AA0000000000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AA0000000000000000000004 /* VisePandaIOS.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		AA5000000000000000000001 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				AA1000000000000000000001 /* VisePandaApp.swift */,
+				AA1000000000000000000002 /* AppRootView.swift */,
+			);
+			path = VisePandaIOS/App;
+			sourceTree = "<group>";
+		};
+		AA5000000000000000000002 /* DesignSystem */ = {
+			isa = PBXGroup;
+			children = (
+				AA1000000000000000000003 /* VisePandaTheme.swift */,
+			);
+			path = VisePandaIOS/DesignSystem;
+			sourceTree = "<group>";
+		};
+		AA5000000000000000000003 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				AA1000000000000000000004 /* RootTab.swift */,
+				AA1000000000000000000005 /* TripModels.swift */,
+				AA1000000000000000000006 /* ButlerModels.swift */,
+			);
+			path = VisePandaIOS/Models;
+			sourceTree = "<group>";
+		};
+		AA5000000000000000000004 /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				AA1000000000000000000007 /* StarterTripData.swift */,
+				AA1000000000000000000008 /* CanvasPatchApplier.swift */,
+				AA1000000000000000000009 /* VisePandaAPIClient.swift */,
+				AA1000000000000000000011 /* TripStore.swift */,
+			);
+			path = VisePandaIOS/Data;
+			sourceTree = "<group>";
+		};
+		AA5000000000000000000005 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				AA5000000000000000000006 /* Root */,
+				AA5000000000000000000007 /* Chat */,
+				AA5000000000000000000008 /* Trips */,
+				AA5000000000000000000009 /* Explore */,
+				AA5000000000000000000010 /* Tools */,
+				AA5000000000000000000012 /* Me */,
+			);
+			path = VisePandaIOS/Views;
+			sourceTree = "<group>";
+		};
+		AA5000000000000000000006 /* Root */ = {
+			isa = PBXGroup;
+			children = (
+				AA1000000000000000000012 /* VisePandaBottomBar.swift */,
+			);
+			path = Root;
+			sourceTree = "<group>";
+		};
+		AA5000000000000000000007 /* Chat */ = {
+			isa = PBXGroup;
+			children = (
+				AA1000000000000000000013 /* ChatView.swift */,
+			);
+			path = Chat;
+			sourceTree = "<group>";
+		};
+		AA5000000000000000000008 /* Trips */ = {
+			isa = PBXGroup;
+			children = (
+				AA1000000000000000000014 /* TripsView.swift */,
+				AA1000000000000000000015 /* DayDetailView.swift */,
+			);
+			path = Trips;
+			sourceTree = "<group>";
+		};
+		AA5000000000000000000009 /* Explore */ = {
+			isa = PBXGroup;
+			children = (
+				AA1000000000000000000016 /* ExploreView.swift */,
+			);
+			path = Explore;
+			sourceTree = "<group>";
+		};
+		AA5000000000000000000010 /* Tools */ = {
+			isa = PBXGroup;
+			children = (
+				AA1000000000000000000017 /* ToolsView.swift */,
+			);
+			path = Tools;
+			sourceTree = "<group>";
+		};
+		AA5000000000000000000012 /* Me */ = {
+			isa = PBXGroup;
+			children = (
+				AA1000000000000000000018 /* MeView.swift */,
+			);
+			path = Me;
+			sourceTree = "<group>";
+		};
+		AA5000000000000000000011 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				AA3000000000000000000001 /* Assets.xcassets */,
+				AA5000000000000000000013 /* Fonts */,
+				AA3000000000000000000004 /* Info.plist */,
+			);
+			path = VisePandaIOS/Resources;
+			sourceTree = "<group>";
+		};
+		AA5000000000000000000013 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				AA3000000000000000000002 /* DMSans.ttf */,
+				AA3000000000000000000003 /* PlayfairDisplay.ttf */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AA0000000000000000000005 /* VisePandaIOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA0000000000000000000010 /* Build configuration list for PBXNativeTarget "VisePandaIOS" */;
+			buildPhases = (
+				AA0000000000000000000006 /* Sources */,
+				AA0000000000000000000007 /* Frameworks */,
+				AA0000000000000000000008 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = VisePandaIOS;
+			productName = VisePandaIOS;
+			productReference = AA0000000000000000000004 /* VisePandaIOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AA0000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2660;
+				LastUpgradeCheck = 2660;
+				TargetAttributes = {
+					AA0000000000000000000005 = {
+						CreatedOnToolsVersion = 26.6;
+					};
+				};
+			};
+			buildConfigurationList = AA0000000000000000000009 /* Build configuration list for PBXProject "VisePandaIOS" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = AA0000000000000000000002;
+			productRefGroup = AA0000000000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AA0000000000000000000005 /* VisePandaIOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		AA0000000000000000000008 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA4000000000000000000001 /* Assets.xcassets in Resources */,
+				AA4000000000000000000002 /* DMSans.ttf in Resources */,
+				AA4000000000000000000003 /* PlayfairDisplay.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AA0000000000000000000006 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA2000000000000000000001 /* VisePandaApp.swift in Sources */,
+				AA2000000000000000000002 /* AppRootView.swift in Sources */,
+				AA2000000000000000000003 /* VisePandaTheme.swift in Sources */,
+				AA2000000000000000000004 /* RootTab.swift in Sources */,
+				AA2000000000000000000005 /* TripModels.swift in Sources */,
+				AA2000000000000000000006 /* ButlerModels.swift in Sources */,
+				AA2000000000000000000007 /* StarterTripData.swift in Sources */,
+				AA2000000000000000000008 /* CanvasPatchApplier.swift in Sources */,
+				AA2000000000000000000009 /* VisePandaAPIClient.swift in Sources */,
+				AA2000000000000000000011 /* TripStore.swift in Sources */,
+				AA2000000000000000000012 /* VisePandaBottomBar.swift in Sources */,
+				AA2000000000000000000013 /* ChatView.swift in Sources */,
+				AA2000000000000000000014 /* TripsView.swift in Sources */,
+				AA2000000000000000000015 /* DayDetailView.swift in Sources */,
+				AA2000000000000000000016 /* ExploreView.swift in Sources */,
+				AA2000000000000000000017 /* ToolsView.swift in Sources */,
+				AA2000000000000000000018 /* MeView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		AA0000000000000000000011 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		AA0000000000000000000012 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		AA0000000000000000000013 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = VisePandaIOS/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = space.go2china.visepanda.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AA0000000000000000000014 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = VisePandaIOS/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = space.go2china.visepanda.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AA0000000000000000000009 /* Build configuration list for PBXProject "VisePandaIOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000000000011 /* Debug */,
+				AA0000000000000000000012 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA0000000000000000000010 /* Build configuration list for PBXNativeTarget "VisePandaIOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000000000013 /* Debug */,
+				AA0000000000000000000014 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = AA0000000000000000000001 /* Project object */;
+}
