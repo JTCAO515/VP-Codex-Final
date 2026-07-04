@@ -35,28 +35,28 @@ import space.go2china.visepanda.ui.theme.Dimens
  * v0.3.2 synthesis explicitly removed the shake-to-trigger / power-button
  * global trigger from the v0.3.1 draft (see
  * docs/planning/v0.3.2-android-planning-synthesis.md, "Global Background
- * Taxi-Card Triggers Are Removed") in favor of a visible button on Today,
+ * Travel Talk Card triggers were removed") in favor of a visible button on Today,
  * the current-trip card, and Day Detail. This composable is that single
  * shared implementation — every call site renders the same full-screen
  * bilingual card, so there is exactly one place to get the large-text/
  * copy-to-clipboard behavior right.
  */
 @Composable
-fun TaxiDriverCardButton(block: TripBlock, modifier: Modifier = Modifier) {
+fun TravelTalkCardButton(block: TripBlock, modifier: Modifier = Modifier) {
     var showCard by remember { mutableStateOf(false) }
 
     Button(onClick = { showCard = true }, modifier = modifier) {
-        Text(stringResource(R.string.today_show_taxi_card))
+        Text(stringResource(R.string.today_show_travel_talk_card))
     }
 
     if (showCard) {
-        TaxiDriverCardDialog(block = block, onDismiss = { showCard = false })
+        TravelTalkCardDialog(block = block, onDismiss = { showCard = false })
     }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun TaxiDriverCardDialog(block: TripBlock, onDismiss: () -> Unit) {
+private fun TravelTalkCardDialog(block: TripBlock, onDismiss: () -> Unit) {
     val context = LocalContext.current
     var copied by remember(block) { mutableStateOf(false) }
 
@@ -86,7 +86,7 @@ private fun TaxiDriverCardDialog(block: TripBlock, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         shape = RoundedCornerShape(Dimens.RadiusXL),
-        title = { Text(stringResource(R.string.taxi_card_title)) },
+        title = { Text(stringResource(R.string.travel_talk_card_title)) },
         text = {
             Column {
                 Text(
@@ -109,7 +109,7 @@ private fun TaxiDriverCardDialog(block: TripBlock, onDismiss: () -> Unit) {
                 }
                 if (copied) {
                     Text(
-                        text = stringResource(R.string.taxi_card_copied),
+                        text = stringResource(R.string.travel_talk_card_copied),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.tertiary,
                         modifier = Modifier.padding(top = Dimens.SpaceSM),
@@ -125,22 +125,22 @@ private fun TaxiDriverCardDialog(block: TripBlock, onDismiss: () -> Unit) {
                 TextButton(onClick = {
                     val text = block.chineseAddress ?: block.address ?: block.title
                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    clipboard.setPrimaryClip(ClipData.newPlainText("taxi_card_address", text))
+                    clipboard.setPrimaryClip(ClipData.newPlainText("travel_talk_card_text", text))
                     copied = true
                 }) {
-                    Text(stringResource(R.string.taxi_card_copy_address))
+                    Text(stringResource(R.string.travel_talk_card_copy_text))
                 }
                 TextButton(
                     onClick = {
                         val text = block.chineseAddress ?: block.address ?: block.title
-                        ttsEngine?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "taxi_card_address")
+                        ttsEngine?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "travel_talk_card_text")
                     },
                     enabled = ttsReady,
                 ) {
-                    Text(stringResource(R.string.taxi_card_speak))
+                    Text(stringResource(R.string.travel_talk_card_speak))
                 }
                 TextButton(onClick = onDismiss) {
-                    Text(stringResource(R.string.taxi_card_close))
+                    Text(stringResource(R.string.travel_talk_card_close))
                 }
             }
         },

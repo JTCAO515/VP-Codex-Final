@@ -11,12 +11,11 @@ import kotlinx.coroutines.flow.stateIn
 import space.go2china.visepanda.data.repository.TripRepository
 
 /**
- * Only [activeTripTitle] is real data (read from the same [TripRepository]
- * every other screen uses). Everything else this screen shows is honest,
- * disclosed placeholder content — there is no Supabase auth/account system
- * wired up yet. See DESIGN.md ADR-111.
+ * Only [activeTripTitle] and [hasCachedTripData] are real data (read from the
+ * same [TripRepository] every other screen uses). Account profile fields
+ * require Supabase auth.
  */
-data class MeUiState(val activeTripTitle: String? = null)
+data class MeUiState(val activeTripTitle: String? = null, val hasCachedTripData: Boolean = false)
 
 @HiltViewModel
 class MeViewModel @Inject constructor(
@@ -24,7 +23,12 @@ class MeViewModel @Inject constructor(
 ) : ViewModel() {
 
     val uiState: StateFlow<MeUiState> = tripRepository.observeActiveTrip()
-        .map { trip -> MeUiState(activeTripTitle = trip?.summary?.title) }
+        .map { trip ->
+            MeUiState(
+                activeTripTitle = trip?.summary?.title,
+                hasCachedTripData = trip?.days?.isNotEmpty() == true,
+            )
+        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),

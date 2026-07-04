@@ -47,4 +47,15 @@ object DetailDestinations {
     const val DAY_NUMBER_ARG = "dayNumber"
 
     fun dayDetailRoute(dayNumber: Int): String = "day_detail/$dayNumber"
+
+    /**
+     * v0.3.13: reached either from the Tools grid or directly from a Chat
+     * `InlineToolCard`'s `href` (e.g. `visa-and-entry`) — see DESIGN.md
+     * ADR-117. Not a `TopLevelDestination`, so the floating bottom nav hides
+     * here, same as [DAY_DETAIL_ROUTE].
+     */
+    const val TOOL_CATEGORY_ROUTE = "tool_category/{categoryId}"
+    const val TOOL_CATEGORY_ARG = "categoryId"
+
+    fun toolCategoryRoute(categoryId: String): String = "tool_category/$categoryId"
 }

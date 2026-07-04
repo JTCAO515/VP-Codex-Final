@@ -6,9 +6,48 @@ import org.junit.Test
 
 class CanvasPatchApplierTest {
 
+    /**
+     * A minimal, self-contained fixture — kept independent of
+     * [StarterTripData] on purpose, since that starter state is
+     * intentionally empty (a fresh install has no trip yet) and would make
+     * `.first()` throw here otherwise.
+     */
+    private fun sampleTrip(): TripState = TripState(
+        summary = TripSummary(
+            title = "Beijing Trip",
+            durationDays = 1,
+            pace = Pace.Balanced,
+            travelerStyle = "First-time visitor",
+            destinations = listOf("Beijing"),
+            confidence = TripConfidence.Draft,
+        ),
+        days = listOf(
+            TripDay(
+                day = 1,
+                city = "Beijing",
+                pace = Pace.Balanced,
+                blocks = emptyList(),
+                food = emptyList(),
+                stay = "Beijing city-center hotel",
+                transport = "Metro",
+                note = "",
+            ),
+        ),
+        alerts = listOf(
+            ButlerAlert(
+                type = AlertType.Payment,
+                priority = AlertPriority.High,
+                title = "Set up Alipay before arrival",
+                body = "Payment setup prevents friction with taxis, restaurants, and small shops.",
+                action = "Review payment setup",
+            ),
+        ),
+        lastUpdatedReason = "Initial draft.",
+    )
+
     @Test
     fun mergesSummaryFieldsAndReplacesSuppliedDays() {
-        val initial = MockTripData.initialTripState
+        val initial = sampleTrip()
         val replacementDay = initial.days.first().copy(
             city = "Nanjing",
             pace = Pace.Relaxed,
@@ -37,7 +76,7 @@ class CanvasPatchApplierTest {
 
     @Test
     fun deduplicatesAlertsByTypeAndTitle() {
-        val initial = MockTripData.initialTripState
+        val initial = sampleTrip()
         val alert = initial.alerts.first()
         val patch = CanvasPatch(
             intent = CanvasPatchIntent.AddAlerts,

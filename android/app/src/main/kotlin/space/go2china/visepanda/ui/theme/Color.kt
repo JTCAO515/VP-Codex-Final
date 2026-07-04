@@ -57,3 +57,17 @@ val SurfaceContainerLow = Color(0xFFFAF3EA)
 val SurfaceContainer = Color(0xFFF5EFE1)
 val SurfaceContainerHigh = Color(0xFFEFE8DB)
 val SurfaceContainerHighest = Color(0xFFE9E1D3)
+
+/**
+ * v0.3.13: per-category accent colors for the 6 Tools categories, matching
+ * the web app's `TOOL_META` accent hex values exactly (`components/tools/
+ * ToolsBoard.tsx`) — see DESIGN.md ADR-117. `ToolsAccentCurrency` reuses the
+ * existing `Sage` constant since the web's currency accent (`#667b5c`) is
+ * the same color.
+ */
+val ToolsAccentVisa = Color(0xFFA33A2D)
+val ToolsAccentPayment = Color(0xFFB68634)
+val ToolsAccentCurrency = Sage
+val ToolsAccentMetro = Color(0xFF4A6080)
+val ToolsAccentEsim = Color(0xFF7A5C8A)
+val ToolsAccentEmergency = Color(0xFF9D2F24)

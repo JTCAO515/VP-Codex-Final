@@ -3,19 +3,24 @@ package space.go2china.visepanda.navigation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import space.go2china.visepanda.ui.AppLanguageViewModel
+import space.go2china.visepanda.ui.LocalizedApp
 import space.go2china.visepanda.ui.butler.ButlerScreen
 import space.go2china.visepanda.ui.explore.ExploreScreen
 import space.go2china.visepanda.ui.me.MeScreen
 import space.go2china.visepanda.ui.plan.DayDetailScreen
+import space.go2china.visepanda.ui.tools.ToolCategoryDetailScreen
 import space.go2china.visepanda.ui.tools.ToolsScreen
 import space.go2china.visepanda.ui.trips.TripsScreen
 
@@ -34,6 +39,13 @@ fun VisePandaApp() {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val isTopLevelDestination = TopLevelDestination.all.any { it.route == backStackEntry?.destination?.route }
 
+    // v0.3.14: scoped to the Activity (this composable, not any single nav
+    // route) so Me's language toggle affects every screen — see DESIGN.md
+    // ADR-118.
+    val languageViewModel: AppLanguageViewModel = hiltViewModel()
+    val languageCode by languageViewModel.languageCode.collectAsState()
+
+    LocalizedApp(languageCode = languageCode) {
     Box(modifier = Modifier.fillMaxSize()) {
         NavHost(
             navController = navController,
@@ -47,22 +59,39 @@ fun VisePandaApp() {
                 )
             }
             composable(TopLevelDestination.Butler.route) {
-                ButlerScreen()
+                ButlerScreen(
+                    onOpenToolCategory = { categoryId ->
+                        navController.navigate(DetailDestinations.toolCategoryRoute(categoryId))
+                    },
+                )
             }
             composable(TopLevelDestination.Explore.route) {
                 ExploreScreen()
             }
             composable(TopLevelDestination.Tools.route) {
-                ToolsScreen()
+                ToolsScreen(
+                    onOpenCategory = { categoryId ->
+                        navController.navigate(DetailDestinations.toolCategoryRoute(categoryId))
+                    },
+                )
             }
             composable(TopLevelDestination.Me.route) {
-                MeScreen()
+                MeScreen(
+                    languageCode = languageCode,
+                    onSelectLanguage = languageViewModel::setLanguage,
+                )
             }
             composable(
                 route = DetailDestinations.DAY_DETAIL_ROUTE,
                 arguments = listOf(navArgument(DetailDestinations.DAY_NUMBER_ARG) { type = NavType.StringType }),
             ) {
                 DayDetailScreen(onBack = { navController.popBackStack() })
+            }
+            composable(
+                route = DetailDestinations.TOOL_CATEGORY_ROUTE,
+                arguments = listOf(navArgument(DetailDestinations.TOOL_CATEGORY_ARG) { type = NavType.StringType }),
+            ) {
+                ToolCategoryDetailScreen(onBack = { navController.popBackStack() })
             }
         }
 
@@ -72,5 +101,6 @@ fun VisePandaApp() {
                 modifier = Modifier.align(Alignment.BottomCenter),
             )
         }
+    }
     }
 }

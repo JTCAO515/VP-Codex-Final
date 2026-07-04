@@ -15,7 +15,8 @@ import space.go2china.visepanda.data.model.ButlerChatMessage
 import space.go2china.visepanda.data.model.ButlerMessageRole
 import space.go2china.visepanda.data.model.ButlerTurnResult
 import space.go2china.visepanda.data.model.CanvasPatchApplier
-import space.go2china.visepanda.data.model.MockTripData
+import space.go2china.visepanda.data.model.StarterTripData
+import space.go2china.visepanda.data.model.TripBlock
 import space.go2china.visepanda.data.model.TripState
 import space.go2china.visepanda.data.remote.ButlerApiService
 import space.go2china.visepanda.data.remote.ButlerChatRequest
@@ -32,7 +33,7 @@ class RoomTripRepository @Inject constructor(
 
     override fun observeActiveTrip(): Flow<TripState?> =
         tripCacheDao.observe(ACTIVE_TRIP_ID).map { entity ->
-            entity?.decodeTripOrNull() ?: MockTripData.initialTripState
+            entity?.decodeTripOrNull() ?: StarterTripData.initialTripState
         }
 
     override fun observeOffline(): Flow<Boolean> = offline
@@ -47,7 +48,7 @@ class RoomTripRepository @Inject constructor(
         require(trimmed.isNotEmpty()) { "Message cannot be blank." }
 
         val beforeEntity = tripCacheDao.get(ACTIVE_TRIP_ID)
-        val beforeTrip = beforeEntity?.decodeTripOrNull() ?: MockTripData.initialTripState
+        val beforeTrip = beforeEntity?.decodeTripOrNull() ?: StarterTripData.initialTripState
         val beforeMessages = beforeEntity?.decodeMessagesOrNull().orEmpty()
         val now = System.currentTimeMillis()
         val userMessage = ButlerChatMessage(
@@ -58,7 +59,9 @@ class RoomTripRepository @Inject constructor(
         )
         val messagesWithUser = beforeMessages + userMessage
 
-        val remoteResult = runCatching {
+        persist(beforeTrip, messagesWithUser)
+
+        val response = runCatching {
             butlerApiService.chat(
                 ButlerChatRequest(
                     message = trimmed,
@@ -66,10 +69,15 @@ class RoomTripRepository @Inject constructor(
                     messages = messagesWithUser.map { it.toRemoteMessage() },
                 ),
             )
+        }.getOrElse { error ->
+            offline.value = true
+            throw IllegalStateException(
+                "Live Butler request failed. Check backend configuration and network access: ${error.message}",
+                error,
+            )
         }
 
-        val response = remoteResult.getOrNull()
-        val patch = response?.patch ?: NativeButlerFallback.createPatch(trimmed, beforeTrip)
+        val patch = response.patch
         val nextTrip = CanvasPatchApplier.apply(beforeTrip, patch)
         val assistantMessage = ButlerChatMessage(
             id = "native-assistant-$now",
@@ -78,18 +86,16 @@ class RoomTripRepository @Inject constructor(
             response = patch.assistantResponse,
             createdAtEpochMillis = now + 1,
         )
-        val offlineFallback = response == null
-        offline.value = offlineFallback
+        offline.value = false
 
         persist(nextTrip, messagesWithUser + assistantMessage)
 
         ButlerTurnResult(
             assistantMessage = assistantMessage,
             trip = nextTrip,
-            suggestions = response?.suggestions?.ifEmpty { NativeButlerFallback.suggestions() }
-                ?: NativeButlerFallback.suggestions(),
-            modelLabel = response?.modelLabel ?: "native mock fallback",
-            offlineFallback = offlineFallback,
+            suggestions = response.suggestions,
+            modelLabel = response.modelLabel ?: response.mode ?: "Live Butler",
+            offlineFallback = false,
         )
     }
 
@@ -111,9 +117,50 @@ class RoomTripRepository @Inject constructor(
         }
     }
 
+    override suspend fun addPoiToDay(dayNumber: Int, block: TripBlock) {
+        updateTrip { trip ->
+            trip.copy(
+                days = trip.days.map { day ->
+                    if (day.day == dayNumber) day.copy(blocks = day.blocks + block) else day
+                },
+            )
+        }
+    }
+
+    override suspend fun updateBlockDescription(dayNumber: Int, blockIndex: Int, newDescription: String) {
+        updateTrip { trip ->
+            trip.copy(
+                days = trip.days.map { day ->
+                    if (day.day != dayNumber || blockIndex !in day.blocks.indices) return@map day
+                    day.copy(
+                        blocks = day.blocks.mapIndexed { index, block ->
+                            if (index == blockIndex) block.copy(description = newDescription) else block
+                        },
+                    )
+                },
+            )
+        }
+    }
+
+    override suspend fun moveBlock(dayNumber: Int, fromIndex: Int, toIndex: Int) {
+        updateTrip { trip ->
+            trip.copy(
+                days = trip.days.map { day ->
+                    if (day.day != dayNumber || fromIndex !in day.blocks.indices || toIndex !in day.blocks.indices) {
+                        return@map day
+                    }
+                    val reordered = day.blocks.toMutableList()
+                    val moved = reordered.removeAt(fromIndex)
+                    reordered.add(toIndex, moved)
+                    day.copy(blocks = reordered)
+                },
+            )
+        }
+    }
+
     private suspend fun updateTrip(transform: (TripState) -> TripState) = withContext(Dispatchers.IO) {
         val entity = tripCacheDao.get(ACTIVE_TRIP_ID)
-        val currentTrip = entity?.decodeTripOrNull() ?: MockTripData.initialTripState
+        val currentTrip = entity?.decodeTripOrNull() ?: StarterTripData.initialTripState
         val currentMessages = entity?.decodeMessagesOrNull().orEmpty()
         persist(transform(currentTrip), currentMessages)
     }

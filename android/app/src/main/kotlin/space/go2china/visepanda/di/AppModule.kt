@@ -18,7 +18,10 @@ import javax.inject.Singleton
 import space.go2china.visepanda.data.local.TripCacheDao
 import space.go2china.visepanda.data.local.VisePandaDatabase
 import space.go2china.visepanda.data.remote.ButlerApiService
+import space.go2china.visepanda.data.remote.ExchangeRateApiService
+import space.go2china.visepanda.data.repository.LiveToolsRepository
 import space.go2china.visepanda.data.repository.RoomTripRepository
+import space.go2china.visepanda.data.repository.ToolsRepository
 import space.go2china.visepanda.data.repository.TripRepository
 import space.go2china.visepanda.data.serialization.TripJson
 
@@ -34,6 +37,11 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindTripRepository(impl: RoomTripRepository): TripRepository
+
+    /** v0.3.13: checklist content + live exchange-rate merge — see DESIGN.md ADR-117. */
+    @Binds
+    @Singleton
+    abstract fun bindToolsRepository(impl: LiveToolsRepository): ToolsRepository
 }
 
 @Module
@@ -59,8 +67,8 @@ object NetworkModule {
      * v0.3.12: the default OkHttp 10s read timeout was silently killing every
      * real chat request — the deployed orchestrator races up to 6 providers
      * in parallel and a measured real request took ~14.4s end to end, so
-     * every native chat message fell back to [NativeButlerFallback] even
-     * though the backend and request/response contract were both correct.
+     * every native chat message timed out even though the backend and
+     * request/response contract were both correct.
      * See DESIGN.md ADR-116. 45s read gives headroom above both the observed
      * latency and the orchestrator's own ~18s per-provider timeout.
      */
@@ -92,6 +100,11 @@ object NetworkModule {
     @Singleton
     fun provideButlerApiService(retrofit: Retrofit): ButlerApiService =
         retrofit.create(ButlerApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideExchangeRateApiService(retrofit: Retrofit): ExchangeRateApiService =
+        retrofit.create(ExchangeRateApiService::class.java)
 
     private fun String.ensureTrailingSlash(): String =
         if (endsWith("/")) this else "$this/"

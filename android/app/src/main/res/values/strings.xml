@@ -12,7 +12,7 @@
     <string name="nav_tools">Tools</string>
     <string name="nav_me">Me</string>
 
-    <string name="today_show_taxi_card">Show taxi driver card</string>
+    <string name="today_show_travel_talk_card">Travel Talk Card</string>
     <string name="today_ask_butler">Ask VisePanda</string>
     <string name="today_open_map">Open map</string>
     <string name="today_offline_banner">You are offline. Showing the last saved trip.</string>
@@ -31,23 +31,28 @@
     <string name="day_detail_food">Food</string>
     <string name="day_detail_booking_readiness_info_only">Info only — confirm before paying</string>
 
-    <string name="taxi_card_title">Show this to your driver</string>
-    <string name="taxi_card_copy_address">Copy Chinese address</string>
-    <string name="taxi_card_copied">Copied</string>
-    <string name="taxi_card_speak">Speak</string>
-    <string name="taxi_card_close">Close</string>
+    <string name="travel_talk_card_title">Show this to local staff or people nearby</string>
+    <string name="travel_talk_card_copy_text">Copy Chinese text</string>
+    <string name="travel_talk_card_copied">Copied</string>
+    <string name="travel_talk_card_speak">Speak</string>
+    <string name="travel_talk_card_close">Close</string>
 
-    <string name="butler_placeholder_title">Chat is ready</string>
-    <string name="butler_placeholder_body">Ask VisePanda to refine the active trip.</string>
-
-    <string name="explore_placeholder_title">Explore is coming in v0.3.14</string>
-    <string name="explore_placeholder_body">Attraction, food, and hotel discovery will reuse the existing Explore/Amap API route.</string>
-
-    <string name="tools_placeholder_title">Tools is coming in v0.3.13</string>
-    <string name="tools_placeholder_body">Translator, payment setup, currency, and entry checklist utilities land with the native Translator round.</string>
+    <string name="tools_title">Tools</string>
+    <string name="tool_category_back">Back</string>
 
     <string name="me_title">Me</string>
-    <string name="me_placeholder_notice">This profile view uses local example data — no real account system is connected yet.</string>
+    <string name="me_account_notice">Account editing needs Supabase auth configuration. Local trip data is still shown below.</string>
+    <string name="me_section_account">Account</string>
+    <string name="me_account_log_in">Log in</string>
+    <string name="me_login_dialog_title">Log in</string>
+    <string name="me_login_email_label">Email</string>
+    <string name="me_login_password_label">Password</string>
+    <string name="me_login_submit">Log in</string>
+    <string name="me_login_cancel">Cancel</string>
+    <string name="me_login_not_connected">Account sign-in needs Supabase configuration — this build does not create a real session.</string>
+    <string name="me_section_language">Language</string>
+    <string name="me_language_english">English</string>
+    <string name="me_language_chinese">中文</string>
     <string name="me_section_preferences">Preferences</string>
     <string name="me_pref_dietary">Dietary</string>
     <string name="me_pref_budget">Daily budget</string>
@@ -58,7 +63,8 @@
     <string name="me_section_privacy">Data &amp; privacy</string>
     <string name="me_privacy_offline_data">Offline data</string>
     <string name="me_value_not_set">Not set</string>
-    <string name="me_value_not_available">Not available yet</string>
+    <string name="me_privacy_offline_cached">Cached, available offline</string>
+    <string name="me_privacy_offline_empty">No trip cached yet</string>
 
     <string name="state_empty_title">Nothing here yet</string>
     <string name="state_loading">Loading…</string>

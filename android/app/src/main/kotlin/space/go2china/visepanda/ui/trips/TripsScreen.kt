@@ -33,7 +33,7 @@ import space.go2china.visepanda.data.model.TripDay
 import space.go2china.visepanda.ui.components.EmptyStateView
 import space.go2china.visepanda.ui.components.LoadingStateView
 import space.go2china.visepanda.ui.components.OfflineBanner
-import space.go2china.visepanda.ui.components.TaxiDriverCardButton
+import space.go2china.visepanda.ui.components.TravelTalkCardButton
 import space.go2china.visepanda.ui.theme.Dimens
 
 /**
@@ -164,7 +164,7 @@ private fun TimelineEntryCard(entry: TimelineEntry) {
             )
             if (entry.block.chineseAddress != null || entry.block.address != null) {
                 Spacer(modifier = Modifier.height(Dimens.SpaceSM))
-                TaxiDriverCardButton(block = entry.block)
+                TravelTalkCardButton(block = entry.block)
             }
         }
     }

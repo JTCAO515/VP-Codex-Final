@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import space.go2china.visepanda.data.model.TripDay
 import space.go2china.visepanda.data.repository.TripRepository
 import space.go2china.visepanda.navigation.DetailDestinations
@@ -21,7 +22,7 @@ sealed interface DayDetailUiState {
 
 @HiltViewModel
 class DayDetailViewModel @Inject constructor(
-    tripRepository: TripRepository,
+    private val tripRepository: TripRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -39,4 +40,22 @@ class DayDetailViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = DayDetailUiState.Loading,
         )
+
+    /** /goal Phase 4 — inline block-description editing. */
+    fun updateBlockDescription(blockIndex: Int, newDescription: String) {
+        viewModelScope.launch {
+            tripRepository.updateBlockDescription(dayNumber, blockIndex, newDescription)
+        }
+    }
+
+    /** /goal Phase 4 — reorder blocks within the day (move earlier/later). */
+    fun moveBlockUp(blockIndex: Int) {
+        if (blockIndex <= 0) return
+        viewModelScope.launch { tripRepository.moveBlock(dayNumber, blockIndex, blockIndex - 1) }
+    }
+
+    fun moveBlockDown(blockIndex: Int, blockCount: Int) {
+        if (blockIndex >= blockCount - 1) return
+        viewModelScope.launch { tripRepository.moveBlock(dayNumber, blockIndex, blockIndex + 1) }
+    }
 }

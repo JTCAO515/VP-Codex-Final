@@ -29,6 +29,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -43,6 +44,7 @@ import space.go2china.visepanda.ui.theme.Dimens
 
 @Composable
 fun ButlerScreen(
+    onOpenToolCategory: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ButlerViewModel = hiltViewModel(),
 ) {
@@ -54,6 +56,7 @@ fun ButlerScreen(
             onInputChange = viewModel::updateInput,
             onSend = viewModel::sendCurrentInput,
             onSuggestion = viewModel::sendSuggestion,
+            onOpenToolCategory = onOpenToolCategory,
             contentPadding = innerPadding,
         )
     }
@@ -65,6 +68,7 @@ private fun ButlerContent(
     onInputChange: (String) -> Unit,
     onSend: () -> Unit,
     onSuggestion: (String) -> Unit,
+    onOpenToolCategory: (String) -> Unit,
     contentPadding: PaddingValues,
 ) {
     Column(
@@ -90,7 +94,7 @@ private fun ButlerContent(
                 }
             } else {
                 items(state.messages, key = { it.id }) { message ->
-                    MessageBubble(message)
+                    MessageBubble(message, onOpenToolCategory = onOpenToolCategory)
                 }
             }
         }
@@ -118,7 +122,7 @@ private fun ButlerHeader(state: ButlerUiState) {
             )
             Text(
                 text = if (state.offlineFallback) {
-                    "Offline fallback · ${state.modelLabel}"
+                    "Offline · ${state.modelLabel}"
                 } else {
                     state.modelLabel
                 },
@@ -163,7 +167,7 @@ private fun EmptyButlerPrompt(onSuggestion: (String) -> Unit) {
 }
 
 @Composable
-private fun MessageBubble(message: ButlerChatMessage) {
+private fun MessageBubble(message: ButlerChatMessage, onOpenToolCategory: (String) -> Unit) {
     val isUser = message.role == ButlerMessageRole.User
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -220,7 +224,7 @@ private fun MessageBubble(message: ButlerChatMessage) {
                     )
                     response.toolCards.orEmpty().forEach { toolCard ->
                         Spacer(modifier = Modifier.height(Dimens.SpaceSM))
-                        InlineToolCardView(toolCard)
+                        InlineToolCardView(toolCard, onOpenToolCategory = onOpenToolCategory)
                     }
                 }
             }
@@ -229,7 +233,7 @@ private fun MessageBubble(message: ButlerChatMessage) {
 }
 
 @Composable
-private fun InlineToolCardView(toolCard: InlineToolCard) {
+private fun InlineToolCardView(toolCard: InlineToolCard, onOpenToolCategory: (String) -> Unit) {
     Card(
         shape = RoundedCornerShape(Dimens.RadiusMD),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -257,19 +261,20 @@ private fun InlineToolCardView(toolCard: InlineToolCard) {
                 }
             }
             Spacer(modifier = Modifier.height(Dimens.SpaceXS))
-            // The web version's `href` deep-links straight into a Tools
-            // category; native Tools is still an honest placeholder (lands
-            // with the native Translator round), so this reads as plain
-            // labelled text rather than a fake, non-functional button.
-            Text(
-                text = toolCard.nextAction,
-                style = MaterialTheme.typography.labelMedium,
-                color = when (toolCard.tone) {
-                    InlineToolCardTone.Warning -> MaterialTheme.colorScheme.error
-                    InlineToolCardTone.Success -> MaterialTheme.colorScheme.tertiary
-                    else -> MaterialTheme.colorScheme.primary
-                },
-            )
+            // v0.3.13: Tools now has real content (DESIGN.md ADR-117), so
+            // this deep-links to the matching category detail screen instead
+            // of rendering as a dead label the way it did in v0.3.12.
+            TextButton(onClick = { onOpenToolCategory(toolCard.categoryId) }) {
+                Text(
+                    text = toolCard.nextAction,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = when (toolCard.tone) {
+                        InlineToolCardTone.Warning -> MaterialTheme.colorScheme.error
+                        InlineToolCardTone.Success -> MaterialTheme.colorScheme.tertiary
+                        else -> MaterialTheme.colorScheme.primary
+                    },
+                )
+            }
         }
     }
 }
