@@ -44,9 +44,45 @@ Standing rules for every session on this project. Read this before acting.
   gracefully when a key is missing or an upstream fails.
 - Do not commit `.env`, credentials, `node_modules`, or `.next`.
 
-## Product context
+## Agent role (VisePanda multi-Agent collaboration)
 
-- Next.js 15 App Router + React 19 + TypeScript on Vercel; production domain
+This project uses three AI Coding Agents working through GitHub. **Read these before starting work:**
+1. `PROJECT_CONTEXT.md` — Project background and context
+2. `ARCHITECTURE.md` — System architecture and data flow
+3. `AGENTS.md` — Collaboration rules (this is the authoritative rules file)
+4. `API_SPEC.md` — API interface definitions
+5. `MOBILE_STANDARD.md` — Mobile app standards
+
+**Workflow:**
+- Tasks are assigned via **GitHub Issues** (Claude Code creates them)
+- Work is done in **independent `agent/*` branches**
+- Code is submitted via **Pull Requests** with a standardized template
+- **Claude Code reviews** all PRs for architecture compliance
+
+**Role hierarchy:**
+
+| Agent | Role | What they do | What they don't do |
+|-------|------|--------------|-------------------|
+| **Claude Code** | Architect + Reviewer | Create Issues, maintain architecture docs, review PRs, arbitrate conflicts | Don't write end-side business code, don't directly edit PR content |
+| **OpenAI Codex** | Lead Developer | Complex logic, backend APIs, bug fixes, refactors, iOS development | Don't modify DB schema or system prompts unilaterally |
+| **Antigravity (agy)** | Frontend + QA | Android development, frontend UI, interaction/browser testing, visual checks, E2E tests | Don't set architecture standards, don't add endpoints or fields privately |
+
+**Branch strategy:**
+- `main` — production-ready, merges from `dev` only
+- `dev` — development trunk, PR merge target
+- `agent/<name>-<task>` — individual task branches
+
+**Key rules:**
+1. Single architecture authority — only Claude Code defines APIs, routes, DB schema, system prompts
+2. Codex sets mobile cross-platform standards; Antigravity aligns unconditionally
+3. No workarounds — blocked = file an Issue + @Claude Code
+4. Small PRs, frequent merges — under 300 lines per PR
+5. No PR without passing build + tests
+6. No direct push to `main` or `dev`
+
+- The authoritative product roadmap lives in `PLAN.md` (阶段一…阶段十八) and
+
+- The authoritative product roadmap lives in `PLAN.md` (阶段一…阶段十八) and
   `go2china.space`. Supabase for auth/persistence (degrades to guest/mock).
 - The authoritative product roadmap lives in `PLAN.md` (阶段一…阶段十八) and
   `docs/planning/v0.1.46-product-expansion.md`. Design decisions are ADRs in

@@ -49,7 +49,7 @@ export const BUTLER_PROVIDERS: ChatCompletionProvider[] = [
     apiKeyEnvAliases: ["GLM_API_KEY"],
     defaultBaseUrl: "https://open.bigmodel.cn/api/paas/v4",
     baseUrlEnv: "ZHIPU_BASE_URL",
-    defaultModel: "glm-5",
+    defaultModel: "glm-5.1",
     modelEnv: "ZHIPU_CHAT_MODEL",
     // Same rationale as qwen: GLM-5.x reasons by default; disabled = 6.6s
     // direct JSON vs 25s timeout (v0.3.18).
@@ -63,7 +63,7 @@ export const BUTLER_PROVIDERS: ChatCompletionProvider[] = [
     apiKeyEnvAliases: ["KIMI_API_KEY"],
     defaultBaseUrl: "https://api.moonshot.cn/v1",
     baseUrlEnv: "MOONSHOT_BASE_URL",
-    defaultModel: "kimi-2.5",
+    defaultModel: "kimi-k2.6",
     modelEnv: "MOONSHOT_CHAT_MODEL",
     // kimi-k2.x rejects any temperature except 1 with HTTP 400 ("invalid
     // temperature: only 1 is allowed for this model", measured v0.3.18).

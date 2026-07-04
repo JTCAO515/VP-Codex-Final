@@ -4,6 +4,121 @@
 
 VisePanda 是一个面向外国人来中国旅行的 AI 管家产品。当前主线是：右侧持续 Chat，左侧 Live Trip Canvas 实时刷新；Trip Canvas 会根据当前目的地自动切换水墨背景氛围；Trips 已从占位页升级为真实 Supabase persistence + 归档/分享流程，并有共享状态说明；Explore 已从占位页升级为静态 provider 驱动的城市/景点/美食/住宿骨架，预留真实第三方 provider 接入点，展示 provider readiness，并接入了 Add to Trip 流程（跳转 Chat 后走真实 AI pipeline 加入画布并重新平衡路线）；Account 已从独立页面改为头部图标 + 悬浮窗口，支持邮箱密码登录/注册和 Google 登录，登录后可改名/改密码/登出；Tools 已从占位页升级为静态 provider 驱动的签证入境/支付设置/翻译/汇率/地铁/eSIM-VPN/应急 7 个分类骨架，并支持 `/tools?category=<tool-category-id>` 分类深链、结构化分组、离线 pocket notes、API priority 和 provider readiness；Translate 已作为第五个主导航 Tab，支持文字翻译（DeepSeek）、OCR 扫描翻译（OCR.space）和常用短语/特殊词语词典（静态数据 + TTS）；`ButlerReminders` 已从 TripCanvas 移除（组件文件保留）。
 
+## 协作基础设施
+
+> **不要追求三个 Agent 实时连通。让它们通过 GitHub 形成工程化协作。**
+> 
+> **GitHub Repo = 唯一代码源 | Issues = 任务调度中心 | Branches = 独立工作区 | PRs = 代码交接中心 | Actions = 自动质检**
+
+### 怎么工作
+
+```
+Claude Code 创建 Issue（定义任务 + Scope + 验收标准）
+  → Codex / Antigravity 认领 Issue，创建独立分支
+    → 在分支上完成开发，不自测通过不提交
+      → 开 PR（附 PR 模板：改了啥 / 测了啥 / 风险）
+        → Claude Code Review PR（只审核架构合规性，不干预实现细节）
+          → 合规 → 合并入 dev 分支
+          → 不合规 → 驳回 + 说明原因
+```
+
+## 角色分工
+
+| Agent | 角色 | 做什么 | 不做什么 |
+|-------|------|--------|---------|
+| **Claude Code** | 项目架构师 + Reviewer | 创建 Issue 分配任务、维护架构文档（`ARCHITECTURE.md` / `API_SPEC.md` / `MOBILE_STANDARD.md`）、审核所有 PR 的架构合规性、仲裁冲突 | 不编写端侧业务代码、不直接修改 PR 内容 |
+| **Codex** | 主力开发工程师 | 复杂逻辑实现、后端 API 开发、Bug Fix、重构、iOS 端开发 | 不私自改动数据库 Schema 和系统 Prompt、不触及架构决策层 |
+| **Antigravity** | 前端体验 + 验证 | Android 端开发、前端 UI 实现、浏览器交互验证、视觉一致性检查、E2E 测试 | 不制定架构规范、不私自新增接口与字段 |
+
+## 分支策略
+
+```
+main        ← 生产就绪，仅从 dev 合并
+dev         ← 开发主线，PR 合入目标
+agent/xxx   ← 每个 Agent 的独立任务分支
+```
+
+**分支命名规范：** `agent/<agent-name>-<简短描述>`，例如：
+- `agent/claude-chat-api-refactor`
+- `agent/codex-ios-login`
+- `agent/antigravity-android-translator`
+
+**分支铁律：**
+1. 禁止直接 push `main` 或 `dev`
+2. 所有开发在 `agent/*` 分支进行
+3. 每个 Issue 对应一个分支，做完即删
+4. 分支保持小改动（不超过 300 行变更），大了分拆
+
+## 开工前流程
+
+**任何 Agent 启动工作前：**
+
+> 1. `git pull origin dev` — 拉取最新 dev
+> 2. 读取 `PROJECT_CONTEXT.md` — 了解项目背景
+> 3. 读取 `ARCHITECTURE.md` — 了解系统结构
+> 4. 读取 `AGENTS.md` — 了解协作规则
+> 5. 读取 `API_SPEC.md` — 了解接口定义
+> 6. 读取 `MOBILE_STANDARD.md` — 了解移动端规范
+> 7. `git checkout -b agent/<agent-name>-<task>` — 创建分支
+> 8. 开工
+
+## Issue 模板（Claude Code 创建任务时使用）
+
+```markdown
+## Task
+[一句话描述任务]
+
+## Scope
+只修改以下文件/目录：
+- path/to/file1.ts
+- path/to/dir2/*
+
+## Do not touch
+- 数据库 Schema
+- 支付模块
+- 系统 Prompt
+
+## Acceptance
+- [ ] npm run build 通过
+- [ ] 现有相关测试通过
+- [ ] [具体验收条件]
+```
+
+## PR 模板（Codex / Antigravity 提交 PR 时使用）
+
+```markdown
+## What changed
+[改了啥，一两句话]
+
+## Files changed
+- src/file1.ts — 修复了 XXX
+- src/file2.ts — 新增了 XXX
+
+## How tested
+- [ ] npm run build
+- [ ] npm test
+- [ ] 手动测试场景描述
+
+## Risks
+- 低风险：纯 UI 变更
+- 中风险：涉及 API 入参变更
+- 高风险：数据库变更 / 影响现有用户数据
+```
+
+## 协作纪律
+
+1. **各改各的，不抢文件** — 同时期三个 Agent 不得修改同一组文件。Issue 的 `Scope` 和 `Do not touch` 定义清楚
+2. **不自测不开 PR** — PR 必须附带通过的自测结果
+3. **不合规不改架构** — 所有架构变更（API、Schema、Prompt）必须由 Claude Code 发起 Issue 和 Review
+4. **卡住就提 Issue** — 不要硬写兼容代码。发现 API 缺失 / 字段异常 / 逻辑矛盾 → 在 Issue 中标记 blocked + @Claude Code
+5. **小 PR，高频合并** — 单 PR 不超过 300 行变更。大了拆成多个 Issue
+6. **版本号统一递增** — `0.3.x` 序列，每次迭代更新 `package.json`
+7. **文档同步** — `PLAN.md` / `PRD.md` / `DESIGN.md` / `AGENTS.md` / `HANDOFF.md` / `CHANGELOG.md` / `VERSIONING.md` 每次迭代同步
+
+## 一键激活指令
+
+> 你正在 VisePanda 多 Agent 项目中开发。你的角色由 `AGENTS.md` 定义。开工前先读 `PROJECT_CONTEXT.md` + `ARCHITECTURE.md` + `AGENTS.md` + `API_SPEC.md` + `MOBILE_STANDARD.md`。所有任务通过 GitHub Issue 分配，在 `agent/*` 分支开发，通过 PR 提交合并。不自测、小变更、高频合并。不私自改架构。不硬写兼容代码，卡住提 Issue + @Claude Code。
+
 ## 核心技术栈
 
 - 前端：Next.js App Router、React、TypeScript。
