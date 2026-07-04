@@ -84,4 +84,5 @@
     <string name="translate_coming_soon">即将推出</string>
     <string name="translate_pinyin">拼音</string>
     <string name="translate_error_unavailable">翻译服务当前不可用，请检查你的网络连接。</string>
+    <string name="translate_show_local">向当地人展示此内容</string>
 </resources>

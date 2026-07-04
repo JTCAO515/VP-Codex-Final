@@ -5,11 +5,15 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.speech.tts.TextToSpeech
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -22,8 +26,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import space.go2china.visepanda.R
 import space.go2china.visepanda.data.model.Phrase
@@ -42,6 +48,7 @@ fun TranslateScreen(
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     var selectedTab by remember { mutableIntStateOf(0) }
+    var showBigCardPhrase by remember { mutableStateOf<Phrase?>(null) }
 
     // TTS Setup
     var ttsReady by remember { mutableStateOf(false) }
@@ -108,14 +115,109 @@ fun TranslateScreen(
                         state = state,
                         viewModel = viewModel,
                         ttsEngine = ttsEngine,
-                        ttsReady = ttsReady
+                        ttsReady = ttsReady,
+                        onPhraseClick = { showBigCardPhrase = it }
                     )
                 } else {
                     PhrasebookTabContent(
                         phrases = state.phrases,
                         ttsEngine = ttsEngine,
-                        ttsReady = ttsReady
+                        ttsReady = ttsReady,
+                        onPhraseClick = { showBigCardPhrase = it }
                     )
+                }
+            }
+        }
+    }
+
+    // Big Card Presentation (Street Handoff Dialog — Show to local people)
+    showBigCardPhrase?.let { phrase ->
+        Dialog(onDismissRequest = { showBigCardPhrase = null }) {
+            Surface(
+                shape = RoundedCornerShape(Dimens.RadiusLG),
+                border = BorderStroke(2.dp, Ink),
+                color = MaterialTheme.colorScheme.background,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(Dimens.SpaceMD)
+            ) {
+                Column(
+                    modifier = Modifier.padding(Dimens.SpaceXL),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = stringResource(R.string.translate_show_local),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = InkSoft
+                    )
+                    Spacer(modifier = Modifier.height(Dimens.SpaceLG))
+                    Text(
+                        text = phrase.chinese,
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Ink,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 42.sp
+                    )
+                    Spacer(modifier = Modifier.height(Dimens.SpaceMD))
+                    Text(
+                        text = phrase.pinyin,
+                        fontSize = 18.sp,
+                        color = InkSoft,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(Dimens.SpaceXL))
+                    Text(
+                        text = phrase.english,
+                        fontSize = 16.sp,
+                        color = Ink.copy(alpha = 0.8f),
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(Dimens.SpaceXL))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        IconButton(
+                            onClick = {
+                                if (ttsReady) {
+                                    ttsEngine?.setLanguage(Locale.SIMPLIFIED_CHINESE)
+                                    ttsEngine?.speak(
+                                        phrase.chinese,
+                                        TextToSpeech.QUEUE_FLUSH,
+                                        null,
+                                        "big_phrase_speak_${phrase.chinese}"
+                                    )
+                                } else {
+                                    Toast.makeText(context, context.getString(R.string.translate_speak_not_ready), Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            modifier = Modifier
+                                .size(56.dp)
+                                .background(Ink, CircleShape),
+                            enabled = ttsReady
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.VolumeUp,
+                                contentDescription = "Speak phrase",
+                                tint = Color.White,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+                        IconButton(
+                            onClick = { showBigCardPhrase = null },
+                            modifier = Modifier
+                                .size(56.dp)
+                                .border(1.dp, Ink, CircleShape)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Close",
+                                tint = Ink
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -128,6 +230,7 @@ private fun TranslatorTabContent(
     viewModel: TranslateViewModel,
     ttsEngine: TextToSpeech?,
     ttsReady: Boolean,
+    onPhraseClick: (Phrase) -> Unit,
 ) {
     val context = LocalContext.current
     LazyColumn(
@@ -220,7 +323,18 @@ private fun TranslatorTabContent(
                 Card(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     shape = RoundedCornerShape(Dimens.RadiusLG),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            onPhraseClick(
+                                Phrase(
+                                    category = "Translation",
+                                    english = state.input,
+                                    chinese = state.translationResult.translation,
+                                    pinyin = state.translationResult.pinyin
+                                )
+                            )
+                        }
                 ) {
                     Column(modifier = Modifier.padding(Dimens.SpaceMD)) {
                         Text(
@@ -404,6 +518,7 @@ private fun PhrasebookTabContent(
     phrases: List<Phrase>,
     ttsEngine: TextToSpeech?,
     ttsReady: Boolean,
+    onPhraseClick: (Phrase) -> Unit,
 ) {
     val context = LocalContext.current
     val groupedPhrases = remember(phrases) { phrases.groupBy { it.category } }
@@ -434,7 +549,9 @@ private fun PhrasebookTabContent(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     border = CardDefaults.outlinedCardBorder(),
                     shape = RoundedCornerShape(Dimens.RadiusMD),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onPhraseClick(phrase) }
                 ) {
                     Row(
                         modifier = Modifier
