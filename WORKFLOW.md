@@ -58,7 +58,7 @@ Claude Code 二选一：
 
 - **Android 泳道**（Antigravity）：#3 Translator（v0.3.15）—— PR #10 被驳回（模板空白+CI 未绿），等修复重推；重复 PR #6 已关闭。#3 合并后才能开 #4
 - **iOS 泳道**（Codex）：#5 已合并（PR #7）✅
-- **Butler 泳道**（Codex）：#8 Phase A 骨架已合并（PR #9）✅ —— 下一步待架构师拆 Phase B Issue（记忆体系）
+- **Butler 泳道**（Codex）：#8 Phase A 骨架已合并（PR #9）✅ → #11 Phase B 记忆体系（三层记忆 + Supabase 表 + 30 天脱敏日志），已就绪待派活
 
 ## 完整规则出处
 
