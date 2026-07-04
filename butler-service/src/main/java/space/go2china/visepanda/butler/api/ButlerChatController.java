@@ -1,5 +1,6 @@
 package space.go2china.visepanda.butler.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -9,6 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 import space.go2china.visepanda.butler.agent.ButlerIntent;
 import space.go2china.visepanda.butler.agent.RouterAgent;
 import space.go2china.visepanda.butler.agent.TripPlannerAgent;
+import space.go2china.visepanda.butler.memory.MemoryAgent;
+import space.go2china.visepanda.butler.memory.MemoryContext;
+import space.go2china.visepanda.butler.memory.MemoryContextService;
 import space.go2china.visepanda.butler.model.ChatRequest;
 import space.go2china.visepanda.butler.model.ChatResponse;
 import space.go2china.visepanda.butler.model.TripState;
@@ -17,10 +21,18 @@ import space.go2china.visepanda.butler.model.TripState;
 public class ButlerChatController {
     private final RouterAgent routerAgent;
     private final TripPlannerAgent tripPlannerAgent;
+    private final MemoryContextService memoryContextService;
+    private final MemoryAgent memoryAgent;
+    private final ObjectMapper objectMapper;
 
-    public ButlerChatController(RouterAgent routerAgent, TripPlannerAgent tripPlannerAgent) {
+    public ButlerChatController(RouterAgent routerAgent, TripPlannerAgent tripPlannerAgent,
+                                MemoryContextService memoryContextService, MemoryAgent memoryAgent,
+                                ObjectMapper objectMapper) {
         this.routerAgent = routerAgent;
         this.tripPlannerAgent = tripPlannerAgent;
+        this.memoryContextService = memoryContextService;
+        this.memoryAgent = memoryAgent;
+        this.objectMapper = objectMapper;
     }
 
     @PostMapping("/butler/chat")
@@ -29,7 +41,11 @@ public class ButlerChatController {
         if (invalid != null) return invalid;
 
         ButlerIntent intent = routerAgent.classify(request.message());
-        return ResponseEntity.ok(tripPlannerAgent.plan(intent, request.message(), request.trip()));
+        MemoryContext memoryContext = memoryContextService.build(request, intent);
+        ChatResponse response = tripPlannerAgent.plan(intent, request.message(), request.trip(), memoryContext,
+                objectMapper.valueToTree(java.util.Map.of("memoryContext", memoryContext)));
+        memoryAgent.afterTurn(memoryContext, request.message(), response.patch());
+        return ResponseEntity.ok(response);
     }
 
     @ExceptionHandler(Exception.class)

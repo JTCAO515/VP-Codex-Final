@@ -3,6 +3,7 @@ package space.go2china.visepanda.butler.agent;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import space.go2china.visepanda.butler.memory.MemoryContext;
 import space.go2china.visepanda.butler.model.CanvasPatch;
 import space.go2china.visepanda.butler.model.ChatResponse;
 import space.go2china.visepanda.butler.model.TripState;
@@ -18,8 +19,13 @@ public class TripPlannerAgent {
     }
 
     public ChatResponse plan(ButlerIntent routedIntent, String message, TripState trip) {
+        return plan(routedIntent, message, trip, null, null);
+    }
+
+    public ChatResponse plan(ButlerIntent routedIntent, String message, TripState trip, MemoryContext memoryContext,
+                             com.fasterxml.jackson.databind.JsonNode toolContext) {
         CanvasPatch patch = mockButler.createPatch(message, trip);
-        return ChatResponse.ok(routedIntent.wireName(), patch, suggestionsFor(patch.intent()));
+        return ChatResponse.ok(routedIntent.wireName(), patch, suggestionsFor(patch.intent()), toolContext);
     }
 
     public boolean liveConfigured() {

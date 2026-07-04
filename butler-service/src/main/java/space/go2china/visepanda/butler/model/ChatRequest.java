@@ -7,6 +7,10 @@ public record ChatRequest(
         String message,
         TripState trip,
         List<ChatMessage> messages,
-        JsonNode preferenceProfile
+        JsonNode preferenceProfile,
+        String sessionId,
+        String guestId,
+        String userId,
+        String tripId
 ) {
 }
