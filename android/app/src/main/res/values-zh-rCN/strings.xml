@@ -45,6 +45,12 @@
     <string name="me_login_submit">登录</string>
     <string name="me_login_cancel">取消</string>
     <string name="me_login_not_connected">账号登录需要配置 Supabase 服务 — 当前版本不会创建真实登录会话。</string>
+    <string name="me_account_logged_in">当前登录为：</string>
+    <string name="me_account_log_out">退出登录</string>
+    <string name="me_login_dialog_signup_tab">注册</string>
+    <string name="me_login_switch_to_signup">还没有账号？立即注册</string>
+    <string name="me_login_switch_to_login">已有账号？立即登录</string>
+    <string name="me_google_signin">使用 Google 账号登录</string>
     <string name="me_section_language">语言</string>
     <string name="me_language_english">English</string>
     <string name="me_language_chinese">中文</string>
