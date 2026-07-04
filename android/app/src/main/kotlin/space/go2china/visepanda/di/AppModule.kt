@@ -19,10 +19,13 @@ import space.go2china.visepanda.data.local.TripCacheDao
 import space.go2china.visepanda.data.local.VisePandaDatabase
 import space.go2china.visepanda.data.remote.ButlerApiService
 import space.go2china.visepanda.data.remote.ExchangeRateApiService
+import space.go2china.visepanda.data.remote.TranslateApiService
 import space.go2china.visepanda.data.repository.LiveToolsRepository
 import space.go2china.visepanda.data.repository.RoomTripRepository
 import space.go2china.visepanda.data.repository.ToolsRepository
 import space.go2china.visepanda.data.repository.TripRepository
+import space.go2china.visepanda.data.repository.TranslateRepository
+import space.go2china.visepanda.data.repository.LiveTranslateRepository
 import space.go2china.visepanda.data.serialization.TripJson
 
 @Module
@@ -42,6 +45,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindToolsRepository(impl: LiveToolsRepository): ToolsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindTranslateRepository(impl: LiveTranslateRepository): TranslateRepository
 }
 
 @Module
@@ -105,6 +112,11 @@ object NetworkModule {
     @Singleton
     fun provideExchangeRateApiService(retrofit: Retrofit): ExchangeRateApiService =
         retrofit.create(ExchangeRateApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideTranslateApiService(retrofit: Retrofit): TranslateApiService =
+        retrofit.create(TranslateApiService::class.java)
 
     private fun String.ensureTrailingSlash(): String =
         if (endsWith("/")) this else "$this/"
