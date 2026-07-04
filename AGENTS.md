@@ -695,6 +695,7 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 3. **PR 自查模板**：`.github/PULL_REQUEST_TEMPLATE.md` 的自查清单必须逐项填写，缺项驳回。
 4. **CI 机器防线**：Web（`npm run build` + `vitest`）与 Android（`:app:testDebugUnitTest :app:assembleDebug`）由 GitHub Actions 自动执行，红灯不合并。iOS 暂无 CI（macOS runner 成本），以 PR 附带的构建截图/录屏验收代偿。
 5. **人工审核五条硬规则**：① CanvasPatch 管道不被绕开（本地写入白名单见 `ARCHITECTURE.md` §4.2）；② 所有密钥只在服务端；③ mock/static fallback 不删除；④ Scope 不越界；⑤ 字段命名与 `API_SPEC.md` 一致。违反任意一条驳回，评论注明违反哪条。
+   - **Chat/Butler 对话内容的例外（2026-07 操作者定案）**：规则③"mock/static fallback 不删除"**不适用于 Chat 的 AI 对话回复本身**——连不上真实 LLM 时，Chat 必须诚实显示"连接失败"，不得返回编造的假行程/假回复冒充真实 AI 回答。规则③继续适用于其它场景：Explore/Tools 的静态兜底数据、Translate 的占位、离线时展示上次缓存内容等——这些是"数据源降级"，不是"伪造 AI 决策"，两者性质不同。判断标准：如果失败时展示的内容会被用户误认为是真实 AI/真实数据源给出的答案，就是禁止的假冒；如果明确是本地静态参考资料或诚实的"暂不可用"提示，就仍然允许。
 6. **合并后文档同步**：`PLAN.md`/`PRD.md`/`DESIGN.md`/`AGENTS.md`/`HANDOFF.md`/`CHANGELOG.md`/`VERSIONING.md` + `PROJECT_CONTEXT.md`/`ARCHITECTURE.md`/`API_SPEC.md`/`MOBILE_STANDARD.md` **只由架构师落笔**。端侧 PR 只改自己端的代码 + 自己端的 README（`android/README.md` / `ios/README.md`）。
 
 ### 版本号所有权
