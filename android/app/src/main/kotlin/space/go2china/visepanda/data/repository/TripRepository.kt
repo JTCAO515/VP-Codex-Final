@@ -44,4 +44,13 @@ interface TripRepository {
 
     /** Local-only checklist toggle — not itinerary content, does not go through the Butler pipeline. */
     suspend fun setAlertDone(alert: ButlerAlert, done: Boolean)
+
+    /** Sets the pending Explore POI payload to be sent with the next chat request. */
+    fun setPendingExplorePoi(message: String, payload: String)
+
+    /** Gets the pending Explore POI message, or null if none. */
+    fun getPendingExplorePoiMessage(): String?
+
+    /** Clears the pending Explore POI. */
+    fun clearPendingExplorePoi()
 }

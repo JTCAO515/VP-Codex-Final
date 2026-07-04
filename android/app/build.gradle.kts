@@ -14,8 +14,8 @@ android {
         applicationId = "space.go2china.visepanda"
         minSdk = 26
         targetSdk = 34
-        versionCode = 12
-        versionName = "0.3.12"
+        versionCode = 16
+        versionName = "0.3.16"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "VISEPANDA_API_BASE_URL", "\"https://www.go2china.space/\"")

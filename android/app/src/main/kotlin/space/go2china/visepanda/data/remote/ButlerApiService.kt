@@ -9,6 +9,7 @@ data class ButlerChatRequest(
     val message: String,
     val trip: TripState,
     val messages: List<RemoteChatMessage>,
+    val poi: String? = null,
 )
 
 data class RemoteChatMessage(

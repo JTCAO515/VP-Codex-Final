@@ -1,5 +1,27 @@
 # VisePanda Changelog
 
+## v0.3.16 - 2026-07-04
+
+**Explore 真实数据源与 CanvasPatch 候选队列连通：全新对接 Next.js 接口，实现 live/static 自动降级与 Add/Save 双通道。** 操作者要求："Android v0.3.16 — Explore + Candidate Pipeline (真实数据源)"。
+
+- 新设 `ExploreRepository` 用以通过 Retrofit 连接 Web 端 `/api/explore/amap` POI 接口。在网络失败或服务器故障时自动回落本地静态 `MockExploreData` (8城市Curated景点、美食与酒店数据)，并在 UI 头部高亮警告卡片 honest 披露运行模式。
+- Kotlin 侧重构 Amap POI 解析：为防接口非预期变动（如将缺少数据的字段吐成空数组 `[]` 砸碎 Gson 映射），通过将 `address`/`tel`/`biz_ext` 等属性置为 `JsonElement?` 并编写 scalar/object 级安全提取 helper，确保解析 100% 稳健。
+- 行程数据仓储层扩充：在 `TripRepository` 接口中追加待处理 POI 方法。当在 Explore 点击 `Add to Trip` (直接添加) 或 `Save for Later` (保存候选) 时，将序列化后的 `ExploreAddToTripPayload` 压入 pendingPoi 通道，自动塞入下一个 Butler `/api/chat` 的 API 发送字段中。
+- Canvas 候选块离线自闭环：重写 `applyExplorePoiToPatch` Kotlin 转换算法。无论网络正常还是降级到本地 offline 兜底（`NativeButlerFallback`），都在本地应用 patch 更新前，强行将 explore POI 以 `time: "Flexible"` 的形式注入对应 Day，使 POI 顺利成为 "Needs scheduling" 候选态。
+- 全新绘制 `ExploreScreen.kt` 视图：横向城市过滤滑动条、M3配色 tab 页面切换、rating 评分/人均/置信度展示、中英文 Fit Rationale 推荐理由以及 Add/Save 动作。
+
+详见 DESIGN.md ADR-118。
+
+## v0.3.15 - 2026-07-04
+
+**Native 原生翻译组件与 Phrases 生存字典交付：全面支持 ML Kit 离线文字翻译与大字展示大字报。** 操作者要求："v0.3.15 原生翻译组件交付"。
+
+- 实现 Google ML Kit 离线文字翻译，内置常用短语多分类 Phrase Book 旅行字典。
+- 绑定 Android 级 TextToSpeech，支持中文发音朗读。
+- 实现大字报 Dialog 浮动视图，方便街头嘈杂向本地人求助。
+
+详见 DESIGN.md ADR-117。
+
 ## v0.3.12 - 2026-07-03
 
 **Chat 真实 API 根因修复:一直显示离线兜底不是因为没接好,而是超时设置太短。** 操作者要求:"将web端已经配好的chat 的api接入，将网页端chat的功能和配置全部导入apk"。

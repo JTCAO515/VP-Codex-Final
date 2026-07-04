@@ -81,4 +81,8 @@ class MockTripRepository @Inject constructor() : TripRepository {
             )
         }
     }
+
+    override fun setPendingExplorePoi(message: String, payload: String) {}
+    override fun getPendingExplorePoiMessage(): String? = null
+    override fun clearPendingExplorePoi() {}
 }
