@@ -56,9 +56,9 @@ Claude Code 二选一：
 
 ## 当前泳道状态（由 Claude Code 在每轮审核后更新）
 
-- **Android 泳道**（Antigravity）：#3 Translator（v0.3.15）→ 完成后 #4 Explore 真实数据源（v0.3.16），严格串行
+- **Android 泳道**（Antigravity）：#3 Translator（v0.3.15）—— PR #10 被驳回（模板空白+CI 未绿），等修复重推；重复 PR #6 已关闭。#3 合并后才能开 #4
 - **iOS 泳道**（Codex）：#5 已合并（PR #7）✅
-- **Butler 泳道**（Codex）：#8 butler-service Phase A 骨架（Java/LangChain4j，部署 Fly.io hkg）——iOS #5 完成后 Codex 的新任务；Next.js 转发开关已由架构师实现（`BUTLER_SERVICE_URL`，默认关闭）
+- **Butler 泳道**（Codex）：#8 Phase A 骨架已合并（PR #9）✅ —— 下一步待架构师拆 Phase B Issue（记忆体系）
 
 ## 完整规则出处
 
