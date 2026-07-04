@@ -296,8 +296,8 @@ Task(本轮任务,来自 ExecutionPlan)
 
 ---
 
-## 附：给操作者的三个待决策项
+## 附：三个决策项（操作者已授权架构师决定，2026-07-04 定案）
 
-1. **butler-service 部署宿主**：阿里云（国内快、运维重）vs Railway/Fly.io（起步快、大陆访问一般）？
-2. **Phase A 排期**：插在 Android #3/#4、iOS #5 之后，还是并行开新泳道（需要一个会 Java 的执行者——Codex/Antigravity 均可胜任，或架构师批准的例外由我出骨架代码）？
-3. **对话日志留存**：做不做全量对话日志（评测和画像需要 vs 隐私成本）？建议：留 30 天、PII 脱敏、写进隐私声明。
+1. **部署宿主 = Fly.io（hkg 区域）**。理由：阿里云大陆节点要求 ICP 备案（`go2china.space` 未备案，周级流程）直接排除；Railway 无亚洲区域排除；Fly.io hkg 与现有 Vercel edge（hkg1）同区、Dockerfile 部署可被工程 Agent 全自动化、零备案、免费额度起步。全程 Docker 化保留迁移退路——未来若完成备案可整镜像迁阿里云。
+2. **Phase A 立即开工，执行者 = Codex（第三泳道）**。iOS #5 已合并（PR #7），Codex 空闲；与 Android 泳道（#3/#4，Antigravity）天然并行。LLM key 未修复不阻塞：Phase A 以 mock 模式跑通全链路，转发开关默认关闭，生产零影响。Next.js 侧的 `BUTLER_SERVICE_URL` 转发开关由架构师亲自实现（网关胶水，保持"端侧 Agent 不碰 app/"规则纯净）。对应 GitHub Issue #8。
+3. **对话日志：保留 30 天，PII 脱敏（邮箱/电话/证件号正则脱敏），guest 会话匿名不关联，用途限定回归评测与偏好画像两项，上线前写进隐私声明**。落地挂 Phase B（与 Supabase 记忆表同一批 migration）。

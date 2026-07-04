@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requestOrchestratedButlerPatch } from "@/lib/ai/orchestrator";
+import { tryButlerService } from "@/lib/ai/butlerServiceGateway";
 import { initialTripState } from "@/lib/mock-ai/mockButler";
 import type { TripState } from "@/lib/types/trip";
 import type { UserPreferenceProfile } from "@/lib/ai/preferenceProfile";
@@ -10,7 +11,12 @@ export async function POST(request: Request) {
   const currentTrip = isTripState(body.trip) ? body.trip : initialTripState;
   const recentMessages = Array.isArray(body.messages) ? body.messages : [];
   const preferenceProfile = isPreferenceProfile(body.preferenceProfile) ? body.preferenceProfile : undefined;
-  const result = await requestOrchestratedButlerPatch({ currentTrip, message, recentMessages, preferenceProfile });
+
+  // Butler 2.0 greylist switch: forwards to the external butler-service when
+  // BUTLER_SERVICE_URL is set; inert otherwise. Any failure returns null and
+  // the local orchestrator (and ultimately the mock Butler) answers as before.
+  const forwarded = await tryButlerService({ message, currentTrip, recentMessages, preferenceProfile });
+  const result = forwarded ?? (await requestOrchestratedButlerPatch({ currentTrip, message, recentMessages, preferenceProfile }));
 
   return NextResponse.json({
     ok: true,

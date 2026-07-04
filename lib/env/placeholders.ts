@@ -34,6 +34,7 @@ const ENVIRONMENT_KEYS: Array<{ key: string; purpose: string }> = [
   { key: "QWEN_STT_MODEL", purpose: "Optional Translator STT model override, defaults to qwen3-asr-flash" },
   { key: "AMAP_API_KEY", purpose: "Future map and POI provider" },
   { key: "EXCHANGE_RATE_API_KEY", purpose: "ExchangeRate-API key for /api/exchange-rate live CNY rates" },
+  { key: "BUTLER_SERVICE_URL", purpose: "Butler 2.0 greylist switch — base URL of the external butler-service; unset = inert, /api/chat uses the local orchestrator" },
   { key: "CTRIP_AID", purpose: "Future Trip.com affiliate link generation" },
   { key: "CTRIP_SID", purpose: "Future Trip.com sub-affiliate link generation" },
   { key: "MEITUAN_UNION_API_KEY", purpose: "Future Meituan Union API" },
