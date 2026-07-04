@@ -5,6 +5,14 @@ import { initialTripState } from "@/lib/mock-ai/mockButler";
 import type { TripState } from "@/lib/types/trip";
 import type { UserPreferenceProfile } from "@/lib/ai/preferenceProfile";
 
+// Kimi's provider-level minTimeoutMs floor is 90s (modelRegistry.ts) — without
+// this, Vercel's default serverless duration would kill the function before a
+// real, successful Kimi completion returns, turning a working answer into a
+// client-side timeout. (Hobby-tier deployments cap maxDuration at 60s
+// regardless of this value; Kimi-as-last-resort would still be cut short
+// there — this only takes full effect on Pro or higher.)
+export const maxDuration = 120;
+
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const message = typeof body.message === "string" ? body.message : "";

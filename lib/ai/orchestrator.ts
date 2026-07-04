@@ -124,6 +124,7 @@ async function tryProvider(
   fallbackSuggestions: string[],
   context: { preferenceProfile?: UserPreferenceProfile; toolContext?: ButlerToolContext },
   budget: { maxTokens: number; timeoutMs: number },
+  raceSignal: AbortSignal,
 ): Promise<{ provider: ChatCompletionProvider; patch: CanvasPatch; suggestions: string[] }> {
   try {
     const result = await provider.complete(
@@ -135,6 +136,7 @@ async function tryProvider(
         maxTokens: budget.maxTokens,
         timeoutMs: budget.timeoutMs,
         jsonMode: true,
+        signal: raceSignal,
       },
       { env, fetchImpl },
     );
@@ -142,7 +144,17 @@ async function tryProvider(
     recordProviderSuccess(provider.id);
     return { provider, patch: parsed.patch, suggestions: parsed.suggestions };
   } catch (error) {
-    recordProviderFailure(provider.id, Date.now());
+    // A candidate cancelled because a faster provider already won the race
+    // (see raceController.abort() below) is not unhealthy — checking
+    // raceSignal.aborted here (rather than at call time) is what makes this
+    // safe: it is only true once a winner has actually been established, so
+    // a genuine failure that happens beforehand still trips the breaker
+    // normally. Without this guard, every race would count its slower-but-
+    // healthy losers as failures and could spuriously trip the circuit
+    // breaker on providers that never actually failed.
+    if (!raceSignal.aborted) {
+      recordProviderFailure(provider.id, Date.now());
+    }
     throw error;
   }
 }
@@ -202,13 +214,18 @@ export async function requestOrchestratedButlerPatch(
   const providerContext = { preferenceProfile: input.preferenceProfile, toolContext };
   const tried = candidates.map((provider) => provider.id);
 
-  // Race all candidates in parallel; first valid patch wins.
+  // Race all candidates in parallel; first valid patch wins. The losers are
+  // aborted once a winner is found — they were previously left running to
+  // their own timeout, silently burning real API quota on every single chat
+  // message for no benefit once an answer had already been chosen.
+  const raceController = new AbortController();
   try {
     const winner = await Promise.any(
       candidates.map((provider) =>
-        tryProvider(provider, normalizedInput, env, fetchImpl, fallbackSuggestions, providerContext, budget),
+        tryProvider(provider, normalizedInput, env, fetchImpl, fallbackSuggestions, providerContext, budget, raceController.signal),
       ),
     );
+    raceController.abort();
     return {
       mode: winner.provider.id,
       modelLabel: winner.provider.label,

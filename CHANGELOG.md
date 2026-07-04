@@ -1,5 +1,25 @@
 # VisePanda Changelog
 
+## v0.3.20 - 2026-07-05
+
+**Chat 全链路多角度审计 + 加固轮。** 操作者指令"深度研究chatbot的对话性...穷尽你的想法去优化chat，多角度查chat的bug，并修复"，架构师自派任务:先跑一次覆盖 8 个维度(持久化/流式/提示词/并发/前端边界/意图分类/工具卡拦截)的只读审计,再据此修复(ADR-122)。
+
+### 真实 bug 修复
+- **serverless 超时上限缺失**:`app/api/chat/route.ts` 加 `export const maxDuration = 120`——Kimi 的 provider 级下限是 90s(v0.3.19),没有这个声明,Vercel serverless 函数可能在 Kimi 真实完成前就被平台自身超时杀掉。诚实记录:Hobby 套餐硬上限 60s,与套餐无关,需要 Pro 及以上才能完全生效。
+- **竞速失败方浪费真实配额**:`orchestrator.ts` 里 `Promise.any` 竞速胜出后,其余 provider 之前会继续跑到各自超时。新增共享 `AbortController`,胜出后立即取消。同时修复了一个潜在的自伤 bug:失败记录判断改为"仅当竞速信号在捕获失败那一刻仍未 abort 才记入熔断器"——避免健康但较慢的 provider 被"因为别家赢了而取消"误判为真实故障进而被熔断。
+
+### UX 加固
+- **长等待渐进反馈**:`ChatPanel.tsx` 的"思考中"提示 15 秒后升级文案("Still working..."),避免 Kimi 单独成为最后候选时的 60-90s 真实等待显得像卡死。
+
+### 小修
+- **`add_poi` 意图正则**:补上"in the itinerary"("Summer Palace in the itinerary")等此前落空到 unclear 的自然表达;补充了此前完全没有的 add_poi 专项测试。
+
+### 审计过程中自我纠错
+- 审计初稿曾误判"前端完全没有 loading 指示""add_poi 不认 itinerary 变体"——核实代码后发现这两条结论都不准确(思考指示器早已存在;itinerary 变体走的是另一条已支持的正则分支),避免了"修复一个不存在的问题"。
+
+### 验证
+- 183 个单元测试通过(新增 4 个);`npm run build` 通过。真实浏览器验证:本地 dev server 发送真实消息,DeepSeek 26 秒内真实返回并正确更新画布,busy 状态提示正确显示/清除。
+
 ## v0.3.19 - 2026-07-05
 
 **Chat mock 兜底彻底移除（诚实报错）+ 四家真实 LLM 连通性深化轮。** 操作者直接指令"CHAT只调用真实LLM来对话，移除所有Mock对话，连接失败就真实显示连接失败"（ADR-120），随后提供 DeepSeek/Kimi/Qwen/GLM 四把真实 key，由架构师自派任务深化连通性（ADR-121）。
