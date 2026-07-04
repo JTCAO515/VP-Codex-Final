@@ -46,10 +46,15 @@ Standing rules for every session on this project. Read this before acting.
 
 ## Agent role
 
-- **Claude Code** is responsible for the **Android APK** (`android/` directory: Kotlin + Jetpack Compose + Material 3).
-- **OpenAI Codex** handles **iOS App** (separate repo or `ios/` directory, TBD).
-- **Antigravity** handles auxiliary work (docs, research, planning, visual asset extraction).
-- Do NOT modify iOS or auxiliary-agent code. Only modify Web (`app/`, `components/`, `lib/`) and Android (`android/`) code.
+- **Claude Code** is responsible for **core architecture + progress oversight**:
+  - API routing / connectivity layer
+  - Chat constraint prompts and persona management
+  - User database design and maintenance
+  - Knowledge base construction
+  - Cross-agent progress monitoring — tracks Codex (iOS) and Antigravity (Android) progress, identifies core issues (API route conflicts, schema compatibility, KB interface alignment), and requests adjustments when needed
+- **OpenAI Codex** handles **iOS App** (SwiftUI / UIKit).
+- **Antigravity (agy)** handles **Android APK** (Kotlin + Jetpack Compose + Material 3).
+- Do NOT modify code belonging to other agents (Claude Code does not touch iOS/Android app code; Codex does not touch Android; agy does not touch iOS). Only Claude Code may modify the Web (`app/`, `components/`, `lib/`) and backend infrastructure layers, and must document changes in `HANDOFF.md`.
 - Sync all shared docs (`PLAN.md`, `PRD.md`, `DESIGN.md`, `AGENTS.md`, `HANDOFF.md`, `CHANGELOG.md`, `VERSIONING.md`) every iteration.
 
 - Next.js 15 App Router + React 19 + TypeScript on Vercel; production domain

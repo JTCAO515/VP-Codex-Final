@@ -10,16 +10,17 @@ VisePanda 是一个面向外国人来中国旅行的 AI 管家产品。当前主
 
 | Agent | 职责范围 | 分支策略 |
 |-------|---------|---------|
-| **Claude Code** | 负责 **Android APK** 端开发（Kotlin + Jetpack Compose） | 推送到 `claude/visepanda-phase-3-hym6z9` + force-push 到 `main` |
-| **OpenAI Codex** | 负责 **iOS App** 端开发（待定：SwiftUI / UIKit） | 推送到 `codex/ios-development` + merge 到 `main` |
-| **Antigravity (agy)** | **辅助工作**：文档生成、数据调研、规划融合、视觉资源提取、API 兼容性验证 | 推送到 `agy/auxiliary` + merge 到 `main` |
+| **Claude Code** | **核心架构 + 进度总管**：API 路由连通性、Chat 约束词/角色设定、用户数据库、知识库搭建；跨 Agent 监控进度，从全局层面把控核心修改方向 | 推送到 `claude/visepanda-phase-3-hym6z9` + force-push 到 `main` |
+| **OpenAI Codex** | **iOS App** 端开发（SwiftUI / UIKit） | 推送到 `codex/ios-development` + merge 到 `main` |
+| **Antigravity (agy)** | **Android APK** 端开发（Kotlin + Jetpack Compose） | 推送到 `agy/android` + merge 到 `main` |
 
 ### 协作规则
-1. 各 Agent **不修改对方负责的代码**（Claude Code 不动 iOS 代码，Codex 不动 Android 代码）
-2. Web 端（Next.js 前端 + API 路由）为共享基础层，三者均可修改，但需在 `HANDOFF.md` 标注
-3. 版本号统一递增（`0.3.x` 序列），每次迭代后同步更新
-4. `PLAN.md` / `PRD.md` / `DESIGN.md` / `AGENTS.md` / `HANDOFF.md` / `CHANGELOG.md` / `VERSIONING.md` 为共享文档，每次迭代必须同步
-5. 分工变更须在 `AGENTS.md` 红字标注变更记录
+1. 各 Agent **不修改对方负责的代码**（Claude Code 不动 iOS / Android 端代码，Codex 不动 Android 代码，Antigravity 不动 iOS 代码）
+2. Web 端（Next.js 前端 + API 路由）与后端基础设施为共享修改层，Claude Code 作为进度总管对此层有修改权，修改需在 `HANDOFF.md` 标注
+3. **Claude Code 作为进度总管，有权知悉 Codex 和 Antigravity 的进度状态**；每次重大变更完成后，Codex 和 Antigravity 须向 Claude Code 同步。Claude Code 负责从全局层面评估架构一致性，发现核心问题（如 API 路由冲突、数据库 schema 兼容性、知识库接口对齐）时有权要求调整
+4. 版本号统一递增（`0.3.x` 序列），每次迭代后同步更新
+5. `PLAN.md` / `PRD.md` / `DESIGN.md` / `AGENTS.md` / `HANDOFF.md` / `CHANGELOG.md` / `VERSIONING.md` 为共享文档，每次迭代必须同步
+6. 分工变更须在 `AGENTS.md` 标注变更记录
 
 ## 核心技术栈
 
