@@ -1,5 +1,9 @@
 # VisePanda Changelog
 
+## v0.3.18 - 2026-07-04
+
+**LLM 修复轮 + 生产环境首次真实 AI 行程生成。** 操作者提供三家真实 key(Qwen 专属网关/智谱/Kimi),实测根治:Qwen 与 GLM-5.x 默认思考模式烧光延迟预算(禁用后 1.9s/6.6s 直出 JSON);kimi-k2.x 只接受 temperature=1(400 根因);Qwen 专属网关正确路径为 `/compatible-mode/v1`。四家真跑后又暴露解析边界缺口:LLM 返回的 day 缺 `blocks` 字段导致 write-through 崩溃丢弃获胜 patch —— `normalizeDays` 在解析边界归一化修复(与 Android TripJson.normalizeNulls 同一思想)。合并 main 上并行会话的模型名升级(glm-5.1/kimi-k2.6/qwen3.7-plus),文档冲突仲裁为架构师版本。**生产实测:`mode:"zhipu"`,完整 2 天行程,零降级 —— 项目生产历史上第一次真实 AI 生成行程。** 173 测试通过。
+
 ## v0.3.17 - 2026-07-04
 
 **Chatbot 可靠性 + 质量轮（架构师执行的 Web 冻结例外，操作者直接指令）。** 根治 2026-07-04 生产连通性审计发现的三家 LLM provider 全病问题，同时升级提示词与对话体验。详见 DESIGN.md ADR-119。
