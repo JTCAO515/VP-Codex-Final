@@ -5,6 +5,34 @@ struct TranslateResult: Equatable {
     var pinyin: String
 }
 
+struct TranslateOcrRequest: Codable {
+    var imageBase64: String
+    var mimeType: String
+}
+
+struct TranslateOcrResponse: Codable {
+    var ok: Bool
+    var provider: String?
+    var model: String?
+    var text: String?
+    var error: String?
+}
+
+struct TranslateSttRequest: Codable {
+    var audioBase64: String
+    var mimeType: String
+    var language: String
+}
+
+struct TranslateSttResponse: Codable {
+    var ok: Bool
+    var provider: String?
+    var model: String?
+    var text: String?
+    var language: String?
+    var error: String?
+}
+
 struct Phrase: Identifiable, Hashable {
     var id: String { "\(category)-\(english)" }
     var category: String

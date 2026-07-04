@@ -1,5 +1,6 @@
 import AVFoundation
 import SwiftUI
+import UIKit
 
 struct TranslateView: View {
     @Environment(\.dismiss) private var dismiss
@@ -13,6 +14,11 @@ struct TranslateView: View {
     @State private var tts = AVSpeechSynthesizer()
     @State private var allowAutoTranslate = true
     @State private var speaking = false
+    @State private var processingMode: TranslateProcessingMode?
+    @State private var permissionMessage: String?
+    @State private var imagePicker: TranslateImagePickerSource?
+    @State private var recorder: AVAudioRecorder?
+    @State private var recordingTask: Task<Void, Never>?
 
     private let api = VisePandaAPIClient()
     private let phrases = StaticTranslateData.phrases
@@ -32,6 +38,16 @@ struct TranslateView: View {
         case .offline:
             _input = State(initialValue: "Can you help me?")
             _errorMessage = State(initialValue: "translation_provider_unavailable")
+        case .ocr:
+            _input = State(initialValue: "地铁站在哪里？")
+            _translateToChinese = State(initialValue: false)
+            _result = State(initialValue: TranslateResult(translation: "Where is the subway station?", pinyin: ""))
+        case .stt:
+            _input = State(initialValue: "我要去外滩")
+            _translateToChinese = State(initialValue: false)
+            _result = State(initialValue: TranslateResult(translation: "I want to go to the Bund.", pinyin: ""))
+        case .permission:
+            _permissionMessage = State(initialValue: "Camera or microphone permission is required for OCR and voice translation. Enable it in Settings.")
         }
     }
     #endif
@@ -57,6 +73,14 @@ struct TranslateView: View {
         .navigationBarTitleDisplayMode(.inline)
         .sheet(item: $selectedPhrase) { phrase in
             PhraseBigCard(phrase: phrase, speak: { speak(phrase.chinese, language: "zh-CN") })
+        }
+        .sheet(item: $imagePicker) { picker in
+            ImagePicker(sourceType: picker.sourceType) { image in
+                Task { await handlePickedImage(image) }
+            }
+        }
+        .onDisappear {
+            stopRecording(send: false)
         }
     }
 
@@ -109,12 +133,28 @@ struct TranslateView: View {
                     unavailableCard
                 }
 
+                if let permissionMessage {
+                    permissionCard(permissionMessage)
+                }
+
                 Text("Other Translation Modes")
                     .font(VPFont.body(13, weight: .bold))
                     .foregroundStyle(VPColor.inkSoft)
 
-                disabledMode(title: "Camera translation", icon: "camera")
-                disabledMode(title: "Voice translation", icon: "mic")
+                modeButton(
+                    title: "Camera translation",
+                    subtitle: "Photo or library image to OCR",
+                    icon: "camera",
+                    loading: processingMode == .ocr,
+                    action: startCameraTranslation
+                )
+                modeButton(
+                    title: recorder == nil ? "Voice translation" : "Stop recording",
+                    subtitle: recorder == nil ? "Record up to 30 seconds" : "Tap to transcribe and translate",
+                    icon: recorder == nil ? "mic" : "stop.circle",
+                    loading: processingMode == .stt,
+                    action: toggleVoiceRecording
+                )
             }
             .padding(20)
         }
@@ -205,15 +245,46 @@ struct TranslateView: View {
         }
     }
 
-    private func disabledMode(title: String, icon: String) -> some View {
+    private func permissionCard(_ message: String) -> some View {
         VPCard {
-            HStack {
-                Label(title, systemImage: icon)
-                    .font(VPFont.body(15, weight: .bold))
-                    .foregroundStyle(VPColor.inkSoft.opacity(0.65))
-                Spacer()
-                VPStatusPill(title: "Coming soon")
+            Label(message, systemImage: "lock.fill")
+                .font(VPFont.body(14, weight: .semibold))
+                .foregroundStyle(VPColor.cinnabar)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private func modeButton(title: String, subtitle: String, icon: String, loading: Bool, action: @escaping () -> Void) -> some View {
+        VPCard {
+            Button(action: action) {
+                HStack {
+                    Label {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(title)
+                            Text(subtitle)
+                                .font(VPFont.body(12, weight: .semibold))
+                                .foregroundStyle(VPColor.inkSoft)
+                        }
+                    } icon: {
+                        Image(systemName: icon)
+                    }
+                        .font(VPFont.body(15, weight: .bold))
+                        .foregroundStyle(VPColor.ink)
+                    Spacer()
+                    if loading {
+                        ProgressView()
+                    } else if recorder != nil && icon == "stop.circle" {
+                        VPStatusPill(title: "Recording", tone: .red)
+                    } else {
+                        Image(systemName: "chevron.right")
+                            .foregroundStyle(VPColor.inkSoft)
+                    }
+                }
             }
+            .buttonStyle(.plain)
+            .disabled(loading)
+            .accessibilityLabel(title)
+            .accessibilityIdentifier(title == "Camera translation" ? "cameraTranslationButton" : "voiceTranslationButton")
         }
     }
 
@@ -254,6 +325,161 @@ struct TranslateView: View {
         translating = false
     }
 
+    private func startCameraTranslation() {
+        permissionMessage = nil
+        errorMessage = nil
+
+        guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
+            imagePicker = TranslateImagePickerSource(sourceType: .photoLibrary)
+            return
+        }
+
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:
+            imagePicker = TranslateImagePickerSource(sourceType: .camera)
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { granted in
+                Task { @MainActor in
+                    if granted {
+                        imagePicker = TranslateImagePickerSource(sourceType: .camera)
+                    } else {
+                        permissionMessage = "Camera permission is required for photo translation. Enable it in Settings."
+                    }
+                }
+            }
+        default:
+            permissionMessage = "Camera permission is required for photo translation. Enable it in Settings."
+        }
+    }
+
+    @MainActor
+    private func handlePickedImage(_ image: UIImage) async {
+        processingMode = .ocr
+        permissionMessage = nil
+        errorMessage = nil
+        result = nil
+
+        guard let jpeg = image.compressedForTranslation() else {
+            processingMode = nil
+            errorMessage = "image_processing_failed"
+            return
+        }
+
+        do {
+            let response = try await api.translateOcr(imageBase64: jpeg.base64EncodedString())
+            if response.ok, let text = response.text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty {
+                input = text
+                await translate(text)
+            } else {
+                errorMessage = response.error ?? "ocr_failed"
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        processingMode = nil
+    }
+
+    private func toggleVoiceRecording() {
+        if recorder == nil {
+            startVoiceRecording()
+        } else {
+            stopRecording(send: true)
+        }
+    }
+
+    private func startVoiceRecording() {
+        permissionMessage = nil
+        errorMessage = nil
+
+        switch AVAudioSession.sharedInstance().recordPermission {
+        case .granted:
+            beginRecording()
+        case .undetermined:
+            AVAudioSession.sharedInstance().requestRecordPermission { granted in
+                Task { @MainActor in
+                    if granted {
+                        beginRecording()
+                    } else {
+                        permissionMessage = "Microphone permission is required for voice translation. Enable it in Settings."
+                    }
+                }
+            }
+        case .denied:
+            permissionMessage = "Microphone permission is required for voice translation. Enable it in Settings."
+        @unknown default:
+            permissionMessage = "Microphone permission is required for voice translation. Enable it in Settings."
+        }
+    }
+
+    private func beginRecording() {
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playAndRecord, mode: .spokenAudio, options: [.defaultToSpeaker])
+            try session.setActive(true)
+
+            let url = FileManager.default.temporaryDirectory.appendingPathComponent("visepanda-voice.m4a")
+            try? FileManager.default.removeItem(at: url)
+            let settings: [String: Any] = [
+                AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+                AVSampleRateKey: 16_000,
+                AVNumberOfChannelsKey: 1,
+                AVEncoderAudioQualityKey: AVAudioQuality.medium.rawValue
+            ]
+            let nextRecorder = try AVAudioRecorder(url: url, settings: settings)
+            nextRecorder.record(forDuration: 30)
+            recorder = nextRecorder
+            nextRecorder.record()
+            recordingTask?.cancel()
+            recordingTask = Task {
+                try? await Task.sleep(nanoseconds: 30_000_000_000)
+                await MainActor.run { stopRecording(send: true) }
+            }
+        } catch {
+            permissionMessage = "Recording failed to start. Try again."
+            recorder = nil
+        }
+    }
+
+    private func stopRecording(send: Bool) {
+        let url = recorder?.url
+        recorder?.stop()
+        recorder = nil
+        recordingTask?.cancel()
+        recordingTask = nil
+        try? AVAudioSession.sharedInstance().setActive(false)
+
+        if send, let url {
+            Task { await handleRecordedAudio(url) }
+        }
+    }
+
+    @MainActor
+    private func handleRecordedAudio(_ url: URL) async {
+        processingMode = .stt
+        permissionMessage = nil
+        errorMessage = nil
+        result = nil
+
+        do {
+            let audio = try Data(contentsOf: url)
+            guard !audio.isEmpty else {
+                errorMessage = "stt_failed"
+                processingMode = nil
+                return
+            }
+            let response = try await api.translateStt(audioBase64: audio.base64EncodedString())
+            if response.ok, let text = response.text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty {
+                input = text
+                await translate(text)
+            } else {
+                errorMessage = response.error ?? "stt_failed"
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        processingMode = nil
+    }
+
     private func speak(_ text: String, language: String) {
         if tts.isSpeaking { tts.stopSpeaking(at: .immediate) }
         speaking = true
@@ -274,6 +500,9 @@ enum TranslateScreenshotScenario: String {
     case tts = "translate-tts"
     case phrasebook = "translate-phrasebook"
     case offline = "translate-offline"
+    case ocr = "translate-ocr"
+    case stt = "translate-stt"
+    case permission = "translate-permission"
 
     static var launchArgument: TranslateScreenshotScenario? {
         ProcessInfo.processInfo.arguments
@@ -282,6 +511,68 @@ enum TranslateScreenshotScenario: String {
     }
 }
 #endif
+
+private enum TranslateProcessingMode {
+    case ocr
+    case stt
+}
+
+private struct TranslateImagePickerSource: Identifiable {
+    let id = UUID()
+    let sourceType: UIImagePickerController.SourceType
+}
+
+private struct ImagePicker: UIViewControllerRepresentable {
+    let sourceType: UIImagePickerController.SourceType
+    let onImage: (UIImage) -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = sourceType
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(parent: self)
+    }
+
+    final class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
+        let parent: ImagePicker
+
+        init(parent: ImagePicker) {
+            self.parent = parent
+        }
+
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+            if let image = info[.originalImage] as? UIImage {
+                parent.onImage(image)
+            }
+            parent.dismiss()
+        }
+
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.dismiss()
+        }
+    }
+}
+
+private extension UIImage {
+    func compressedForTranslation() -> Data? {
+        let maxSide: CGFloat = 1200
+        let scale = min(1, maxSide / max(size.width, size.height))
+        let targetSize = CGSize(width: size.width * scale, height: size.height * scale)
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = 1
+        let image = UIGraphicsImageRenderer(size: targetSize, format: format).image { _ in
+            draw(in: CGRect(origin: .zero, size: targetSize))
+        }
+        return image.jpegData(compressionQuality: 0.82)
+    }
+}
 
 private struct PhraseRow: View {
     let phrase: Phrase
