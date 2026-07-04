@@ -23,6 +23,7 @@ import space.go2china.visepanda.ui.plan.DayDetailScreen
 import space.go2china.visepanda.ui.tools.ToolCategoryDetailScreen
 import space.go2china.visepanda.ui.tools.ToolsScreen
 import space.go2china.visepanda.ui.trips.TripsScreen
+import space.go2china.visepanda.ui.translate.TranslateScreen
 
 /**
  * v0.3.10: the bottom nav floats as a `Box` overlay on top of full-screen
@@ -61,7 +62,11 @@ fun VisePandaApp() {
             composable(TopLevelDestination.Butler.route) {
                 ButlerScreen(
                     onOpenToolCategory = { categoryId ->
-                        navController.navigate(DetailDestinations.toolCategoryRoute(categoryId))
+                        if (categoryId == "language" || categoryId == "translate") {
+                            navController.navigate(DetailDestinations.TRANSLATE_ROUTE)
+                        } else {
+                            navController.navigate(DetailDestinations.toolCategoryRoute(categoryId))
+                        }
                     },
                 )
             }
@@ -71,7 +76,11 @@ fun VisePandaApp() {
             composable(TopLevelDestination.Tools.route) {
                 ToolsScreen(
                     onOpenCategory = { categoryId ->
-                        navController.navigate(DetailDestinations.toolCategoryRoute(categoryId))
+                        if (categoryId == "language" || categoryId == "translate") {
+                            navController.navigate(DetailDestinations.TRANSLATE_ROUTE)
+                        } else {
+                            navController.navigate(DetailDestinations.toolCategoryRoute(categoryId))
+                        }
                     },
                 )
             }
@@ -92,6 +101,9 @@ fun VisePandaApp() {
                 arguments = listOf(navArgument(DetailDestinations.TOOL_CATEGORY_ARG) { type = NavType.StringType }),
             ) {
                 ToolCategoryDetailScreen(onBack = { navController.popBackStack() })
+            }
+            composable(DetailDestinations.TRANSLATE_ROUTE) {
+                TranslateScreen(onBack = { navController.popBackStack() })
             }
         }
 
