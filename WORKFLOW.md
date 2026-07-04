@@ -58,8 +58,8 @@ Claude Code 二选一：
 
 - **Android 泳道**（Antigravity）：#3 已合并 ✅ → **进行中 #4** Explore 真实数据源（v0.3.16）
 - **iOS 泳道**（Codex）：#5 已合并（PR #7）✅
-- **Butler 泳道**（Codex）：#8 Phase A + #11 Phase B 已合并 ✅ → **进行中 #13** Phase C（多 Agent 编排 + 情景注入 + RAG，v0.3.0）
-- **iOS 泳道**（Codex，排队）：#14 Me 页画像可见可删 —— 排在 #13 之后（同一执行者串行）
+- **Butler 泳道**（Codex，⏸ 暂停）：#8 + #11 已合并 ✅ → #13 Phase C 待派活（**Codex 额度用尽，等恢复再发**，Issue 已建）
+- **iOS 泳道**（Codex，排队）：#14 Me 页画像 —— 排在 #13 之后（Codex 恢复且 #13 合并后才发）
 
 ## 完整规则出处
 
