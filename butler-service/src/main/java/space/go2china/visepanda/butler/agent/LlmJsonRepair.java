@@ -15,6 +15,20 @@ public class LlmJsonRepair {
 
     public JsonNode parse(String raw) {
         String candidate = extract(raw);
+
+        // A complete object can be followed by trailing chatter (a reasoning
+        // model narrating "Yes, this is valid JSON..."). If that chatter
+        // contains a comma, the backtrack loop below would find it before any
+        // comma inside the real object and could silently corrupt an internal
+        // field instead of just trimming the tail. Cut exactly at the
+        // matching brace first — ported from lib/ai/jsonRepair.ts findObjectEnd
+        // (v0.3.19, Web side) after a real Kimi K2.6 response demonstrated the
+        // corruption (see GitHub Issue #33).
+        int objectEnd = findObjectEnd(candidate);
+        if (objectEnd != -1) {
+            candidate = candidate.substring(0, objectEnd);
+        }
+
         try {
             return objectMapper.readTree(candidate);
         } catch (Exception ignored) {
@@ -32,6 +46,40 @@ public class LlmJsonRepair {
             }
         }
         throw new LlmUnavailableException("Model output was not valid JSON even after truncation repair.");
+    }
+
+    /**
+     * Scans a string that starts with '{' for the brace that closes it
+     * (tracking nested {}/[] and skipping over string contents/escapes).
+     * Returns the index just past that closing brace, or -1 if the input
+     * ends before the braces balance out (a genuine truncation, not trailing
+     * extra text) or the input doesn't start with '{'.
+     */
+    int findObjectEnd(String input) {
+        if (input.isEmpty() || input.charAt(0) != '{') return -1;
+        java.util.ArrayDeque<Character> stack = new java.util.ArrayDeque<>();
+        boolean inString = false;
+        boolean escaped = false;
+
+        for (int i = 0; i < input.length(); i++) {
+            char ch = input.charAt(i);
+            if (inString) {
+                if (escaped) escaped = false;
+                else if (ch == '\\') escaped = true;
+                else if (ch == '"') inString = false;
+                continue;
+            }
+            if (ch == '"') {
+                inString = true;
+            } else if (ch == '{' || ch == '[') {
+                stack.push(ch == '{' ? '}' : ']');
+            } else if (ch == '}' || ch == ']') {
+                if (stack.isEmpty() || stack.peek() != ch) return -1; // mismatched
+                stack.pop();
+                if (stack.isEmpty()) return i + 1;
+            }
+        }
+        return -1; // ran off the end still open — genuinely truncated
     }
 
     String extract(String raw) {
