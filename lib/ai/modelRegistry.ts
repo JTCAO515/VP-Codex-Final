@@ -27,7 +27,7 @@ export const BUTLER_PROVIDERS: ChatCompletionProvider[] = [
   }),
   createOpenAiCompatibleProvider({
     id: "qwen",
-    label: "Qwen 3.6 Flash (Aliyun Bailian)",
+    label: "Qwen (Aliyun Bailian)",
     capabilities: ["chinese", "reasoning", "vision"],
     apiKeyEnv: "DASHSCOPE_API_KEY",
     apiKeyEnvAliases: ["ALIYUN_BAILIAN_API_KEY"],
@@ -35,10 +35,15 @@ export const BUTLER_PROVIDERS: ChatCompletionProvider[] = [
     baseUrlEnv: "DASHSCOPE_COMPATIBLE_BASE_URL",
     defaultModel: "qwen3.6-flash",
     modelEnv: "QWEN_CHAT_MODEL",
+    // Hybrid-reasoning Qwen models default to thinking mode, which burns the
+    // whole latency budget on reasoning tokens for itinerary-sized JSON
+    // (observed: 25s timeout with empty content). Butler patches want fast,
+    // direct output — measured 1.9s vs timeout with this off (v0.3.18).
+    extraBody: { enable_thinking: false },
   }),
   createOpenAiCompatibleProvider({
     id: "zhipu",
-    label: "Zhipu GLM5",
+    label: "Zhipu GLM",
     capabilities: ["reasoning", "judge", "longContext"],
     apiKeyEnv: "ZHIPU_API_KEY",
     apiKeyEnvAliases: ["GLM_API_KEY"],
@@ -46,10 +51,13 @@ export const BUTLER_PROVIDERS: ChatCompletionProvider[] = [
     baseUrlEnv: "ZHIPU_BASE_URL",
     defaultModel: "glm-5",
     modelEnv: "ZHIPU_CHAT_MODEL",
+    // Same rationale as qwen: GLM-5.x reasons by default; disabled = 6.6s
+    // direct JSON vs 25s timeout (v0.3.18).
+    extraBody: { thinking: { type: "disabled" } },
   }),
   createOpenAiCompatibleProvider({
     id: "moonshot",
-    label: "Moonshot Kimi 2.5",
+    label: "Moonshot Kimi",
     capabilities: ["longContext", "reasoning"],
     apiKeyEnv: "MOONSHOT_API_KEY",
     apiKeyEnvAliases: ["KIMI_API_KEY"],
@@ -57,6 +65,10 @@ export const BUTLER_PROVIDERS: ChatCompletionProvider[] = [
     baseUrlEnv: "MOONSHOT_BASE_URL",
     defaultModel: "kimi-2.5",
     modelEnv: "MOONSHOT_CHAT_MODEL",
+    // kimi-k2.x rejects any temperature except 1 with HTTP 400 ("invalid
+    // temperature: only 1 is allowed for this model", measured v0.3.18).
+    // extraBody is spread after the default temperature so this wins.
+    extraBody: { temperature: 1 },
   }),
   createOpenAiCompatibleProvider({
     id: "ernie",

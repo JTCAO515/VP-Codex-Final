@@ -29,6 +29,16 @@ export interface OpenAiCompatibleConfig {
   defaultModel: string;
   /** Optional env var to override the model. */
   modelEnv?: string;
+  /**
+   * Vendor-specific extra body fields merged into every request. v0.3.18: used
+   * to disable reasoning/thinking on hybrid-reasoning models (Qwen
+   * `enable_thinking:false`, Zhipu `thinking.type:disabled`) — with thinking
+   * on, itinerary-sized JSON completions burned the whole time budget on
+   * reasoning tokens (25s timeouts observed with empty content). Structured
+   * patch generation wants fast, direct output; the system prompt already
+   * carries the planning rules.
+   */
+  extraBody?: Record<string, unknown>;
 }
 
 // Hard ceiling on a single provider call. A slow or misconfigured model must
@@ -76,6 +86,7 @@ export function createOpenAiCompatibleProvider(config: OpenAiCompatibleConfig): 
         // jsonMode implies a structured contract — keep sampling tight so the
         // shape stays stable; free-text replies keep the slightly warmer 0.4.
         temperature: options.temperature ?? (options.jsonMode ? 0.3 : 0.4),
+        ...config.extraBody,
       };
       if (options.jsonMode) {
         body.response_format = { type: "json_object" };
