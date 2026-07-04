@@ -101,7 +101,7 @@ public class MockButlerService {
                     "Created a " + totalDays + "-day itinerary for " + String.join(", ", cities) + ".");
         }
 
-        if (includesAny(normalized, "less tiring", "slow", "slower", "relaxed")) {
+        if (includesAny(normalized, "less tiring", "slow", "slower", "relaxed", "lighter", "lighten", "calmer", "easier")) {
             return patch("adjust_trip", "I slowed the pace and kept the daily plan easier to recover from.",
                     response("Pace Slowed Down", "I trimmed each day to fewer moves so the canvas has more recovery space.",
                             List.of("Relaxed pace", "Fewer blocks per day"), null),
@@ -147,7 +147,7 @@ public class MockButlerService {
     }
 
     private AssistantResponse response(String headline, String body, List<String> highlights, String watchOut) {
-        return new AssistantResponse(headline, body, highlights, watchOut, "Tell me what you want to refine next.", null);
+        return new AssistantResponse(headline, body, highlights, watchOut, "Tell me what you want to refine next.", null, null, "neutral");
     }
 
     private List<ButlerAlert> alertsFor(String normalized) {

@@ -65,4 +65,31 @@ public class RouterAgent {
                 .findFirst()
                 .orElse(ButlerIntent.UNCLEAR);
     }
+
+    public ExecutionPlan plan(String message) {
+        String normalized = message == null ? "" : message.toLowerCase().trim();
+        ButlerIntent intent = classify(message);
+        boolean tripWork = intent == ButlerIntent.CREATE_TRIP || intent == ButlerIntent.ADJUST_TRIP || intent == ButlerIntent.ADD_POI || intent == ButlerIntent.ADD_LOCATION
+                || normalized.matches(".*\\b(make|change|adjust|rebalance|swap|replace|less|more|lighten|shorten|extend|slower|easier|too packed)\\b.*");
+        boolean localWork = normalized.matches(".*\\b(recommend|nearby|lunch|food|restaurant|eat|poi|must[- ]?(see|eat|try|visit))\\b.*");
+        boolean logistics = intent == ButlerIntent.ASK_FACTUAL || intent == ButlerIntent.LOGISTICS || normalized.matches(".*\\b(visa|alipay|wechat pay|metro|currency|exchange rate|esim|vpn)\\b.*");
+        boolean translate = normalized.matches(".*\\b(translate|translation|how do i say|say this in chinese)\\b.*");
+
+        java.util.ArrayList<ExecutionStep> steps = new java.util.ArrayList<>();
+        if (tripWork || (!localWork && !logistics && !translate)) {
+            steps.add(new ExecutionStep("TripPlannerAgent", taskOrDefault(message, "Update the trip canvas"), List.of()));
+        }
+        if (localWork) steps.add(new ExecutionStep("LocalExpertAgent", taskOrDefault(message, "Find local recommendations"), List.of()));
+        if (logistics) steps.add(new ExecutionStep("LogisticsAgent", taskOrDefault(message, "Answer practical travel question"), List.of()));
+        if (translate) steps.add(new ExecutionStep("TranslatorAgent", taskOrDefault(message, "Translate traveler phrase"), List.of()));
+        if (steps.isEmpty()) steps.add(new ExecutionStep("TripPlannerAgent", taskOrDefault(message, "Update the trip canvas"), List.of()));
+
+        String tone = intent == ButlerIntent.CONCERN ? "reassuring" : "neutral";
+        String urgency = intent == ButlerIntent.CONCERN ? "high" : "normal";
+        return new ExecutionPlan(steps, steps.size() > 1 ? "merge" : "single", tone, urgency, intent == ButlerIntent.UNCLEAR);
+    }
+
+    private String taskOrDefault(String message, String fallback) {
+        return message == null || message.isBlank() ? fallback : message.trim();
+    }
 }

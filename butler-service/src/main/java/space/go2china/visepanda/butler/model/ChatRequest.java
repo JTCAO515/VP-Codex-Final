@@ -11,6 +11,10 @@ public record ChatRequest(
         String sessionId,
         String guestId,
         String userId,
-        String tripId
+        String tripId,
+        String currentCity,
+        Integer currentDay,
+        String entryPoint,
+        String departureDate
 ) {
 }
