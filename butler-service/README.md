@@ -41,6 +41,8 @@ curl -s http://localhost:8080/butler/chat \
 
 No API key is required. Missing `BUTLER_LLM_API_KEY` keeps the permanent deterministic mock fallback active.
 
+Memory is also fallback-first. Missing `SUPABASE_URL` or `SUPABASE_SERVICE_ROLE_KEY` keeps L1/L2/L3 memory in process memory and keeps chat working.
+
 ## Docker
 
 ```bash
@@ -62,5 +64,11 @@ Secret variable names only:
 
 - `BUTLER_LLM_API_KEY`
 - `BUTLER_LLM_MODEL`
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
 
-The service exposes `POST /butler/chat` and `GET /actuator/health`.
+The service exposes:
+
+- `POST /butler/chat`
+- `POST /butler/memory/migrate`
+- `GET /actuator/health`

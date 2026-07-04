@@ -19,8 +19,12 @@ public record ChatResponse(
         String message
 ) {
     public static ChatResponse ok(String intent, CanvasPatch patch, List<String> suggestions) {
+        return ok(intent, patch, suggestions, null);
+    }
+
+    public static ChatResponse ok(String intent, CanvasPatch patch, List<String> suggestions, JsonNode toolContext) {
         return new ChatResponse(true, "mock", "Mock Butler", intent, "mock-fallback",
-                List.of("mock"), patch, suggestions, null, null, null);
+                List.of("mock"), patch, suggestions, toolContext, null, null);
     }
 
     public static ChatResponse error(String error, String message) {
