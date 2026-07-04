@@ -567,10 +567,11 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 
 ### 角色分工
 
-- **架构师 / Reviewer（Claude Code 架构师会话）**：拆需求建 Issue（含版本号预分配）、审核所有 PR 的架构合规性、唯一合并权、独占维护共享文档、仲裁冲突、掌控 dev→main 发布节奏。**不写端侧业务代码，不直接修改 PR 内容。** 可以写：CI workflow、模板、跨端契约类型定义。
-- **Codex**：iOS 开发，独占 `ios/` 目录。
-- **Antigravity**：Android 开发，独占 `android/` 目录。
-- 端侧 Agent 都不得修改：`app/`、`lib/`、`components/`、`supabase/`（Web 前后端已冻结在 v0.2.17，只允许架构师批准的例外）、共享 md 文档。
+- **架构师 / Reviewer（Claude Code 架构师会话）**：拆需求建 Issue（含版本号预分配）、审核所有 PR 的架构合规性、唯一合并权、独占维护共享文档、仲裁冲突、掌控 dev→main 发布节奏。**不写端侧业务代码，不直接修改 PR 内容。** 可以写：CI workflow、模板、跨端契约类型定义。收到操作者"审核"指令时：扫描全部 open PR → 逐个执行 CI 检查 + Scope 核对 + 五条硬规则审核 → 合并或驳回 → 更新共享文档 → 把下一步话术交给操作者。
+- **Antigravity（Android 工程师）**：独占 `android/`。职责：按 Issue 实现功能；自测三件套——`./gradlew :app:testDebugUnitTest :app:assembleDebug`、Android 34 模拟器手动验收、断网验收；在 PR 内按 Issue 预分配号修改 `versionCode`/`versionName`；逐项填 PR 模板并附验收证据（构建输出 + 截图）；被驳回后在同一分支修复重推，不开新分支。遵守 `MOBILE_STANDARD.md` 全部条款。
+- **Codex（iOS 工程师）**：独占 `ios/`。职责：按 Issue 实现功能；自测三件套——Xcode build（`VisePandaIOS` scheme）、模拟器手动验收、断网验收；iOS 无 CI，PR 必须附构建成功截图 + 验收截图（硬要求）；逐项填 PR 模板；被驳回后在同一分支修复重推。遵守 `MOBILE_STANDARD.md` 全部条款。
+- 端侧 Agent 都不得修改：`app/`、`lib/`、`components/`、`supabase/`（Web 前后端已冻结在 v0.2.17，只允许架构师批准的例外）、共享 md 文档、对方端的目录。
+- **操作者（人类）**：三个 AI 之间的信使与最终决策人。操作手册见 `WORKFLOW.md`（三句固定话术：派活 / 审核 / 转驳回）。
 
 ### 六道推进防线
 
