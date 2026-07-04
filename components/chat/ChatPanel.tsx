@@ -135,7 +135,7 @@ export function ChatPanel({
         {messages.map((message) => {
           const timestamp = formatTimestamp(message.createdAt);
           return (
-            <article className="chat-message" data-role={message.role} key={message.id}>
+            <article className="chat-message" data-role={message.role} data-error={message.isError ? "true" : undefined} key={message.id}>
               <div className="chat-message__byline">
                 {message.role === "assistant" ? (
                   <img alt="" aria-hidden="true" className="chat-message__avatar" src="/visepanda-logo-icon.jpg" />

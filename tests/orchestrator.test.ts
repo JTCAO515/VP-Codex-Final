@@ -135,19 +135,13 @@ describe("requestOrchestratedButlerPatch", () => {
     expect(result.strategy).toBe("parallel");
   });
 
-  it("falls back to the mock butler when no provider is configured", async () => {
-    const result = await requestOrchestratedButlerPatch({
+  it("throws an error when no provider is configured", async () => {
+    await expect(requestOrchestratedButlerPatch({
       message: "first time in China for 5 days",
       currentTrip: initialTripState,
       env: {},
       fetchImpl: vi.fn(),
-    });
-
-    expect(result.mode).toBe("mock");
-    expect(result.strategy).toBe("mock");
-    expect(result.patch.days?.some((day) => day.city === "Beijing")).toBe(true);
-    expect(result.suggestions).toHaveLength(2);
-    expect(result.fallbackReason).toBeTruthy();
+    })).rejects.toThrow("No Chinese LLM provider is configured.");
   });
 
   it("answers factual travel-tool questions without calling an LLM provider", async () => {
@@ -167,17 +161,14 @@ describe("requestOrchestratedButlerPatch", () => {
     expect(provider.complete).not.toHaveBeenCalled();
   });
 
-  it("falls back to the mock butler when every provider throws", async () => {
-    const result = await requestOrchestratedButlerPatch({
+  it("throws an error when every provider throws", async () => {
+    await expect(requestOrchestratedButlerPatch({
       message: "Make the plan easier",
       currentTrip: initialTripState,
       env: { DEEPSEEK_API_KEY: "k" },
       fetchImpl: vi.fn(),
       providers: [makeProvider("deepseek", { behavior: "throw" })],
-    });
-
-    expect(result.mode).toBe("mock");
-    expect(result.fallbackReason).toContain("deepseek failed");
+    })).rejects.toThrow("deepseek failed");
   });
 
   it("normalizes days missing blocks so write-through never crashes (v0.3.18)", async () => {
@@ -227,16 +218,13 @@ describe("requestOrchestratedButlerPatch", () => {
       reason: "claims to have planned but returned no days",
       suggestions: ["A?", "B?"],
     });
-    const result = await requestOrchestratedButlerPatch({
+    await expect(requestOrchestratedButlerPatch({
       message: "Plan me a 5 day trip in China",
       currentTrip: initialTripState,
       env: { DEEPSEEK_API_KEY: "k" },
       fetchImpl: vi.fn(),
       providers: [makeProvider("deepseek", { content: lazyPatch })],
-    });
-
-    expect(result.mode).toBe("mock");
-    expect(result.fallbackReason).toContain("days");
+    })).rejects.toThrow("create_trip patch is missing the complete days array.");
   });
 
   it("skips a provider tripped by the circuit breaker on the next request (v0.3.17)", async () => {
@@ -278,18 +266,16 @@ describe("requestOrchestratedButlerPatch", () => {
         env,
         fetchImpl: vi.fn(),
         providers: [failing],
-      });
+      }).catch(() => {});
     }
 
-    // Even fully tripped, the sole provider is still attempted (then mock).
-    const result = await requestOrchestratedButlerPatch({
+    // Even fully tripped, the sole provider is still attempted and throws.
+    await expect(requestOrchestratedButlerPatch({
       message: "Make it less tiring",
       currentTrip: initialTripState,
       env,
       fetchImpl: vi.fn(),
       providers: [failing],
-    });
-    expect(result.providersTried).toEqual(["deepseek"]);
-    expect(result.mode).toBe("mock");
+    })).rejects.toThrow("deepseek failed");
   });
 });

@@ -10,7 +10,7 @@ describe("first-stage API routes", () => {
     vi.restoreAllMocks();
   });
 
-  it("returns a mock canvas patch from chat", async () => {
+  it("returns a connection failure from chat when no provider is configured", async () => {
     vi.stubEnv("DEEPSEEK_API_KEY", "");
 
     const response = await postChat(
@@ -22,9 +22,9 @@ describe("first-stage API routes", () => {
 
     const body = await response.json();
 
-    expect(body.ok).toBe(true);
-    expect(body.mode).toBe("mock");
-    expect(body.patch.days.some((day: { city: string }) => day.city === "Beijing")).toBe(true);
+    expect(response.status).toBe(502);
+    expect(body.ok).toBe(false);
+    expect(body.error).toMatch(/Connection failed/i);
   });
 
   it("returns a DeepSeek canvas patch when the provider is configured", async () => {

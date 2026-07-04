@@ -35,6 +35,7 @@ function createMessage(
   content: string,
   response?: ChatMessage["response"],
   changeDigest?: ChatMessage["changeDigest"],
+  isError?: boolean,
 ): ChatMessage {
   return {
     id: `${role}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
@@ -43,6 +44,7 @@ function createMessage(
     response,
     changeDigest,
     createdAt: new Date().toISOString(),
+    isError,
   };
 }
 
@@ -270,31 +272,39 @@ export function ButlerWorkspace() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message, messages: nextMessages, trip, preferenceProfile: nextPreferenceProfile }),
       });
+      if (!response.ok) {
+        throw new Error("HTTP error " + response.status);
+      }
       const body = await response.json();
+      if (!body || body.ok === false) {
+        throw new Error(body?.error || "Invalid response from server");
+      }
       const patch = applyExplorePoiToPatch(
-        body?.patch ?? createMockButlerPatch(message, trip),
+        body.patch,
         trip,
         options?.explorePoi ?? null,
       );
       const modeNote =
-        typeof body?.modelLabel === "string" && body.modelLabel
+        typeof body.modelLabel === "string" && body.modelLabel
           ? body.modelLabel
-          : body?.mode === "mock"
-            ? "mock fallback"
-            : (body?.mode ?? "mock fallback");
+          : (body.mode ?? "LLM");
 
       applyPatchAndDigest(patch, patch.assistantResponse);
-      setSuggestions(Array.isArray(body?.suggestions) ? body.suggestions.slice(0, 2) : initialSuggestions.slice(0, 2));
+      setSuggestions(Array.isArray(body.suggestions) ? body.suggestions.slice(0, 2) : initialSuggestions.slice(0, 2));
       setStatus(`VisePanda updated the canvas with ${modeNote}: ${patch.reason}`);
-    } catch {
-      const patch = applyExplorePoiToPatch(
-        createMockButlerPatch(message, trip),
-        trip,
-        options?.explorePoi ?? null,
+    } catch (err) {
+      console.error("[ButlerWorkspace] handleSend failed:", err);
+      const errMsg = err instanceof Error ? err.message : "Connection failed. Please check your network and LLM key configurations.";
+      const errorMsg = createMessage(
+        "assistant",
+        errMsg,
+        undefined,
+        undefined,
+        true
       );
-      applyPatchAndDigest(patch);
-      setSuggestions(["Can you make one day lighter?", "What should we book first?"]);
-      setStatus(`VisePanda updated the canvas with mock fallback: ${patch.reason}`);
+      setMessages((current) => [...current, errorMsg]);
+      setSuggestions([]);
+      setStatus(`Connection failed: Could not reach VisePanda AI Butler.`);
     } finally {
       setBusy(false);
     }

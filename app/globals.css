@@ -1794,6 +1794,12 @@ select:focus-visible {
   color: var(--ink);
 }
 
+.chat-message[data-error="true"] p {
+  border-color: rgba(220, 38, 38, 0.35);
+  background: rgba(254, 242, 242, 0.9);
+  color: rgb(220, 38, 38);
+}
+
 .chat-message__response {
   display: grid;
   gap: 8px;
