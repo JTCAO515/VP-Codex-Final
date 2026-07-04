@@ -58,7 +58,8 @@ Claude Code 二选一：
 
 - **Android 泳道**（Antigravity）：#3、#4、#16 均已合并 ✅ → **#20 状态待确认**（Web 冻结例外,无分支,需向操作者核实）→ 排队 **#24** OCR/语音翻译 → 排队 #22 真实 Supabase 登录 Phase 1
 - **iOS 泳道**（Codex）：#5、#19(PR #21) 已合并 ✅ → **进行中/排队 #25** OCR/语音翻译（Translator 直接延续，优先于 #14）→ 排队 #14 Me 页画像 → 排队 #23 真实 Supabase 登录 Phase 1
-- **Butler 泳道**：#8 + #11 + #13（Phase A/B/C）均已合并 ✅ **但从未部署**——生产 /api/chat 实测仍是 mode="deepseek"，BUTLER_SERVICE_URL 从未配置。**P0 阻塞项：需要操作者 Fly.io 账号才能推进部署**，架构师已就绪待命
+- **Butler 泳道**：#8+#11+#13 已合并 ✅ → **已部署** https://visepanda-butler-service.fly.dev（sin 区域，健康检查通过）→ **进行中 #27** 接入真实 LLM
+  - ⚠️ 生产 `BUTLER_SERVICE_URL` 仍不打开：部署验证发现四个 Agent 目前全硬编码 mock，切流量会让生产从"真实 AI 回答"倒退成"永久 mock"。#27 修完并经架构师验证等效后才考虑开关
 
 
 ## 完整规则出处
