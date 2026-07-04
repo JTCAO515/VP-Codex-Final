@@ -57,8 +57,8 @@ Claude Code 二选一：
 ## 当前泳道状态（由 Claude Code 在每轮审核后更新）
 
 - **Android 泳道**（Antigravity）：#3、#4、#16、#20、#24 均已合并 ✅ → **#28 已改派给 Codex**（PR #30 CI 红灯,操作者决定换人接手,Antigravity 不再碰这个分支）→ 排队 #22 真实 Supabase 登录 Phase 1
-- **iOS 泳道**（Codex）：#5、#19、#25(PR #31) 已合并 ✅ → **进行中 #14** Me 页画像 → 排队 #23
-- **Butler 泳道**：#8+#11+#13 已合并 ✅ → **已部署** https://visepanda-butler-service.fly.dev（sin 区域）→ **#27** 接入真实 LLM(空闲无人认领)
+- **iOS 泳道**（Codex）：#5、#19、#25 已合并 ✅ → #14 排队（暂缓，#27 插队优先）→ #23 排队
+- **Butler 泳道**：#8+#11+#13 已合并 ✅ → **进行中 #27** 接入真实 LLM(Codex,优先于 iOS #14)
   - ⚠️ 生产 `BUTLER_SERVICE_URL` 仍不打开，等 #27 完成并验证等效
 - **Web 泳道**：#20/#26(Antigravity)、#28(Codex,PR #30) 均已合并 ✅ → Web 恢复冻结
 
