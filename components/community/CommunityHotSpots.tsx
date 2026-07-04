@@ -4,13 +4,14 @@ import { useState } from "react";
 import { mockHotSpots, HOT_SPOT_CITIES } from "@/lib/community/mockData";
 import type { CityHotSpot } from "@/lib/community/types";
 
-type CategoryFilter = "all" | "attraction" | "food" | "hidden";
+type CategoryFilter = "all" | "attraction" | "food" | "hidden" | "practical";
 
 const CATEGORY_LABELS: Record<CategoryFilter, string> = {
   all: "All",
   attraction: "Attractions",
   food: "Food",
   hidden: "Hidden Gems",
+  practical: "Practical Tips",
 };
 
 function StarRating({ rating }: { rating: number }) {
@@ -30,6 +31,7 @@ function HotSpotCard({ spot }: { spot: CityHotSpot }) {
     attraction: "attraction",
     food: "food",
     hidden: "hidden",
+    practical: "practical",
   };
 
   return (

@@ -50,7 +50,7 @@ export interface CityHotSpot {
   cityName: string;
   name: string;
   chinese: string;
-  category: "attraction" | "food" | "hidden";
+  category: "attraction" | "food" | "hidden" | "practical";
   rating: number;
   reviewCount: number;
   tip: string;

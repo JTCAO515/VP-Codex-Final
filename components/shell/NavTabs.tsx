@@ -12,9 +12,6 @@ type TabDef = { key: AppTab; href: string; icon: LucideIcon };
 const TAB_DEFS: TabDef[] = [
   { key: "chat",      href: "/chat",      icon: MessageCircle },
   { key: "trips",     href: "/trips",     icon: Luggage },
-  { key: "explore",   href: "/explore",   icon: Compass },
-  { key: "tools",     href: "/tools",     icon: Wrench },
-  { key: "translate", href: "/translate", icon: Languages },
   { key: "community", href: "/community", icon: Globe },
 ];
 
