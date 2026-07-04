@@ -49,8 +49,60 @@ export interface OrchestratedButlerResult {
   toolContext?: ButlerToolContext;
 }
 
-const MAX_TOKENS = 2200;
 const TOOL_CONTEXT_TIMEOUT_MS = 6000;
+
+// v0.3.17 per-intent budgets. Root cause fixed here: itinerary intents demand
+// the COMPLETE days array (system prompt contract), which for a 3-day trip
+// regularly exceeded the old flat 2200-token ceiling — the completion was cut
+// mid-string and JSON.parse threw ("Unterminated string…" observed in
+// production), silently sinking healthy providers into the mock fallback.
+// Non-itinerary replies stay small and fast.
+const ITINERARY_INTENTS: ReadonlySet<ButlerIntent> = new Set<ButlerIntent>([
+  "create_trip",
+  "adjust_trip",
+  "add_location",
+  "add_poi",
+]);
+
+function budgetForIntent(intent: ButlerIntent): { maxTokens: number; timeoutMs: number } {
+  return ITINERARY_INTENTS.has(intent)
+    ? { maxTokens: 4096, timeoutMs: 25000 }
+    : { maxTokens: 1400, timeoutMs: 15000 };
+}
+
+// v0.3.17 in-memory circuit breaker. A provider that failed twice in a row is
+// skipped for a cooldown window instead of being raced (and timing out) on
+// every single request — production showed all three configured providers
+// unhealthy (truncation / 18s timeout / HTTP 429) with zero systemic memory of
+// it. Serverless caveat, recorded honestly: state lives per warm instance and
+// resets on cold start, which is acceptable — the goal is not perfect global
+// health tracking but avoiding repeated known-bad calls within an instance's
+// lifetime. If every candidate is tripped, the breaker is ignored entirely so
+// it can never lock the chat into mock-only mode.
+const BREAKER_THRESHOLD = 2;
+const BREAKER_COOLDOWN_MS = 120_000;
+const providerHealth = new Map<string, { consecutiveFailures: number; skipUntil: number }>();
+
+function isTripped(providerId: string, now: number): boolean {
+  const entry = providerHealth.get(providerId);
+  return Boolean(entry && entry.consecutiveFailures >= BREAKER_THRESHOLD && now < entry.skipUntil);
+}
+
+function recordProviderFailure(providerId: string, now: number): void {
+  const entry = providerHealth.get(providerId) ?? { consecutiveFailures: 0, skipUntil: 0 };
+  entry.consecutiveFailures += 1;
+  entry.skipUntil = now + BREAKER_COOLDOWN_MS;
+  providerHealth.set(providerId, entry);
+}
+
+function recordProviderSuccess(providerId: string): void {
+  providerHealth.delete(providerId);
+}
+
+/** Test hook — clears breaker state so unit tests stay isolated. */
+export function resetProviderHealthForTests(): void {
+  providerHealth.clear();
+}
 
 async function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -71,20 +123,28 @@ async function tryProvider(
   fetchImpl: FetchLike,
   fallbackSuggestions: string[],
   context: { preferenceProfile?: UserPreferenceProfile; toolContext?: ButlerToolContext },
+  budget: { maxTokens: number; timeoutMs: number },
 ): Promise<{ provider: ChatCompletionProvider; patch: CanvasPatch; suggestions: string[] }> {
-  const result = await provider.complete(
-    {
-      messages: [
-        { role: "system", content: buildSystemPrompt() },
-        { role: "user", content: buildUserPrompt(input.message, input.currentTrip, input.recentMessages, context) },
-      ],
-      maxTokens: MAX_TOKENS,
-      jsonMode: true,
-    },
-    { env, fetchImpl },
-  );
-  const parsed = parseButlerPatch(result.content, fallbackSuggestions);
-  return { provider, patch: parsed.patch, suggestions: parsed.suggestions };
+  try {
+    const result = await provider.complete(
+      {
+        messages: [
+          { role: "system", content: buildSystemPrompt() },
+          { role: "user", content: buildUserPrompt(input.message, input.currentTrip, input.recentMessages, context) },
+        ],
+        maxTokens: budget.maxTokens,
+        timeoutMs: budget.timeoutMs,
+        jsonMode: true,
+      },
+      { env, fetchImpl },
+    );
+    const parsed = parseButlerPatch(result.content, fallbackSuggestions);
+    recordProviderSuccess(provider.id);
+    return { provider, patch: parsed.patch, suggestions: parsed.suggestions };
+  } catch (error) {
+    recordProviderFailure(provider.id, Date.now());
+    throw error;
+  }
 }
 
 function mockResult(
@@ -138,7 +198,15 @@ export async function requestOrchestratedButlerPatch(
     return mockResult(message, input.currentTrip, intent, [], "No Chinese LLM provider is configured.");
   }
 
-  const candidates = selectProvidersForIntent(intent, configured);
+  const ranked = selectProvidersForIntent(intent, configured);
+
+  // Circuit breaker: skip providers that recently failed repeatedly — unless
+  // that would leave nobody, in which case ignore the breaker entirely.
+  const now = Date.now();
+  const healthy = ranked.filter((provider) => !isTripped(provider.id, now));
+  const candidates = healthy.length > 0 ? healthy : ranked;
+
+  const budget = budgetForIntent(intent);
   const fallbackSuggestions = fallbackSuggestionsFor(message, input.currentTrip);
   const normalizedInput = { message, currentTrip: input.currentTrip, recentMessages };
 
@@ -156,7 +224,7 @@ export async function requestOrchestratedButlerPatch(
   try {
     const winner = await Promise.any(
       candidates.map((provider) =>
-        tryProvider(provider, normalizedInput, env, fetchImpl, fallbackSuggestions, providerContext),
+        tryProvider(provider, normalizedInput, env, fetchImpl, fallbackSuggestions, providerContext, budget),
       ),
     );
     return {

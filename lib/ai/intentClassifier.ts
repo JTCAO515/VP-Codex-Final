@@ -33,7 +33,12 @@ const RULES: IntentRule[] = [
   },
   {
     intent: "concern",
-    patterns: [/\b(is it safe|safety|dangerous|risk|scam|emergency|worried|afraid|hospital)\b/],
+    patterns: [
+      /\b(is it safe|safety|dangerous|risk|scam(med)?|emergency|worried|afraid|hospital)\b/,
+      // v0.3.17: acute-distress vocabulary — these must never fall through to
+      // "unclear" or a generic recommendation path.
+      /\b(robbed|stolen|theft|pickpocket|lost my (passport|wallet|phone)|injured|hurt|urgent help|call (the )?police|ambulance)\b/,
+    ],
   },
   {
     intent: "logistics",

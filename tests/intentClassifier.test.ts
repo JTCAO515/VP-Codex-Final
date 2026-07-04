@@ -28,4 +28,10 @@ describe("classifyIntent", () => {
     expect(classifyIntent("")).toBe("unclear");
     expect(classifyIntent("hmm ok")).toBe("unclear");
   });
+
+  it("classifies acute-distress messages as concern (v0.3.17)", () => {
+    expect(classifyIntent("I was robbed near the station")).toBe("concern");
+    expect(classifyIntent("someone stolen my wallet")).toBe("concern");
+    expect(classifyIntent("I'm injured and need urgent help")).toBe("concern");
+  });
 });

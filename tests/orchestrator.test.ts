@@ -1,7 +1,11 @@
-import { describe, expect, it, vi } from "vitest";
-import { requestOrchestratedButlerPatch } from "@/lib/ai/orchestrator";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { requestOrchestratedButlerPatch, resetProviderHealthForTests } from "@/lib/ai/orchestrator";
 import { initialTripState } from "@/lib/mock-ai/mockButler";
 import type { ChatCompletionProvider, ProviderCapability } from "@/lib/ai/providers/types";
+
+beforeEach(() => {
+  resetProviderHealthForTests();
+});
 
 function validPatchJson(message: string) {
   return JSON.stringify({
@@ -174,5 +178,94 @@ describe("requestOrchestratedButlerPatch", () => {
 
     expect(result.mode).toBe("mock");
     expect(result.fallbackReason).toContain("deepseek failed");
+  });
+
+  it("recovers a patch from JSON truncated at max_tokens (v0.3.17)", async () => {
+    const truncated =
+      '{"intent":"adjust_trip","assistantMessage":"Made Day 1 lighter","reason":"pace","suggestions":["A?","B?"],"tripSummary":{"confidence":"Refined"},"days":[{"day":1,"city":"Beijing","note":"Cut mid stri';
+    const provider = makeProvider("deepseek", { content: truncated });
+    const result = await requestOrchestratedButlerPatch({
+      message: "Make the Beijing day calmer",
+      currentTrip: initialTripState,
+      env: { DEEPSEEK_API_KEY: "k" },
+      fetchImpl: vi.fn(),
+      providers: [provider],
+    });
+
+    expect(result.mode).toBe("deepseek");
+    expect(result.patch.assistantMessage).toBe("Made Day 1 lighter");
+  });
+
+  it("rejects a create_trip patch without a days array (quality gate, v0.3.17)", async () => {
+    const lazyPatch = JSON.stringify({
+      intent: "create_trip",
+      assistantMessage: "I planned your trip!",
+      reason: "claims to have planned but returned no days",
+      suggestions: ["A?", "B?"],
+    });
+    const result = await requestOrchestratedButlerPatch({
+      message: "Plan me a 5 day trip in China",
+      currentTrip: initialTripState,
+      env: { DEEPSEEK_API_KEY: "k" },
+      fetchImpl: vi.fn(),
+      providers: [makeProvider("deepseek", { content: lazyPatch })],
+    });
+
+    expect(result.mode).toBe("mock");
+    expect(result.fallbackReason).toContain("days");
+  });
+
+  it("skips a provider tripped by the circuit breaker on the next request (v0.3.17)", async () => {
+    const failing = makeProvider("deepseek", { behavior: "throw" });
+    const healthy = makeProvider("qwen");
+    const env = { DEEPSEEK_API_KEY: "k", DASHSCOPE_API_KEY: "k" };
+
+    // Two consecutive failures trip the breaker for deepseek.
+    for (let i = 0; i < 2; i++) {
+      await requestOrchestratedButlerPatch({
+        message: "Make it less tiring",
+        currentTrip: initialTripState,
+        env,
+        fetchImpl: vi.fn(),
+        providers: [failing, healthy],
+      });
+    }
+
+    const result = await requestOrchestratedButlerPatch({
+      message: "Make it less tiring",
+      currentTrip: initialTripState,
+      env,
+      fetchImpl: vi.fn(),
+      providers: [failing, healthy],
+    });
+
+    expect(result.mode).toBe("qwen");
+    expect(result.providersTried).toEqual(["qwen"]);
+  });
+
+  it("ignores the breaker when every candidate is tripped (never mock-locked)", async () => {
+    const failing = makeProvider("deepseek", { behavior: "throw" });
+    const env = { DEEPSEEK_API_KEY: "k" };
+
+    for (let i = 0; i < 3; i++) {
+      await requestOrchestratedButlerPatch({
+        message: "Make it less tiring",
+        currentTrip: initialTripState,
+        env,
+        fetchImpl: vi.fn(),
+        providers: [failing],
+      });
+    }
+
+    // Even fully tripped, the sole provider is still attempted (then mock).
+    const result = await requestOrchestratedButlerPatch({
+      message: "Make it less tiring",
+      currentTrip: initialTripState,
+      env,
+      fetchImpl: vi.fn(),
+      providers: [failing],
+    });
+    expect(result.providersTried).toEqual(["deepseek"]);
+    expect(result.mode).toBe("mock");
   });
 });

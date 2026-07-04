@@ -73,14 +73,17 @@ export function createOpenAiCompatibleProvider(config: OpenAiCompatibleConfig): 
         model: resolvedModel,
         messages: options.messages,
         max_tokens: options.maxTokens ?? 2200,
-        temperature: options.temperature ?? 0.4,
+        // jsonMode implies a structured contract — keep sampling tight so the
+        // shape stays stable; free-text replies keep the slightly warmer 0.4.
+        temperature: options.temperature ?? (options.jsonMode ? 0.3 : 0.4),
       };
       if (options.jsonMode) {
         body.response_format = { type: "json_object" };
       }
 
+      const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
       if (options.signal) {
         if (options.signal.aborted) controller.abort();
         else options.signal.addEventListener("abort", () => controller.abort(), { once: true });
@@ -99,7 +102,7 @@ export function createOpenAiCompatibleProvider(config: OpenAiCompatibleConfig): 
         });
       } catch (error) {
         if (controller.signal.aborted) {
-          throw new Error(`${config.label}: timed out after ${DEFAULT_TIMEOUT_MS}ms.`);
+          throw new Error(`${config.label}: timed out after ${timeoutMs}ms.`);
         }
         throw error instanceof Error ? error : new Error(`${config.label}: request failed.`);
       } finally {
@@ -111,12 +114,14 @@ export function createOpenAiCompatibleProvider(config: OpenAiCompatibleConfig): 
       }
 
       const data = await response.json();
-      const content = data?.choices?.[0]?.message?.content;
+      const choice = data?.choices?.[0];
+      const content = choice?.message?.content;
       if (typeof content !== "string" || !content.trim()) {
         throw new Error(`${config.label}: response did not include message content.`);
       }
 
-      return { content, providerId: config.id, model: resolvedModel };
+      const finishReason = typeof choice?.finish_reason === "string" ? choice.finish_reason : undefined;
+      return { content, providerId: config.id, model: resolvedModel, finishReason };
     },
   };
 }

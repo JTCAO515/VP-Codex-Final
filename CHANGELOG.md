@@ -1,5 +1,26 @@
 # VisePanda Changelog
 
+## v0.3.17 - 2026-07-04
+
+**Chatbot 可靠性 + 质量轮（架构师执行的 Web 冻结例外，操作者直接指令）。** 根治 2026-07-04 生产连通性审计发现的三家 LLM provider 全病问题，同时升级提示词与对话体验。详见 DESIGN.md ADR-119。
+
+### 可靠性根治（对应审计发现的三个真实故障）
+- **JSON 截断容错**（新建 `lib/ai/jsonRepair.ts`）：DeepSeek 生产报 "Unterminated string in JSON at position 5212" 的根因是行程类回复被 max_tokens 截断后 `JSON.parse` 裸炸。现在解析先剥 markdown 围栏/前导废话，再闭合截断处的字符串和括号栈，仍失败则逐步回退到上一个结构边界重试——挽救最长合法前缀而不是丢弃整个回答。
+- **按意图预算**：行程类意图（create/adjust/add_location/add_poi）4096 tokens / 25s，轻量意图 1400 / 15s——替换原来一刀切的 2200/18s（3 天行程必然截断的元凶）。
+- **Provider 熔断器**：连续 2 次失败进入 120s 冷却，期间不再参赛（原来病号每轮都白白拖满超时）；若熔断会清空候选池则自动忽略——永远不会把自己锁死在 mock 模式。诚实记录 serverless 局限：状态按 warm 实例存续，冷启动重置。
+
+### 生成质量
+- **系统提示词宪法化分层**：人设（懂行的本地朋友，不油腻）+ 六条硬规则（不编造中国事实、预订仅信息、每轮最多一个澄清问题、回复语言跟随用户、危难优先、接受纠正不狡辩）+ 输出契约 + 长度自适应。
+- **create_trip 质量闸门**：嘴上说"帮你规划好了"但没返回 days 数组的 patch 直接判无效，让真正干活的 provider 赢得竞速。
+- **建议问题缺口驱动**：fallback 建议优先反映行程真实缺口（没排天数/没选酒店/高优先级提醒未完成），模板句垫底。
+- **Prompt 瘦身**：行程 payload 剥离 photoUrl（纯展示字段，长 CDN URL 白耗 token）；jsonMode 温度降到 0.3 稳定结构。
+
+### 安全体验
+- **急难词快速通道**：robbed/stolen/injured/lost passport 等词汇现在正确分类为 concern 并触发应急工具卡（110/120/使馆信息），不再可能落进普通推荐路径。
+
+### 验证
+- 167 个单元测试全部通过（新增 18 个：jsonRepair 13 个、orchestrator 熔断/闸门/截断恢复 5 个、intentClassifier 急难词 1 组）；`npm run build` 通过。
+
 ## v0.3.12 - 2026-07-03
 
 **Chat 真实 API 根因修复:一直显示离线兜底不是因为没接好,而是超时设置太短。** 操作者要求:"将web端已经配好的chat 的api接入，将网页端chat的功能和配置全部导入apk"。
