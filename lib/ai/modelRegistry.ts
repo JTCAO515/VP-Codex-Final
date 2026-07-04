@@ -44,7 +44,7 @@ export const BUTLER_PROVIDERS: ChatCompletionProvider[] = [
     apiKeyEnvAliases: ["GLM_API_KEY"],
     defaultBaseUrl: "https://open.bigmodel.cn/api/paas/v4",
     baseUrlEnv: "ZHIPU_BASE_URL",
-    defaultModel: "glm-5",
+    defaultModel: "glm-5.1",
     modelEnv: "ZHIPU_CHAT_MODEL",
   }),
   createOpenAiCompatibleProvider({
