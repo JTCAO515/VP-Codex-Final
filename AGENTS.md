@@ -4,106 +4,120 @@
 
 VisePanda 是一个面向外国人来中国旅行的 AI 管家产品。当前主线是：右侧持续 Chat，左侧 Live Trip Canvas 实时刷新；Trip Canvas 会根据当前目的地自动切换水墨背景氛围；Trips 已从占位页升级为真实 Supabase persistence + 归档/分享流程，并有共享状态说明；Explore 已从占位页升级为静态 provider 驱动的城市/景点/美食/住宿骨架，预留真实第三方 provider 接入点，展示 provider readiness，并接入了 Add to Trip 流程（跳转 Chat 后走真实 AI pipeline 加入画布并重新平衡路线）；Account 已从独立页面改为头部图标 + 悬浮窗口，支持邮箱密码登录/注册和 Google 登录，登录后可改名/改密码/登出；Tools 已从占位页升级为静态 provider 驱动的签证入境/支付设置/翻译/汇率/地铁/eSIM-VPN/应急 7 个分类骨架，并支持 `/tools?category=<tool-category-id>` 分类深链、结构化分组、离线 pocket notes、API priority 和 provider readiness；Translate 已作为第五个主导航 Tab，支持文字翻译（DeepSeek）、OCR 扫描翻译（OCR.space）和常用短语/特殊词语词典（静态数据 + TTS）；`ButlerReminders` 已从 TripCanvas 移除（组件文件保留）。
 
-## AI 编程 Agent 分工
+## 协作基础设施
 
-本项目由三个 AI Coding Agent 协作开发。**开工前必须读取以下三份核心文档**（架构真理源，存于仓库根目录）：
-1. `AGENTS.md` — 本文件，定义协同规范、分工、权限、通讯协议与流程
-2. `API_SPEC.md` — 全局唯一接口、结构体、字段、路由标准
-3. `MOBILE_STANDARD.md` — 双端统一网络、缓存、加密、错误码、存储、业务流程规范
+> **不要追求三个 Agent 实时连通。让它们通过 GitHub 形成工程化协作。**
+> 
+> **GitHub Repo = 唯一代码源 | Issues = 任务调度中心 | Branches = 独立工作区 | PRs = 代码交接中心 | Actions = 自动质检**
 
-### 角色与权责契约
+### 怎么工作
 
-| 层级 | Agent | 职责范围 | 专属领域 | 严格禁令 | 分支策略 |
-|------|-------|---------|---------|---------|---------|
-| **架构层** | **Claude Code** | 全局架构总指挥 + 后端负责人 | API 路由设计与接口定义、数据库 schema、系统 Prompt / 对话约束词、知识库搭建与维护、跨 Agent 进度监控与架构冲突仲裁、`main` 分支终审合并权 | 禁止编写 iOS / Android 端业务代码 | `claude/` → `main` |
-| **移动标准层** | **OpenAI Codex** | iOS 开发负责人 + 移动端总联络官 | 全量 iOS（SwiftUI/UIKit）；制定双端通用技术标准（网络层、缓存策略、错误码体系、加密规则、登录流程），Antigravity 无条件对齐 | 禁止私自新增/修改后端 API 与数据库字段 | `codex/ios-development` → `main` |
-| **实现层** | **Antigravity (agy)** | Android 专职开发 | 全量 Android（Kotlin + Jetpack Compose），系统权限适配、机型兼容、APK 构建；严格对齐 `API_SPEC.md` + `MOBILE_STANDARD.md` | 禁止制定双端通用标准；禁止私自改动接口/字段/数据结构 | `agy/android` → `main` |
-
-### 三条铁律
-
-1. **唯一架构出口** — 所有 API、路由、数据库结构、全局约束、系统 Prompt，**仅 Claude Code 有权定义**。端侧不得私自新增接口、修改字段、改动 Schema。发现接口缺失或字段异常 → 上报 Claude Code，**禁止硬写兼容代码**。
-2. **端侧逻辑统一** — iOS / Android 通用规范由 Codex 制定，Antigravity 无条件对齐。**双端不一致时以 Codex 方案为唯一标准**。
-3. **禁止私下变更** — 任何端侧不得在未上报、未获批复的情况下自行调整后端接口或全局逻辑。
-
-### 标准化通讯协议
-
-三 Agent 之间统一使用以下四种固定报文格式沟通，无需自由翻译，三 AI 自动互通识别。
-
-#### 【架构任务单】— 仅 Claude Code 下发
 ```
-【架构任务单】
-模块名称：
-后端接口清单：
-入参结构体：
-出参结构体：
-数据库表变更：
-移动端需要实现的行为：
-禁止自行新增接口：是
-交付截止节点：
-抄送：Codex / Antigravity
+Claude Code 创建 Issue（定义任务 + Scope + 验收标准）
+  → Codex / Antigravity 认领 Issue，创建独立分支
+    → 在分支上完成开发，不自测通过不提交
+      → 开 PR（附 PR 模板：改了啥 / 测了啥 / 风险）
+        → Claude Code Review PR（只审核架构合规性，不干预实现细节）
+          → 合规 → 合并入 dev 分支
+          → 不合规 → 驳回 + 说明原因
 ```
 
-#### 【进度回执单】— Codex / Antigravity 专用
-```
-【进度回执】
-所属工单：
-已完成内容：
-未完成内容：
-阻塞问题：
-是否需要架构调整：是/否
-下一步计划：
-抄送：Claude Code
-```
+## 角色分工
 
-#### 【架构冲突上报】— 全员可用
+| Agent | 角色 | 做什么 | 不做什么 |
+|-------|------|--------|---------|
+| **Claude Code** | 项目架构师 + Reviewer | 创建 Issue 分配任务、维护架构文档（`ARCHITECTURE.md` / `API_SPEC.md` / `MOBILE_STANDARD.md`）、审核所有 PR 的架构合规性、仲裁冲突 | 不编写端侧业务代码、不直接修改 PR 内容 |
+| **Codex** | 主力开发工程师 | 复杂逻辑实现、后端 API 开发、Bug Fix、重构、iOS 端开发 | 不私自改动数据库 Schema 和系统 Prompt、不触及架构决策层 |
+| **Antigravity** | 前端体验 + 验证 | Android 端开发、前端 UI 实现、浏览器交互验证、视觉一致性检查、E2E 测试 | 不制定架构规范、不私自新增接口与字段 |
+
+## 分支策略
+
 ```
-【架构冲突上报】
-冲突类型：接口缺失 / 字段错误 / 数据结构不匹配 / 双端逻辑不一致 / 规范不统一
-问题详情：
-影响范围：
-建议方案：
-需要 Claude Code 批复：是/否
-抄送：Claude Code + 另一方端侧
+main        ← 生产就绪，仅从 dev 合并
+dev         ← 开发主线，PR 合入目标
+agent/xxx   ← 每个 Agent 的独立任务分支
 ```
 
-#### 【合并申请单】— 端侧合入 main 的唯一入口
+**分支命名规范：** `agent/<agent-name>-<简短描述>`，例如：
+- `agent/claude-chat-api-refactor`
+- `agent/codex-ios-login`
+- `agent/antigravity-android-translator`
+
+**分支铁律：**
+1. 禁止直接 push `main` 或 `dev`
+2. 所有开发在 `agent/*` 分支进行
+3. 每个 Issue 对应一个分支，做完即删
+4. 分支保持小改动（不超过 300 行变更），大了分拆
+
+## 开工前流程
+
+**任何 Agent 启动工作前：**
+
+> 1. `git pull origin dev` — 拉取最新 dev
+> 2. 读取 `PROJECT_CONTEXT.md` — 了解项目背景
+> 3. 读取 `ARCHITECTURE.md` — 了解系统结构
+> 4. 读取 `AGENTS.md` — 了解协作规则
+> 5. 读取 `API_SPEC.md` — 了解接口定义
+> 6. 读取 `MOBILE_STANDARD.md` — 了解移动端规范
+> 7. `git checkout -b agent/<agent-name>-<task>` — 创建分支
+> 8. 开工
+
+## Issue 模板（Claude Code 创建任务时使用）
+
+```markdown
+## Task
+[一句话描述任务]
+
+## Scope
+只修改以下文件/目录：
+- path/to/file1.ts
+- path/to/dir2/*
+
+## Do not touch
+- 数据库 Schema
+- 支付模块
+- 系统 Prompt
+
+## Acceptance
+- [ ] npm run build 通过
+- [ ] 现有相关测试通过
+- [ ] [具体验收条件]
 ```
-【合并申请】
-来源分支：
-改动内容：
-是否严格遵守架构文档：是/否
-有无私自新增接口：有/无
-有无擅自改动字段：有/无
-申请合并至 main
+
+## PR 模板（Codex / Antigravity 提交 PR 时使用）
+
+```markdown
+## What changed
+[改了啥，一两句话]
+
+## Files changed
+- src/file1.ts — 修复了 XXX
+- src/file2.ts — 新增了 XXX
+
+## How tested
+- [ ] npm run build
+- [ ] npm test
+- [ ] 手动测试场景描述
+
+## Risks
+- 低风险：纯 UI 变更
+- 中风险：涉及 API 入参变更
+- 高风险：数据库变更 / 影响现有用户数据
 ```
 
-### 协同工作流
+## 协作纪律
 
-**全量串行模式（大版本迭代）：**
-1. Claude Code 一次性输出整版本架构、接口、数据表 → 批量下发全部【架构任务单】
-2. 双端分头完整开发，单模块完成后提交【进度回执单】
-3. 版本统一验收 → 端侧提交【合并申请单】→ Claude Code 架构合规性审核 → 合规放行，违规驳回整改
+1. **各改各的，不抢文件** — 同时期三个 Agent 不得修改同一组文件。Issue 的 `Scope` 和 `Do not touch` 定义清楚
+2. **不自测不开 PR** — PR 必须附带通过的自测结果
+3. **不合规不改架构** — 所有架构变更（API、Schema、Prompt）必须由 Claude Code 发起 Issue 和 Review
+4. **卡住就提 Issue** — 不要硬写兼容代码。发现 API 缺失 / 字段异常 / 逻辑矛盾 → 在 Issue 中标记 blocked + @Claude Code
+5. **小 PR，高频合并** — 单 PR 不超过 300 行变更。大了拆成多个 Issue
+6. **版本号统一递增** — `0.3.x` 序列，每次迭代更新 `package.json`
+7. **文档同步** — `PLAN.md` / `PRD.md` / `DESIGN.md` / `AGENTS.md` / `HANDOFF.md` / `CHANGELOG.md` / `VERSIONING.md` 每次迭代同步
 
-**快速并行模式（日常快速迭代）：**
-1. 每日上午：Claude Code 定本期最小可用接口与规范
-2. 每日白天：双端并行编码、对齐规范
-3. 每日晚间：统一提交【进度回执单】+ 集中上报冲突
-4. 夜间：架构统一修复、合并基线
-5. 次日循环迭代
+## 一键激活指令
 
-**合并规程：**
-端侧完成开发 → 提交【合并申请单】→ Claude Code 仅审核架构合规性（不干预端侧业务实现细节）→ 合规放行入 `main`，违规驳回整改。**禁止端侧直接 push `main`。**
-
-### 版本与文档纪律
-- 版本号统一递增（`0.3.x` 序列），每次迭代后同步更新
-- `PLAN.md` / `PRD.md` / `DESIGN.md` / `AGENTS.md` / `HANDOFF.md` / `CHANGELOG.md` / `VERSIONING.md` 为共享文档，每次迭代必须同步
-- 分工变更须在 `AGENTS.md` 标注变更记录
-
-### 三 Agent 一键激活指令
-
-新 Agent 启动时，可直接复制以下指令锁定协作模式：
-
-> 从现在开始，三者形成固定开发团队：**Claude Code** 为全局架构总指挥、后端、数据库、知识库、API 唯一制定人，有权终审合入 main；**Codex** 为 iOS 开发负责人兼移动端总负责人，制定两端统一技术标准；**Antigravity** 专职 Android 开发，严格对齐 Codex 通用规范。所有沟通只使用四种固定报文：架构任务单、进度回执单、架构冲突单、合并申请单。禁止私自新增接口、修改字段。每次行动前必须读取 AGENTS.md、API_SPEC.md、MOBILE_STANDARD.md 三份文档。出现架构阻塞必须立刻上报冲突，不允许自行变通。
+> 你正在 VisePanda 多 Agent 项目中开发。你的角色由 `AGENTS.md` 定义。开工前先读 `PROJECT_CONTEXT.md` + `ARCHITECTURE.md` + `AGENTS.md` + `API_SPEC.md` + `MOBILE_STANDARD.md`。所有任务通过 GitHub Issue 分配，在 `agent/*` 分支开发，通过 PR 提交合并。不自测、小变更、高频合并。不私自改架构。不硬写兼容代码，卡住提 Issue + @Claude Code。
 
 ## 核心技术栈
 

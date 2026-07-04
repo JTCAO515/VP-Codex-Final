@@ -46,31 +46,41 @@ Standing rules for every session on this project. Read this before acting.
 
 ## Agent role (VisePanda multi-Agent collaboration)
 
-This project uses three AI Coding Agents. **Read these three documents before starting work:**
-1. `AGENTS.md` — Collaboration rules, division of labor, communication protocols, and workflows
-2. `API_SPEC.md` — Global API interface, struct, field, and route standards
-3. `MOBILE_STANDARD.md` — Cross-platform network, cache, encryption, error codes, storage, and business process standards
+This project uses three AI Coding Agents working through GitHub. **Read these before starting work:**
+1. `PROJECT_CONTEXT.md` — Project background and context
+2. `ARCHITECTURE.md` — System architecture and data flow
+3. `AGENTS.md` — Collaboration rules (this is the authoritative rules file)
+4. `API_SPEC.md` — API interface definitions
+5. `MOBILE_STANDARD.md` — Mobile app standards
+
+**Workflow:**
+- Tasks are assigned via **GitHub Issues** (Claude Code creates them)
+- Work is done in **independent `agent/*` branches**
+- Code is submitted via **Pull Requests** with a standardized template
+- **Claude Code reviews** all PRs for architecture compliance
 
 **Role hierarchy:**
 
-| Layer | Agent | Scope | Branch |
-|-------|-------|-------|--------|
-| **Architecture** | **Claude Code** | Global architecture commander + backend owner: API route design, DB schema, system prompt/constraint words, knowledge base, cross-agent progress monitoring, `main` merge approval | `claude/` → `main` |
-| **Mobile Standards** | **OpenAI Codex** | iOS lead + mobile liaison: full iOS (SwiftUI/UIKit); defines cross-platform standards (network layer, caching, error codes, encryption, login); Antigravity aligns unconditionally | `codex/ios-development` → `main` |
-| **Implementation** | **Antigravity (agy)** | Android dedicated dev: full Android (Kotlin + Jetpack Compose), system permissions, APK builds; aligns to `API_SPEC.md` + `MOBILE_STANDARD.md` | `agy/android` → `main` |
+| Agent | Role | What they do | What they don't do |
+|-------|------|--------------|-------------------|
+| **Claude Code** | Architect + Reviewer | Create Issues, maintain architecture docs, review PRs, arbitrate conflicts | Don't write end-side business code, don't directly edit PR content |
+| **OpenAI Codex** | Lead Developer | Complex logic, backend APIs, bug fixes, refactors, iOS development | Don't modify DB schema or system prompts unilaterally |
+| **Antigravity (agy)** | Frontend + QA | Android development, frontend UI, interaction/browser testing, visual checks, E2E tests | Don't set architecture standards, don't add endpoints or fields privately |
 
-**Three iron rules:**
-1. Single architecture authority — only Claude Code defines APIs, routes, DB schema, and system prompts. End-sides must NOT add/modify endpoints, fields, or schemas privately.
-2. Cross-platform consistency — Codex sets the standard for shared mobile logic; Antigravity aligns unconditionally. When iOS and Android differ, Codex's design wins.
-3. No silent workarounds — any missing interface or field mismatch must be reported upward. No hard-coding compatibility patches.
+**Branch strategy:**
+- `main` — production-ready, merges from `dev` only
+- `dev` — development trunk, PR merge target
+- `agent/<name>-<task>` — individual task branches
 
-**Four standardized communication protocols — see `AGENTS.md` for full format definitions:**
-- 【Architecture Task Ticket】 — Claude Code only (task dispatch)
-- 【Progress Report】 — Codex/Antigravity only (status updates)
-- 【Architecture Conflict Report】 — everyone (blocking issues)
-- 【Merge Request】 — end-side only (PR to `main`)
+**Key rules:**
+1. Single architecture authority — only Claude Code defines APIs, routes, DB schema, system prompts
+2. Codex sets mobile cross-platform standards; Antigravity aligns unconditionally
+3. No workarounds — blocked = file an Issue + @Claude Code
+4. Small PRs, frequent merges — under 300 lines per PR
+5. No PR without passing build + tests
+6. No direct push to `main` or `dev`
 
-**Merge workflow:** End-side completes dev → submits 【Merge Request】 → Claude Code audits architecture compliance only → approve or reject. No direct push to `main`.
+- The authoritative product roadmap lives in `PLAN.md` (阶段一…阶段十八) and
 
 - The authoritative product roadmap lives in `PLAN.md` (阶段一…阶段十八) and
   `go2china.space`. Supabase for auth/persistence (degrades to guest/mock).
