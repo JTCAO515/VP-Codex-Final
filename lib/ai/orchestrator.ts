@@ -22,7 +22,7 @@ import { BUTLER_PROVIDERS, getConfiguredProviders, selectProvidersForIntent } fr
 import { buildButlerToolContext, type ButlerToolContext } from "@/lib/ai/toolContext";
 import { applyToolContextToPatch } from "@/lib/ai/toolContextWriteThrough";
 import type { UserPreferenceProfile } from "@/lib/ai/preferenceProfile";
-import { createMockButlerPatch } from "@/lib/mock-ai/mockButler";
+
 import { buildFactualToolResponse } from "@/lib/tools/factualToolCards";
 import type { ChatCompletionProvider, FetchLike } from "@/lib/ai/providers/types";
 import type { CanvasPatch, ChatMessage, TripState } from "@/lib/types/trip";
@@ -147,25 +147,7 @@ async function tryProvider(
   }
 }
 
-function mockResult(
-  message: string,
-  currentTrip: TripState,
-  intent: ButlerIntent,
-  providersTried: string[],
-  fallbackReason?: string,
-): OrchestratedButlerResult {
-  const patch = createMockButlerPatch(message, currentTrip);
-  return {
-    mode: "mock",
-    modelLabel: "mock fallback",
-    intent,
-    strategy: "mock",
-    providersTried,
-    patch,
-    suggestions: fallbackSuggestionsFor(message, currentTrip),
-    fallbackReason,
-  };
-}
+
 
 export async function requestOrchestratedButlerPatch(
   input: OrchestratedButlerInput,
@@ -177,7 +159,7 @@ export async function requestOrchestratedButlerPatch(
   const intent = classifyIntent(message);
 
   if (!message) {
-    return mockResult(input.message, input.currentTrip, intent, [], "Empty message.");
+    throw new Error("Empty message.");
   }
 
   const factualToolResponse = await buildFactualToolResponse({ message, currentTrip: input.currentTrip, intent });
@@ -195,7 +177,7 @@ export async function requestOrchestratedButlerPatch(
 
   const configured = getConfiguredProviders(env, input.providers ?? BUTLER_PROVIDERS);
   if (configured.length === 0) {
-    return mockResult(message, input.currentTrip, intent, [], "No Chinese LLM provider is configured.");
+    throw new Error("No Chinese LLM provider is configured.");
   }
 
   const ranked = selectProvidersForIntent(intent, configured);
@@ -244,6 +226,6 @@ export async function requestOrchestratedButlerPatch(
         : error instanceof Error
           ? error.message
           : "All configured providers failed.";
-    return mockResult(message, input.currentTrip, intent, tried, reason || "All configured providers failed.");
+    throw new Error(reason || "All configured providers failed.");
   }
 }
