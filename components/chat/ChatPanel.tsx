@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCheck, Copy, ExternalLink, History, Mic, Paperclip, Pin, Send, Sparkles, Star, ThumbsDown, ThumbsUp, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ChangeEvent, FormEvent, KeyboardEvent } from "react";
 import { ChangeDigestCard } from "@/components/canvas/ChangeDigestCard";
 import type { ChatMessage } from "@/lib/types/trip";
@@ -40,6 +40,21 @@ export function ChatPanel({
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<Record<string, "up" | "down">>({});
   const [dismissedNextStepId, setDismissedNextStepId] = useState<string | null>(null);
+  const [slowWait, setSlowWait] = useState(false);
+
+  // Some providers (Kimi K2.6's reasoning pass cannot be disabled — see
+  // modelRegistry.ts minTimeoutMs/minMaxTokens, v0.3.19) can legitimately take
+  // 60-90s to answer. The thinking indicator below is always shown while
+  // busy, but its copy escalates after a threshold so a long real wait still
+  // reads as "working" rather than "frozen."
+  useEffect(() => {
+    if (!busy) {
+      setSlowWait(false);
+      return;
+    }
+    const timer = setTimeout(() => setSlowWait(true), 15000);
+    return () => clearTimeout(timer);
+  }, [busy]);
 
   const lastAssistantWithNextStep = [...messages].reverse().find((message) => message.role === "assistant" && message.response?.nextStep);
   const latestNextStep =
@@ -240,7 +255,11 @@ export function ChatPanel({
               <span aria-hidden="true" />
               <span aria-hidden="true" />
               <span aria-hidden="true" />
-              <p>Checking the practical travel details...</p>
+              <p>
+                {slowWait
+                  ? "Still working — one of the travel details is taking longer to double-check than usual..."
+                  : "Checking the practical travel details..."}
+              </p>
             </div>
           </article>
         ) : null}

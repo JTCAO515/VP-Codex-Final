@@ -1196,3 +1196,15 @@ ADR-121: 四家 LLM 真实连通性深化轮（架构师自派任务，操作者
 - Decision（JSON 静默损坏修复，本轮最高价值发现）：用真实 Kimi K2.6 响应构造复现——完整合法 JSON 对象后面跟着模型自我验证的人类语言（"Yes, this is valid JSON..."），如果这段废话里包含逗号，旧的回退修复算法（`work.lastIndexOf(",")`）会在真正 JSON 体内的逗号之前找到它，逐步回退可能悄悄切掉对象内部某个字段（实测复现：`"title":"Yu Garden"` 被切没了，而外层 `days.length` 看起来完全正常——用简单的长度校验完全发现不了这个问题）。修复：`lib/ai/jsonRepair.ts` 新增 `findObjectEnd()`，从开头 `{` 精确扫描匹配的闭合括号（正确跳过字符串内容和转义），在回退循环跑之前先按这个边界切一刀；只有真正被截断（找不到匹配括号）的内容才会继续走回退修复路径。
 - Verification: 新增 5 个单元测试（`findObjectEnd` 4 个 + 复现回归测试 1 个），全量测试 179 个通过，`npm run build` 通过。另外用临时 vitest 探针（未提交，用后即删）跑通了两条真实网络路径：(1) 四家 provider 通过真实 `requestOrchestratedButlerPatch` 一起竞速，DeepSeek 26.4s 首先胜出，返回合法 3 天行程；(2) 单独只配置 Kimi 一家时，在新的 90s/8192 下限下真实完整跑通（82.2s 完成）。
 - Reason：延续 ADR-119/ADR-120 的"根治真实故障，不留虚假安全感"原则——JSON 损坏 bug 是本轮最严重的发现，因为它是静默的（不报错、不崩溃，只是悄悄丢数据），比任何一个显式超时或报错都更危险。
+
+ADR-122: Chat 全链路多角度审计 + 加固轮（架构师自派任务，操作者指令"穷尽你的想法去优化chat，多角度查bug"，2026-07-05）。
+
+- Background: 操作者要求深度研究 chatbot 对话性——是否真的和模型联动、是否需要数据库、提示词约束是否到位——并"穷尽想法优化 chat，多角度查 bug 并修复"。架构师先派出一次只读审计（覆盖持久化/数据库、流式 vs 阻塞、系统提示词质量、并发竞速、前端边界情况、意图分类、工具卡拦截共 8 个维度），再基于审计结果制定本轮修复清单。
+- Decision（审计结论——持久化）：Next.js Chat 请求路径本身完全无数据库调用，是有意为之的无状态设计（trip/messages/preferenceProfile 全部作为请求参数传递，`UserPreferenceProfile` 只存 localStorage，登录后才经 Supabase 持久化整段对话）。`BUTLER_SERVICE_URL` 网关仍是惰性开关，未接入生产。这一项审计确认现状正确，无需改动。
+- Decision（真实 bug ①：serverless 超时上限缺失）：`app/api/chat/route.ts` 之前没有设置 `maxDuration`，而 Kimi 的 provider 级下限是 90s（modelRegistry.ts,v0.3.19）——如果 Kimi 成为最后候选，Vercel serverless 函数可能在 Kimi 真实完成之前就被平台自身超时机制杀掉，把一个本该成功的真实回答变成客户端超时。修复：`export const maxDuration = 120` 显式声明。诚实记录代价：Vercel Hobby 套餐硬性上限是 60s，与套餐无关，这个修复只在 Pro 及以上套餐才能完全生效——已告知操作者需要确认生产环境套餐等级。
+- Decision（真实浪费：竞速失败方未取消）：`orchestrator.ts` 里 `Promise.any` 竞速胜出后，其余 provider 的真实网络请求此前会继续跑到各自超时——每一次用户消息都在白白多消耗 2-3 家真实 provider 的 API 配额，即使已经有答案。修复：新增共享 `AbortController`，胜出后立即 `abort()`。关键正确性细节：`tryProvider` 的失败记录判断从"总是记" 改为"仅当 `raceSignal.aborted` 在捕获失败的那一刻仍为 false 才记"——因为只有胜出之后我们才会调用 abort，所以这个检查天然区分了"真实失败"（应计入熔断器）和"因为别家赢了而被取消"（不该计入，否则健康的慢 provider 会被熔断器误伤）。
+- Decision（真实 UX 缺口：长等待没有渐进反馈）：`ChatPanel.tsx` 原本 busy 状态下的"思考中"提示文案是固定的"Checking the practical travel details..."。Kimi 单独成为最后候选时真实耗时可达 60-90s+（v0.3.19 实测），固定文案在长时间等待下会显得像卡死。修复：15 秒后文案升级为"Still working — one of the travel details is taking longer to double-check than usual..."，busy 结束时重置。
+- Decision（意图分类小缺口）：`add_poi` 规则的连接介词只认"to"，"can you put the Summer Palace in the itinerary?" 这类用"in"而非"to"的自然表达会落空到 `unclear`。同时触发动词只认字面 bigram "put in"，"put X in Y" 这种把动词和介词拆开的说法也匹配不上。修复：连接介词扩展为 `to|in`，触发动词把 "put" 单独列出（`put(?: in)?`）。补充了此前完全没有的 `add_poi` 专项测试。
+- Decision（未修复，仅记录）：审计还发现"超长行程可能撞到 4096 token 输出上限"的风险——现有的截断修复（jsonRepair.ts）已经能优雅降级，不构成真实故障，先监控不强修；以及"butler-service 完全没有 Java CI"的门禁缺口——已作为独立任务派出，不在本轮范围内直接修。
+- Verification: 183 个单元测试通过（新增 4 个：orchestrator 竞速取消+熔断器豁免回归测试 1 个、ChatPanel 慢等待文案测试 2 个、add_poi 意图测试 1 个），`npm run build` 通过。真实浏览器验证:启动本地 dev server,发送真实消息(“Make the Beijing day a bit calmer”),确认 busy 状态下"思考中"提示正确出现,DeepSeek 在 26 秒内真实返回并正确更新画布,状态文字正确显示 provider 名称。
+- Reason：延续本项目一贯的"审计要触达真实代码路径,不能只凭猜测"的方法论——审计过程中主动核实了两条审计报告本身的错误结论(误判 add_poi 已支持"itinerary"变体、误判前端完全没有 loading 提示),避免了"修复一个不存在的问题"。

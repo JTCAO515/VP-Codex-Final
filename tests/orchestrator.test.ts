@@ -255,6 +255,44 @@ describe("requestOrchestratedButlerPatch", () => {
     expect(result.providersTried).toEqual(["qwen"]);
   });
 
+  it("aborts the losing candidate once a winner is found, without tripping its circuit breaker (v0.3.20)", async () => {
+    const fast = makeProvider("deepseek");
+    let capturedSignal: AbortSignal | undefined;
+    const slow: ChatCompletionProvider = {
+      id: "qwen",
+      label: "Provider qwen",
+      model: "qwen-model",
+      capabilities: ["reasoning"],
+      isConfigured: () => true,
+      complete: vi.fn(
+        (options) =>
+          new Promise((resolve, reject) => {
+            capturedSignal = options.signal;
+            options.signal?.addEventListener("abort", () => reject(new Error("qwen aborted")));
+            // Never resolves on its own within the test — only settles via abort.
+          }),
+      ),
+    };
+    const env = { DEEPSEEK_API_KEY: "k", DASHSCOPE_API_KEY: "k" };
+
+    for (let i = 0; i < 3; i++) {
+      const result = await requestOrchestratedButlerPatch({
+        message: "Plan me a 5 day trip in China",
+        currentTrip: initialTripState,
+        env,
+        fetchImpl: vi.fn(),
+        providers: [fast, slow],
+      });
+      expect(result.mode).toBe("deepseek");
+      // The slow candidate must still be raced every time — if its abort-
+      // induced rejection had spuriously tripped the breaker, later requests
+      // would stop trying it (providersTried would drop to just ["deepseek"]).
+      expect(result.providersTried).toEqual(["deepseek", "qwen"]);
+    }
+
+    expect(capturedSignal?.aborted).toBe(true);
+  });
+
   it("ignores the breaker when every candidate is tripped (never mock-locked)", async () => {
     const failing = makeProvider("deepseek", { behavior: "throw" });
     const env = { DEEPSEEK_API_KEY: "k" };
