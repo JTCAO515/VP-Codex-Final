@@ -49,13 +49,13 @@ export const BUTLER_PROVIDERS: ChatCompletionProvider[] = [
   }),
   createOpenAiCompatibleProvider({
     id: "moonshot",
-    label: "Moonshot Kimi 2.5",
+    label: "Moonshot Kimi K2.6",
     capabilities: ["longContext", "reasoning"],
     apiKeyEnv: "MOONSHOT_API_KEY",
     apiKeyEnvAliases: ["KIMI_API_KEY"],
     defaultBaseUrl: "https://api.moonshot.cn/v1",
     baseUrlEnv: "MOONSHOT_BASE_URL",
-    defaultModel: "kimi-2.5",
+    defaultModel: "kimi-k2.6",
     modelEnv: "MOONSHOT_CHAT_MODEL",
   }),
   createOpenAiCompatibleProvider({
