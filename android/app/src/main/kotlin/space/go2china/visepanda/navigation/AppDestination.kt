@@ -45,6 +45,7 @@ sealed class TopLevelDestination(
 object DetailDestinations {
     const val DAY_DETAIL_ROUTE = "day_detail/{dayNumber}"
     const val DAY_NUMBER_ARG = "dayNumber"
+    const val TRANSLATE_ROUTE = "translate"
 
     fun dayDetailRoute(dayNumber: Int): String = "day_detail/$dayNumber"
 }

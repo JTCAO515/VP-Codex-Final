@@ -65,4 +65,21 @@
     <string name="state_offline_title">You are offline</string>
     <string name="state_error_title">Something went wrong</string>
     <string name="state_error_retry">Retry</string>
+
+    <!-- Translate Page Strings (v0.3.15) -->
+    <string name="translate_title">Translator</string>
+    <string name="translate_tab_text">Text &amp; Media</string>
+    <string name="translate_tab_phrases">Phrase Book</string>
+    <string name="translate_hint_en">Enter English text to translate…</string>
+    <string name="translate_hint_zh">输入中文进行翻译…</string>
+    <string name="translate_header_translation">TRANSLATION</string>
+    <string name="translate_placeholder_realtime">Translation will appear here in real-time.</string>
+    <string name="translate_error_header">TRANSLATION ERROR</string>
+    <string name="translate_media_title">Media Translation</string>
+    <string name="translate_coming_soon">Coming soon</string>
+    <string name="translate_camera_title">Camera Scan</string>
+    <string name="translate_camera_desc">Signs, menus, maps</string>
+    <string name="translate_voice_title">Voice Input</string>
+    <string name="translate_voice_desc">Listen to conversations</string>
+    <string name="translate_show_local">Show this to local people</string>
 </resources>

@@ -18,6 +18,14 @@ import space.go2china.visepanda.ui.me.MeScreen
 import space.go2china.visepanda.ui.plan.DayDetailScreen
 import space.go2china.visepanda.ui.tools.ToolsScreen
 import space.go2china.visepanda.ui.trips.TripsScreen
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Text
+import space.go2china.visepanda.ui.theme.Dimens
+import space.go2china.visepanda.ui.theme.Ink
+import space.go2china.visepanda.ui.theme.Paper
+import space.go2china.visepanda.ui.translate.TranslateScreen
 
 /**
  * v0.3.10: the bottom nav floats as a `Box` overlay on top of full-screen
@@ -53,7 +61,24 @@ fun VisePandaApp() {
                 ExploreScreen()
             }
             composable(TopLevelDestination.Tools.route) {
-                ToolsScreen()
+                Box(modifier = Modifier.fillMaxSize()) {
+                    ToolsScreen()
+                    Button(
+                        onClick = { navController.navigate(DetailDestinations.TRANSLATE_ROUTE) },
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(Dimens.SpaceLG),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Ink,
+                            contentColor = Paper
+                        )
+                    ) {
+                        Text("👉 Enter Translator (v0.3.15 Test)")
+                    }
+                }
+            }
+            composable(DetailDestinations.TRANSLATE_ROUTE) {
+                TranslateScreen(onBack = { navController.popBackStack() })
             }
             composable(TopLevelDestination.Me.route) {
                 MeScreen()
