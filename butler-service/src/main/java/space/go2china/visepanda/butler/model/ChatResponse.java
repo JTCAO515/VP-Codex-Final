@@ -23,8 +23,13 @@ public record ChatResponse(
     }
 
     public static ChatResponse ok(String intent, CanvasPatch patch, List<String> suggestions, JsonNode toolContext) {
-        return new ChatResponse(true, "mock", "Mock Butler", intent, "mock-fallback",
-                List.of("mock"), patch, suggestions, toolContext, null, null);
+        return ok(intent, patch, suggestions, toolContext, "live", "Live Butler", "provider-chain", List.of("live"));
+    }
+
+    public static ChatResponse ok(String intent, CanvasPatch patch, List<String> suggestions, JsonNode toolContext,
+                                  String mode, String modelLabel, String strategy, List<String> providersTried) {
+        return new ChatResponse(true, mode, modelLabel, intent, strategy,
+                providersTried, patch, suggestions, toolContext, null, null);
     }
 
     public static ChatResponse error(String error, String message) {

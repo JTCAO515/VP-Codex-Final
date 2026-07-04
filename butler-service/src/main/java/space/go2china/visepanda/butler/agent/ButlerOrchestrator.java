@@ -73,9 +73,10 @@ public class ButlerOrchestrator {
         }
 
         if (plan.steps().size() > MAX_DEPTH) timedOut = true;
-        CanvasPatch fallback = tripPlannerAgent.run(intent, new ExecutionStep("TripPlannerAgent", request.message(), List.of()),
-                request.message(), request.trip(), memory, context, budget).patch();
-        CanvasPatch patch = composer.compose(plan, context, results, fallback, timedOut);
+        AgentResult patchResult = results.stream().filter(result -> result.patch() != null).findFirst()
+                .orElseGet(() -> tripPlannerAgent.run(intent, new ExecutionStep("TripPlannerAgent", request.message(), List.of()),
+                        request.message(), request.trip(), memory, context, budget));
+        CanvasPatch patch = composer.compose(plan, context, results, patchResult.patch(), timedOut);
         JsonNode toolContext = objectMapper.valueToTree(Map.of(
                 "executionPlan", plan,
                 "executionLog", logs,
@@ -85,7 +86,8 @@ public class ButlerOrchestrator {
                 "maxDepth", MAX_DEPTH,
                 "timedOut", timedOut
         ));
-        ChatResponse response = ChatResponse.ok(intent.wireName(), patch, patch.assistantResponse().followUp(), toolContext);
+        ChatResponse response = ChatResponse.ok(intent.wireName(), patch, patch.assistantResponse().followUp(), toolContext,
+                patchResult.mode(), patchResult.modelLabel(), "provider-chain", patchResult.providersTried());
         return new OrchestrationResponse(response, memory);
     }
 

@@ -16,7 +16,7 @@ Health:
 curl http://localhost:8080/actuator/health
 ```
 
-Mock chat request:
+Chat request:
 
 ```bash
 curl -s http://localhost:8080/butler/chat \
@@ -39,9 +39,22 @@ curl -s http://localhost:8080/butler/chat \
   }'
 ```
 
-No API key is required. Missing `BUTLER_LLM_API_KEY` keeps the permanent deterministic mock fallback active.
+At least one server-side LLM key is required for chat. If no provider key is configured, `/butler/chat`
+returns an honest `503` with `ok:false` instead of fabricating a mock CanvasPatch.
 
-Memory and RAG are fallback-first. Missing `SUPABASE_URL` or `SUPABASE_SERVICE_ROLE_KEY` keeps L1/L2/L3 memory in process memory, keeps RAG on static keyword search, and keeps chat working.
+Supported provider variables:
+
+- `DASHSCOPE_API_KEY`
+- `DASHSCOPE_COMPATIBLE_BASE_URL`
+- `QWEN_CHAT_MODEL`
+- `ZHIPU_API_KEY`
+- `ZHIPU_BASE_URL`
+- `ZHIPU_CHAT_MODEL`
+- `MOONSHOT_API_KEY`
+- `MOONSHOT_BASE_URL`
+- `MOONSHOT_CHAT_MODEL`
+
+Memory and RAG are fallback-first. Missing `SUPABASE_URL` or `SUPABASE_SERVICE_ROLE_KEY` keeps L1/L2/L3 memory in process memory and keeps RAG on static keyword search.
 
 ## Docker
 
@@ -56,14 +69,21 @@ docker run --rm -p 8080:8080 visepanda-butler-service
 ```bash
 cd butler-service
 flyctl launch --copy-config --region hkg
-flyctl secrets set BUTLER_LLM_API_KEY="$BUTLER_LLM_API_KEY" BUTLER_LLM_MODEL="$BUTLER_LLM_MODEL"
+flyctl secrets set DASHSCOPE_API_KEY="$DASHSCOPE_API_KEY"
 flyctl deploy
 ```
 
 Secret variable names only:
 
-- `BUTLER_LLM_API_KEY`
-- `BUTLER_LLM_MODEL`
+- `DASHSCOPE_API_KEY`
+- `DASHSCOPE_COMPATIBLE_BASE_URL`
+- `QWEN_CHAT_MODEL`
+- `ZHIPU_API_KEY`
+- `ZHIPU_BASE_URL`
+- `ZHIPU_CHAT_MODEL`
+- `MOONSHOT_API_KEY`
+- `MOONSHOT_BASE_URL`
+- `MOONSHOT_CHAT_MODEL`
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 
