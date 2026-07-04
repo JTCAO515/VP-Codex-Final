@@ -6,21 +6,104 @@ VisePanda 是一个面向外国人来中国旅行的 AI 管家产品。当前主
 
 ## AI 编程 Agent 分工
 
-本项目由三个 AI Coding Agent 协作开发，各司其职：
+本项目由三个 AI Coding Agent 协作开发。**开工前必须读取以下三份核心文档**（架构真理源，存于仓库根目录）：
+1. `AGENTS.md` — 本文件，定义协同规范、分工、权限、通讯协议与流程
+2. `API_SPEC.md` — 全局唯一接口、结构体、字段、路由标准
+3. `MOBILE_STANDARD.md` — 双端统一网络、缓存、加密、错误码、存储、业务流程规范
 
-| Agent | 职责范围 | 分支策略 |
-|-------|---------|---------|
-| **Claude Code** | **核心架构 + 进度总管**：API 路由连通性、Chat 约束词/角色设定、用户数据库、知识库搭建；跨 Agent 监控进度，从全局层面把控核心修改方向 | 推送到 `claude/visepanda-phase-3-hym6z9` + force-push 到 `main` |
-| **OpenAI Codex** | **iOS App** 端开发（SwiftUI / UIKit） | 推送到 `codex/ios-development` + merge 到 `main` |
-| **Antigravity (agy)** | **Android APK** 端开发（Kotlin + Jetpack Compose） | 推送到 `agy/android` + merge 到 `main` |
+### 角色与权责契约
 
-### 协作规则
-1. 各 Agent **不修改对方负责的代码**（Claude Code 不动 iOS / Android 端代码，Codex 不动 Android 代码，Antigravity 不动 iOS 代码）
-2. Web 端（Next.js 前端 + API 路由）与后端基础设施为共享修改层，Claude Code 作为进度总管对此层有修改权，修改需在 `HANDOFF.md` 标注
-3. **Claude Code 作为进度总管，有权知悉 Codex 和 Antigravity 的进度状态**；每次重大变更完成后，Codex 和 Antigravity 须向 Claude Code 同步。Claude Code 负责从全局层面评估架构一致性，发现核心问题（如 API 路由冲突、数据库 schema 兼容性、知识库接口对齐）时有权要求调整
-4. 版本号统一递增（`0.3.x` 序列），每次迭代后同步更新
-5. `PLAN.md` / `PRD.md` / `DESIGN.md` / `AGENTS.md` / `HANDOFF.md` / `CHANGELOG.md` / `VERSIONING.md` 为共享文档，每次迭代必须同步
-6. 分工变更须在 `AGENTS.md` 标注变更记录
+| 层级 | Agent | 职责范围 | 专属领域 | 严格禁令 | 分支策略 |
+|------|-------|---------|---------|---------|---------|
+| **架构层** | **Claude Code** | 全局架构总指挥 + 后端负责人 | API 路由设计与接口定义、数据库 schema、系统 Prompt / 对话约束词、知识库搭建与维护、跨 Agent 进度监控与架构冲突仲裁、`main` 分支终审合并权 | 禁止编写 iOS / Android 端业务代码 | `claude/` → `main` |
+| **移动标准层** | **OpenAI Codex** | iOS 开发负责人 + 移动端总联络官 | 全量 iOS（SwiftUI/UIKit）；制定双端通用技术标准（网络层、缓存策略、错误码体系、加密规则、登录流程），Antigravity 无条件对齐 | 禁止私自新增/修改后端 API 与数据库字段 | `codex/ios-development` → `main` |
+| **实现层** | **Antigravity (agy)** | Android 专职开发 | 全量 Android（Kotlin + Jetpack Compose），系统权限适配、机型兼容、APK 构建；严格对齐 `API_SPEC.md` + `MOBILE_STANDARD.md` | 禁止制定双端通用标准；禁止私自改动接口/字段/数据结构 | `agy/android` → `main` |
+
+### 三条铁律
+
+1. **唯一架构出口** — 所有 API、路由、数据库结构、全局约束、系统 Prompt，**仅 Claude Code 有权定义**。端侧不得私自新增接口、修改字段、改动 Schema。发现接口缺失或字段异常 → 上报 Claude Code，**禁止硬写兼容代码**。
+2. **端侧逻辑统一** — iOS / Android 通用规范由 Codex 制定，Antigravity 无条件对齐。**双端不一致时以 Codex 方案为唯一标准**。
+3. **禁止私下变更** — 任何端侧不得在未上报、未获批复的情况下自行调整后端接口或全局逻辑。
+
+### 标准化通讯协议
+
+三 Agent 之间统一使用以下四种固定报文格式沟通，无需自由翻译，三 AI 自动互通识别。
+
+#### 【架构任务单】— 仅 Claude Code 下发
+```
+【架构任务单】
+模块名称：
+后端接口清单：
+入参结构体：
+出参结构体：
+数据库表变更：
+移动端需要实现的行为：
+禁止自行新增接口：是
+交付截止节点：
+抄送：Codex / Antigravity
+```
+
+#### 【进度回执单】— Codex / Antigravity 专用
+```
+【进度回执】
+所属工单：
+已完成内容：
+未完成内容：
+阻塞问题：
+是否需要架构调整：是/否
+下一步计划：
+抄送：Claude Code
+```
+
+#### 【架构冲突上报】— 全员可用
+```
+【架构冲突上报】
+冲突类型：接口缺失 / 字段错误 / 数据结构不匹配 / 双端逻辑不一致 / 规范不统一
+问题详情：
+影响范围：
+建议方案：
+需要 Claude Code 批复：是/否
+抄送：Claude Code + 另一方端侧
+```
+
+#### 【合并申请单】— 端侧合入 main 的唯一入口
+```
+【合并申请】
+来源分支：
+改动内容：
+是否严格遵守架构文档：是/否
+有无私自新增接口：有/无
+有无擅自改动字段：有/无
+申请合并至 main
+```
+
+### 协同工作流
+
+**全量串行模式（大版本迭代）：**
+1. Claude Code 一次性输出整版本架构、接口、数据表 → 批量下发全部【架构任务单】
+2. 双端分头完整开发，单模块完成后提交【进度回执单】
+3. 版本统一验收 → 端侧提交【合并申请单】→ Claude Code 架构合规性审核 → 合规放行，违规驳回整改
+
+**快速并行模式（日常快速迭代）：**
+1. 每日上午：Claude Code 定本期最小可用接口与规范
+2. 每日白天：双端并行编码、对齐规范
+3. 每日晚间：统一提交【进度回执单】+ 集中上报冲突
+4. 夜间：架构统一修复、合并基线
+5. 次日循环迭代
+
+**合并规程：**
+端侧完成开发 → 提交【合并申请单】→ Claude Code 仅审核架构合规性（不干预端侧业务实现细节）→ 合规放行入 `main`，违规驳回整改。**禁止端侧直接 push `main`。**
+
+### 版本与文档纪律
+- 版本号统一递增（`0.3.x` 序列），每次迭代后同步更新
+- `PLAN.md` / `PRD.md` / `DESIGN.md` / `AGENTS.md` / `HANDOFF.md` / `CHANGELOG.md` / `VERSIONING.md` 为共享文档，每次迭代必须同步
+- 分工变更须在 `AGENTS.md` 标注变更记录
+
+### 三 Agent 一键激活指令
+
+新 Agent 启动时，可直接复制以下指令锁定协作模式：
+
+> 从现在开始，三者形成固定开发团队：**Claude Code** 为全局架构总指挥、后端、数据库、知识库、API 唯一制定人，有权终审合入 main；**Codex** 为 iOS 开发负责人兼移动端总负责人，制定两端统一技术标准；**Antigravity** 专职 Android 开发，严格对齐 Codex 通用规范。所有沟通只使用四种固定报文：架构任务单、进度回执单、架构冲突单、合并申请单。禁止私自新增接口、修改字段。每次行动前必须读取 AGENTS.md、API_SPEC.md、MOBILE_STANDARD.md 三份文档。出现架构阻塞必须立刻上报冲突，不允许自行变通。
 
 ## 核心技术栈
 
