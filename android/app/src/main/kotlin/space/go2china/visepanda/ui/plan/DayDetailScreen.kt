@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import space.go2china.visepanda.R
+import space.go2china.visepanda.data.model.BlockTime
 import space.go2china.visepanda.data.model.BookingCandidate
 import space.go2china.visepanda.data.model.BookingCandidateStatus
 import space.go2china.visepanda.data.model.TripBlock
@@ -51,6 +54,7 @@ import space.go2china.visepanda.ui.theme.Dimens
 @Composable
 fun DayDetailScreen(
     onBack: () -> Unit,
+    onScheduleCandidate: (TripDay, TripBlock) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: DayDetailViewModel = hiltViewModel(),
 ) {
@@ -85,6 +89,7 @@ fun DayDetailScreen(
                 onEditDescription = viewModel::updateBlockDescription,
                 onMoveUp = viewModel::moveBlockUp,
                 onMoveDown = { index -> viewModel.moveBlockDown(index, current.day.blocks.size) },
+                onScheduleCandidate = onScheduleCandidate,
                 contentPadding = innerPadding,
             )
         }
@@ -97,6 +102,7 @@ private fun DayDetailContent(
     onEditDescription: (Int, String) -> Unit,
     onMoveUp: (Int) -> Unit,
     onMoveDown: (Int) -> Unit,
+    onScheduleCandidate: (TripDay, TripBlock) -> Unit,
     contentPadding: PaddingValues,
 ) {
     var editingBlockIndex by remember { mutableIntStateOf(-1) }
@@ -131,6 +137,7 @@ private fun DayDetailContent(
                 onEditClick = { editingBlockIndex = index },
                 onMoveUp = { onMoveUp(index) },
                 onMoveDown = { onMoveDown(index) },
+                onScheduleClick = { onScheduleCandidate(day, block) }
             )
             Spacer(modifier = Modifier.height(Dimens.SpaceSM))
         }
@@ -156,19 +163,32 @@ private fun BlockDetailCard(
     onEditClick: () -> Unit,
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
+    onScheduleClick: () -> Unit,
 ) {
+    val isFlexible = block.time == BlockTime.Flexible
+
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(Dimens.SpaceMD)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text(text = block.time.name, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                val timeLabel = if (isFlexible) {
+                    stringResource(R.string.day_detail_needs_scheduling)
+                } else {
+                    block.time.name
+                }
+                Text(
+                    text = timeLabel,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                
                 Row {
-                    IconButton(onClick = onMoveUp, enabled = !isFirst) {
+                    IconButton(onClick = onMoveUp, enabled = !isFirst && !isFlexible) {
                         Icon(Icons.Filled.KeyboardArrowUp, contentDescription = "Move earlier")
                     }
-                    IconButton(onClick = onMoveDown, enabled = !isLast) {
+                    IconButton(onClick = onMoveDown, enabled = !isLast && !isFlexible) {
                         Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "Move later")
                     }
                     IconButton(onClick = onEditClick) {
@@ -179,12 +199,6 @@ private fun BlockDetailCard(
             Text(text = block.title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
             Text(text = block.description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
 
-            // v0.3.14: `.orEmpty()` guards against Gson's unsafe-allocation
-            // deserialization, which bypasses Kotlin constructor defaults —
-            // a persisted blob from before a field existed can leave a
-            // "non-null" List property actually null at runtime and crash
-            // a plain `.isNotEmpty()`/`.forEach` call. See DESIGN.md
-            // ADR-118.
             if (block.highlights.orEmpty().isNotEmpty()) {
                 Spacer(modifier = Modifier.height(Dimens.SpaceXS))
                 block.highlights.orEmpty().forEach { highlight ->
@@ -204,7 +218,23 @@ private fun BlockDetailCard(
 
             block.bookingCandidates.orEmpty().forEach { candidate -> BookingCandidateRow(candidate) }
 
-            if (block.chineseAddress != null || block.address != null) {
+            if (isFlexible) {
+                Spacer(modifier = Modifier.height(Dimens.SpaceSM))
+                Text(
+                    text = stringResource(R.string.day_detail_candidate_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(Dimens.SpaceXS))
+                TextButton(
+                    onClick = onScheduleClick,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.day_detail_ask_schedule))
+                }
+            }
+
+            if (!isFlexible && (block.chineseAddress != null || block.address != null)) {
                 Spacer(modifier = Modifier.height(Dimens.SpaceSM))
                 TravelTalkCardButton(block = block)
             }

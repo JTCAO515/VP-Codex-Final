@@ -90,4 +90,7 @@
     <string name="translate_pinyin">Pinyin</string>
     <string name="translate_error_unavailable">Translation service is currently offline. Please check your network connection.</string>
     <string name="translate_show_local">Show this to local people</string>
+    <string name="day_detail_needs_scheduling">Needs scheduling</string>
+    <string name="day_detail_candidate_hint">Candidate from Explore; not locked into the day yet.</string>
+    <string name="day_detail_ask_schedule">Ask VisePanda to schedule</string>
 </resources>

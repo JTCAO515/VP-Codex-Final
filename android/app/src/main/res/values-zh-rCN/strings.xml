@@ -85,4 +85,7 @@
     <string name="translate_pinyin">拼音</string>
     <string name="translate_error_unavailable">翻译服务当前不可用，请检查你的网络连接。</string>
     <string name="translate_show_local">向当地人展示此内容</string>
+    <string name="day_detail_needs_scheduling">需要安排日程</string>
+    <string name="day_detail_candidate_hint">来自 Explore 的候选景点；尚未锁定至当日日程。</string>
+    <string name="day_detail_ask_schedule">让 VisePanda 安排行程</string>
 </resources>
