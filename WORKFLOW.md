@@ -56,9 +56,9 @@ Claude Code 二选一：
 
 ## 当前泳道状态（由 Claude Code 在每轮审核后更新）
 
-- **Android 泳道**（Antigravity）：#3 Translator（v0.3.15）—— PR #10 被驳回（模板空白+CI 未绿），等修复重推；重复 PR #6 已关闭。#3 合并后才能开 #4
+- **Android 泳道**（Antigravity）：#3 Translator（v0.3.15）已合并（PR #10，融合了 #6 的大字展示卡）✅ → 下一步 #4 Explore 真实数据源（v0.3.16）可开工
 - **iOS 泳道**（Codex）：#5 已合并（PR #7）✅
-- **Butler 泳道**（Codex）：#8 Phase A 骨架已合并（PR #9）✅ → #11 Phase B 记忆体系（三层记忆 + Supabase 表 + 30 天脱敏日志），已就绪待派活
+- **Butler 泳道**（Codex）：#8 Phase A（PR #9）+ #11 Phase B 记忆体系（PR #12）均已合并 ✅ → 下一步待架构师拆 Phase C（多 Agent + 情景注入 + RAG）
 
 ## 完整规则出处
 
