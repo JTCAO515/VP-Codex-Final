@@ -22,14 +22,14 @@ describe("Qwen translator API routes", () => {
     expect(await response.json()).toMatchObject({
       ok: true,
       provider: "aliyun-bailian",
-      model: "qwen-mt-flash",
+      model: "qwen3.7-plus",
       translation: "你好",
     });
     expect(fetchMock).toHaveBeenCalledWith(
       "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
       expect.objectContaining({
         headers: expect.objectContaining({ Authorization: "Bearer test-dashscope-key" }),
-        body: expect.stringContaining('"model":"qwen-mt-flash"'),
+        body: expect.stringContaining('"model":"qwen3.7-plus"'),
       }),
     );
   });
@@ -105,13 +105,13 @@ describe("Qwen translator API routes", () => {
     expect(await response.json()).toMatchObject({
       ok: true,
       provider: "aliyun-bailian",
-      model: "qwen3.5-ocr",
+      model: "qwen3.7-plus",
       text: "北京站",
     });
     expect(fetchMock).toHaveBeenCalledWith(
       "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
       expect.objectContaining({
-        body: expect.stringContaining('"model":"qwen3.5-ocr"'),
+        body: expect.stringContaining('"model":"qwen3.7-plus"'),
       }),
     );
   });
