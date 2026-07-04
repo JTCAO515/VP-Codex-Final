@@ -24,6 +24,47 @@ data class TranslateResponse(
 )
 
 /**
+ * Request body for OCR translation, matching next.js `/api/translate/ocr`
+ */
+data class OcrRequest(
+    val imageBase64: String,
+    val mimeType: String = "image/jpeg",
+)
+
+/**
+ * Response body for OCR translation, matching next.js `/api/translate/ocr`
+ */
+data class OcrResponse(
+    val ok: Boolean,
+    val provider: String? = null,
+    val model: String? = null,
+    val text: String? = null,
+    val error: String? = null,
+)
+
+/**
+ * Request body for STT translation, matching next.js `/api/translate/stt`
+ */
+data class SttRequest(
+    val audioBase64: String,
+    val mimeType: String = "audio/mpeg",
+    val language: String = "zh",
+)
+
+/**
+ * Response body for STT translation, matching next.js `/api/translate/stt`
+ */
+data class SttResponse(
+    val ok: Boolean,
+    val provider: String? = null,
+    val model: String? = null,
+    val text: String? = null,
+    val language: String? = null,
+    val error: String? = null,
+)
+
+
+/**
  * Success translation result passed to the UI layer
  */
 data class TranslateResult(

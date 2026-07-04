@@ -5,6 +5,17 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.speech.tts.TextToSpeech
 import android.widget.Toast
+import android.Manifest
+import android.media.MediaRecorder
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
+import java.io.File
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.util.Base64
+import java.io.ByteArrayOutputStream
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -47,6 +58,134 @@ fun TranslateScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+
+    // File setup for Camera Capture & Voice recording
+    val photoFile = remember {
+        File(context.cacheDir, "camera_capture.jpg").apply {
+            if (exists()) delete()
+        }
+    }
+    val photoUri = remember {
+        FileProvider.getUriForFile(
+            context,
+            "space.go2china.visepanda.fileprovider",
+            photoFile
+        )
+    }
+    val audioFile = remember {
+        File(context.cacheDir, "voice_record.mp4")
+    }
+
+    var mediaRecorder by remember { mutableStateOf<MediaRecorder?>(null) }
+
+    fun startRecording() {
+        try {
+            if (audioFile.exists()) audioFile.delete()
+            val recorder = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                MediaRecorder(context)
+            } else {
+                MediaRecorder()
+            }
+            recorder.apply {
+                setAudioSource(MediaRecorder.AudioSource.MIC)
+                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                setAudioSamplingRate(16000)
+                setAudioEncodingBitRate(32000)
+                setOutputFile(audioFile.absolutePath)
+                prepare()
+                start()
+            }
+            mediaRecorder = recorder
+            viewModel.setRecordingState(true)
+            viewModel.setPermissionError(null)
+        } catch (e: Exception) {
+            viewModel.setPermissionError("Recording failed to start: ${e.message}")
+        }
+    }
+
+    fun stopRecordingAndSend() {
+        val recorder = mediaRecorder ?: return
+        try {
+            recorder.stop()
+            recorder.release()
+        } catch (e: Exception) {
+            // Recording too short or release error
+        } finally {
+            mediaRecorder = null
+            viewModel.setRecordingState(false)
+        }
+        
+        if (audioFile.exists() && audioFile.length() > 0) {
+            try {
+                val audioBytes = audioFile.readBytes()
+                val base64Audio = Base64.encodeToString(audioBytes, Base64.NO_WRAP)
+                viewModel.performStt(base64Audio, "audio/mpeg", "zh")
+            } catch (e: Exception) {
+                viewModel.setPermissionError("Audio conversion failed")
+            }
+        }
+    }
+
+    // Auto-stop recording if it reaches 30 seconds
+    LaunchedEffect(state.isRecording) {
+        if (state.isRecording) {
+            var seconds = 0
+            while (seconds < 30 && state.isRecording) {
+                kotlinx.coroutines.delay(1000)
+                seconds++
+            }
+            if (state.isRecording) {
+                stopRecordingAndSend()
+            }
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            mediaRecorder?.let {
+                try {
+                     it.stop()
+                     it.release()
+                } catch (e: Exception) {}
+            }
+        }
+    }
+
+    // Launchers
+    val takePictureLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            try {
+                val base64Image = compressImageToBase64(context, photoUri)
+                viewModel.performOcr(base64Image)
+            } catch (e: Exception) {
+                viewModel.setPermissionError("Image processing failed: ${e.message}")
+            }
+        }
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            takePictureLauncher.launch(photoUri)
+        } else {
+            viewModel.setPermissionError(context.getString(R.string.translate_perm_camera_explain))
+        }
+    }
+
+    val micPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            startRecording()
+        } else {
+            viewModel.setPermissionError(context.getString(R.string.translate_perm_mic_explain))
+        }
+    }
+
     var selectedTab by remember { mutableIntStateOf(0) }
     var showBigCardPhrase by remember { mutableStateOf<Phrase?>(null) }
 
@@ -116,7 +255,13 @@ fun TranslateScreen(
                         viewModel = viewModel,
                         ttsEngine = ttsEngine,
                         ttsReady = ttsReady,
-                        onPhraseClick = { showBigCardPhrase = it }
+                        onPhraseClick = { showBigCardPhrase = it },
+                        photoUri = photoUri,
+                        takePictureLauncher = takePictureLauncher,
+                        cameraPermissionLauncher = cameraPermissionLauncher,
+                        micPermissionLauncher = micPermissionLauncher,
+                        startRecording = ::startRecording,
+                        stopRecordingAndSend = ::stopRecordingAndSend
                     )
                 } else {
                     PhrasebookTabContent(
@@ -231,6 +376,12 @@ private fun TranslatorTabContent(
     ttsEngine: TextToSpeech?,
     ttsReady: Boolean,
     onPhraseClick: (Phrase) -> Unit,
+    photoUri: Uri,
+    takePictureLauncher: androidx.activity.result.ActivityResultLauncher<Uri>,
+    cameraPermissionLauncher: androidx.activity.result.ActivityResultLauncher<String>,
+    micPermissionLauncher: androidx.activity.result.ActivityResultLauncher<String>,
+    startRecording: () -> Unit,
+    stopRecordingAndSend: () -> Unit,
 ) {
     val context = LocalContext.current
     LazyColumn(
@@ -411,8 +562,67 @@ private fun TranslatorTabContent(
             }
         }
 
+        if (state.isProcessing) {
+            item {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    shape = RoundedCornerShape(Dimens.RadiusLG),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(Dimens.SpaceMD),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = MaterialTheme.colorScheme.primary,
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(Dimens.SpaceSM))
+                        Text(
+                            text = stringResource(R.string.translate_status_processing),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = InkSoft
+                        )
+                    }
+                }
+            }
+        }
+
+        if (state.permissionError != null) {
+            item {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                    shape = RoundedCornerShape(Dimens.RadiusLG),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(Dimens.SpaceMD),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "Permission Alert",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.width(Dimens.SpaceSM))
+                        Text(
+                            text = state.permissionError,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                    }
+                }
+            }
+        }
+
         if (state.errorMessage != null) {
             item {
+                val errorText = when (state.errorMessage) {
+                    "ocr_failed" -> stringResource(R.string.translate_error_ocr_failed)
+                    "stt_failed" -> stringResource(R.string.translate_error_stt_failed)
+                    else -> stringResource(R.string.translate_error_unavailable)
+                }
                 Card(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
                     shape = RoundedCornerShape(Dimens.RadiusLG),
@@ -429,7 +639,7 @@ private fun TranslatorTabContent(
                         )
                         Spacer(modifier = Modifier.width(Dimens.SpaceSM))
                         Text(
-                            text = stringResource(R.string.translate_error_unavailable),
+                            text = errorText,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onErrorContainer
                         )
@@ -448,16 +658,51 @@ private fun TranslatorTabContent(
         }
 
         item {
-            PlaceholderTranslateCard(
+            TranslateCard(
                 title = stringResource(R.string.translate_camera_title),
-                icon = Icons.Default.PhotoCamera
+                icon = Icons.Default.PhotoCamera,
+                onClick = {
+                    val hasPermission = androidx.core.content.ContextCompat.checkSelfPermission(
+                        context,
+                        android.Manifest.permission.CAMERA
+                    ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                    if (hasPermission) {
+                        takePictureLauncher.launch(photoUri)
+                    } else {
+                        cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
+                    }
+                }
             )
         }
 
         item {
-            PlaceholderTranslateCard(
-                title = stringResource(R.string.translate_voice_title),
-                icon = Icons.Default.Mic
+            TranslateCard(
+                title = if (state.isRecording) {
+                    stringResource(R.string.translate_status_recording)
+                } else {
+                    stringResource(R.string.translate_voice_title)
+                },
+                icon = if (state.isRecording) Icons.Default.Stop else Icons.Default.Mic,
+                containerColor = if (state.isRecording) {
+                    MaterialTheme.colorScheme.primaryContainer
+                } else {
+                    MaterialTheme.colorScheme.surface
+                },
+                onClick = {
+                    if (state.isRecording) {
+                        stopRecordingAndSend()
+                    } else {
+                        val hasPermission = androidx.core.content.ContextCompat.checkSelfPermission(
+                            context,
+                            android.Manifest.permission.RECORD_AUDIO
+                        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                        if (hasPermission) {
+                            startRecording()
+                        } else {
+                            micPermissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
+                        }
+                    }
+                }
             )
         }
     }
@@ -465,16 +710,23 @@ private fun TranslatorTabContent(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PlaceholderTranslateCard(title: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
+private fun TranslateCard(
+    title: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+    containerColor: Color = MaterialTheme.colorScheme.surface
+) {
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-            contentColor = InkSoft.copy(alpha = 0.5f)
+            containerColor = containerColor,
+            contentColor = InkSoft
         ),
+        border = CardDefaults.outlinedCardBorder(),
         shape = RoundedCornerShape(Dimens.RadiusLG),
         modifier = Modifier.fillMaxWidth(),
-        enabled = false,
-        onClick = {}
+        enabled = enabled,
+        onClick = onClick
     ) {
         Row(
             modifier = Modifier
@@ -487,7 +739,7 @@ private fun PlaceholderTranslateCard(title: String, icon: androidx.compose.ui.gr
                 Icon(
                     imageVector = icon,
                     contentDescription = title,
-                    tint = InkSoft.copy(alpha = 0.5f)
+                    tint = InkSoft
                 )
                 Spacer(modifier = Modifier.width(Dimens.SpaceSM))
                 Text(
@@ -496,18 +748,11 @@ private fun PlaceholderTranslateCard(title: String, icon: androidx.compose.ui.gr
                     fontWeight = FontWeight.Medium
                 )
             }
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
-                    .padding(horizontal = 6.dp, vertical = 2.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.translate_coming_soon),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = InkSoft.copy(alpha = 0.7f)
-                )
-            }
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = "Go",
+                tint = InkSoft
+            )
         }
     }
 }
@@ -608,4 +853,33 @@ private fun PhrasebookTabContent(
             }
         }
     }
+}
+
+private fun compressImageToBase64(context: Context, uri: Uri): String {
+    val inputStream = context.contentResolver.openInputStream(uri)
+    val originalBitmap = BitmapFactory.decodeStream(inputStream) ?: return ""
+    
+    val width = originalBitmap.width
+    val height = originalBitmap.height
+    val maxSide = 1200
+    
+    val (newWidth, newHeight) = if (width > height) {
+        if (width > maxSide) {
+            maxSide to (height * maxSide / width)
+        } else {
+            width to height
+        }
+    } else {
+        if (height > maxSide) {
+            (width * maxSide / height) to maxSide
+        } else {
+            width to height
+        }
+    }
+    
+    val resizedBitmap = Bitmap.createScaledBitmap(originalBitmap, newWidth, newHeight, true)
+    val outputStream = ByteArrayOutputStream()
+    resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 85, outputStream)
+    val byteArray = outputStream.toByteArray()
+    return Base64.encodeToString(byteArray, Base64.NO_WRAP)
 }
