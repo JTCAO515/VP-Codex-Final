@@ -56,8 +56,8 @@ Claude Code 二选一：
 
 ## 当前泳道状态（由 Claude Code 在每轮审核后更新）
 
-- **Android 泳道**（Antigravity）：#3、#4、#16 均已合并 ✅ → **进行中 #20**（Web 冻结例外） → 排队 **#22** 真实 Supabase 登录 Phase 1
-- **iOS 泳道**（Codex）：#5 已合并（PR #7）✅ → **进行中 #19** Translator → 排队 #14 Me 页画像 → 排队 **#23** 真实 Supabase 登录 Phase 1
+- **Android 泳道**（Antigravity）：#3、#4、#16 均已合并 ✅ → **#20 状态待确认**（Web 冻结例外,无分支,需向操作者核实）→ 排队 **#24** OCR/语音翻译 → 排队 #22 真实 Supabase 登录 Phase 1
+- **iOS 泳道**（Codex）：#5、#19(PR #21) 已合并 ✅ → **进行中/排队 #25** OCR/语音翻译（Translator 直接延续，优先于 #14）→ 排队 #14 Me 页画像 → 排队 #23 真实 Supabase 登录 Phase 1
 - **Butler 泳道**：#8 + #11 + #13（Phase A/B/C）均已合并 ✅ **但从未部署**——生产 /api/chat 实测仍是 mode="deepseek"，BUTLER_SERVICE_URL 从未配置。**P0 阻塞项：需要操作者 Fly.io 账号才能推进部署**，架构师已就绪待命
 
 
