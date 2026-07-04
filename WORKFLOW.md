@@ -56,7 +56,7 @@ Claude Code 二选一：
 
 ## 当前泳道状态（由 Claude Code 在每轮审核后更新）
 
-- **Android 泳道**（Antigravity）：#3、#4、#16 均已合并 ✅ → 空闲，待派新任务
+- **Android 泳道**（Antigravity）：#3、#4、#16 均已合并 ✅ → **进行中 #20**（Web 冻结例外：精简三 Tab + Community 重做为本地贴士墙，操作者直接指令）
 - **iOS 泳道**（Codex）：#5 已合并（PR #7）✅ → **进行中 #19** iOS Translator（追平 Android v0.3.15），完成后接 #14 Me 页画像
 - **Butler 泳道**（Codex）：#8 + #11 + #13（Phase A/B/C）均已合并 ✅ → 暂无下一阶段,等 iOS #19/#14 做完再看
 
