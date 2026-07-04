@@ -36,6 +36,22 @@ struct VisePandaAPIClient {
         return try await perform(request, as: TranslationResponse.self)
     }
 
+    func translateOcr(imageBase64: String, mimeType: String = "image/jpeg") async throws -> TranslateOcrResponse {
+        var request = makeJSONRequest(path: "api/translate/ocr", method: "POST")
+        request.httpBody = try JSONEncoder.visePanda.encode(
+            TranslateOcrRequest(imageBase64: imageBase64, mimeType: mimeType)
+        )
+        return try await perform(request, as: TranslateOcrResponse.self)
+    }
+
+    func translateStt(audioBase64: String, mimeType: String = "audio/mp4", language: String = "zh") async throws -> TranslateSttResponse {
+        var request = makeJSONRequest(path: "api/translate/stt", method: "POST")
+        request.httpBody = try JSONEncoder.visePanda.encode(
+            TranslateSttRequest(audioBase64: audioBase64, mimeType: mimeType, language: language)
+        )
+        return try await perform(request, as: TranslateSttResponse.self)
+    }
+
     private func makeJSONRequest(path: String, method: String) -> URLRequest {
         var request = URLRequest(url: baseURL.appendingPathComponent(path))
         request.httpMethod = method

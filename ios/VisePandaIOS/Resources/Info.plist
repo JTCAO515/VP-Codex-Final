@@ -23,11 +23,11 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>VisePanda uses the camera for future OCR translation and trip document scanning.</string>
+	<string>VisePanda uses the camera for OCR translation and trip document scanning.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>VisePanda uses your location to suggest nearby places and safer transport options during a trip.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>VisePanda uses the microphone for future speech translation and voice chat.</string>
+	<string>VisePanda uses the microphone for speech translation and voice chat.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>VisePanda uses photo access for future OCR translation and document import.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
