@@ -54,13 +54,24 @@
     <string name="me_section_language">语言</string>
     <string name="me_language_english">English</string>
     <string name="me_language_chinese">中文</string>
-    <string name="me_section_preferences">偏好设置</string>
-    <string name="me_pref_dietary">饮食偏好</string>
-    <string name="me_pref_budget">每日预算</string>
-    <string name="me_pref_crowd">人流偏好</string>
+    <string name="me_section_ai_profile">AI 档案</string>
+    <string name="me_ai_profile_refresh">刷新 AI 档案</string>
+    <string name="me_ai_profile_empty_title">暂无 AI 档案</string>
+    <string name="me_ai_profile_empty_value">和管家聊聊天,建立你的偏好档案。</string>
+    <string name="me_ai_profile_error_title">档案暂时无法加载</string>
+    <string name="me_ai_profile_confidence">置信度</string>
+    <string name="me_ai_profile_evidence">依据</string>
+    <string name="me_ai_profile_source">来源</string>
+    <string name="me_ai_profile_updated">更新时间</string>
+    <string name="me_ai_profile_delete">删除此条记录</string>
+    <string name="me_ai_profile_deleted_notice">已删除</string>
+    <string name="me_ai_profile_delete_failed">删除失败</string>
     <string name="me_section_trips">行程</string>
     <string name="me_trip_active">进行中</string>
     <string name="me_trips_empty">暂无进行中的行程</string>
+    <string name="me_trip_history_label">历史行程</string>
+    <string name="me_trip_history_not_connected">暂未接入</string>
+    <string name="me_reset_local_draft">重置本地草稿</string>
     <string name="me_section_privacy">数据与隐私</string>
     <string name="me_privacy_offline_data">离线数据</string>
     <string name="me_value_not_set">未设置</string>
@@ -103,4 +114,41 @@
     <string name="translate_error_perm_rejected">权限已被拒绝。请前往系统设置手动开启。</string>
     <string name="translate_error_ocr_failed">图片文字识别失败，请确保文字清晰并检查网络连接。</string>
     <string name="translate_error_stt_failed">语音识别失败，请尝试吐字清晰并检查网络连接。</string>
+
+    <!-- Explore 大众点评式重做（Issue #47） -->
+    <string name="explore_select_city">选择城市</string>
+    <string name="explore_location_off_notice">未开启定位，展示全城结果</string>
+    <string name="explore_filter_nearby">附近</string>
+    <string name="explore_filter_category">分类</string>
+    <string name="explore_filter_sort">排序</string>
+    <string name="explore_filter_more">筛选</string>
+    <string name="explore_no_results_offline">加载失败，请检查网络连接。</string>
+    <string name="explore_added_to_trip">"%1$s"已加入行程</string>
+    <string name="explore_vp_pick">✦ VP 推荐</string>
+    <string name="explore_location_enable_hint">开启定位后可使用距离筛选</string>
+    <string name="explore_ugc_coming_soon">即将上线</string>
+    <string name="explore_whole_city">全城</string>
+
+    <!-- Cloud Sync Status -->
+    <string name="me_sync_status_label">云同步</string>
+    <string name="me_sync_status_not_signed_in">未登录</string>
+    <string name="me_sync_status_not_synced">未同步</string>
+    <string name="me_sync_status_syncing">同步中…</string>
+    <string name="me_sync_status_synced">已同步</string>
+    <string name="me_sync_status_failed">同步失败</string>
+
+    <!-- 订阅占位(Issue #67) -->
+    <string name="me_section_subscription">订阅</string>
+    <string name="me_subscription_placeholder_title">订阅功能占位</string>
+    <string name="me_subscription_human_title">人工服务</string>
+    <string name="me_subscription_human_price">$9.99 / 月</string>
+    <string name="me_subscription_human_summary">行程调整、订购问题和紧急旅行问题的优先人工客服支持。</string>
+    <string name="me_subscription_premium_title">高级服务</string>
+    <string name="me_subscription_premium_price">$19.99 / 月</string>
+    <string name="me_subscription_premium_summary">更深入的行程规划审核和更快的响应速度,进阶管家支持。</string>
+    <string name="me_subscription_subscribe">订阅</string>
+    <string name="me_subscription_restore">恢复购买</string>
+    <string name="me_subscription_renewal_notice">订阅会自动续订直至取消。可在 Google Play 账号中管理或取消。确认后费用将从你的 Google Play 账号扣款。条款和隐私政策链接将在正式发布前接入。</string>
+    <string name="me_subscription_terms">使用条款</string>
+    <string name="me_subscription_privacy">隐私政策</string>
 </resources>

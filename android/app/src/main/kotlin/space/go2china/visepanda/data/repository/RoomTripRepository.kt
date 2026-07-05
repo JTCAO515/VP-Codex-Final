@@ -22,11 +22,14 @@ import space.go2china.visepanda.data.remote.ButlerApiService
 import space.go2china.visepanda.data.remote.ButlerChatRequest
 import space.go2china.visepanda.data.remote.RemoteChatMessage
 import space.go2china.visepanda.data.serialization.TripJson
+import space.go2china.visepanda.data.repository.SupabaseSyncManager
+
 
 @Singleton
 class RoomTripRepository @Inject constructor(
     private val tripCacheDao: TripCacheDao,
     private val butlerApiService: ButlerApiService,
+    private val syncManager: SupabaseSyncManager,
 ) : TripRepository {
 
     private val offline = MutableStateFlow(false)
@@ -158,6 +161,10 @@ class RoomTripRepository @Inject constructor(
         }
     }
 
+    override suspend fun resetLocalDraft() = withContext(Dispatchers.IO) {
+        tripCacheDao.delete(ACTIVE_TRIP_ID)
+    }
+
     private suspend fun updateTrip(transform: (TripState) -> TripState) = withContext(Dispatchers.IO) {
         val entity = tripCacheDao.get(ACTIVE_TRIP_ID)
         val currentTrip = entity?.decodeTripOrNull() ?: StarterTripData.initialTripState
@@ -174,6 +181,7 @@ class RoomTripRepository @Inject constructor(
                 updatedAtEpochMillis = System.currentTimeMillis(),
             ),
         )
+        syncManager.triggerSync()
     }
 
     private fun ButlerChatMessage.toRemoteMessage(): RemoteChatMessage =

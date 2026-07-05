@@ -59,13 +59,24 @@
     <string name="me_section_language">Language</string>
     <string name="me_language_english">English</string>
     <string name="me_language_chinese">中文</string>
-    <string name="me_section_preferences">Preferences</string>
-    <string name="me_pref_dietary">Dietary</string>
-    <string name="me_pref_budget">Daily budget</string>
-    <string name="me_pref_crowd">Crowd preference</string>
+    <string name="me_section_ai_profile">AI Profile</string>
+    <string name="me_ai_profile_refresh">Refresh AI profile</string>
+    <string name="me_ai_profile_empty_title">No AI profile yet</string>
+    <string name="me_ai_profile_empty_value">Chat with Butler to build a preference profile.</string>
+    <string name="me_ai_profile_error_title">Profile unavailable</string>
+    <string name="me_ai_profile_confidence">Confidence</string>
+    <string name="me_ai_profile_evidence">Evidence</string>
+    <string name="me_ai_profile_source">Source</string>
+    <string name="me_ai_profile_updated">Updated</string>
+    <string name="me_ai_profile_delete">Delete this entry</string>
+    <string name="me_ai_profile_deleted_notice">Entry removed</string>
+    <string name="me_ai_profile_delete_failed">Could not delete entry</string>
     <string name="me_section_trips">Trips</string>
     <string name="me_trip_active">Active</string>
     <string name="me_trips_empty">No active trip yet</string>
+    <string name="me_trip_history_label">Saved trip history</string>
+    <string name="me_trip_history_not_connected">Not connected</string>
+    <string name="me_reset_local_draft">Reset local draft</string>
     <string name="me_section_privacy">Data &amp; privacy</string>
     <string name="me_privacy_offline_data">Offline data</string>
     <string name="me_value_not_set">Not set</string>
@@ -108,4 +119,40 @@
     <string name="translate_error_perm_rejected">Permission was denied. Please go to system settings to enable it.</string>
     <string name="translate_error_ocr_failed">OCR text extraction failed. Please ensure the image has clear text and check network.</string>
     <string name="translate_error_stt_failed">STT voice recognition failed. Please try speaking clearly and check network.</string>
+    <!-- Explore Dianping-style redesign (Issue #47) -->
+    <string name="explore_select_city">Select City</string>
+    <string name="explore_location_off_notice">Location off — showing whole city results</string>
+    <string name="explore_filter_nearby">Nearby</string>
+    <string name="explore_filter_category">Category</string>
+    <string name="explore_filter_sort">Sort</string>
+    <string name="explore_filter_more">Filter</string>
+    <string name="explore_no_results_offline">Could not load places. Check your connection.</string>
+    <string name="explore_added_to_trip">\"%1$s\" added to Trip</string>
+    <string name="explore_vp_pick">✦ VP Pick</string>
+    <string name="explore_location_enable_hint">Enable location for distance filters</string>
+    <string name="explore_ugc_coming_soon">Coming soon</string>
+    <string name="explore_whole_city">Whole City</string>
+
+    <!-- Cloud Sync Status -->
+    <string name="me_sync_status_label">Cloud Sync</string>
+    <string name="me_sync_status_not_signed_in">Not Signed In</string>
+    <string name="me_sync_status_not_synced">Not Synced</string>
+    <string name="me_sync_status_syncing">Syncing…</string>
+    <string name="me_sync_status_synced">Synced</string>
+    <string name="me_sync_status_failed">Sync Failed</string>
+
+    <!-- Subscription placeholder (Issue #67) -->
+    <string name="me_section_subscription">SUBSCRIPTION</string>
+    <string name="me_subscription_placeholder_title">Subscription placeholder</string>
+    <string name="me_subscription_human_title">Human Service</string>
+    <string name="me_subscription_human_price">$9.99 / month</string>
+    <string name="me_subscription_human_summary">Priority human travel help for itinerary fixes, booking questions, and urgent trip problems.</string>
+    <string name="me_subscription_premium_title">Premium Service</string>
+    <string name="me_subscription_premium_price">$19.99 / month</string>
+    <string name="me_subscription_premium_summary">Advanced concierge support with deeper planning review and faster response windows.</string>
+    <string name="me_subscription_subscribe">Subscribe</string>
+    <string name="me_subscription_restore">Restore Purchase</string>
+    <string name="me_subscription_renewal_notice">Subscriptions auto-renew until cancelled. Manage or cancel from your Google Play account. Payment will be charged to your Google Play account after confirmation. Terms and Privacy Policy links will be connected before release.</string>
+    <string name="me_subscription_terms">Terms of Use</string>
+    <string name="me_subscription_privacy">Privacy Policy</string>
 </resources>

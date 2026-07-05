@@ -8,6 +8,7 @@ import space.go2china.visepanda.data.model.OcrRequest
 import space.go2china.visepanda.data.model.SttRequest
 import space.go2china.visepanda.data.model.TranslateRequest
 import space.go2china.visepanda.data.model.TranslateResult
+import space.go2china.visepanda.data.model.TtsRequest
 import space.go2china.visepanda.data.remote.TranslateApiService
 
 const val MOCK_FALLBACK_ON_FAILURE = false
@@ -16,6 +17,8 @@ interface TranslateRepository {
     suspend fun translateText(text: String, from: String = "en", to: String = "zh"): Result<TranslateResult>
     suspend fun translateOcr(imageBase64: String, mimeType: String = "image/jpeg"): Result<String>
     suspend fun translateStt(audioBase64: String, mimeType: String = "audio/mpeg", language: String = "zh"): Result<String>
+    /** Returns a remote audio URL synthesized by Qwen TTS, or failure if unavailable. */
+    suspend fun translateTts(text: String, ttsLanguageName: String): Result<String>
     suspend fun getPhrases(): List<Phrase>
 }
 
@@ -85,6 +88,22 @@ class LiveTranslateRepository @Inject constructor(
                 response.text
             } else {
                 throw Exception(response.error ?: "STT text is blank")
+            }
+        }
+    }
+
+    override suspend fun translateTts(text: String, ttsLanguageName: String): Result<String> {
+        return runCatching {
+            val response = translateApiService.translateTts(
+                TtsRequest(text = text, language = ttsLanguageName)
+            )
+            if (response.ok && !response.audioUrl.isNullOrBlank()) {
+                // Dashscope returns plain http:// URLs; Android blocks cleartext
+                // traffic by default (targetSdk 34), which would silently fail
+                // MediaPlayer playback. The signed OSS URL works over https too.
+                response.audioUrl.replaceFirst("http://", "https://")
+            } else {
+                throw Exception(response.error ?: "TTS audio URL is blank")
             }
         }
     }

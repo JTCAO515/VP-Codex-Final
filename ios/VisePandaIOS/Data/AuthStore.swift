@@ -7,6 +7,10 @@ final class AuthStore: NSObject, ObservableObject, ASWebAuthenticationPresentati
     @Published private(set) var session: SupabaseAuthSession?
     @Published private(set) var isLoading = false
     @Published var errorMessage: String?
+    /// Set after a successful signup that needs email confirmation before the
+    /// traveler can sign in (this project's actual Supabase config). Distinct
+    /// from errorMessage because it isn't a failure — the account was created.
+    @Published var signUpConfirmationEmail: String?
 
     private let client = SupabaseAuthClient()
     private let keychain = KeychainSessionStore()
@@ -48,9 +52,26 @@ final class AuthStore: NSObject, ObservableObject, ASWebAuthenticationPresentati
     }
 
     func signUp(email: String, password: String) async {
-        await runAuth {
-            try await client.signUp(email: email, password: password)
+        isLoading = true
+        errorMessage = nil
+        signUpConfirmationEmail = nil
+        defer { isLoading = false }
+
+        do {
+            switch try await client.signUp(email: email, password: password) {
+            case .signedIn(let newSession):
+                try keychain.save(newSession)
+                session = newSession
+            case .confirmationRequired(let confirmedEmail):
+                signUpConfirmationEmail = confirmedEmail
+            }
+        } catch {
+            errorMessage = error.localizedDescription
         }
+    }
+
+    func clearSignUpConfirmation() {
+        signUpConfirmationEmail = nil
     }
 
     func refreshSessionIfNeeded() async {

@@ -30,13 +30,27 @@
 		AA2000000000000000000022 /* SupabaseAuthClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000022 /* SupabaseAuthClient.swift */; };
 		AA2000000000000000000023 /* KeychainSessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000023 /* KeychainSessionStore.swift */; };
 		AA2000000000000000000024 /* AuthStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000024 /* AuthStore.swift */; };
+		AA2000000000000000000025 /* ExploreModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000025 /* ExploreModels.swift */; };
+		AA2000000000000000000026 /* ExploreMockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000026 /* ExploreMockData.swift */; };
+		AA6200000000000000000001 /* Issue84P0Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA6100000000000000000001 /* Issue84P0Tests.swift */; };
 		AA4000000000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA3000000000000000000001 /* Assets.xcassets */; };
 		AA4000000000000000000002 /* DMSans.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA3000000000000000000002 /* DMSans.ttf */; };
 		AA4000000000000000000003 /* PlayfairDisplay.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA3000000000000000000003 /* PlayfairDisplay.ttf */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		AA6600000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AA0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AA0000000000000000000005;
+			remoteInfo = VisePandaIOS;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		AA0000000000000000000004 /* VisePandaIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VisePandaIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA0000000000000000000015 /* VisePandaIOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VisePandaIOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA1000000000000000000001 /* VisePandaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisePandaApp.swift; sourceTree = "<group>"; };
 		AA1000000000000000000002 /* AppRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRootView.swift; sourceTree = "<group>"; };
 		AA1000000000000000000003 /* VisePandaTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisePandaTheme.swift; sourceTree = "<group>"; };
@@ -60,14 +74,24 @@
 		AA1000000000000000000022 /* SupabaseAuthClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseAuthClient.swift; sourceTree = "<group>"; };
 		AA1000000000000000000023 /* KeychainSessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainSessionStore.swift; sourceTree = "<group>"; };
 		AA1000000000000000000024 /* AuthStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthStore.swift; sourceTree = "<group>"; };
+		AA1000000000000000000025 /* ExploreModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreModels.swift; sourceTree = "<group>"; };
+		AA1000000000000000000026 /* ExploreMockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreMockData.swift; sourceTree = "<group>"; };
 		AA3000000000000000000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AA3000000000000000000002 /* DMSans.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = DMSans.ttf; sourceTree = "<group>"; };
 		AA3000000000000000000003 /* PlayfairDisplay.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = PlayfairDisplay.ttf; sourceTree = "<group>"; };
 		AA3000000000000000000004 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA6100000000000000000001 /* Issue84P0Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Issue84P0Tests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		AA0000000000000000000007 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA6500000000000000000002 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -86,6 +110,7 @@
 				AA5000000000000000000004 /* Data */,
 				AA5000000000000000000005 /* Views */,
 				AA5000000000000000000011 /* Resources */,
+				AA6000000000000000000001 /* VisePandaIOSTests */,
 				AA0000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -94,6 +119,7 @@
 			isa = PBXGroup;
 			children = (
 				AA0000000000000000000004 /* VisePandaIOS.app */,
+				AA0000000000000000000015 /* VisePandaIOSTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -123,6 +149,7 @@
 				AA1000000000000000000006 /* ButlerModels.swift */,
 				AA1000000000000000000019 /* TranslateModels.swift */,
 				AA1000000000000000000021 /* AuthModels.swift */,
+				AA1000000000000000000025 /* ExploreModels.swift */,
 			);
 			path = VisePandaIOS/Models;
 			sourceTree = "<group>";
@@ -137,6 +164,7 @@
 				AA1000000000000000000022 /* SupabaseAuthClient.swift */,
 				AA1000000000000000000023 /* KeychainSessionStore.swift */,
 				AA1000000000000000000024 /* AuthStore.swift */,
+				AA1000000000000000000026 /* ExploreMockData.swift */,
 			);
 			path = VisePandaIOS/Data;
 			sourceTree = "<group>";
@@ -231,6 +259,14 @@
 			path = Fonts;
 			sourceTree = "<group>";
 		};
+		AA6000000000000000000001 /* VisePandaIOSTests */ = {
+			isa = PBXGroup;
+			children = (
+				AA6100000000000000000001 /* Issue84P0Tests.swift */,
+			);
+			path = VisePandaIOSTests;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -251,6 +287,24 @@
 			productReference = AA0000000000000000000004 /* VisePandaIOS.app */;
 			productType = "com.apple.product-type.application";
 		};
+		AA6400000000000000000001 /* VisePandaIOSTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA6800000000000000000001 /* Build configuration list for PBXNativeTarget "VisePandaIOSTests" */;
+			buildPhases = (
+				AA6500000000000000000001 /* Sources */,
+				AA6500000000000000000002 /* Frameworks */,
+				AA6500000000000000000003 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AA6700000000000000000001 /* PBXTargetDependency */,
+			);
+			name = VisePandaIOSTests;
+			productName = VisePandaIOSTests;
+			productReference = AA0000000000000000000015 /* VisePandaIOSTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -263,6 +317,10 @@
 				TargetAttributes = {
 					AA0000000000000000000005 = {
 						CreatedOnToolsVersion = 26.6;
+					};
+					AA6400000000000000000001 = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = AA0000000000000000000005;
 					};
 				};
 			};
@@ -280,6 +338,7 @@
 			projectRoot = "";
 			targets = (
 				AA0000000000000000000005 /* VisePandaIOS */,
+				AA6400000000000000000001 /* VisePandaIOSTests */,
 			);
 		};
 /* End PBXProject section */
@@ -292,6 +351,13 @@
 				AA4000000000000000000001 /* Assets.xcassets in Resources */,
 				AA4000000000000000000002 /* DMSans.ttf in Resources */,
 				AA4000000000000000000003 /* PlayfairDisplay.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA6500000000000000000003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -325,10 +391,28 @@
 				AA2000000000000000000022 /* SupabaseAuthClient.swift in Sources */,
 				AA2000000000000000000023 /* KeychainSessionStore.swift in Sources */,
 				AA2000000000000000000024 /* AuthStore.swift in Sources */,
+				AA2000000000000000000025 /* ExploreModels.swift in Sources */,
+				AA2000000000000000000026 /* ExploreMockData.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA6500000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA6200000000000000000001 /* Issue84P0Tests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AA6700000000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AA0000000000000000000005 /* VisePandaIOS */;
+			targetProxy = AA6600000000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		AA0000000000000000000011 /* Debug */ = {
@@ -493,6 +577,50 @@
 			};
 			name = Release;
 		};
+		AA6800000000000000000002 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = space.go2china.visepanda.ios.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/VisePandaIOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/VisePandaIOS";
+			};
+			name = Debug;
+		};
+		AA6800000000000000000003 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = space.go2china.visepanda.ios.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/VisePandaIOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/VisePandaIOS";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -510,6 +638,15 @@
 			buildConfigurations = (
 				AA0000000000000000000013 /* Debug */,
 				AA0000000000000000000014 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA6800000000000000000001 /* Build configuration list for PBXNativeTarget "VisePandaIOSTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA6800000000000000000002 /* Debug */,
+				AA6800000000000000000003 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

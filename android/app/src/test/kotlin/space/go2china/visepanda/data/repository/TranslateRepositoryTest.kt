@@ -10,6 +10,8 @@ import space.go2china.visepanda.data.model.OcrRequest
 import space.go2china.visepanda.data.model.OcrResponse
 import space.go2china.visepanda.data.model.SttRequest
 import space.go2china.visepanda.data.model.SttResponse
+import space.go2china.visepanda.data.model.TtsRequest
+import space.go2china.visepanda.data.model.TtsResponse
 import space.go2china.visepanda.data.remote.TranslateApiService
 
 class TranslateRepositoryTest {
@@ -37,6 +39,14 @@ class TranslateRepositoryTest {
         override suspend fun translateStt(request: SttRequest): SttResponse {
             if (success) {
                 return SttResponse(ok = true, text = "Extracted STT text")
+            } else {
+                throw Exception("Network failure")
+            }
+        }
+
+        override suspend fun translateTts(request: TtsRequest): TtsResponse {
+            if (success) {
+                return TtsResponse(ok = true, audioUrl = "https://dashscope.example.com/audio.mp3")
             } else {
                 throw Exception("Network failure")
             }
@@ -98,6 +108,31 @@ class TranslateRepositoryTest {
         
         assertTrue(result.isSuccess)
         assertEquals("Extracted STT text", result.getOrNull())
+    }
+
+    @Test
+    fun translateTts_success_returnsAudioUrl() {
+        val mockApi = MockTranslateApiService(success = true)
+        val repository = LiveTranslateRepository(mockApi)
+
+        val result = runBlocking {
+            repository.translateTts("你好", "Chinese")
+        }
+
+        assertTrue(result.isSuccess)
+        assertEquals("https://dashscope.example.com/audio.mp3", result.getOrNull())
+    }
+
+    @Test
+    fun translateTts_failure_returnsFailureResult() {
+        val mockApi = MockTranslateApiService(success = false)
+        val repository = LiveTranslateRepository(mockApi)
+
+        val result = runBlocking {
+            repository.translateTts("你好", "Chinese")
+        }
+
+        assertTrue(result.isFailure)
     }
 
     @Test

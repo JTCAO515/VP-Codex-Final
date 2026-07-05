@@ -1,7 +1,9 @@
 package space.go2china.visepanda.ui.me
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,12 +13,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -40,7 +49,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import space.go2china.visepanda.R
+import space.go2china.visepanda.data.model.MemoryEntry
 import space.go2china.visepanda.ui.theme.Dimens
+import space.go2china.visepanda.data.repository.SyncStatus
+
 
 /**
  * v0.3.18 profile/settings surface (the bottom-nav restructure's "Me").
@@ -55,12 +67,28 @@ fun MeScreen(
     viewModel: MeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
-    var showLoginDialog by remember { mutableStateOf(false) }
+    // v0.3.x (Issue #67): the profile card is now the single entry point into
+    // account state — tapping it opens this sheet, which shows either the
+    // login form or signed-in info + sign out, instead of a form/row that was
+    // always rendered inline on the page (mirrors iOS PR #66's AuthSheetView).
+    var showAccountSheet by remember { mutableStateOf(false) }
+    var purchaseNotice by remember { mutableStateOf<String?>(null) }
+    var selectedMemoryEntry by remember { mutableStateOf<MemoryEntry?>(null) }
 
-    // Automatically close dialog when log in succeeds
     LaunchedEffect(state.isLoggedIn) {
         if (state.isLoggedIn) {
-            showLoginDialog = false
+            showAccountSheet = false
+        }
+    }
+
+    // Once a delete succeeds the entry drops out of state.memoryEntries — if
+    // the open detail dialog was showing that entry, close it instead of
+    // leaving a dialog open for data that no longer exists.
+    LaunchedEffect(state.memoryEntries) {
+        selectedMemoryEntry?.let { selected ->
+            if (state.memoryEntries.none { it.key == selected.key && it.value == selected.value }) {
+                selectedMemoryEntry = null
+            }
         }
     }
 
@@ -71,26 +99,61 @@ fun MeScreen(
         MeContent(
             isLoggedIn = state.isLoggedIn,
             userEmail = state.userEmail,
+            syncStatus = state.syncStatus,
             activeTripTitle = state.activeTripTitle,
             hasCachedTripData = state.hasCachedTripData,
             languageCode = languageCode,
             onSelectLanguage = onSelectLanguage,
-            onLogInClick = { showLoginDialog = true },
-            onLogOutClick = { viewModel.logout() },
+            onAccountCardClick = { showAccountSheet = true },
+            onSubscribeClick = { plan -> purchaseNotice = plan },
+            onLegalPlaceholderClick = { label -> purchaseNotice = label },
+            memoryEntries = state.memoryEntries,
+            memoryLoading = state.memoryLoading,
+            memoryError = state.memoryError,
+            onRefreshMemoryProfile = { viewModel.loadMemoryProfile(force = true) },
+            onMemoryEntryClick = { selectedMemoryEntry = it },
+            onResetLocalDraftClick = viewModel::resetLocalDraft,
             contentPadding = innerPadding,
         )
     }
 
-    if (showLoginDialog) {
-        LogInDialog(
-            isLoading = state.isLoading,
-            errorMessage = state.errorMessage,
-            onLogin = { email, password -> viewModel.login(email, password) },
-            onSignUp = { email, password -> viewModel.signUp(email, password) },
-            onDismiss = {
-                showLoginDialog = false
-                viewModel.clearError()
-            }
+    selectedMemoryEntry?.let { entry ->
+        MemoryEntryDetailDialog(
+            entry = entry,
+            isDeleting = state.memoryDeletingKey == entry.key,
+            onDelete = { viewModel.deleteMemoryEntry(entry) },
+            onDismiss = { selectedMemoryEntry = null },
+        )
+    }
+
+    if (showAccountSheet) {
+        ModalBottomSheet(onDismissRequest = { showAccountSheet = false }) {
+            AccountSheetContent(
+                isLoggedIn = state.isLoggedIn,
+                userEmail = state.userEmail,
+                isLoading = state.isLoading,
+                errorMessage = state.errorMessage,
+                onLogin = { email, password -> viewModel.login(email, password) },
+                onSignUp = { email, password -> viewModel.signUp(email, password) },
+                onLogOutClick = {
+                    viewModel.logout()
+                    showAccountSheet = false
+                },
+                onClearError = viewModel::clearError,
+            )
+        }
+    }
+
+    // Subscribe/Restore/Terms/Privacy are all placeholders pending real Google
+    // Play Billing wiring (tracked separately) — see subscriptionSection below.
+    purchaseNotice?.let { notice ->
+        AlertDialog(
+            onDismissRequest = { purchaseNotice = null },
+            title = { Text(stringResource(R.string.me_subscription_placeholder_title)) },
+            text = { Text(notice) },
+            confirmButton = {
+                TextButton(onClick = { purchaseNotice = null }) { Text("OK") }
+            },
         )
     }
 }
@@ -99,12 +162,20 @@ fun MeScreen(
 private fun MeContent(
     isLoggedIn: Boolean,
     userEmail: String?,
+    syncStatus: SyncStatus,
     activeTripTitle: String?,
     hasCachedTripData: Boolean,
     languageCode: String,
     onSelectLanguage: (String) -> Unit,
-    onLogInClick: () -> Unit,
-    onLogOutClick: () -> Unit,
+    onAccountCardClick: () -> Unit,
+    onSubscribeClick: (String) -> Unit,
+    onLegalPlaceholderClick: (String) -> Unit,
+    memoryEntries: List<MemoryEntry>,
+    memoryLoading: Boolean,
+    memoryError: String?,
+    onRefreshMemoryProfile: () -> Unit,
+    onMemoryEntryClick: (MemoryEntry) -> Unit,
+    onResetLocalDraftClick: () -> Unit,
     contentPadding: PaddingValues,
 ) {
     LazyColumn(
@@ -131,7 +202,10 @@ private fun MeContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(modifier = Modifier.height(Dimens.SpaceSM))
-            Card(modifier = Modifier.fillMaxWidth()) {
+            // v0.3.x (Issue #67): the whole card is now the tap target that
+            // opens the account sheet — it only ever shows a compact preview,
+            // never the full login form or sign-out control inline.
+            Card(modifier = Modifier.fillMaxWidth().clickable(onClick = onAccountCardClick)) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(Dimens.SpaceMD),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -149,12 +223,32 @@ private fun MeContent(
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurface,
                             )
-                        }
-                        TextButton(onClick = onLogOutClick) {
-                            Text(
-                                text = stringResource(R.string.me_account_log_out),
-                                color = MaterialTheme.colorScheme.error
-                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = stringResource(R.string.me_sync_status_label) + ": ",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                val syncText = when (syncStatus) {
+                                    SyncStatus.NOT_SIGNED_IN -> stringResource(R.string.me_sync_status_not_signed_in)
+                                    SyncStatus.NOT_SYNCED -> stringResource(R.string.me_sync_status_not_synced)
+                                    SyncStatus.SYNCING -> stringResource(R.string.me_sync_status_syncing)
+                                    SyncStatus.SYNCED -> stringResource(R.string.me_sync_status_synced)
+                                    SyncStatus.FAILED -> stringResource(R.string.me_sync_status_failed)
+                                }
+                                val syncColor = when (syncStatus) {
+                                    SyncStatus.SYNCED -> MaterialTheme.colorScheme.primary
+                                    SyncStatus.SYNCING -> MaterialTheme.colorScheme.secondary
+                                    SyncStatus.FAILED -> MaterialTheme.colorScheme.error
+                                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                }
+                                Text(
+                                    text = syncText,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = syncColor
+                                )
+                            }
                         }
                     } else {
                         Text(
@@ -162,12 +256,18 @@ private fun MeContent(
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface,
                         )
-                        TextButton(onClick = onLogInClick) {
-                            Text(stringResource(R.string.me_account_log_in))
-                        }
                     }
+                    Icon(
+                        Icons.Filled.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
+            Spacer(modifier = Modifier.height(Dimens.SpaceMD))
+        }
+        item {
+            SubscriptionSection(onSubscribeClick = onSubscribeClick, onLegalPlaceholderClick = onLegalPlaceholderClick)
             Spacer(modifier = Modifier.height(Dimens.SpaceMD))
         }
         item {
@@ -181,13 +281,12 @@ private fun MeContent(
             Spacer(modifier = Modifier.height(Dimens.SpaceMD))
         }
         item {
-            SettingsSection(
-                title = stringResource(R.string.me_section_preferences),
-                rows = listOf(
-                    stringResource(R.string.me_pref_dietary) to stringResource(R.string.me_value_not_set),
-                    stringResource(R.string.me_pref_budget) to stringResource(R.string.me_value_not_set),
-                    stringResource(R.string.me_pref_crowd) to stringResource(R.string.me_value_not_set),
-                ),
+            AiProfileSection(
+                entries = memoryEntries,
+                loading = memoryLoading,
+                error = memoryError,
+                onRefresh = onRefreshMemoryProfile,
+                onEntryClick = onMemoryEntryClick,
             )
             Spacer(modifier = Modifier.height(Dimens.SpaceMD))
         }
@@ -196,6 +295,7 @@ private fun MeContent(
                 title = stringResource(R.string.me_section_trips),
                 rows = listOfNotNull(
                     activeTripTitle?.let { it to stringResource(R.string.me_trip_active) },
+                    stringResource(R.string.me_trip_history_label) to stringResource(R.string.me_trip_history_not_connected),
                 ),
                 emptyMessage = stringResource(R.string.me_trips_empty),
             )
@@ -213,6 +313,113 @@ private fun MeContent(
                     stringResource(R.string.me_privacy_offline_data) to offlineDataValue,
                 ),
             )
+            Spacer(modifier = Modifier.height(Dimens.SpaceMD))
+        }
+        item {
+            // v0.3.x (Issue #85): mirrors iOS MeView.swift's "Reset local iOS
+            // draft" — clears the cached active trip + chat transcript back to
+            // the starter seed, same category as a debug/support escape hatch.
+            TextButton(
+                onClick = onResetLocalDraftClick,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = stringResource(R.string.me_reset_local_draft),
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Subscription placeholder (Issue #67, mirrors iOS PR #66): two priced tiers,
+ * Subscribe only ever shows a placeholder notice — Google Play Billing is a
+ * separate SDK/flow not wired up yet. The legal/management entries below are
+ * required to ship even as placeholders (Restore purchase, auto-renewal
+ * disclosure, Play account management, Terms of Use, Privacy Policy) so the
+ * surface reads as honest rather than a bare "buy" button with no recourse.
+ */
+@Composable
+private fun SubscriptionSection(
+    onSubscribeClick: (String) -> Unit,
+    onLegalPlaceholderClick: (String) -> Unit,
+) {
+    Column {
+        Text(
+            text = stringResource(R.string.me_section_subscription),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(modifier = Modifier.height(Dimens.SpaceSM))
+        Column(verticalArrangement = Arrangement.spacedBy(Dimens.SpaceSM)) {
+            SubscriptionPlanCard(
+                title = stringResource(R.string.me_subscription_human_title),
+                price = stringResource(R.string.me_subscription_human_price),
+                summary = stringResource(R.string.me_subscription_human_summary),
+                onSubscribe = {
+                    onSubscribeClick("StoreKit purchase placeholder. Product id: visepanda.human.monthly")
+                },
+            )
+            SubscriptionPlanCard(
+                title = stringResource(R.string.me_subscription_premium_title),
+                price = stringResource(R.string.me_subscription_premium_price),
+                summary = stringResource(R.string.me_subscription_premium_summary),
+                onSubscribe = {
+                    onSubscribeClick("StoreKit purchase placeholder. Product id: visepanda.premium.monthly")
+                },
+            )
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(Dimens.SpaceMD)) {
+                    TextButton(
+                        onClick = {
+                            onLegalPlaceholderClick("Restore purchases placeholder. Google Play Billing restore will be connected with real products.")
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(stringResource(R.string.me_subscription_restore))
+                    }
+                    Text(
+                        text = stringResource(R.string.me_subscription_renewal_notice),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = Dimens.SpaceXS),
+                    )
+                    Row(modifier = Modifier.padding(top = Dimens.SpaceSM)) {
+                        TextButton(onClick = { onLegalPlaceholderClick("Terms of Use placeholder.") }) {
+                            Text(stringResource(R.string.me_subscription_terms))
+                        }
+                        TextButton(onClick = { onLegalPlaceholderClick("Privacy Policy placeholder.") }) {
+                            Text(stringResource(R.string.me_subscription_privacy))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SubscriptionPlanCard(title: String, price: String, summary: String, onSubscribe: () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(Dimens.SpaceMD)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+                Text(price, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            }
+            Text(
+                text = summary,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = Dimens.SpaceXS, bottom = Dimens.SpaceSM),
+            )
+            Button(onClick = onSubscribe, colors = ButtonDefaults.buttonColors(), modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.me_subscription_subscribe))
+            }
         }
     }
 }
@@ -260,6 +467,167 @@ private fun SettingsSection(title: String, rows: List<Pair<String, String>>, emp
     }
 }
 
+/**
+ * "AI Profile" view/delete surface (Issue #85, mirrors iOS MeView.swift's
+ * memoryProfileSection) — lists preference entries the memory system
+ * inferred or was explicitly told, backed by butler-service's
+ * GET /butler/memory/profile. Tapping a row opens [MemoryEntryDetailDialog].
+ */
+@Composable
+private fun AiProfileSection(
+    entries: List<MemoryEntry>,
+    loading: Boolean,
+    error: String?,
+    onRefresh: () -> Unit,
+    onEntryClick: (MemoryEntry) -> Unit,
+) {
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(R.string.me_section_ai_profile),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (loading) {
+                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+            } else {
+                IconButton(onClick = onRefresh, modifier = Modifier.size(28.dp)) {
+                    Icon(
+                        Icons.Filled.Refresh,
+                        contentDescription = stringResource(R.string.me_ai_profile_refresh),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(Dimens.SpaceSM))
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column {
+                when {
+                    error != null -> {
+                        Column(modifier = Modifier.padding(Dimens.SpaceMD)) {
+                            Text(
+                                text = stringResource(R.string.me_ai_profile_error_title),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                            Text(
+                                text = error,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                    entries.isEmpty() -> {
+                        Column(modifier = Modifier.padding(Dimens.SpaceMD)) {
+                            Text(
+                                text = stringResource(R.string.me_ai_profile_empty_title),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            Text(
+                                text = stringResource(R.string.me_ai_profile_empty_value),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                    else -> {
+                        entries.forEach { entry ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onEntryClick(entry) }
+                                    .padding(horizontal = Dimens.SpaceMD, vertical = Dimens.SpaceMD),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = entry.key,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                    )
+                                    Text(
+                                        text = entry.value,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                Icon(
+                                    Icons.Filled.ChevronRight,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MemoryEntryDetailDialog(
+    entry: MemoryEntry,
+    isDeleting: Boolean,
+    onDelete: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(entry.key) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(Dimens.SpaceXS)) {
+                Text(entry.value, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = "${stringResource(R.string.me_ai_profile_confidence)}: ${(entry.confidence * 100).toInt()}%",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                entry.source?.let {
+                    Text(
+                        text = "${stringResource(R.string.me_ai_profile_source)}: $it",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                entry.updatedAt?.let {
+                    Text(
+                        text = "${stringResource(R.string.me_ai_profile_updated)}: $it",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                if (entry.evidence.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(Dimens.SpaceXS))
+                    Text(stringResource(R.string.me_ai_profile_evidence), style = MaterialTheme.typography.labelMedium)
+                    entry.evidence.forEach { evidence ->
+                        Text("• $evidence", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDelete, enabled = !isDeleting) {
+                if (isDeleting) {
+                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                } else {
+                    Text(stringResource(R.string.me_ai_profile_delete), color = MaterialTheme.colorScheme.error)
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.travel_talk_card_close)) }
+        },
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LanguageToggle(languageCode: String, onSelectLanguage: (String) -> Unit) {
@@ -277,126 +645,143 @@ private fun LanguageToggle(languageCode: String, onSelectLanguage: (String) -> U
     }
 }
 
+/**
+ * v0.3.x (Issue #67): the account sheet opened from the Me profile card.
+ * Mirrors iOS PR #66's AuthSheetView — one sheet handles both states rather
+ * than an always-inline form (signed-out) or an always-inline row with a
+ * sign-out button (signed-in).
+ */
 @Composable
-private fun LogInDialog(
+private fun AccountSheetContent(
+    isLoggedIn: Boolean,
+    userEmail: String?,
     isLoading: Boolean,
     errorMessage: String?,
     onLogin: (String, String) -> Unit,
     onSignUp: (String, String) -> Unit,
-    onDismiss: () -> Unit
+    onLogOutClick: () -> Unit,
+    onClearError: () -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxWidth().padding(Dimens.SpaceLG)) {
+        if (isLoggedIn) {
+            Text(
+                text = stringResource(R.string.me_account_logged_in),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = userEmail.orEmpty(),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Spacer(modifier = Modifier.height(Dimens.SpaceLG))
+            Button(
+                onClick = onLogOutClick,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading,
+            ) {
+                Text(stringResource(R.string.me_account_log_out))
+            }
+        } else {
+            LogInForm(
+                isLoading = isLoading,
+                errorMessage = errorMessage,
+                onLogin = onLogin,
+                onSignUp = onSignUp,
+                onClearError = onClearError,
+            )
+        }
+        Spacer(modifier = Modifier.height(Dimens.SpaceLG))
+    }
+}
+
+@Composable
+private fun ColumnScope.LogInForm(
+    isLoading: Boolean,
+    errorMessage: String?,
+    onLogin: (String, String) -> Unit,
+    onSignUp: (String, String) -> Unit,
+    onClearError: () -> Unit,
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isSignUp by remember { mutableStateOf(false) }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = if (isSignUp) {
-                    stringResource(R.string.me_login_dialog_signup_tab)
-                } else {
-                    stringResource(R.string.me_login_dialog_title)
-                }
-            )
-        },
-        text = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = { Text(stringResource(R.string.me_login_email_label)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    enabled = !isLoading
-                )
-                Spacer(modifier = Modifier.height(Dimens.SpaceSM))
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    label = { Text(stringResource(R.string.me_login_password_label)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
-                    enabled = !isLoading
-                )
-                
-                if (errorMessage != null) {
-                    Spacer(modifier = Modifier.height(Dimens.SpaceSM))
-                    Text(
-                        text = errorMessage,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(Dimens.SpaceMD))
-                
-                // Google OAuth is not implemented yet (tracked separately from
-                // email/password Phase 1) — disabled and honestly labeled
-                // instead of a clickable button that claimed readiness while
-                // doing nothing.
-                OutlinedButton(
-                    onClick = {},
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = false
-                ) {
-                    Text(stringResource(R.string.me_google_signin_coming_soon))
-                }
-
-                Spacer(modifier = Modifier.height(Dimens.SpaceSM))
-                
-                // Toggle between Login & SignUp
-                TextButton(
-                    onClick = { isSignUp = !isSignUp },
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                    enabled = !isLoading
-                ) {
-                    Text(
-                        text = if (isSignUp) {
-                            stringResource(R.string.me_login_switch_to_login)
-                        } else {
-                            stringResource(R.string.me_login_switch_to_signup)
-                        }
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.End
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp).padding(end = 8.dp),
-                        strokeWidth = 2.dp
-                    )
-                }
-                TextButton(
-                    onClick = {
-                        if (isSignUp) {
-                            onSignUp(email, password)
-                        } else {
-                            onLogin(email, password)
-                        }
-                    },
-                    enabled = email.isNotEmpty() && password.isNotEmpty() && !isLoading
-                ) {
-                    Text(
-                        text = if (isSignUp) {
-                            stringResource(R.string.me_login_dialog_signup_tab)
-                        } else {
-                            stringResource(R.string.me_login_submit)
-                        }
-                    )
-                }
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss, enabled = !isLoading) {
-                Text(stringResource(R.string.me_login_cancel))
-            }
-        },
+    Text(
+        text = if (isSignUp) stringResource(R.string.me_login_dialog_signup_tab) else stringResource(R.string.me_login_dialog_title),
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onSurface,
     )
+    Spacer(modifier = Modifier.height(Dimens.SpaceMD))
+    OutlinedTextField(
+        value = email,
+        onValueChange = {
+            email = it
+            onClearError()
+        },
+        label = { Text(stringResource(R.string.me_login_email_label)) },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        enabled = !isLoading
+    )
+    Spacer(modifier = Modifier.height(Dimens.SpaceSM))
+    OutlinedTextField(
+        value = password,
+        onValueChange = {
+            password = it
+            onClearError()
+        },
+        label = { Text(stringResource(R.string.me_login_password_label)) },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        visualTransformation = PasswordVisualTransformation(),
+        enabled = !isLoading
+    )
+
+    if (errorMessage != null) {
+        Spacer(modifier = Modifier.height(Dimens.SpaceSM))
+        Text(
+            text = errorMessage,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error,
+        )
+    }
+
+    Spacer(modifier = Modifier.height(Dimens.SpaceMD))
+
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+        if (isLoading) {
+            CircularProgressIndicator(modifier = Modifier.size(24.dp).padding(end = 8.dp), strokeWidth = 2.dp)
+        }
+        Button(
+            onClick = { if (isSignUp) onSignUp(email, password) else onLogin(email, password) },
+            enabled = email.isNotEmpty() && password.isNotEmpty() && !isLoading,
+        ) {
+            Text(
+                text = if (isSignUp) stringResource(R.string.me_login_dialog_signup_tab) else stringResource(R.string.me_login_submit),
+            )
+        }
+    }
+
+    Spacer(modifier = Modifier.height(Dimens.SpaceSM))
+
+    // Google OAuth is not implemented yet (tracked separately from
+    // email/password Phase 1) — disabled and honestly labeled instead of a
+    // clickable button that claimed readiness while doing nothing.
+    OutlinedButton(onClick = {}, modifier = Modifier.fillMaxWidth(), enabled = false) {
+        Text(stringResource(R.string.me_google_signin_coming_soon))
+    }
+
+    Spacer(modifier = Modifier.height(Dimens.SpaceSM))
+
+    TextButton(
+        onClick = { isSignUp = !isSignUp },
+        modifier = Modifier.align(Alignment.CenterHorizontally),
+        enabled = !isLoading,
+    ) {
+        Text(
+            text = if (isSignUp) stringResource(R.string.me_login_switch_to_login) else stringResource(R.string.me_login_switch_to_signup),
+        )
+    }
 }

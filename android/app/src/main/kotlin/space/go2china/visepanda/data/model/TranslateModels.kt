@@ -65,6 +65,27 @@ data class SttResponse(
 
 
 /**
+ * Request body for TTS synthesis, matching next.js `/api/translate/tts`
+ */
+data class TtsRequest(
+    val text: String,
+    val language: String = "Chinese",
+    val voice: String = "Cherry",
+)
+
+/**
+ * Response body for TTS synthesis, matching next.js `/api/translate/tts`
+ */
+data class TtsResponse(
+    val ok: Boolean,
+    val provider: String? = null,
+    val model: String? = null,
+    val audioUrl: String? = null,
+    val expiresAt: String? = null,
+    val error: String? = null,
+)
+
+/**
  * Success translation result passed to the UI layer
  */
 data class TranslateResult(
@@ -81,6 +102,32 @@ data class Phrase(
     val chinese: String,
     val pinyin: String,
 )
+
+/**
+ * A language the backend `/api/translate/text` and `/api/translate/tts`
+ * endpoints support. `ttsLanguageName` mirrors the `language_type` values
+ * Qwen TTS expects, which differ slightly from the translate endpoint's
+ * `LANGUAGE_NAMES` (e.g. "Chinese" not "Simplified Chinese").
+ */
+data class SupportedLanguage(
+    val code: String,
+    val displayName: String,
+    val ttsLanguageName: String,
+)
+
+object SupportedLanguages {
+    val all = listOf(
+        SupportedLanguage("en", "English", "English"),
+        SupportedLanguage("zh", "中文", "Chinese"),
+        SupportedLanguage("ar", "العربية", "Arabic"),
+        SupportedLanguage("es", "Español", "Spanish"),
+        SupportedLanguage("fr", "Français", "French"),
+        SupportedLanguage("ja", "日本語", "Japanese"),
+        SupportedLanguage("ko", "한국어", "Korean"),
+    )
+
+    fun byCode(code: String): SupportedLanguage = all.first { it.code == code }
+}
 
 /**
  * Local phrasebook database representing common tourist scenarios.

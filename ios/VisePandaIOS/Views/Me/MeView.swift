@@ -12,6 +12,8 @@ struct MeView: View {
     @State private var deleteNotice: String?
     @State private var authEmail = ""
     @State private var authPassword = ""
+    @State private var showingAuth = false
+    @State private var purchaseNotice: String?
 
     private let api = VisePandaAPIClient()
 
@@ -58,7 +60,7 @@ struct MeView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 profileCard
-                authSection
+                subscriptionSection
                 memoryProfileSection
                 section(title: "TRIP HISTORY", rows: trips)
                 section(title: "DATA & OFFLINE", rows: dataRows)
@@ -92,10 +94,29 @@ struct MeView: View {
                 onDelete: { Task { await delete(entry) } }
             )
         }
+        .sheet(isPresented: $showingAuth) {
+            AuthSheetView(
+                authStore: authStore,
+                email: $authEmail,
+                password: $authPassword,
+                canSubmit: canSubmitAuth
+            )
+            .presentationDetents([.medium, .large])
+        }
+        .alert("Subscription placeholder", isPresented: Binding(
+            get: { purchaseNotice != nil },
+            set: { if !$0 { purchaseNotice = nil } }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(purchaseNotice ?? "")
+        }
     }
 
     private var profileCard: some View {
-        VPCard {
+        Button {
+            showingAuth = true
+        } label: {
             HStack(spacing: 14) {
                 Text("EM")
                     .font(VPFont.display(16))
@@ -115,96 +136,72 @@ struct MeView: View {
 
                 Spacer()
 
-                Button("Edit") {}
-                    .font(VPFont.body(13, weight: .bold))
-                    .foregroundStyle(VPColor.cinnabar)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(VPColor.inkSoft.opacity(0.7))
             }
+            .padding(18)
+            .background(VPColor.paperSoft)
+            .clipShape(RoundedRectangle(cornerRadius: VPRadius.md, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: VPRadius.md, style: .continuous)
+                    .stroke(VPColor.outline.opacity(0.7), lineWidth: 1)
+            }
+            .shadow(color: VPColor.ink.opacity(0.08), radius: 8, x: 0, y: 4)
         }
+        .buttonStyle(.plain)
     }
 
-    private var authSection: some View {
+    private var subscriptionSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("ACCOUNT")
+            Text("SUBSCRIPTION")
                 .font(VPFont.body(12, weight: .bold))
                 .foregroundStyle(VPColor.inkSoft)
                 .padding(.leading, 4)
 
-            VPCard {
-                if authStore.isSignedIn {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Label(authStore.email ?? "Signed in", systemImage: "person.crop.circle.fill")
-                            .font(VPFont.body(15, weight: .bold))
-                            .foregroundStyle(VPColor.ink)
-                            .accessibilityIdentifier("signedInEmail")
+            VStack(spacing: 12) {
+                SubscriptionPlanCard(
+                    title: "Human Service",
+                    price: "$9.99 / month",
+                    summary: "Priority human travel help for itinerary fixes, booking questions, and urgent trip problems.",
+                    actionTitle: "Subscribe"
+                ) {
+                    purchaseNotice = "StoreKit purchase placeholder. Product id: visepanda.human.monthly"
+                }
 
-                        Button(role: .destructive) {
-                            Task { await authStore.signOut() }
-                        } label: {
-                            Label(authStore.isLoading ? "Signing out..." : "Sign out", systemImage: "rectangle.portrait.and.arrow.right")
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(VPColor.cinnabar)
-                        .disabled(authStore.isLoading)
-                        .accessibilityIdentifier("signOutButton")
+                SubscriptionPlanCard(
+                    title: "Premium Service",
+                    price: "$19.99 / month",
+                    summary: "Advanced concierge support with deeper planning review and faster response windows.",
+                    actionTitle: "Subscribe"
+                ) {
+                    purchaseNotice = "StoreKit purchase placeholder. Product id: visepanda.premium.monthly"
+                }
+
+                Button {
+                    purchaseNotice = "Restore purchases placeholder. StoreKit restore will be connected with App Store products."
+                } label: {
+                    Label("Restore Purchase", systemImage: "arrow.clockwise")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+
+                Text("Subscriptions auto-renew until cancelled. Manage or cancel in your Apple ID subscriptions. Payment will be charged to your Apple ID after confirmation. Terms and Privacy Policy links will be connected before release.")
+                    .font(VPFont.body(11, weight: .semibold))
+                    .foregroundStyle(VPColor.inkSoft)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                HStack {
+                    Button("Terms of Use") {
+                        purchaseNotice = "Terms of Use placeholder."
                     }
-                } else {
-                    VStack(alignment: .leading, spacing: 12) {
-                        TextField("Email", text: $authEmail)
-                            .textInputAutocapitalization(.never)
-                            .keyboardType(.emailAddress)
-                            .autocorrectionDisabled()
-                            .textContentType(.username)
-                            .authField()
-                            .accessibilityIdentifier("authEmail")
-
-                        SecureField("Password", text: $authPassword)
-                            .textContentType(.password)
-                            .authField()
-                            .accessibilityIdentifier("authPassword")
-
-                        HStack(spacing: 10) {
-                            Button {
-                                Task { await authStore.signIn(email: authEmail, password: authPassword) }
-                            } label: {
-                                Text(authStore.isLoading ? "Working..." : "Sign in")
-                                    .frame(maxWidth: .infinity)
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .tint(VPColor.cinnabar)
-                            .disabled(authStore.isLoading || !canSubmitAuth)
-                            .accessibilityIdentifier("signInButton")
-
-                            Button {
-                                Task { await authStore.signUp(email: authEmail, password: authPassword) }
-                            } label: {
-                                Text("Register")
-                                    .frame(maxWidth: .infinity)
-                            }
-                            .buttonStyle(.bordered)
-                            .disabled(authStore.isLoading || !canSubmitAuth)
-                            .accessibilityIdentifier("registerButton")
-                        }
-                        .font(VPFont.body(14, weight: .bold))
-
-                        Button {
-                            authStore.signInWithGoogle()
-                        } label: {
-                            Label("Continue with Google", systemImage: "globe")
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.bordered)
-                        .disabled(authStore.isLoading)
-
-                        if let message = authStore.errorMessage {
-                            Label(message, systemImage: "exclamationmark.triangle")
-                                .font(VPFont.body(13, weight: .semibold))
-                                .foregroundStyle(VPColor.cinnabar)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .accessibilityIdentifier("authError")
-                        }
+                    Spacer()
+                    Button("Privacy Policy") {
+                        purchaseNotice = "Privacy Policy placeholder."
                     }
                 }
+                .font(VPFont.body(12, weight: .bold))
+                .foregroundStyle(VPColor.cinnabar)
             }
         }
     }
@@ -380,6 +377,147 @@ private struct ProfileRow: Identifiable, Equatable {
     var id: String { title + value }
     var title: String
     var value: String
+}
+
+private struct SubscriptionPlanCard: View {
+    let title: String
+    let price: String
+    let summary: String
+    let actionTitle: String
+    let action: () -> Void
+
+    var body: some View {
+        VPCard {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(title)
+                            .font(VPFont.body(17, weight: .bold))
+                            .foregroundStyle(VPColor.ink)
+                        Text(price)
+                            .font(VPFont.body(13, weight: .bold))
+                            .foregroundStyle(VPColor.cinnabar)
+                    }
+                    Spacer()
+                    Button(actionTitle, action: action)
+                        .font(VPFont.body(13, weight: .bold))
+                        .buttonStyle(.borderedProminent)
+                        .tint(VPColor.cinnabar)
+                }
+
+                Text(summary)
+                    .font(VPFont.body(13, weight: .semibold))
+                    .foregroundStyle(VPColor.inkSoft)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+}
+
+private struct AuthSheetView: View {
+    @ObservedObject var authStore: AuthStore
+    @Binding var email: String
+    @Binding var password: String
+    let canSubmit: Bool
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VPCard {
+                    if authStore.isSignedIn {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Label(authStore.email ?? "Signed in", systemImage: "person.crop.circle.fill")
+                                .font(VPFont.body(15, weight: .bold))
+                                .foregroundStyle(VPColor.ink)
+                                .accessibilityIdentifier("signedInEmail")
+
+                            Button(role: .destructive) {
+                                Task { await authStore.signOut() }
+                            } label: {
+                                Label(authStore.isLoading ? "Signing out..." : "Sign out", systemImage: "rectangle.portrait.and.arrow.right")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(VPColor.cinnabar)
+                            .disabled(authStore.isLoading)
+                            .accessibilityIdentifier("signOutButton")
+                        }
+                    } else {
+                        VStack(alignment: .leading, spacing: 12) {
+                            TextField("Email", text: $email)
+                                .textInputAutocapitalization(.never)
+                                .keyboardType(.emailAddress)
+                                .autocorrectionDisabled()
+                                .textContentType(.username)
+                                .authField()
+                                .accessibilityIdentifier("authEmail")
+
+                            SecureField("Password", text: $password)
+                                .textContentType(.password)
+                                .authField()
+                                .accessibilityIdentifier("authPassword")
+
+                            HStack(spacing: 10) {
+                                Button {
+                                    Task { await authStore.signIn(email: email, password: password) }
+                                } label: {
+                                    Text(authStore.isLoading ? "Working..." : "Sign in")
+                                        .frame(maxWidth: .infinity)
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .tint(VPColor.cinnabar)
+                                .disabled(authStore.isLoading || !canSubmit)
+                                .accessibilityIdentifier("signInButton")
+
+                                Button {
+                                    Task { await authStore.signUp(email: email, password: password) }
+                                } label: {
+                                    Text("Register")
+                                        .frame(maxWidth: .infinity)
+                                }
+                                .buttonStyle(.bordered)
+                                .disabled(authStore.isLoading || !canSubmit)
+                                .accessibilityIdentifier("registerButton")
+                            }
+                            .font(VPFont.body(14, weight: .bold))
+
+                            Button {
+                                authStore.signInWithGoogle()
+                            } label: {
+                                Label("Continue with Google", systemImage: "globe")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.bordered)
+                            .disabled(authStore.isLoading)
+
+                            if let message = authStore.errorMessage {
+                                Label(message, systemImage: "exclamationmark.triangle")
+                                    .font(VPFont.body(13, weight: .semibold))
+                                    .foregroundStyle(VPColor.cinnabar)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .accessibilityIdentifier("authError")
+                            }
+
+                            if let confirmationEmail = authStore.signUpConfirmationEmail {
+                                Label(
+                                    "Account created for \(confirmationEmail). Check your email and tap the confirmation link, then sign in.",
+                                    systemImage: "envelope.badge"
+                                )
+                                .font(VPFont.body(13, weight: .semibold))
+                                .foregroundStyle(VPColor.ink)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("signUpConfirmationNotice")
+                            }
+                        }
+                    }
+                }
+                .padding(20)
+            }
+            .background(VPColor.paper)
+            .navigationTitle("Account")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
 }
 
 private extension View {

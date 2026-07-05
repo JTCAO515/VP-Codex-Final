@@ -15,7 +15,7 @@ describe("model registry", () => {
   it("uses the configured 2026 model defaults for the active China providers", () => {
     expect(BUTLER_PROVIDERS.find((p) => p.id === "deepseek")?.model).toBe("deepseek-v4-flash");
     expect(BUTLER_PROVIDERS.find((p) => p.id === "qwen")?.model).toBe("qwen3.6-flash");
-    expect(BUTLER_PROVIDERS.find((p) => p.id === "zhipu")?.model).toBe("glm-5.1");
+    expect(BUTLER_PROVIDERS.find((p) => p.id === "zhipu")?.model).toBe("glm-5.2");
     expect(BUTLER_PROVIDERS.find((p) => p.id === "moonshot")?.model).toBe("kimi-k2.6");
   });
 

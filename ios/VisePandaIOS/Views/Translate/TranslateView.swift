@@ -6,7 +6,8 @@ struct TranslateView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selectedTab = 0
     @State private var input = ""
-    @State private var translateToChinese = true
+    @State private var fromLanguageCode = "en"
+    @State private var toLanguageCode = "zh"
     @State private var translating = false
     @State private var result: TranslateResult?
     @State private var errorMessage: String?
@@ -40,11 +41,13 @@ struct TranslateView: View {
             _errorMessage = State(initialValue: "translation_provider_unavailable")
         case .ocr:
             _input = State(initialValue: "地铁站在哪里？")
-            _translateToChinese = State(initialValue: false)
+            _fromLanguageCode = State(initialValue: "zh")
+            _toLanguageCode = State(initialValue: "en")
             _result = State(initialValue: TranslateResult(translation: "Where is the subway station?", pinyin: ""))
         case .stt:
             _input = State(initialValue: "我要去外滩")
-            _translateToChinese = State(initialValue: false)
+            _fromLanguageCode = State(initialValue: "zh")
+            _toLanguageCode = State(initialValue: "en")
             _result = State(initialValue: TranslateResult(translation: "I want to go to the Bund.", pinyin: ""))
         case .permission:
             _permissionMessage = State(initialValue: "Camera or microphone permission is required for OCR and voice translation. Enable it in Settings.")
@@ -89,32 +92,62 @@ struct TranslateView: View {
             VStack(alignment: .leading, spacing: 16) {
                 VPCard {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text(translateToChinese ? "English" : "Chinese")
+                        Text(fromLanguage.displayName)
                             .font(VPFont.body(12, weight: .bold))
                             .foregroundStyle(VPColor.cinnabar)
 
-                        TextField("Type a short travel phrase", text: $input, axis: .vertical)
+                        TextField(
+                            recorder != nil ? "Recording... tap mic to stop" : (processingMode != nil ? "Transcribing..." : "Type a short travel phrase"),
+                            text: $input,
+                            axis: .vertical
+                        )
                             .font(VPFont.body(16))
                             .lineLimit(3...6)
+                            .disabled(recorder != nil || processingMode != nil)
                             .padding(12)
                             .background(VPColor.paper)
                             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                             .accessibilityIdentifier("translateInput")
 
-                        HStack {
+                        HStack(spacing: 16) {
+                            Button(action: startCameraTranslation) {
+                                Image(systemName: "camera")
+                            }
+                            .disabled(processingMode == .ocr || recorder != nil)
+                            .accessibilityLabel("Camera translation")
+                            .accessibilityIdentifier("cameraTranslationButton")
+
+                            Button(action: toggleVoiceRecording) {
+                                Image(systemName: recorder == nil ? "mic" : "stop.circle.fill")
+                                    .foregroundStyle(recorder != nil ? VPColor.cinnabar : VPColor.ink)
+                            }
+                            .disabled(processingMode == .ocr)
+                            .accessibilityLabel(recorder == nil ? "Voice translation" : "Stop recording")
+                            .accessibilityIdentifier("voiceTranslationButton")
+
+                            if processingMode != nil {
+                                ProgressView()
+                            }
+
+                            Spacer()
+                        }
+                        .font(.system(size: 18, weight: .semibold))
+                        .tint(VPColor.ink)
+
+                        HStack(spacing: 8) {
                             Button {
-                                translateToChinese.toggle()
-                                result = nil
-                                errorMessage = nil
+                                swapLanguages()
                             } label: {
                                 Image(systemName: "arrow.left.arrow.right")
                             }
                             .buttonStyle(.borderless)
                             .accessibilityLabel("Swap language direction")
 
-                            Text(translateToChinese ? "English to Chinese" : "Chinese to English")
-                                .font(VPFont.body(13, weight: .semibold))
+                            languagePicker("From", selection: $fromLanguageCode)
+                            Text("to")
+                                .font(VPFont.body(12, weight: .semibold))
                                 .foregroundStyle(VPColor.inkSoft)
+                            languagePicker("To", selection: $toLanguageCode)
 
                             Spacer()
 
@@ -122,6 +155,8 @@ struct TranslateView: View {
                                 ProgressView()
                             }
                         }
+                        .font(VPFont.body(14, weight: .semibold))
+                        .tint(VPColor.ink)
                     }
                 }
 
@@ -137,28 +172,34 @@ struct TranslateView: View {
                     permissionCard(permissionMessage)
                 }
 
-                Text("Other Translation Modes")
-                    .font(VPFont.body(13, weight: .bold))
-                    .foregroundStyle(VPColor.inkSoft)
-
-                modeButton(
-                    title: "Camera translation",
-                    subtitle: "Photo or library image to OCR",
-                    icon: "camera",
-                    loading: processingMode == .ocr,
-                    action: startCameraTranslation
-                )
-                modeButton(
-                    title: recorder == nil ? "Voice translation" : "Stop recording",
-                    subtitle: recorder == nil ? "Record up to 30 seconds" : "Tap to transcribe and translate",
-                    icon: recorder == nil ? "mic" : "stop.circle",
-                    loading: processingMode == .stt,
-                    action: toggleVoiceRecording
-                )
+                NavigationLink {
+                    CommunicationCardDetail()
+                } label: {
+                    VPCard {
+                        HStack {
+                            Label {
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text("Travel Talk Card")
+                                    Text("Show Chinese phrases for directions, food, pay, and help")
+                                        .font(VPFont.body(12, weight: .semibold))
+                                        .foregroundStyle(VPColor.inkSoft)
+                                }
+                            } icon: {
+                                Image(systemName: "text.bubble.fill")
+                            }
+                            .font(VPFont.body(15, weight: .bold))
+                            .foregroundStyle(VPColor.ink)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundStyle(VPColor.inkSoft)
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
             }
             .padding(20)
         }
-        .task(id: "\(input)|\(translateToChinese)") {
+        .task(id: "\(input)|\(fromLanguageCode)|\(toLanguageCode)") {
             await debounceTranslate()
         }
     }
@@ -195,7 +236,7 @@ struct TranslateView: View {
     private func translationCard(_ result: TranslateResult) -> some View {
         VPCard {
             VStack(alignment: .leading, spacing: 10) {
-                Text(translateToChinese ? "Chinese" : "English")
+                Text(toLanguage.displayName)
                     .font(VPFont.body(12, weight: .bold))
                     .foregroundStyle(VPColor.cinnabar)
 
@@ -204,7 +245,7 @@ struct TranslateView: View {
                     .foregroundStyle(VPColor.ink)
                     .accessibilityIdentifier("translationResult")
 
-                if translateToChinese, !result.pinyin.isEmpty {
+                if toLanguageCode == "zh", !result.pinyin.isEmpty {
                     Text("Pinyin: \(result.pinyin)")
                         .font(VPFont.body(14, weight: .semibold))
                         .foregroundStyle(VPColor.inkSoft)
@@ -220,7 +261,7 @@ struct TranslateView: View {
                     Spacer()
 
                     Button {
-                        speak(result.translation, language: translateToChinese ? "zh-CN" : "en-US")
+                        speak(result.translation, language: toLanguage.speechLocale)
                     } label: {
                         Label(speaking ? "Speaking" : "Speak", systemImage: "speaker.wave.2.fill")
                     }
@@ -245,6 +286,36 @@ struct TranslateView: View {
         }
     }
 
+    private var fromLanguage: SupportedLanguage {
+        SupportedLanguages.byCode(fromLanguageCode)
+    }
+
+    private var toLanguage: SupportedLanguage {
+        SupportedLanguages.byCode(toLanguageCode)
+    }
+
+    private func languagePicker(_ title: String, selection: Binding<String>) -> some View {
+        Picker(title, selection: selection) {
+            ForEach(SupportedLanguages.all) { language in
+                Text(language.displayName).tag(language.code)
+            }
+        }
+        .pickerStyle(.menu)
+        .tint(VPColor.cinnabar)
+        .onChange(of: selection.wrappedValue) { _, _ in
+            result = nil
+            errorMessage = nil
+        }
+    }
+
+    private func swapLanguages() {
+        let previousFrom = fromLanguageCode
+        fromLanguageCode = toLanguageCode
+        toLanguageCode = previousFrom
+        result = nil
+        errorMessage = nil
+    }
+
     private func permissionCard(_ message: String) -> some View {
         VPCard {
             Label(message, systemImage: "lock.fill")
@@ -254,39 +325,6 @@ struct TranslateView: View {
         }
     }
 
-    private func modeButton(title: String, subtitle: String, icon: String, loading: Bool, action: @escaping () -> Void) -> some View {
-        VPCard {
-            Button(action: action) {
-                HStack {
-                    Label {
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(title)
-                            Text(subtitle)
-                                .font(VPFont.body(12, weight: .semibold))
-                                .foregroundStyle(VPColor.inkSoft)
-                        }
-                    } icon: {
-                        Image(systemName: icon)
-                    }
-                        .font(VPFont.body(15, weight: .bold))
-                        .foregroundStyle(VPColor.ink)
-                    Spacer()
-                    if loading {
-                        ProgressView()
-                    } else if recorder != nil && icon == "stop.circle" {
-                        VPStatusPill(title: "Recording", tone: .red)
-                    } else {
-                        Image(systemName: "chevron.right")
-                            .foregroundStyle(VPColor.inkSoft)
-                    }
-                }
-            }
-            .buttonStyle(.plain)
-            .disabled(loading)
-            .accessibilityLabel(title)
-            .accessibilityIdentifier(title == "Camera translation" ? "cameraTranslationButton" : "voiceTranslationButton")
-        }
-    }
 
     private func debounceTranslate() async {
         guard allowAutoTranslate else { return }
@@ -313,7 +351,7 @@ struct TranslateView: View {
         result = nil
 
         do {
-            let response = try await api.translateText(text, from: translateToChinese ? "en" : "zh", to: translateToChinese ? "zh" : "en")
+            let response = try await api.translateText(text, from: fromLanguageCode, to: toLanguageCode)
             if response.ok, let translation = response.translation, !translation.isEmpty {
                 result = TranslateResult(translation: translation, pinyin: response.pinyin ?? "")
             } else {

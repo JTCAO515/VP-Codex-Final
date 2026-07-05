@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct ToolsView: View {
+    @EnvironmentObject private var store: TripStore
+    @State private var path: [String] = []
     private let tools = ToolEntry.seed
     private let columns = [
         GridItem(.flexible(), spacing: 14),
@@ -8,27 +10,14 @@ struct ToolsView: View {
     ]
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     header
 
-                    NavigationLink {
-                        CommunicationCardDetail()
-                    } label: {
-                        communicationCard
-                    }
-                    .buttonStyle(.plain)
-
                     LazyVGrid(columns: columns, spacing: 14) {
                         ForEach(tools) { tool in
-                            NavigationLink {
-                                if tool.id == "translate" {
-                                    TranslateView()
-                                } else {
-                                    ToolDetailView(tool: tool)
-                                }
-                            } label: {
+                            NavigationLink(value: tool.id) {
                                 ToolTile(tool: tool)
                             }
                             .buttonStyle(.plain)
@@ -41,7 +30,29 @@ struct ToolsView: View {
             }
             .background(VPColor.paper)
             .navigationBarHidden(true)
+            .navigationDestination(for: String.self) { id in
+                if let tool = tools.first(where: { $0.id == id }) {
+                    Group {
+                        if tool.id == "translate" {
+                            TranslateView()
+                        } else {
+                            ToolDetailView(tool: tool)
+                        }
+                    }
+                    .onAppear { store.setBottomBarHidden(true) }
+                    .onDisappear { store.setBottomBarHidden(false) }
+                }
+            }
+            .onAppear(perform: consumePendingTool)
+            .onChange(of: store.pendingToolId) { _, _ in
+                consumePendingTool()
+            }
         }
+    }
+
+    private func consumePendingTool() {
+        guard let id = store.consumePendingToolId(), tools.contains(where: { $0.id == id }) else { return }
+        path = [id]
     }
 
     private var header: some View {
@@ -56,33 +67,6 @@ struct ToolsView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private var communicationCard: some View {
-        HStack(spacing: 14) {
-            Image(systemName: "text.bubble.fill")
-                .font(.system(size: 18, weight: .bold))
-                .foregroundStyle(VPColor.paperSoft)
-                .frame(width: 46, height: 46)
-                .background(VPColor.cinnabar)
-                .clipShape(Circle())
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Travel Talk Card")
-                    .font(VPFont.body(16, weight: .bold))
-                    .foregroundStyle(VPColor.paperSoft)
-                Text("问路、点菜、支付、求助时出示")
-                    .font(VPFont.body(12, weight: .semibold))
-                    .foregroundStyle(VPColor.paper.opacity(0.62))
-            }
-
-            Spacer()
-
-            Image(systemName: "chevron.right")
-                .foregroundStyle(VPColor.paper.opacity(0.72))
-        }
-        .padding(18)
-        .background(VPColor.ink)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-    }
 }
 
 private struct ToolEntry: Identifiable {
@@ -114,6 +98,21 @@ private struct ToolEntry: Identifiable {
             tips: ["Use short sentences for better travel translation.", "Show the Chinese result first when talking to staff or local people."],
             sections: [ToolSection(title: "Good phrases", items: ["Please take me to this address.", "I am vegetarian.", "Can I pay by Alipay?"])],
             offlineTips: sharedOfflineTips + ["Save key phrases before entering stations, restaurants, taxis, or hotels."]
+        ),
+        ToolEntry(
+            id: "emergency",
+            title: "Emergency",
+            subtitle: "Contacts and documents",
+            icon: "sos.circle",
+            badge: "Emergency",
+            accent: VPColor.cinnabar,
+            highlighted: true,
+            tips: ["Police: 110", "Ambulance: 120", "Fire: 119"],
+            sections: [
+                ToolSection(title: "Contacts", items: ["Save embassy contact.", "Save insurance hotline.", "Share itinerary with a trusted contact."]),
+                ToolSection(title: "Documents", items: ["Carry passport and visa photos separately.", "Keep medication and allergy notes in English and Chinese."])
+            ],
+            offlineTips: sharedOfflineTips + ["Pin hotel address and nearest hospital in your maps app."]
         ),
         ToolEntry(
             id: "payment-setup",
@@ -161,8 +160,8 @@ private struct ToolEntry: Identifiable {
             offlineTips: sharedOfflineTips + ["Save a rough mental conversion for common RMB amounts."]
         ),
         ToolEntry(
-            id: "esim-vpn",
-            title: "eSIM",
+            id: "network",
+            title: "Network",
             subtitle: "Connectivity",
             icon: "wifi",
             badge: "Offline guide",
@@ -191,21 +190,6 @@ private struct ToolEntry: Identifiable {
                 ToolSection(title: "At arrival", items: ["Keep hotel address in English and Chinese.", "Use the same route details you gave the airline."])
             ],
             offlineTips: sharedOfflineTips + ["Save embassy or consulate contact details for each city."]
-        ),
-        ToolEntry(
-            id: "emergency",
-            title: "Emergency",
-            subtitle: "Contacts and documents",
-            icon: "sos.circle",
-            badge: "Emergency",
-            accent: VPColor.cinnabar,
-            highlighted: true,
-            tips: ["Police: 110", "Ambulance: 120", "Fire: 119"],
-            sections: [
-                ToolSection(title: "Contacts", items: ["Save embassy contact.", "Save insurance hotline.", "Share itinerary with a trusted contact."]),
-                ToolSection(title: "Documents", items: ["Carry passport and visa photos separately.", "Keep medication and allergy notes in English and Chinese."])
-            ],
-            offlineTips: sharedOfflineTips + ["Pin hotel address and nearest hospital in your maps app."]
         ),
         ToolEntry(
             id: "offline-pack",
@@ -270,6 +254,12 @@ private struct ToolDetailView: View {
 
                 if tool.id == "currency" {
                     CurrencyToolPanel()
+                }
+                if tool.id == "visa-and-entry" {
+                    VisaCheckerPanel()
+                }
+                if tool.id == "payment-setup" {
+                    PaymentWizardPanel()
                 }
 
                 checklistSection(title: "Tips", items: tool.tips, icon: "sparkle")
@@ -426,7 +416,126 @@ private struct CurrencyToolPanel: View {
     }
 }
 
-private struct CommunicationPhrase: Identifiable {
+private struct VisaOption: Identifiable, Hashable {
+    var id: String
+    var label: String
+    var visaFreeDays: Int?
+    var transitHours: Int?
+    var note: String
+}
+
+private struct VisaCheckerPanel: View {
+    @State private var selected = visaOptions.first!
+    @State private var days = 7
+    @State private var transitOnly = false
+
+    private static let visaOptions = [
+        VisaOption(id: "us", label: "United States", visaFreeDays: nil, transitHours: 240, note: "Tourist trips usually need a visa unless the route qualifies for transit-without-visa."),
+        VisaOption(id: "uk", label: "United Kingdom", visaFreeDays: nil, transitHours: 240, note: "Tourist trips usually need a visa unless the route qualifies for transit-without-visa."),
+        VisaOption(id: "germany", label: "Germany", visaFreeDays: 30, transitHours: 240, note: "Short ordinary-passport visits may be visa-free under current policy windows."),
+        VisaOption(id: "singapore", label: "Singapore", visaFreeDays: 30, transitHours: 240, note: "Short ordinary-passport visits may be visa-free; keep onward travel proof ready."),
+        VisaOption(id: "japan", label: "Japan", visaFreeDays: nil, transitHours: 240, note: "Policy can change quickly; confirm the current tourist-visa requirement before booking."),
+        VisaOption(id: "other", label: "Other nationality", visaFreeDays: nil, transitHours: 240, note: "Use this only as a planning prompt; confirm with the nearest Chinese embassy or consulate.")
+    ]
+
+    var body: some View {
+        VPCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("ENTRY PLANNING CHECK")
+                    .font(VPFont.body(12, weight: .bold))
+                    .foregroundStyle(VPColor.inkSoft)
+                Picker("Passport nationality", selection: $selected) {
+                    ForEach(Self.visaOptions) { option in
+                        Text(option.label).tag(option)
+                    }
+                }
+                .pickerStyle(.menu)
+                Stepper("Days in mainland China: \(days)", value: $days, in: 1...90)
+                    .font(VPFont.body(14, weight: .semibold))
+                Toggle("Transit-only route with onward travel", isOn: $transitOnly)
+                    .font(VPFont.body(14, weight: .semibold))
+                Text(statusText)
+                    .font(VPFont.body(14, weight: .bold))
+                    .foregroundStyle(VPColor.cinnabar)
+                Text(selected.note)
+                    .font(VPFont.body(12, weight: .semibold))
+                    .foregroundStyle(VPColor.inkSoft)
+            }
+        }
+    }
+
+    private var statusText: String {
+        if transitOnly, let hours = selected.transitHours {
+            return "May fit a transit-without-visa route up to \(hours) hours if the itinerary qualifies."
+        }
+        if let limit = selected.visaFreeDays, days > limit {
+            return "Your \(days)-day stay is longer than the \(limit)-day planning threshold. Plan for a visa check."
+        }
+        if let limit = selected.visaFreeDays, days <= limit {
+            return "Likely short-stay visa-free within \(limit) days, but confirm current official rules."
+        }
+        return "Confirm with an official embassy or consulate before booking."
+    }
+}
+
+private struct PaymentOption: Identifiable, Hashable {
+    var id: String
+    var label: String
+    var note: String = ""
+}
+
+private struct PaymentWizardPanel: View {
+    @State private var wallet = wallets.first!
+    @State private var card = cards.first!
+
+    private static let wallets = [
+        PaymentOption(id: "alipay", label: "Alipay"),
+        PaymentOption(id: "wechat-pay", label: "WeChat Pay")
+    ]
+    private static let cards = [
+        PaymentOption(id: "visa", label: "Visa", note: "Usually supported by tourist wallet setup, subject to issuer verification."),
+        PaymentOption(id: "mastercard", label: "Mastercard", note: "Usually supported by tourist wallet setup, subject to issuer verification."),
+        PaymentOption(id: "amex", label: "Amex", note: "Support varies; keep a Visa or Mastercard backup if possible."),
+        PaymentOption(id: "other", label: "Other card", note: "Check issuer compatibility and carry a second payment method.")
+    ]
+
+    var body: some View {
+        VPCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("PAYMENT SETUP PATH")
+                    .font(VPFont.body(12, weight: .bold))
+                    .foregroundStyle(VPColor.inkSoft)
+                Picker("Wallet", selection: $wallet) {
+                    ForEach(Self.wallets) { option in Text(option.label).tag(option) }
+                }
+                .pickerStyle(.segmented)
+                Picker("Card", selection: $card) {
+                    ForEach(Self.cards) { option in Text(option.label).tag(option) }
+                }
+                .pickerStyle(.menu)
+                ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
+                    Text("\(index + 1). \(step)")
+                        .font(VPFont.body(14, weight: .semibold))
+                        .foregroundStyle(VPColor.inkMuted)
+                }
+                Text(card.note)
+                    .font(VPFont.body(12, weight: .semibold))
+                    .foregroundStyle(VPColor.inkSoft)
+            }
+        }
+    }
+
+    private var steps: [String] {
+        [
+            "Install \(wallet.label) before departure and create your account on Wi-Fi.",
+            "Add your \(card.label) and complete issuer verification while your home phone number still works.",
+            "Save your passport name spelling exactly as it appears on your travel document.",
+            "Carry a small RMB cash backup and one physical card in a separate place."
+        ]
+    }
+}
+
+struct CommunicationPhrase: Identifiable {
     var id: String { title }
     var title: String
     var chinese: String
@@ -435,7 +544,7 @@ private struct CommunicationPhrase: Identifiable {
     var icon: String
 }
 
-private struct CommunicationCardDetail: View {
+struct CommunicationCardDetail: View {
     private let phrases = [
         CommunicationPhrase(
             title: "Start politely",
@@ -533,7 +642,7 @@ private struct CommunicationCardDetail: View {
     }
 }
 
-private struct CommunicationPhraseCard: View {
+struct CommunicationPhraseCard: View {
     let phrase: CommunicationPhrase
 
     var body: some View {

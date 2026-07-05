@@ -5,6 +5,29 @@ struct TranslateResult: Equatable {
     var pinyin: String
 }
 
+struct SupportedLanguage: Identifiable, Hashable {
+    var id: String { code }
+    var code: String
+    var displayName: String
+    var speechLocale: String
+}
+
+enum SupportedLanguages {
+    static let all = [
+        SupportedLanguage(code: "en", displayName: "English", speechLocale: "en-US"),
+        SupportedLanguage(code: "zh", displayName: "中文", speechLocale: "zh-CN"),
+        SupportedLanguage(code: "ar", displayName: "العربية", speechLocale: "ar-SA"),
+        SupportedLanguage(code: "es", displayName: "Español", speechLocale: "es-ES"),
+        SupportedLanguage(code: "fr", displayName: "Français", speechLocale: "fr-FR"),
+        SupportedLanguage(code: "ja", displayName: "日本語", speechLocale: "ja-JP"),
+        SupportedLanguage(code: "ko", displayName: "한국어", speechLocale: "ko-KR")
+    ]
+
+    static func byCode(_ code: String) -> SupportedLanguage {
+        all.first { $0.code == code } ?? all[0]
+    }
+}
+
 struct TranslateOcrRequest: Codable {
     var imageBase64: String
     var mimeType: String

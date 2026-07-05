@@ -60,4 +60,22 @@ object DetailDestinations {
     fun toolCategoryRoute(categoryId: String): String = "tool_category/$categoryId"
 
     const val TRANSLATE_ROUTE = "translate"
+
+    /**
+     * Chat↔Explore bridge (Issue #59): tapping an exploreRef card under a
+     * Butler message deep-links here so Explore opens straight into the
+     * right city/channel instead of the home screen. All three args are
+     * optional — a plain "explore" route with no args behaves exactly like
+     * before.
+     */
+    const val EXPLORE_FOCUS_CITY_ID_ARG = "focusCityId"
+    const val EXPLORE_FOCUS_CATEGORY_ARG = "focusCategory"
+    const val EXPLORE_FOCUS_POI_ID_ARG = "focusPoiId"
+    const val EXPLORE_ROUTE_PATTERN =
+        "explore?focusCityId={focusCityId}&focusCategory={focusCategory}&focusPoiId={focusPoiId}"
+
+    fun exploreFocusRoute(cityId: String, category: String, amapPoiId: String): String =
+        "explore?focusCityId=${android.net.Uri.encode(cityId)}" +
+            "&focusCategory=${android.net.Uri.encode(category)}" +
+            "&focusPoiId=${android.net.Uri.encode(amapPoiId)}"
 }
