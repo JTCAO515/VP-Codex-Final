@@ -144,7 +144,15 @@
 高德给的是"原始 POI",缺外国游客视角的策展——这正是 VisePanda 的差异化空间:
 
 - **`curated_pois` 表**(复用现有 Supabase 实例):9 城 × 5 品类,每格 20-50 条精选。字段:`city_id`/`category`/`amap_poi_id`(与高德实时数据关联的锚)/`name_en`/`editorial_summary`(1-2 句编辑推荐语,英文)/`tags`(`halal`/`vegetarian-friendly`/`english-menu`/`card-accepted`/`tourist-trap-warning` 等)/`photo_url`/`rank`
-- **生产管线**:已接入的四家 LLM 批量生成初稿(城市×品类分批,prompt 要求只写广为人知、可验证的场所,输出结构化 JSON)→ 架构师抽验(高德实时查证该 POI 真实存在且营业)→ 入库。生成内容标注来源 `VisePanda Editorial`,**绝不冒充真实用户评价**(honest disclosure)
+- **生产管线**(2026-07-05 操作者提出爬虫方向后升级为"合规爬取 + LLM 结构化 + 高德查证"三段式):
+  1. **合规爬取层**(自动化采集,只碰法律干净的源):
+     - **Wikivoyage/Wikipedia**(CC BY-SA 许可,明确允许再利用,带署名即可):Wikivoyage 每个城市有 See/Eat/Buy/Sleep/Do 分区,恰好映射五品类,且是英文游客视角内容——对目标用户(外国游客)比点评中文数据更对口
+     - **官方榜单类公开事实**:文旅局 A 级景区名录、米其林指南公开名单、必吃榜等公开报道——场所名称/入选事实不受版权保护,作为"热门信号"入库(只取名字和榜单事实,不抄任何评价文本)
+     - **场所官网/官方公众号公开信息**:营业时间、门票价格等事实性数据
+     - **明确禁区**:大众点评/美团/小红书爬虫——点评对爬虫的民事诉讼史(诉百度案等)+ 大规模抓取的刑事先例(非法获取计算机信息系统数据罪),商业产品不碰;评分/评价文本一律不采
+  2. **LLM 结构化层**:四家已接 LLM 把爬取的原始文本结构化成 curated_pois 字段(英文 editorial_summary/tags),prompt 硬约束只基于给定源材料改写,不许自由发挥补充"事实"
+  3. **高德查证层**:每条用高德真实 API 查证存在性并回填 `amap_poi_id`,查不到的丢弃(防幻觉+防过期)
+  - 来源字段记录每条的出处(`source: wikivoyage|official_list|llm_seed`),编辑内容统一标注 `VisePanda Editorial`,**绝不冒充真实用户评价**(honest disclosure)
 - **运行时合并**:`/api/explore` 列表返回时,`amap_poi_id` 命中 curated 库的条目附加 `editorial` 字段 → 移动端渲染"VisePanda 推荐"角标 + 推荐语;另提供"编辑精选"置顶区(纯 curated,离线可缓存)
 - **一箭双雕**:§1.1 的 UGC mock feed 内容直接从 curated 库出(有真图真店真推荐语的"编辑内容"),后期 Community 真做 UGC 时平滑替换,不用先造一批假用户内容
 
