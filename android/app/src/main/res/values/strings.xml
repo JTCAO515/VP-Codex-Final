@@ -108,4 +108,12 @@
     <string name="translate_error_perm_rejected">Permission was denied. Please go to system settings to enable it.</string>
     <string name="translate_error_ocr_failed">OCR text extraction failed. Please ensure the image has clear text and check network.</string>
     <string name="translate_error_stt_failed">STT voice recognition failed. Please try speaking clearly and check network.</string>
+
+    <!-- Cloud Sync Status -->
+    <string name="me_sync_status_label">Cloud Sync</string>
+    <string name="me_sync_status_not_signed_in">Not Signed In</string>
+    <string name="me_sync_status_not_synced">Not Synced</string>
+    <string name="me_sync_status_syncing">Syncing…</string>
+    <string name="me_sync_status_synced">Synced</string>
+    <string name="me_sync_status_failed">Sync Failed</string>
 </resources>
