@@ -1,6 +1,7 @@
 package space.go2china.visepanda.ui.explore
 
 import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,11 +22,19 @@ import space.go2china.visepanda.data.repository.LiveExploreRepository
 import space.go2china.visepanda.data.repository.TripRepository
 import javax.inject.Inject
 
+/** Chat↔Explore bridge (Issue #59): where to jump when opened from an exploreRef card. */
+data class ExploreFocusTarget(
+    val cityId: String,
+    val category: ExploreCategory,
+    val amapPoiId: String,
+)
+
 @HiltViewModel
 class ExploreViewModel @Inject constructor(
     private val tripRepository: TripRepository,
     private val exploreRepository: ExploreRepository,
     private val cityPreferences: CityPreferences,
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private val liveRepo get() = exploreRepository as? LiveExploreRepository
@@ -39,10 +48,33 @@ class ExploreViewModel @Inject constructor(
     private var currentPage = 1
     private var isPageLoading = false
 
+    // Chat↔Explore bridge: nav args from the "explore?focusCityId=...&focusCategory=...&
+    // focusPoiId=..." route (see VisePandaNavHost). Absent/malformed → null, same as a
+    // plain "explore" navigation with no args.
+    private val pendingFocus: ExploreFocusTarget? = run {
+        val cityId = savedStateHandle.get<String>("focusCityId")?.takeIf { it.isNotBlank() } ?: return@run null
+        val categoryRaw = savedStateHandle.get<String>("focusCategory")?.takeIf { it.isNotBlank() } ?: return@run null
+        val poiId = savedStateHandle.get<String>("focusPoiId")?.takeIf { it.isNotBlank() } ?: return@run null
+        val category = exploreCategoryFromRefCategory(categoryRaw) ?: return@run null
+        ExploreFocusTarget(cityId, category, poiId)
+    }
+    private var focusConsumed = false
+
     init {
-        val savedCity = cityPreferences.getSelectedCityId()
-            ?: SUPPORTED_CITIES.first().id
+        val savedCity = pendingFocus?.cityId ?: cityPreferences.getSelectedCityId() ?: SUPPORTED_CITIES.first().id
         showHome(savedCity)
+    }
+
+    /**
+     * One-shot read for [ExploreScreen]'s first composition: if the route carried a
+     * Chat↔Explore focus target, the screen should enter that channel directly (running
+     * the same location-permission flow as a manual category tap) instead of showing Home.
+     * Returns null on every call after the first, including when there was never a target.
+     */
+    fun consumePendingFocus(): ExploreFocusTarget? {
+        if (focusConsumed) return null
+        focusConsumed = true
+        return pendingFocus
     }
 
     // ─────────────────────────────────────────
@@ -74,6 +106,8 @@ class ExploreViewModel @Inject constructor(
                     filters = newFilters,
                     isLoading = true,
                     errorNotice = null,
+                    // manual city switch invalidates any pending Chat↔Explore focus
+                    focusPoiId = null,
                 )
                 loadChannelPage(cityId, s.category, newFilters, page = 1)
             }
@@ -81,8 +115,15 @@ class ExploreViewModel @Inject constructor(
         }
     }
 
-    fun navigateToChannel(category: ExploreCategory, locationGranted: Boolean, userLocation: String?) {
-        val cityId = currentCityId()
+    fun navigateToChannel(
+        category: ExploreCategory,
+        locationGranted: Boolean,
+        userLocation: String?,
+        focusPoiId: String? = null,
+        focusCityId: String? = null,
+    ) {
+        val cityId = focusCityId ?: currentCityId()
+        if (focusCityId != null) cityPreferences.saveSelectedCityId(focusCityId)
         val defaultFilters = buildDefaultFilters(category, locationGranted, userLocation)
         channelPois.clear()
         currentPage = 1
@@ -99,6 +140,7 @@ class ExploreViewModel @Inject constructor(
             locationUnavailableNotice = !locationGranted,
             errorNotice = null,
             lastAddedPoiName = null,
+            focusPoiId = focusPoiId,
         )
         loadChannelPage(cityId, category, defaultFilters, page = 1)
     }
@@ -384,3 +426,11 @@ class ExploreViewModel @Inject constructor(
 // nullsLast comparator helper
 fun <T : Comparable<T>> nullsLast(): Comparator<T?> =
     compareBy(nullsLast(naturalOrder())) { it }
+
+/** Maps ExploreRefCategory.name ("Attractions"/"Food"/"Stays") to ExploreCategory. */
+fun exploreCategoryFromRefCategory(raw: String): ExploreCategory? = when (raw) {
+    "Attractions" -> ExploreCategory.Attraction
+    "Food" -> ExploreCategory.Food
+    "Stays" -> ExploreCategory.Stay
+    else -> null
+}

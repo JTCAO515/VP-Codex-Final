@@ -72,10 +72,34 @@ fun VisePandaApp() {
                             navController.navigate(DetailDestinations.toolCategoryRoute(categoryId))
                         }
                     },
+                    onExploreRef = { ref ->
+                        navController.navigate(
+                            DetailDestinations.exploreFocusRoute(
+                                cityId = ref.cityId,
+                                category = ref.category.name,
+                                amapPoiId = ref.amapPoiId,
+                            )
+                        )
+                    },
                 )
             }
-            composable(TopLevelDestination.Explore.route) {
-                ExploreScreen()
+            composable(
+                route = DetailDestinations.EXPLORE_ROUTE_PATTERN,
+                arguments = listOf(
+                    navArgument(DetailDestinations.EXPLORE_FOCUS_CITY_ID_ARG) { type = NavType.StringType; nullable = true; defaultValue = null },
+                    navArgument(DetailDestinations.EXPLORE_FOCUS_CATEGORY_ARG) { type = NavType.StringType; nullable = true; defaultValue = null },
+                    navArgument(DetailDestinations.EXPLORE_FOCUS_POI_ID_ARG) { type = NavType.StringType; nullable = true; defaultValue = null },
+                ),
+            ) {
+                ExploreScreen(
+                    onAskButler = { message ->
+                        navController.navigate("butler?message=${android.net.Uri.encode(message)}") {
+                            popUpTo(TopLevelDestination.Butler.route) {
+                                inclusive = false
+                            }
+                        }
+                    },
+                )
             }
             composable(TopLevelDestination.Tools.route) {
                 ToolsScreen(

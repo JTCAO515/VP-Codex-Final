@@ -69,6 +69,14 @@ sealed class ExploreUiState {
         val locationUnavailableNotice: Boolean, // one-shot nudge
         val errorNotice: String?,
         val lastAddedPoiName: String?,
+        /**
+         * Chat↔Explore bridge (Issue #59): amapPoiId to scroll to and highlight once
+         * loaded, when this channel was entered from a Butler exploreRef card. Null for
+         * a normal category-tap entry. Best-effort only — if the POI never appears in a
+         * loaded page (pagination, filters), it is simply never highlighted; the app
+         * must not fabricate a card for it.
+         */
+        val focusPoiId: String? = null,
     ) : ExploreUiState()
 }
 

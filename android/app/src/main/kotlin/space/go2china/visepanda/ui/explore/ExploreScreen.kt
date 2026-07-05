@@ -43,6 +43,7 @@ private val ActivePill = BrandGreen
 
 @Composable
 fun ExploreScreen(
+    onAskButler: (String) -> Unit = {},
     viewModel: ExploreViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -82,10 +83,12 @@ fun ExploreScreen(
     }
 
     // ── request location when entering a channel ──
-    fun enterChannel(category: ExploreCategory) {
+    fun enterChannel(category: ExploreCategory, focus: ExploreFocusTarget? = null) {
         if (locationGranted) {
             scope.launch {
-                fetchLocation { loc -> viewModel.navigateToChannel(category, true, loc) }
+                fetchLocation { loc ->
+                    viewModel.navigateToChannel(category, true, loc, focus?.amapPoiId, focus?.cityId)
+                }
             }
         } else {
             locationLauncher.launch(
@@ -94,7 +97,15 @@ fun ExploreScreen(
                     Manifest.permission.ACCESS_COARSE_LOCATION,
                 )
             )
-            viewModel.navigateToChannel(category, false, null)
+            viewModel.navigateToChannel(category, false, null, focus?.amapPoiId, focus?.cityId)
+        }
+    }
+
+    // ── Chat↔Explore bridge: enter a channel directly when opened from an
+    // exploreRef card instead of showing Home (Issue #59). ──
+    LaunchedEffect(Unit) {
+        viewModel.consumePendingFocus()?.let { focus ->
+            enterChannel(focus.category, focus)
         }
     }
 
@@ -113,7 +124,7 @@ fun ExploreScreen(
         is ExploreUiState.Home -> ExploreHomeContent(
             state = s,
             onCitySelect = viewModel::selectCity,
-            onCategoryClick = ::enterChannel,
+            onCategoryClick = { category -> enterChannel(category) },
         )
 
         is ExploreUiState.Channel -> ExploreChannelContent(
@@ -128,6 +139,7 @@ fun ExploreScreen(
             onApplyMore = viewModel::applyMoreFilters,
             onLoadMore = viewModel::loadNextPage,
             onAddToTrip = { poi -> viewModel.addToTrip(poi, 1) },
+            onAskButler = onAskButler,
             onDismissAdded = viewModel::dismissAddedNotice,
             onDismissNotice = viewModel::dismissLocationNotice,
         )
@@ -305,6 +317,7 @@ private fun ExploreChannelContent(
     onApplyMore: (Set<PriceFilter>, Boolean) -> Unit,
     onLoadMore: () -> Unit,
     onAddToTrip: (ExplorePoi) -> Unit,
+    onAskButler: (String) -> Unit,
     onDismissAdded: () -> Unit,
     onDismissNotice: () -> Unit,
 ) {
@@ -325,6 +338,16 @@ private fun ExploreChannelContent(
     }
     LaunchedEffect(shouldLoadMore.value) {
         if (shouldLoadMore.value) onLoadMore()
+    }
+
+    // Chat↔Explore bridge (Issue #59): scroll to the POI a Butler exploreRef
+    // card pointed at, once it's actually present in a loaded page. Best-
+    // effort only — never fabricates a card if the id never shows up.
+    val focusIndex = state.focusPoiId?.let { id -> state.pois.indexOfFirst { it.id == "amap-$id" } }
+    LaunchedEffect(focusIndex, state.pois) {
+        if (focusIndex != null && focusIndex >= 0) {
+            listState.animateScrollToItem(focusIndex)
+        }
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -409,7 +432,12 @@ private fun ExploreChannelContent(
                     else -> {
                         LazyColumn(state = listState, contentPadding = PaddingValues(vertical = 8.dp)) {
                             items(state.pois, key = { it.id }) { poi ->
-                                PoiCard(poi = poi, onAddToTrip = { onAddToTrip(poi) })
+                                PoiCard(
+                                    poi = poi,
+                                    isFocused = state.focusPoiId != null && poi.id == "amap-${state.focusPoiId}",
+                                    onAddToTrip = { onAddToTrip(poi) },
+                                    onAskButler = { onAskButler(askButlerMessageFor(poi)) },
+                                )
                             }
                             if (state.isLoading) {
                                 item {
@@ -776,12 +804,21 @@ private fun SingleOptionRow(label: String, selected: Boolean, enabled: Boolean =
 // ══════════════════════════════════════════════════
 
 @Composable
-private fun PoiCard(poi: ExplorePoi, onAddToTrip: () -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
+private fun PoiCard(
+    poi: ExplorePoi,
+    isFocused: Boolean = false,
+    onAddToTrip: () -> Unit,
+    onAskButler: () -> Unit = {},
+) {
+    // Chat↔Explore bridge (Issue #59): a Butler exploreRef card jumps here
+    // with the referenced POI expanded and highlighted, so the traveler sees
+    // exactly what they tapped rather than having to find it in the list.
+    var expanded by remember(isFocused) { mutableStateOf(isFocused) }
 
     Card(
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(1.dp),
+        border = if (isFocused) BorderStroke(2.dp, BrandGreen) else null,
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 4.dp)
@@ -889,18 +926,37 @@ private fun PoiCard(poi: ExplorePoi, onAddToTrip: () -> Unit) {
                         )
                     }
                     Spacer(Modifier.height(6.dp))
-                    Button(
-                        onClick = onAddToTrip,
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = BrandGreen),
-                        modifier = Modifier.height(32.dp),
-                    ) {
-                        Text("Add to Trip", style = MaterialTheme.typography.labelSmall)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            onClick = onAddToTrip,
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = BrandGreen),
+                            modifier = Modifier.height(32.dp),
+                        ) {
+                            Text("Add to Trip", style = MaterialTheme.typography.labelSmall)
+                        }
+                        OutlinedButton(
+                            onClick = onAskButler,
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                            modifier = Modifier.height(32.dp),
+                        ) {
+                            Text("Ask Butler", style = MaterialTheme.typography.labelSmall)
+                        }
                     }
                 }
             }
         }
     }
+}
+
+/** Chat↔Explore bridge (Issue #59): editable prefilled prompt for the "Ask Butler" button. */
+private fun askButlerMessageFor(poi: ExplorePoi): String {
+    val details = listOfNotNull(
+        poi.businessArea?.takeIf { it.isNotBlank() },
+        if (poi.hasRating) "rating ${String.format("%.1f", poi.rating)}" else null,
+    ).joinToString(", ")
+    val suffix = if (details.isNotBlank()) " ($details)" else ""
+    return "Tell me about ${poi.name}$suffix — is it good for my trip? Can you fit it into my itinerary?"
 }
 
 // ══════════════════════════════════════════════════
