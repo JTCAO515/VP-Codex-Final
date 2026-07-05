@@ -73,3 +73,6 @@ val ToolsAccentEsim = Color(0xFF7A5C8A)
 val ToolsAccentEmergency = Color(0xFF9D2F24)
 val ToolsAccentTranslate = Color(0xFF3B7A57)
 val ToolsAccentBooking = Color(0xFF2E658E)
+
+/** Issue #85: accent for the "Offline Pack" category added to mirror iOS. */
+val ToolsAccentOfflinePack = Color(0xFF6B7A62)

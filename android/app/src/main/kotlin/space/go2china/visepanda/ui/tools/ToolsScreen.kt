@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Train
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.filled.ConfirmationNumber
+import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -52,6 +53,7 @@ import space.go2china.visepanda.ui.theme.ToolsAccentMetro
 import space.go2china.visepanda.ui.theme.ToolsAccentPayment
 import space.go2china.visepanda.ui.theme.ToolsAccentVisa
 import space.go2china.visepanda.ui.theme.ToolsAccentTranslate
+import space.go2china.visepanda.ui.theme.ToolsAccentOfflinePack
 import space.go2china.visepanda.ui.theme.ToolsAccentBooking
 
 private data class ToolCategoryMeta(val icon: ImageVector, val accent: Color, val badge: String)
@@ -70,6 +72,8 @@ private val toolCategoryMeta = mapOf(
     "emergency" to ToolCategoryMeta(Icons.Filled.Warning, ToolsAccentEmergency, "Emergency"),
     "translate" to ToolCategoryMeta(Icons.Filled.Translate, ToolsAccentTranslate, "Utility"),
     "booking" to ToolCategoryMeta(Icons.Filled.ConfirmationNumber, ToolsAccentBooking, "Info only"),
+    // Issue #85: mirrors iOS ToolsView.swift's "Offline Pack" entry.
+    "offline-pack" to ToolCategoryMeta(Icons.Filled.CloudDownload, ToolsAccentOfflinePack, "Local cache"),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -98,16 +102,18 @@ fun ToolsScreen(
 
 /**
  * v0.3.x (Issue #67): 2-column order mirrors iOS PR #66 — Translate/Emergency,
- * Payment/Transport, Currency/Network, Entry Checklist/(iOS-only Offline
- * Pack). Android has no "Offline Pack" content category (iOS's is new and
- * iOS-specific), so "booking" fills that last slot instead of inventing
- * placeholder content for a category that doesn't exist here yet.
+ * Payment/Transport, Currency/Network, Entry Checklist/Booking. Issue #85
+ * closed the iOS/Android content gap in both directions: "booking" (Android's
+ * original 8th category) and "offline-pack" (previously iOS-only) now exist
+ * on both platforms, so the grid grows to 9 cells with the last row holding
+ * just "offline-pack".
  */
 private val toolsDisplayOrder = listOf(
     "translate", "emergency",
     "payment-setup", "metro",
     "currency", "esim-vpn",
     "visa-and-entry", "booking",
+    "offline-pack",
 )
 
 @Composable

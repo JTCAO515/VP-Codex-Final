@@ -303,5 +303,29 @@ object StaticToolsData {
             offlineTips = sharedOfflineTips + "Keep PDF or screenshot confirmations of all your bookings.",
             apiPriority = "Info-only reference block; no transactional integrations are planned.",
         ),
+        // Issue #85: mirrors iOS ToolsView.swift's "Offline Pack" entry so
+        // both platforms show what's already cached locally, not just
+        // Android's own "booking" category.
+        ToolCategory(
+            id = "offline-pack",
+            name = "Offline Pack",
+            summary = "What's already cached locally, so you're not stuck without a network.",
+            tips = listOf(
+                "Current build stores the active trip and chat locally.",
+                "Full city packs are planned for a later release.",
+            ),
+            sections = listOf(
+                ToolSection(
+                    title = "Saved locally now",
+                    items = listOf("Trip canvas", "Chat history", "Tool checklists", "Fallback translation phrases"),
+                ),
+                ToolSection(
+                    title = "Next",
+                    items = listOf("City data packs", "Map pins", "OCR phrase history"),
+                ),
+            ),
+            offlineTips = sharedOfflineTips + "Open this page before travel to confirm local data is available.",
+            apiPriority = "Local-only content; no network call backs this category.",
+        ),
     )
 }

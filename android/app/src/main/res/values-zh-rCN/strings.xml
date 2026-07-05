@@ -69,6 +69,9 @@
     <string name="me_section_trips">行程</string>
     <string name="me_trip_active">进行中</string>
     <string name="me_trips_empty">暂无进行中的行程</string>
+    <string name="me_trip_history_label">历史行程</string>
+    <string name="me_trip_history_not_connected">暂未接入</string>
+    <string name="me_reset_local_draft">重置本地草稿</string>
     <string name="me_section_privacy">数据与隐私</string>
     <string name="me_privacy_offline_data">离线数据</string>
     <string name="me_value_not_set">未设置</string>

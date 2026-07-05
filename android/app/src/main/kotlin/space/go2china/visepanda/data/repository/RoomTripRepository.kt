@@ -161,6 +161,10 @@ class RoomTripRepository @Inject constructor(
         }
     }
 
+    override suspend fun resetLocalDraft() = withContext(Dispatchers.IO) {
+        tripCacheDao.delete(ACTIVE_TRIP_ID)
+    }
+
     private suspend fun updateTrip(transform: (TripState) -> TripState) = withContext(Dispatchers.IO) {
         val entity = tripCacheDao.get(ACTIVE_TRIP_ID)
         val currentTrip = entity?.decodeTripOrNull() ?: StarterTripData.initialTripState
