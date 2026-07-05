@@ -37,6 +37,26 @@
 
 **客户端契约**：收到 `patch` 后必须走 `applyCanvasPatch`（或镜像实现）合并本地 `TripState`，不允许自己拼装。Android 参考 `CanvasPatchApplier.kt`，iOS 参考 `CanvasPatchApplier.swift`。
 
+### `patch.assistantResponse.exploreRefs`（Issue #50，Chat↔Explore 打通契约）
+
+`AssistantResponse` 新增可选字段 `exploreRefs?: ExploreRef[]`：
+
+```json
+{
+  "amapPoiId": "string — 高德原始 POI id（与 ButlerToolPoi.id / 移动端 AmapPoiJson.id 一致,不带 \"amap-\" 前缀）",
+  "name": "string",
+  "cityId": "string — 与 AMAP_CITY_MAP key 一致,如 beijing",
+  "category": "\"attractions\" | \"food\" | \"stays\"",
+  "subcategory": "string | undefined",
+  "rating": "number | undefined",
+  "pricePerPerson": "number | undefined"
+}
+```
+
+**生成规则**（`lib/ai/toolContextWriteThrough.ts` 的 `buildExploreRefs`）：只对本次请求真实拿到的 `toolContext.pois`(见下方 `toolContext` 字段)按名称文本匹配 `assistantResponse` 的 `headline`/`body`/`highlights`,命中才写入 `exploreRefs`——**绝不让模型自由生成 id**,匹配不到时 `exploreRefs` 为空数组或字段整体缺失。移动端渲染规则:`exploreRefs` 为空/缺失时不渲染任何占位卡,不造假数据。
+
+**移动端消费**：Butler 消息气泡下渲染 `exploreRefs` 为可点横滑小卡(名称+评分+人均);点击跳转 Explore 频道页并按 `cityId`/`category`/`amapPoiId` 定位。此契约落地后,Android/iOS 各自的客户端渲染在后续 Issue 中实现。
+
 ## GET /api/tools — Tools 分类
 
 **Response**

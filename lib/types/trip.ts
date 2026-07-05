@@ -106,6 +106,27 @@ export interface AssistantResponse {
   watchOut?: string;
   nextStep: string;
   toolCards?: InlineToolCard[];
+  /**
+   * Real Explore POIs the Butler's answer text refers to (Issue #50,
+   * Chat↔Explore bridge). Populated server-side by matching names in
+   * headline/body/highlights against the request's real toolContext POIs —
+   * never model-generated, so a ref always points at something that exists.
+   * Empty/absent when no real POI was mentioned; clients must not render a
+   * placeholder card in that case.
+   */
+  exploreRefs?: ExploreRef[];
+}
+
+/** One real Explore POI referenced by an AssistantResponse. See exploreRefs. */
+export interface ExploreRef {
+  /** Raw Amap POI id (matches ButlerToolPoi.id / mobile AmapPoiJson.id before the "amap-" prefix). */
+  amapPoiId: string;
+  name: string;
+  cityId: string;
+  category: "attractions" | "food" | "stays";
+  subcategory?: string;
+  rating?: number;
+  pricePerPerson?: number;
 }
 
 export interface InlineToolCard {
