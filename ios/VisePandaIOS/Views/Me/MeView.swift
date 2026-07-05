@@ -497,6 +497,17 @@ private struct AuthSheetView: View {
                                     .fixedSize(horizontal: false, vertical: true)
                                     .accessibilityIdentifier("authError")
                             }
+
+                            if let confirmationEmail = authStore.signUpConfirmationEmail {
+                                Label(
+                                    "Account created for \(confirmationEmail). Check your email and tap the confirmation link, then sign in.",
+                                    systemImage: "envelope.badge"
+                                )
+                                .font(VPFont.body(13, weight: .semibold))
+                                .foregroundStyle(VPColor.ink)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("signUpConfirmationNotice")
+                            }
                         }
                     }
                 }

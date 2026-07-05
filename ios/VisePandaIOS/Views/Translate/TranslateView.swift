@@ -96,15 +96,45 @@ struct TranslateView: View {
                             .font(VPFont.body(12, weight: .bold))
                             .foregroundStyle(VPColor.cinnabar)
 
-                        TextField("Type a short travel phrase", text: $input, axis: .vertical)
+                        TextField(
+                            recorder != nil ? "Recording... tap mic to stop" : (processingMode != nil ? "Transcribing..." : "Type a short travel phrase"),
+                            text: $input,
+                            axis: .vertical
+                        )
                             .font(VPFont.body(16))
                             .lineLimit(3...6)
+                            .disabled(recorder != nil || processingMode != nil)
                             .padding(12)
                             .background(VPColor.paper)
                             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                             .accessibilityIdentifier("translateInput")
 
-                        HStack {
+                        HStack(spacing: 16) {
+                            Button(action: startCameraTranslation) {
+                                Image(systemName: "camera")
+                            }
+                            .disabled(processingMode == .ocr || recorder != nil)
+                            .accessibilityLabel("Camera translation")
+                            .accessibilityIdentifier("cameraTranslationButton")
+
+                            Button(action: toggleVoiceRecording) {
+                                Image(systemName: recorder == nil ? "mic" : "stop.circle.fill")
+                                    .foregroundStyle(recorder != nil ? VPColor.cinnabar : VPColor.ink)
+                            }
+                            .disabled(processingMode == .ocr)
+                            .accessibilityLabel(recorder == nil ? "Voice translation" : "Stop recording")
+                            .accessibilityIdentifier("voiceTranslationButton")
+
+                            if processingMode != nil {
+                                ProgressView()
+                            }
+
+                            Spacer()
+                        }
+                        .font(.system(size: 18, weight: .semibold))
+                        .tint(VPColor.ink)
+
+                        HStack(spacing: 8) {
                             Button {
                                 swapLanguages()
                             } label: {
@@ -125,6 +155,8 @@ struct TranslateView: View {
                                 ProgressView()
                             }
                         }
+                        .font(VPFont.body(14, weight: .semibold))
+                        .tint(VPColor.ink)
                     }
                 }
 
@@ -139,25 +171,6 @@ struct TranslateView: View {
                 if let permissionMessage {
                     permissionCard(permissionMessage)
                 }
-
-                Text("Other Translation Modes")
-                    .font(VPFont.body(13, weight: .bold))
-                    .foregroundStyle(VPColor.inkSoft)
-
-                modeButton(
-                    title: "Camera translation",
-                    subtitle: "Photo or library image to OCR",
-                    icon: "camera",
-                    loading: processingMode == .ocr,
-                    action: startCameraTranslation
-                )
-                modeButton(
-                    title: recorder == nil ? "Voice translation" : "Stop recording",
-                    subtitle: recorder == nil ? "Record up to 30 seconds" : "Tap to transcribe and translate",
-                    icon: recorder == nil ? "mic" : "stop.circle",
-                    loading: processingMode == .stt,
-                    action: toggleVoiceRecording
-                )
 
                 NavigationLink {
                     CommunicationCardDetail()
@@ -312,39 +325,6 @@ struct TranslateView: View {
         }
     }
 
-    private func modeButton(title: String, subtitle: String, icon: String, loading: Bool, action: @escaping () -> Void) -> some View {
-        VPCard {
-            Button(action: action) {
-                HStack {
-                    Label {
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(title)
-                            Text(subtitle)
-                                .font(VPFont.body(12, weight: .semibold))
-                                .foregroundStyle(VPColor.inkSoft)
-                        }
-                    } icon: {
-                        Image(systemName: icon)
-                    }
-                        .font(VPFont.body(15, weight: .bold))
-                        .foregroundStyle(VPColor.ink)
-                    Spacer()
-                    if loading {
-                        ProgressView()
-                    } else if recorder != nil && icon == "stop.circle" {
-                        VPStatusPill(title: "Recording", tone: .red)
-                    } else {
-                        Image(systemName: "chevron.right")
-                            .foregroundStyle(VPColor.inkSoft)
-                    }
-                }
-            }
-            .buttonStyle(.plain)
-            .disabled(loading)
-            .accessibilityLabel(title)
-            .accessibilityIdentifier(title == "Camera translation" ? "cameraTranslationButton" : "voiceTranslationButton")
-        }
-    }
 
     private func debounceTranslate() async {
         guard allowAutoTranslate else { return }

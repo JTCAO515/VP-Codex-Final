@@ -15,10 +15,25 @@ struct SupabaseAuthClient {
         return try await perform(request, as: SupabaseAuthSession.self)
     }
 
-    func signUp(email: String, password: String) async throws -> SupabaseAuthSession {
+    func signUp(email: String, password: String) async throws -> SupabaseSignUpResult {
         var request = makeRequest(path: "auth/v1/signup", method: "POST")
         request.httpBody = try JSONEncoder.visePanda.encode(SupabaseAuthRequest(email: email, password: password))
-        return try await perform(request, as: SupabaseAuthSession.self)
+
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw decodeError(data, response: response)
+        }
+
+        // Email confirmation OFF: signup returns the same shape as sign-in.
+        if let signedIn = try? JSONDecoder.visePanda.decode(SupabaseAuthSession.self, from: data) {
+            return .signedIn(signedIn)
+        }
+        // Email confirmation ON: signup returns a flat user object instead,
+        // with no access_token — this is the success path, not a decode bug.
+        if let user = try? JSONDecoder.visePanda.decode(SupabaseAuthUser.self, from: data) {
+            return .confirmationRequired(email: user.email ?? email)
+        }
+        throw decodeError(data, response: response)
     }
 
     func refresh(_ refreshToken: String) async throws -> SupabaseAuthSession {

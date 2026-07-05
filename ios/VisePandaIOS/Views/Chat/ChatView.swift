@@ -73,7 +73,7 @@ struct ChatView: View {
                 .clipShape(Circle())
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("Butler")
+                Text("VisePanda")
                     .font(VPFont.display(22))
                     .foregroundStyle(VPColor.ink)
                 Text("AI China Travel Butler")
@@ -402,7 +402,7 @@ private struct ThinkingBubble: View {
         HStack {
             ProgressView()
                 .tint(VPColor.cinnabar)
-            Text("Butler is thinking...")
+            Text("VisePanda is making plan for you")
                 .font(VPFont.body(14, weight: .semibold))
                 .foregroundStyle(VPColor.inkSoft)
             Spacer()
