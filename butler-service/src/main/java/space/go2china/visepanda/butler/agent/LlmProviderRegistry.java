@@ -16,6 +16,9 @@ public class LlmProviderRegistry {
 
     public List<LlmProvider> configuredProviders() {
         List<LlmProvider> providers = new ArrayList<>();
+        add(providers, "deepseek", "DeepSeek v4 flash", key("DEEPSEEK_API_KEY", "AI_API_KEY"),
+                value("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),
+                value("DEEPSEEK_MODEL", "deepseek-v4-flash"), Map.of("thinking", Map.of("type", "disabled")));
         add(providers, "qwen", "Qwen (Aliyun Bailian)", key("DASHSCOPE_API_KEY", "ALIYUN_BAILIAN_API_KEY"),
                 value("DASHSCOPE_COMPATIBLE_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1"),
                 value("QWEN_CHAT_MODEL", "qwen3.6-flash"), Map.of("enable_thinking", false));
@@ -24,14 +27,19 @@ public class LlmProviderRegistry {
                 value("ZHIPU_CHAT_MODEL", "glm-5.1"), Map.of("thinking", Map.of("type", "disabled")));
         add(providers, "moonshot", "Moonshot Kimi", key("MOONSHOT_API_KEY", "KIMI_API_KEY"),
                 value("MOONSHOT_BASE_URL", "https://api.moonshot.cn/v1"),
-                value("MOONSHOT_CHAT_MODEL", "kimi-k2.6"), Map.of("temperature", 1));
+                value("MOONSHOT_CHAT_MODEL", "kimi-k2.6"), Map.of("temperature", 1), 90_000, 8_192);
         return providers;
     }
 
     private void add(List<LlmProvider> providers, String id, String label, String apiKey, String baseUrl, String model,
                      Map<String, Object> extraBody) {
+        add(providers, id, label, apiKey, baseUrl, model, extraBody, 0, 0);
+    }
+
+    private void add(List<LlmProvider> providers, String id, String label, String apiKey, String baseUrl, String model,
+                     Map<String, Object> extraBody, int minTimeoutMs, int minMaxTokens) {
         if (apiKey == null || apiKey.isBlank()) return;
-        providers.add(new LlmProvider(id, label, apiKey, stripSlash(baseUrl), model, extraBody));
+        providers.add(new LlmProvider(id, label, apiKey, stripSlash(baseUrl), model, extraBody, minTimeoutMs, minMaxTokens));
     }
 
     private String key(String primary, String alias) {

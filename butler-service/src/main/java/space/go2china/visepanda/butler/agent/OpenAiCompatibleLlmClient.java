@@ -11,7 +11,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class OpenAiCompatibleLlmClient {
-    private static final Duration TIMEOUT = Duration.ofSeconds(18);
+    private static final int DEFAULT_TIMEOUT_MS = 18_000;
+    private static final int DEFAULT_MAX_TOKENS = 2_200;
     private final LlmProviderRegistry registry;
     private final LlmHttpClient httpClient;
     private final ObjectMapper objectMapper;
@@ -32,8 +33,9 @@ public class OpenAiCompatibleLlmClient {
         for (LlmProvider provider : providers) {
             try {
                 String body = objectMapper.writeValueAsString(body(provider, systemPrompt, userPrompt));
+                Duration timeout = Duration.ofMillis(Math.max(DEFAULT_TIMEOUT_MS, provider.minTimeoutMs()));
                 LlmHttpResponse response = httpClient.postJson(provider.baseUrl() + "/chat/completions",
-                        provider.apiKey(), body, TIMEOUT);
+                        provider.apiKey(), body, timeout);
                 if (!response.ok()) {
                     throw new LlmUnavailableException(provider.label() + ": HTTP " + response.status());
                 }
@@ -57,7 +59,7 @@ public class OpenAiCompatibleLlmClient {
                 Map.of("role", "system", "content", systemPrompt),
                 Map.of("role", "user", "content", userPrompt)
         ));
-        body.put("max_tokens", 2200);
+        body.put("max_tokens", Math.max(DEFAULT_MAX_TOKENS, provider.minMaxTokens()));
         body.put("temperature", 0.3);
         body.put("response_format", Map.of("type", "json_object"));
         body.putAll(provider.extraBody());
