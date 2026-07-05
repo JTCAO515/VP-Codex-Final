@@ -12,11 +12,17 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import space.go2china.visepanda.data.repository.TranslateRepository
 import space.go2china.visepanda.data.repository.TripRepository
 
 @HiltViewModel
 class ButlerViewModel @Inject constructor(
     private val tripRepository: TripRepository,
+    // Voice input (real-device feedback, 2026-07-05): reuses the existing STT
+    // pipeline from Translate rather than duplicating a second speech-to-text
+    // integration — same backend endpoint, just fills the composer instead of
+    // auto-translating.
+    private val translateRepository: TranslateRepository,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -51,6 +57,34 @@ class ButlerViewModel @Inject constructor(
 
     fun sendSuggestion(suggestion: String) {
         send(suggestion)
+    }
+
+    fun setRecordingState(recording: Boolean) {
+        localState.update { it.copy(isRecording = recording) }
+    }
+
+    /**
+     * Voice input (real-device feedback, 2026-07-05): transcribes the
+     * recording and fills the composer so the traveler can review/edit
+     * before sending — unlike Translate's auto-translate-on-transcribe flow,
+     * Chat never sends on the user's behalf.
+     */
+    fun performStt(audioBase64: String) {
+        localState.update { it.copy(isTranscribing = true, isRecording = false, errorMessage = null) }
+        viewModelScope.launch {
+            translateRepository.translateStt(audioBase64, "audio/mpeg", "zh")
+                .onSuccess { text ->
+                    localState.update { it.copy(isTranscribing = false, input = text) }
+                }
+                .onFailure { error ->
+                    localState.update {
+                        it.copy(
+                            isTranscribing = false,
+                            errorMessage = error.message ?: "Voice input failed. Please try again.",
+                        )
+                    }
+                }
+        }
     }
 
     private fun send(rawMessage: String) {
