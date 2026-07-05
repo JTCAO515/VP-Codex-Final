@@ -9,19 +9,18 @@ import space.go2china.visepanda.butler.rag.RagService;
 @Component
 public class ButlerTools {
     private final RagService ragService;
+    private final AmapMcpClient amapMcpClient;
 
-    public ButlerTools(RagService ragService) {
+    public ButlerTools(RagService ragService, AmapMcpClient amapMcpClient) {
         this.ragService = ragService;
+        this.amapMcpClient = amapMcpClient;
     }
 
-    @Tool("Search nearby POIs from bounded static fallback data")
+    @Tool("Search nearby POIs from Amap MCP when configured")
     public ToolResult searchPois(String query, ToolBudget budget) {
         if (!budget.tryUse()) return new ToolResult("Tool budget exhausted.", List.of(), "Tool budget");
-        String city = query != null && query.toLowerCase().contains("shanghai") ? "Shanghai" : "Beijing";
-        if (query != null && query.toLowerCase().matches(".*\\b(food|lunch|restaurant|eat|hotpot)\\b.*")) {
-            return new ToolResult("Nearby lunch candidates", List.of(city + " local noodle shop", city + " dumpling restaurant", city + " tea house"), "Static POI fallback");
-        }
-        return new ToolResult("Nearby places", List.of(city + " historic center", city + " riverside walk", city + " local market"), "Static POI fallback");
+        return amapMcpClient.textSearch(query)
+                .orElseGet(() -> new ToolResult("Realtime POI lookup is not configured.", List.of(), "Amap MCP"));
     }
 
     @Tool("Get conservative exchange-rate guidance")
