@@ -62,17 +62,33 @@
 
 **客户端规则**：调用失败时必须显示诚实的"实时汇率不可用"提示，禁止伪造/编造汇率数字（Android 参考 `LiveToolsRepository.fetchLiveRates()` 的 `runCatching` 优雅降级模式）。
 
-## GET /api/explore/amap — 高德 POI
+## GET /api/explore/amap — 高德 POI(v0.3.20 起支持大众点评式 Explore 重做,Issue #46)
 
-**Query params**：`cityId`（必填，需在 `AMAP_CITY_MAP` 中）、`type`（必填，需在 `AMAP_TYPE_MAP` 中）、`keyword`（可选）。
+**Query params**：
+- `cityId`(必填,需在 `AMAP_CITY_MAP` 中:beijing/shanghai/chengdu/xian/guangzhou/hangzhou/suzhou/chongqing/nanjing)
+- `type`(必填,需在 `AMAP_TYPE_MAP` 中——见下方完整分类表)
+- `keyword`(可选,与分类自带的 keyword 组合,`|` 连接传给高德)
+- `mode`(可选,`city`(默认)| `around`)
+- `location`(mode=around 时必填,`"lng,lat"`,须在中国境内合理经纬度范围,否则 400)
+- `radius`(可选,米,仅 around 模式生效,自动 clamp 到 500-50000)
+- `sort`(可选,`weight`(默认)| `distance`,distance 仅 around 模式有意义)
+- `page`(可选,默认 1,1-100)
 
-**Response（成功）**
+**分类表(`AMAP_TYPE_MAP` 完整清单,语义化 key,不需要客户端自己拼高德码)**:
+
+| 大类 | 二级 key | 大类 | 二级 key |
+|---|---|---|---|
+| `food` | `food.hotpot`/`food.sichuan`/`food.cantonese`/`food.japanese`/`food.bbq`/`food.dessert`/`food.fastfood`/`food.cafe` | `shopping` | `shopping.mall`/`shopping.specialty`/`shopping.supermarket` |
+| `attractions` | `attractions.scenic`/`attractions.park`/`attractions.museum`/`attractions.temple` | `experiences` | `experiences.massage`/`experiences.bath`/`experiences.spa`/`experiences.teahouse`/`experiences.ktv` |
+| `hotels`(`stays` 为兼容别名) | `hotels.star`/`hotels.economy`/`hotels.hostel` | | |
+
+**Response(成功)**
 ```json
-{ "ok": true, "cityId": "string", "type": "string", "pois": "AmapPoi[]" }
+{ "ok": true, "cityId": "string", "type": "string", "page": 1, "hasMore": true, "pois": "AmapPoi[]" }
 ```
-**Response（失败）**：503 `not_configured`（无 `AMAP_API_KEY`）/ 400 `invalid_params` / 502 `upstream_error`。
+**Response(失败)**:503 `not_configured`(无 `AMAP_API_KEY`)/ 400 `invalid_params` / `invalid_location`(mode=around 但 location 不合法)/ `invalid_page` / 502 `upstream_error`。
 
-**客户端规则**：任一失败都必须回落到静态/mock POI 列表，不能空白页或崩溃。
+**客户端规则**:任一失败都必须回落到静态/mock POI 列表,不能空白页或崩溃。老参数组合(`cityId`+`type`,不带 mode/location)行为与升级前完全一致,向后兼容。
 
 ## GET /api/explore — Explore provider 聚合入口
 
