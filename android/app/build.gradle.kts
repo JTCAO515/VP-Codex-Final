@@ -14,8 +14,8 @@ android {
         applicationId = "space.go2china.visepanda"
         minSdk = 26
         targetSdk = 34
-        versionCode = 20
-        versionName = "0.3.20"
+        versionCode = 22
+        versionName = "0.3.22"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "VISEPANDA_API_BASE_URL", "\"https://www.go2china.space/\"")
@@ -76,6 +76,7 @@ dependencies {
     // Core / lifecycle
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
     implementation("androidx.activity:activity-compose:1.9.1")
 
@@ -109,6 +110,12 @@ dependencies {
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+
+    // Image loading (Explore POI photos, UGC feed thumbnails)
+    implementation("io.coil-kt:coil-compose:2.6.0")
+
+    // Location (Explore Dianping-style nearby filter — Issue #47)
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 
     // Testing
     testImplementation("junit:junit:4.13.2")

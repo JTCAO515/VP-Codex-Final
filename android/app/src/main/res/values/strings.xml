@@ -108,6 +108,19 @@
     <string name="translate_error_perm_rejected">Permission was denied. Please go to system settings to enable it.</string>
     <string name="translate_error_ocr_failed">OCR text extraction failed. Please ensure the image has clear text and check network.</string>
     <string name="translate_error_stt_failed">STT voice recognition failed. Please try speaking clearly and check network.</string>
+    <!-- Explore Dianping-style redesign (Issue #47) -->
+    <string name="explore_select_city">Select City</string>
+    <string name="explore_location_off_notice">Location off — showing whole city results</string>
+    <string name="explore_filter_nearby">Nearby</string>
+    <string name="explore_filter_category">Category</string>
+    <string name="explore_filter_sort">Sort</string>
+    <string name="explore_filter_more">Filter</string>
+    <string name="explore_no_results_offline">Could not load places. Check your connection.</string>
+    <string name="explore_added_to_trip">\"%1$s\" added to Trip</string>
+    <string name="explore_vp_pick">✦ VP Pick</string>
+    <string name="explore_location_enable_hint">Enable location for distance filters</string>
+    <string name="explore_ugc_coming_soon">Coming soon</string>
+    <string name="explore_whole_city">Whole City</string>
 
     <!-- Cloud Sync Status -->
     <string name="me_sync_status_label">Cloud Sync</string>
