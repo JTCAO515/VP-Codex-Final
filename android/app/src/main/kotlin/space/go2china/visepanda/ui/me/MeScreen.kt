@@ -41,6 +41,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import space.go2china.visepanda.R
 import space.go2china.visepanda.ui.theme.Dimens
+import space.go2china.visepanda.data.repository.SyncStatus
+
 
 /**
  * v0.3.18 profile/settings surface (the bottom-nav restructure's "Me").
@@ -71,6 +73,7 @@ fun MeScreen(
         MeContent(
             isLoggedIn = state.isLoggedIn,
             userEmail = state.userEmail,
+            syncStatus = state.syncStatus,
             activeTripTitle = state.activeTripTitle,
             hasCachedTripData = state.hasCachedTripData,
             languageCode = languageCode,
@@ -99,6 +102,7 @@ fun MeScreen(
 private fun MeContent(
     isLoggedIn: Boolean,
     userEmail: String?,
+    syncStatus: SyncStatus,
     activeTripTitle: String?,
     hasCachedTripData: Boolean,
     languageCode: String,
@@ -149,6 +153,32 @@ private fun MeContent(
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurface,
                             )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = stringResource(R.string.me_sync_status_label) + ": ",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                val syncText = when (syncStatus) {
+                                    SyncStatus.NOT_SIGNED_IN -> stringResource(R.string.me_sync_status_not_signed_in)
+                                    SyncStatus.NOT_SYNCED -> stringResource(R.string.me_sync_status_not_synced)
+                                    SyncStatus.SYNCING -> stringResource(R.string.me_sync_status_syncing)
+                                    SyncStatus.SYNCED -> stringResource(R.string.me_sync_status_synced)
+                                    SyncStatus.FAILED -> stringResource(R.string.me_sync_status_failed)
+                                }
+                                val syncColor = when (syncStatus) {
+                                    SyncStatus.SYNCED -> MaterialTheme.colorScheme.primary
+                                    SyncStatus.SYNCING -> MaterialTheme.colorScheme.secondary
+                                    SyncStatus.FAILED -> MaterialTheme.colorScheme.error
+                                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                }
+                                Text(
+                                    text = syncText,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = syncColor
+                                )
+                            }
                         }
                         TextButton(onClick = onLogOutClick) {
                             Text(
