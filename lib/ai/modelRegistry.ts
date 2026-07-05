@@ -58,7 +58,7 @@ export const BUTLER_PROVIDERS: ChatCompletionProvider[] = [
     apiKeyEnvAliases: ["GLM_API_KEY"],
     defaultBaseUrl: "https://open.bigmodel.cn/api/paas/v4",
     baseUrlEnv: "ZHIPU_BASE_URL",
-    defaultModel: "glm-5.1",
+    defaultModel: "glm-5.2",
     modelEnv: "ZHIPU_CHAT_MODEL",
     // Same rationale as qwen: GLM-5.x reasons by default; disabled = 6.6s
     // direct JSON vs 25s timeout (v0.3.18).
