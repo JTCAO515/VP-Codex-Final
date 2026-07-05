@@ -93,6 +93,27 @@
 
 **Response(失败)**:503 `not_configured`(无 `AMAP_API_KEY`)/ 400 `invalid_params` / `invalid_location`(mode=around 但 location 不合法)/ `invalid_page` / 502 `upstream_error`。
 
+## GET /api/explore/baidu — 百度 POI(体验品类 Phase 2 占位接入)
+
+独立百度地图 Place API v2 数据源,先只覆盖 `experiences*` 体验品类,不改变 `/api/explore/amap` 既有行为。服务端读取 `BAIDU_MAP_AK`; 当前未提交真实 AK/真实调用结论,部署真实 key 后再补 PR 描述里的实测响应与覆盖价值判断。
+
+**Query params**:
+- `cityId`(必填,同 `AMAP_CITY_MAP`)
+- `type`(必填,仅 `experiences`/`experiences.massage`/`experiences.bath`/`experiences.spa`/`experiences.teahouse`)
+- `keyword`(可选,与百度体验品类关键词组合)
+- `page`(可选,默认 1,1-100; 服务端转换为百度 `page_num` 0-based)
+
+**Response(成功)**
+```json
+{ "ok": true, "cityId": "string", "type": "string", "page": 1, "hasMore": true, "pois": "BaiduPoi[]" }
+```
+`BaiduPoi` 保留百度原始字段(`uid`/`name`/`address`/`telephone`/`location`/`detail_info`)。若同名命中高德同页结果且 `AMAP_API_KEY` 已配置,会附加可选 `crossValidation`:
+```json
+{ "crossValidation": { "amapRating": "4.5", "baiduRating": "4.6", "match": "name" } }
+```
+
+**Response(失败)**:503 `not_configured`(无 `BAIDU_MAP_AK`)/ 400 `invalid_params` / `invalid_page`。
+
 ## GET /api/explore/curated — VisePanda 编辑精选(Issue #49)
 
 纯知识库数据,不打真实高德请求。用于 Explore 首页的"编辑精选"置顶区和 UGC mock feed(规格 §1.1)。
