@@ -35,6 +35,7 @@ class SupabaseSyncManagerTest {
         override fun getEmail(): String? = email
         override fun getUserId(): String? = userId
         override fun clearSession() {}
+        override fun getOrCreateGuestId(): String = "guest-test-id"
     }
 
     private class FakeSyncPreferences : SyncPreferences {

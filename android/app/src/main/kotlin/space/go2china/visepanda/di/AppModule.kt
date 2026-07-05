@@ -24,12 +24,15 @@ import space.go2china.visepanda.data.local.SharedPrefsSyncPreferences
 import space.go2china.visepanda.data.remote.ButlerApiService
 import space.go2china.visepanda.data.remote.ExchangeRateApiService
 import space.go2china.visepanda.data.remote.ExploreApiService
+import space.go2china.visepanda.data.remote.MemoryApiService
 import space.go2china.visepanda.data.remote.TranslateApiService
 import space.go2china.visepanda.data.remote.AuthApiService
 import space.go2china.visepanda.data.remote.SupabaseConfig
 import space.go2china.visepanda.data.repository.ExploreRepository
 import space.go2china.visepanda.data.repository.LiveExploreRepository
+import space.go2china.visepanda.data.repository.LiveMemoryRepository
 import space.go2china.visepanda.data.repository.LiveToolsRepository
+import space.go2china.visepanda.data.repository.MemoryRepository
 import space.go2china.visepanda.data.repository.RoomTripRepository
 import space.go2china.visepanda.data.repository.ToolsRepository
 import space.go2china.visepanda.data.repository.TranslateRepository
@@ -72,6 +75,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindAuthRepository(impl: LiveAuthRepository): AuthRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindMemoryRepository(impl: LiveMemoryRepository): MemoryRepository
 
     @Binds
     @Singleton
@@ -157,6 +164,11 @@ object NetworkModule {
     @Singleton
     fun provideExploreApiService(retrofit: Retrofit): ExploreApiService =
         retrofit.create(ExploreApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideMemoryApiService(retrofit: Retrofit): MemoryApiService =
+        retrofit.create(MemoryApiService::class.java)
 
     @Provides
     @Singleton

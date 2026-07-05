@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -22,6 +23,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -47,6 +49,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import space.go2china.visepanda.R
+import space.go2china.visepanda.data.model.MemoryEntry
 import space.go2china.visepanda.ui.theme.Dimens
 import space.go2china.visepanda.data.repository.SyncStatus
 
@@ -70,10 +73,22 @@ fun MeScreen(
     // always rendered inline on the page (mirrors iOS PR #66's AuthSheetView).
     var showAccountSheet by remember { mutableStateOf(false) }
     var purchaseNotice by remember { mutableStateOf<String?>(null) }
+    var selectedMemoryEntry by remember { mutableStateOf<MemoryEntry?>(null) }
 
     LaunchedEffect(state.isLoggedIn) {
         if (state.isLoggedIn) {
             showAccountSheet = false
+        }
+    }
+
+    // Once a delete succeeds the entry drops out of state.memoryEntries — if
+    // the open detail dialog was showing that entry, close it instead of
+    // leaving a dialog open for data that no longer exists.
+    LaunchedEffect(state.memoryEntries) {
+        selectedMemoryEntry?.let { selected ->
+            if (state.memoryEntries.none { it.key == selected.key && it.value == selected.value }) {
+                selectedMemoryEntry = null
+            }
         }
     }
 
@@ -92,7 +107,21 @@ fun MeScreen(
             onAccountCardClick = { showAccountSheet = true },
             onSubscribeClick = { plan -> purchaseNotice = plan },
             onLegalPlaceholderClick = { label -> purchaseNotice = label },
+            memoryEntries = state.memoryEntries,
+            memoryLoading = state.memoryLoading,
+            memoryError = state.memoryError,
+            onRefreshMemoryProfile = { viewModel.loadMemoryProfile(force = true) },
+            onMemoryEntryClick = { selectedMemoryEntry = it },
             contentPadding = innerPadding,
+        )
+    }
+
+    selectedMemoryEntry?.let { entry ->
+        MemoryEntryDetailDialog(
+            entry = entry,
+            isDeleting = state.memoryDeletingKey == entry.key,
+            onDelete = { viewModel.deleteMemoryEntry(entry) },
+            onDismiss = { selectedMemoryEntry = null },
         )
     }
 
@@ -140,6 +169,11 @@ private fun MeContent(
     onAccountCardClick: () -> Unit,
     onSubscribeClick: (String) -> Unit,
     onLegalPlaceholderClick: (String) -> Unit,
+    memoryEntries: List<MemoryEntry>,
+    memoryLoading: Boolean,
+    memoryError: String?,
+    onRefreshMemoryProfile: () -> Unit,
+    onMemoryEntryClick: (MemoryEntry) -> Unit,
     contentPadding: PaddingValues,
 ) {
     LazyColumn(
@@ -245,13 +279,12 @@ private fun MeContent(
             Spacer(modifier = Modifier.height(Dimens.SpaceMD))
         }
         item {
-            SettingsSection(
-                title = stringResource(R.string.me_section_preferences),
-                rows = listOf(
-                    stringResource(R.string.me_pref_dietary) to stringResource(R.string.me_value_not_set),
-                    stringResource(R.string.me_pref_budget) to stringResource(R.string.me_value_not_set),
-                    stringResource(R.string.me_pref_crowd) to stringResource(R.string.me_value_not_set),
-                ),
+            AiProfileSection(
+                entries = memoryEntries,
+                loading = memoryLoading,
+                error = memoryError,
+                onRefresh = onRefreshMemoryProfile,
+                onEntryClick = onMemoryEntryClick,
             )
             Spacer(modifier = Modifier.height(Dimens.SpaceMD))
         }
@@ -414,6 +447,167 @@ private fun SettingsSection(title: String, rows: List<Pair<String, String>>, emp
             }
         }
     }
+}
+
+/**
+ * "AI Profile" view/delete surface (Issue #85, mirrors iOS MeView.swift's
+ * memoryProfileSection) — lists preference entries the memory system
+ * inferred or was explicitly told, backed by butler-service's
+ * GET /butler/memory/profile. Tapping a row opens [MemoryEntryDetailDialog].
+ */
+@Composable
+private fun AiProfileSection(
+    entries: List<MemoryEntry>,
+    loading: Boolean,
+    error: String?,
+    onRefresh: () -> Unit,
+    onEntryClick: (MemoryEntry) -> Unit,
+) {
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(R.string.me_section_ai_profile),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (loading) {
+                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+            } else {
+                IconButton(onClick = onRefresh, modifier = Modifier.size(28.dp)) {
+                    Icon(
+                        Icons.Filled.Refresh,
+                        contentDescription = stringResource(R.string.me_ai_profile_refresh),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(Dimens.SpaceSM))
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column {
+                when {
+                    error != null -> {
+                        Column(modifier = Modifier.padding(Dimens.SpaceMD)) {
+                            Text(
+                                text = stringResource(R.string.me_ai_profile_error_title),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                            Text(
+                                text = error,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                    entries.isEmpty() -> {
+                        Column(modifier = Modifier.padding(Dimens.SpaceMD)) {
+                            Text(
+                                text = stringResource(R.string.me_ai_profile_empty_title),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            Text(
+                                text = stringResource(R.string.me_ai_profile_empty_value),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                    else -> {
+                        entries.forEach { entry ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onEntryClick(entry) }
+                                    .padding(horizontal = Dimens.SpaceMD, vertical = Dimens.SpaceMD),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = entry.key,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                    )
+                                    Text(
+                                        text = entry.value,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                Icon(
+                                    Icons.Filled.ChevronRight,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MemoryEntryDetailDialog(
+    entry: MemoryEntry,
+    isDeleting: Boolean,
+    onDelete: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(entry.key) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(Dimens.SpaceXS)) {
+                Text(entry.value, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = "${stringResource(R.string.me_ai_profile_confidence)}: ${(entry.confidence * 100).toInt()}%",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                entry.source?.let {
+                    Text(
+                        text = "${stringResource(R.string.me_ai_profile_source)}: $it",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                entry.updatedAt?.let {
+                    Text(
+                        text = "${stringResource(R.string.me_ai_profile_updated)}: $it",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                if (entry.evidence.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(Dimens.SpaceXS))
+                    Text(stringResource(R.string.me_ai_profile_evidence), style = MaterialTheme.typography.labelMedium)
+                    entry.evidence.forEach { evidence ->
+                        Text("• $evidence", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDelete, enabled = !isDeleting) {
+                if (isDeleting) {
+                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                } else {
+                    Text(stringResource(R.string.me_ai_profile_delete), color = MaterialTheme.colorScheme.error)
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.travel_talk_card_close)) }
+        },
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

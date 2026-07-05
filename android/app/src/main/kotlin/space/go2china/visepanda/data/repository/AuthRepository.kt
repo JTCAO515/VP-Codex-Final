@@ -16,6 +16,8 @@ interface AuthRepository {
     fun getEmail(): String?
     fun isLoggedIn(): Boolean
     fun clearSession()
+    /** The signed-in Supabase user id, or a stable local guest id if signed out. */
+    fun currentUserId(): String
 }
 
 @Singleton
@@ -94,4 +96,7 @@ class LiveAuthRepository @Inject constructor(
     override fun isLoggedIn(): Boolean = authPreferences.getAccessToken() != null
 
     override fun clearSession() = authPreferences.clearSession()
+
+    override fun currentUserId(): String =
+        authPreferences.getUserId() ?: authPreferences.getOrCreateGuestId()
 }
