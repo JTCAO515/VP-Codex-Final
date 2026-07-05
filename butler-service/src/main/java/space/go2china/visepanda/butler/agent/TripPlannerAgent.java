@@ -14,11 +14,13 @@ import space.go2china.visepanda.butler.tools.ToolBudget;
 public class TripPlannerAgent {
     private final OpenAiCompatibleLlmClient llmClient;
     private final LlmJsonRepair jsonRepair;
+    private final CanvasPatchNormalizer canvasPatchNormalizer;
     private final ObjectMapper objectMapper;
 
     public TripPlannerAgent(OpenAiCompatibleLlmClient llmClient, LlmJsonRepair jsonRepair, ObjectMapper objectMapper) {
         this.llmClient = llmClient;
         this.jsonRepair = jsonRepair;
+        this.canvasPatchNormalizer = new CanvasPatchNormalizer(objectMapper);
         this.objectMapper = objectMapper;
     }
 
@@ -46,7 +48,7 @@ public class TripPlannerAgent {
 
     private CanvasPatch parsePatch(String content) {
         try {
-            return objectMapper.treeToValue(jsonRepair.parse(content), CanvasPatch.class);
+            return objectMapper.treeToValue(canvasPatchNormalizer.normalize(jsonRepair.parse(content)), CanvasPatch.class);
         } catch (Exception error) {
             throw new LlmUnavailableException("Model output could not be parsed as CanvasPatch: " + error.getMessage());
         }
