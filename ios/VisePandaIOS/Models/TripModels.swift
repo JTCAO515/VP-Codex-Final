@@ -127,3 +127,70 @@ struct TripState: Codable, Equatable {
     var alerts: [ButlerAlert]
     var lastUpdatedReason: String
 }
+
+enum CompletenessDimension: String {
+    case route = "Route"
+    case stay = "Stay area"
+    case food = "Food"
+    case transport = "Transport"
+    case payment = "Payment"
+    case visa = "Visa"
+}
+
+struct CompletenessCheck: Identifiable, Equatable {
+    var id: CompletenessDimension
+    var complete: Bool
+}
+
+struct CompletenessResult: Equatable {
+    var checks: [CompletenessCheck]
+    var score: Int
+}
+
+enum TripCompleteness {
+    static func calculateTripCompleteness(_ trip: TripState) -> CompletenessResult {
+        func everyDayHas(_ predicate: (TripDay) -> Bool) -> Bool {
+            !trip.days.isEmpty && trip.days.allSatisfy(predicate)
+        }
+        func noOutstandingAlert(_ type: AlertType) -> Bool {
+            trip.alerts.filter { $0.type == type }.allSatisfy { $0.done == true }
+        }
+        let checks = [
+            CompletenessCheck(id: .route, complete: !trip.summary.destinations.isEmpty && !trip.days.isEmpty),
+            CompletenessCheck(id: .stay, complete: everyDayHas { !$0.stay.isEmpty }),
+            CompletenessCheck(id: .food, complete: everyDayHas { !$0.food.isEmpty }),
+            CompletenessCheck(id: .transport, complete: everyDayHas { !$0.transport.isEmpty }),
+            CompletenessCheck(id: .payment, complete: noOutstandingAlert(.payment)),
+            CompletenessCheck(id: .visa, complete: noOutstandingAlert(.visa))
+        ]
+        let completeCount = checks.filter(\.complete).count
+        return CompletenessResult(checks: checks, score: Int(((Double(completeCount) / Double(checks.count)) * 100).rounded()))
+    }
+
+    static func calculateDayCompleteness(_ day: TripDay) -> Int {
+        let checks = [day.blocks.count >= 3, !day.food.isEmpty, !day.stay.isEmpty, !day.transport.isEmpty]
+        return Int(((Double(checks.filter { $0 }.count) / Double(checks.count)) * 100).rounded())
+    }
+}
+
+enum TimelinePosition: String {
+    case now = "NOW"
+    case next = "NEXT"
+    case later = "LATER"
+}
+
+struct TimelineEntry: Identifiable {
+    var id: String { "\(day.day)-\(block.id)-\(position.rawValue)" }
+    var day: TripDay
+    var block: TripBlock
+    var position: TimelinePosition
+}
+
+enum TripTimeline {
+    static func buildTimeline(_ trip: TripState) -> [TimelineEntry] {
+        guard let today = trip.days.first else { return [] }
+        return today.blocks.enumerated().map { index, block in
+            TimelineEntry(day: today, block: block, position: index == 0 ? .now : index == 1 ? .next : .later)
+        }
+    }
+}

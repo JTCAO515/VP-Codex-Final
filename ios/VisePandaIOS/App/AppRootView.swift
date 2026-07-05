@@ -44,10 +44,12 @@ struct AppRootView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.bottom, VPSpacing.bottomBarClearance)
+            .padding(.bottom, store.hidesBottomBar ? 0 : VPSpacing.bottomBarClearance)
 
-            VisePandaBottomBar(selectedTab: $store.selectedTab)
-                .ignoresSafeArea(.container, edges: .bottom)
+            if !store.hidesBottomBar {
+                VisePandaBottomBar(selectedTab: $store.selectedTab)
+                    .ignoresSafeArea(.container, edges: .bottom)
+            }
         }
         .background(VPColor.paper)
         .tint(VPColor.cinnabar)

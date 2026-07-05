@@ -1,8 +1,14 @@
+import AVFoundation
 import SwiftUI
 
 struct ChatView: View {
     @EnvironmentObject private var store: TripStore
     @State private var draft = ""
+    @State private var recorder: AVAudioRecorder?
+    @State private var recordingTask: Task<Void, Never>?
+    @State private var transcribing = false
+    @State private var voiceError: String?
+    private let api = VisePandaAPIClient()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -33,7 +39,20 @@ struct ChatView: View {
             }
 
             suggestionsRow
-            ChatComposer(draft: $draft, isSending: store.isSending) {
+            if let voiceError {
+                Text(voiceError)
+                    .font(VPFont.body(12, weight: .semibold))
+                    .foregroundStyle(VPColor.cinnabar)
+                    .padding(.horizontal, 20)
+            }
+
+            ChatComposer(
+                draft: $draft,
+                isSending: store.isSending,
+                isRecording: recorder != nil,
+                isTranscribing: transcribing,
+                onMic: toggleVoiceRecording
+            ) {
                 sendDraft()
             }
         }
@@ -125,6 +144,94 @@ struct ChatView: View {
             withAnimation(.easeOut(duration: 0.25)) {
                 proxy.scrollTo(last.id, anchor: .bottom)
             }
+        }
+    }
+
+    private func toggleVoiceRecording() {
+        if recorder == nil {
+            startVoiceRecording()
+        } else {
+            stopRecording(send: true)
+        }
+    }
+
+    private func startVoiceRecording() {
+        voiceError = nil
+        switch AVAudioSession.sharedInstance().recordPermission {
+        case .granted:
+            beginRecording()
+        case .undetermined:
+            AVAudioSession.sharedInstance().requestRecordPermission { granted in
+                Task { @MainActor in
+                    if granted {
+                        beginRecording()
+                    } else {
+                        voiceError = "Microphone permission is required for Butler voice input."
+                    }
+                }
+            }
+        default:
+            voiceError = "Microphone permission is required for Butler voice input."
+        }
+    }
+
+    private func beginRecording() {
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playAndRecord, mode: .spokenAudio, options: [.defaultToSpeaker])
+            try session.setActive(true)
+            let url = FileManager.default.temporaryDirectory.appendingPathComponent("visepanda-butler-voice.m4a")
+            try? FileManager.default.removeItem(at: url)
+            let nextRecorder = try AVAudioRecorder(url: url, settings: [
+                AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+                AVSampleRateKey: 16_000,
+                AVNumberOfChannelsKey: 1,
+                AVEncoderAudioQualityKey: AVAudioQuality.medium.rawValue
+            ])
+            recorder = nextRecorder
+            nextRecorder.record(forDuration: 30)
+            recordingTask?.cancel()
+            recordingTask = Task {
+                try? await Task.sleep(nanoseconds: 30_000_000_000)
+                await MainActor.run { stopRecording(send: true) }
+            }
+        } catch {
+            voiceError = "Recording failed to start. Try again."
+            recorder = nil
+        }
+    }
+
+    private func stopRecording(send: Bool) {
+        let url = recorder?.url
+        recorder?.stop()
+        recorder = nil
+        recordingTask?.cancel()
+        recordingTask = nil
+        try? AVAudioSession.sharedInstance().setActive(false)
+        if send, let url {
+            Task { await transcribe(url) }
+        }
+    }
+
+    @MainActor
+    private func transcribe(_ url: URL) async {
+        transcribing = true
+        defer { transcribing = false }
+        do {
+            let audio = try Data(contentsOf: url)
+            guard !audio.isEmpty else {
+                voiceError = "Recording was too short. Try again."
+                return
+            }
+            let response = try await api.translateStt(audioBase64: audio.base64EncodedString())
+            if response.ok, let text = response.text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty {
+                draft = text
+                voiceError = nil
+            } else {
+                voiceError = "Voice transcription unavailable. Try again online."
+            }
+        } catch {
+            voiceError = "Voice transcription unavailable. Try again online."
         }
     }
 }
@@ -259,6 +366,7 @@ private struct ExploreRefsRow: View {
 }
 
 private struct InlineToolCardView: View {
+    @EnvironmentObject private var store: TripStore
     let card: InlineToolCard
 
     var body: some View {
@@ -274,6 +382,14 @@ private struct InlineToolCardView: View {
                     .font(VPFont.body(13))
                     .foregroundStyle(VPColor.inkSoft)
             }
+            Button {
+                store.openTool(card.categoryId)
+            } label: {
+                Text(card.nextAction)
+                    .font(VPFont.body(13, weight: .bold))
+                    .foregroundStyle(card.tone == .warning ? VPColor.cinnabar : VPColor.sage)
+            }
+            .buttonStyle(.plain)
         }
         .padding(12)
         .background(VPColor.paperWarm)
@@ -299,19 +415,26 @@ private struct ThinkingBubble: View {
 private struct ChatComposer: View {
     @Binding var draft: String
     let isSending: Bool
+    let isRecording: Bool
+    let isTranscribing: Bool
+    let onMic: () -> Void
     let onSend: () -> Void
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: "wand.and.stars")
-                .foregroundStyle(VPColor.cinnabar)
+            Button(action: onMic) {
+                Image(systemName: isRecording ? "stop.circle.fill" : "mic.fill")
+                    .foregroundStyle(isRecording ? VPColor.cinnabar : VPColor.inkSoft)
+            }
+            .accessibilityLabel(isRecording ? "Stop recording" : "Record voice input")
+            .disabled(isSending || isTranscribing)
 
-            TextField("Ask VisePanda...", text: $draft, axis: .vertical)
+            TextField(isRecording ? "Recording voice..." : isTranscribing ? "Transcribing..." : "Ask VisePanda...", text: $draft, axis: .vertical)
                 .font(VPFont.body(15))
                 .lineLimit(1...4)
                 .submitLabel(.send)
                 .onSubmit(onSend)
-                .disabled(isSending)
+                .disabled(isSending || isRecording || isTranscribing)
 
             Button(action: onSend) {
                 Image(systemName: "paperplane.fill")
