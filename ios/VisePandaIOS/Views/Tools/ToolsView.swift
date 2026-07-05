@@ -13,13 +13,6 @@ struct ToolsView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     header
 
-                    NavigationLink {
-                        CommunicationCardDetail()
-                    } label: {
-                        communicationCard
-                    }
-                    .buttonStyle(.plain)
-
                     LazyVGrid(columns: columns, spacing: 14) {
                         ForEach(tools) { tool in
                             NavigationLink {
@@ -56,33 +49,6 @@ struct ToolsView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private var communicationCard: some View {
-        HStack(spacing: 14) {
-            Image(systemName: "text.bubble.fill")
-                .font(.system(size: 18, weight: .bold))
-                .foregroundStyle(VPColor.paperSoft)
-                .frame(width: 46, height: 46)
-                .background(VPColor.cinnabar)
-                .clipShape(Circle())
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Travel Talk Card")
-                    .font(VPFont.body(16, weight: .bold))
-                    .foregroundStyle(VPColor.paperSoft)
-                Text("问路、点菜、支付、求助时出示")
-                    .font(VPFont.body(12, weight: .semibold))
-                    .foregroundStyle(VPColor.paper.opacity(0.62))
-            }
-
-            Spacer()
-
-            Image(systemName: "chevron.right")
-                .foregroundStyle(VPColor.paper.opacity(0.72))
-        }
-        .padding(18)
-        .background(VPColor.ink)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-    }
 }
 
 private struct ToolEntry: Identifiable {
@@ -114,6 +80,21 @@ private struct ToolEntry: Identifiable {
             tips: ["Use short sentences for better travel translation.", "Show the Chinese result first when talking to staff or local people."],
             sections: [ToolSection(title: "Good phrases", items: ["Please take me to this address.", "I am vegetarian.", "Can I pay by Alipay?"])],
             offlineTips: sharedOfflineTips + ["Save key phrases before entering stations, restaurants, taxis, or hotels."]
+        ),
+        ToolEntry(
+            id: "emergency",
+            title: "Emergency",
+            subtitle: "Contacts and documents",
+            icon: "sos.circle",
+            badge: "Emergency",
+            accent: VPColor.cinnabar,
+            highlighted: true,
+            tips: ["Police: 110", "Ambulance: 120", "Fire: 119"],
+            sections: [
+                ToolSection(title: "Contacts", items: ["Save embassy contact.", "Save insurance hotline.", "Share itinerary with a trusted contact."]),
+                ToolSection(title: "Documents", items: ["Carry passport and visa photos separately.", "Keep medication and allergy notes in English and Chinese."])
+            ],
+            offlineTips: sharedOfflineTips + ["Pin hotel address and nearest hospital in your maps app."]
         ),
         ToolEntry(
             id: "payment-setup",
@@ -161,8 +142,8 @@ private struct ToolEntry: Identifiable {
             offlineTips: sharedOfflineTips + ["Save a rough mental conversion for common RMB amounts."]
         ),
         ToolEntry(
-            id: "esim-vpn",
-            title: "eSIM",
+            id: "network",
+            title: "Network",
             subtitle: "Connectivity",
             icon: "wifi",
             badge: "Offline guide",
@@ -191,21 +172,6 @@ private struct ToolEntry: Identifiable {
                 ToolSection(title: "At arrival", items: ["Keep hotel address in English and Chinese.", "Use the same route details you gave the airline."])
             ],
             offlineTips: sharedOfflineTips + ["Save embassy or consulate contact details for each city."]
-        ),
-        ToolEntry(
-            id: "emergency",
-            title: "Emergency",
-            subtitle: "Contacts and documents",
-            icon: "sos.circle",
-            badge: "Emergency",
-            accent: VPColor.cinnabar,
-            highlighted: true,
-            tips: ["Police: 110", "Ambulance: 120", "Fire: 119"],
-            sections: [
-                ToolSection(title: "Contacts", items: ["Save embassy contact.", "Save insurance hotline.", "Share itinerary with a trusted contact."]),
-                ToolSection(title: "Documents", items: ["Carry passport and visa photos separately.", "Keep medication and allergy notes in English and Chinese."])
-            ],
-            offlineTips: sharedOfflineTips + ["Pin hotel address and nearest hospital in your maps app."]
         ),
         ToolEntry(
             id: "offline-pack",
@@ -426,7 +392,7 @@ private struct CurrencyToolPanel: View {
     }
 }
 
-private struct CommunicationPhrase: Identifiable {
+struct CommunicationPhrase: Identifiable {
     var id: String { title }
     var title: String
     var chinese: String
@@ -435,7 +401,7 @@ private struct CommunicationPhrase: Identifiable {
     var icon: String
 }
 
-private struct CommunicationCardDetail: View {
+struct CommunicationCardDetail: View {
     private let phrases = [
         CommunicationPhrase(
             title: "Start politely",
@@ -533,7 +499,7 @@ private struct CommunicationCardDetail: View {
     }
 }
 
-private struct CommunicationPhraseCard: View {
+struct CommunicationPhraseCard: View {
     let phrase: CommunicationPhrase
 
     var body: some View {
