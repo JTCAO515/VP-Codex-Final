@@ -9,13 +9,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import space.go2china.visepanda.data.model.Phrase
+import space.go2china.visepanda.data.model.SupportedLanguages
 import space.go2china.visepanda.data.model.TranslateResult
 import space.go2china.visepanda.data.repository.TranslateRepository
 import javax.inject.Inject
 
 data class TranslateUiState(
     val input: String = "",
-    val translateToChinese: Boolean = true, // true: en -> zh, false: zh -> en
+    val fromLanguage: String = "en",
+    val toLanguage: String = "zh",
     val translating: Boolean = false,
     val translationResult: TranslateResult? = null,
     val errorMessage: String? = null,
@@ -23,6 +25,11 @@ data class TranslateUiState(
     val isProcessing: Boolean = false,
     val isRecording: Boolean = false,
     val permissionError: String? = null,
+    /** Set when backend TTS returns a playable URL; Screen plays it then clears this. */
+    val ttsAudioUrl: String? = null,
+    /** Set when backend TTS fails; Screen falls back to the local system TTS engine then clears this. */
+    val ttsFallbackText: String? = null,
+    val ttsFallbackLanguageCode: String? = null,
 )
 
 @HiltViewModel
@@ -137,16 +144,64 @@ class TranslateViewModel @Inject constructor(
         }
     }
 
-    fun toggleDirection() {
+    fun swapLanguages() {
         _uiState.update {
             it.copy(
-                translateToChinese = !it.translateToChinese,
+                fromLanguage = it.toLanguage,
+                toLanguage = it.fromLanguage,
                 // Automatically clear prior results to keep UI fresh
                 translationResult = null,
                 errorMessage = null,
                 permissionError = null
             )
         }
+    }
+
+    fun setFromLanguage(code: String) {
+        _uiState.update {
+            it.copy(
+                fromLanguage = code,
+                translationResult = null,
+                errorMessage = null,
+            )
+        }
+    }
+
+    fun setToLanguage(code: String) {
+        _uiState.update {
+            it.copy(
+                toLanguage = code,
+                translationResult = null,
+                errorMessage = null,
+            )
+        }
+    }
+
+    fun speak(text: String, languageCode: String) {
+        if (text.isBlank()) return
+        viewModelScope.launch {
+            val ttsLanguageName = SupportedLanguages.byCode(languageCode).ttsLanguageName
+            translateRepository.translateTts(text, ttsLanguageName).fold(
+                onSuccess = { audioUrl ->
+                    _uiState.update {
+                        it.copy(ttsAudioUrl = audioUrl, ttsFallbackText = null, ttsFallbackLanguageCode = null)
+                    }
+                },
+                onFailure = {
+                    _uiState.update {
+                        it.copy(ttsFallbackText = text, ttsFallbackLanguageCode = languageCode, ttsAudioUrl = null)
+                    }
+                },
+            )
+        }
+    }
+
+    fun clearTtsAudioUrl() {
+        _uiState.update { it.copy(ttsAudioUrl = null) }
+    }
+
+    fun clearTtsFallback() {
+        _uiState.update { it.copy(ttsFallbackText = null, ttsFallbackLanguageCode = null) }
     }
 
     fun translate() {
@@ -164,10 +219,7 @@ class TranslateViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            val from = if (state.translateToChinese) "en" else "zh"
-            val to = if (state.translateToChinese) "zh" else "en"
-            
-            val result = translateRepository.translateText(textToTranslate, from, to)
+            val result = translateRepository.translateText(textToTranslate, state.fromLanguage, state.toLanguage)
             result.fold(
                 onSuccess = { translation ->
                     _uiState.update {

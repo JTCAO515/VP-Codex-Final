@@ -8,6 +8,8 @@ import space.go2china.visepanda.data.model.OcrRequest
 import space.go2china.visepanda.data.model.OcrResponse
 import space.go2china.visepanda.data.model.SttRequest
 import space.go2china.visepanda.data.model.SttResponse
+import space.go2china.visepanda.data.model.TtsRequest
+import space.go2china.visepanda.data.model.TtsResponse
 
 interface TranslateApiService {
     @POST("api/translate/text")
@@ -24,4 +26,9 @@ interface TranslateApiService {
     suspend fun translateStt(
         @Body request: SttRequest
     ): SttResponse
+
+    @POST("api/translate/tts")
+    suspend fun translateTts(
+        @Body request: TtsRequest
+    ): TtsResponse
 }
