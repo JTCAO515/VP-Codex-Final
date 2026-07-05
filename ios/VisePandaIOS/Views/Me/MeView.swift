@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MeView: View {
     @EnvironmentObject private var store: TripStore
+    @EnvironmentObject private var authStore: AuthStore
     @AppStorage("space.go2china.visepanda.ios.memoryProfileUserId") private var storedUserId = ""
     @State private var entries: [UserMemoryEntry] = []
     @State private var isLoadingProfile = false
@@ -9,6 +10,8 @@ struct MeView: View {
     @State private var selectedEntry: UserMemoryEntry?
     @State private var deletingEntryId: String?
     @State private var deleteNotice: String?
+    @State private var authEmail = ""
+    @State private var authPassword = ""
 
     private let api = VisePandaAPIClient()
 
@@ -25,7 +28,7 @@ struct MeView: View {
             updatedAt: "2026-07-05T10:30:00Z"
         )
         switch screenshotScenario {
-        case .profile:
+        case .profile, .authSignedIn, .authSignedOut, .authOffline:
             _entries = State(initialValue: [
                 sample,
                 UserMemoryEntry(
@@ -55,6 +58,7 @@ struct MeView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 profileCard
+                authSection
                 memoryProfileSection
                 section(title: "TRIP HISTORY", rows: trips)
                 section(title: "DATA & OFFLINE", rows: dataRows)
@@ -75,6 +79,7 @@ struct MeView: View {
         }
         .background(VPColor.paper)
         .task {
+            await authStore.refreshSessionIfNeeded()
             await loadProfileIfNeeded()
         }
         .refreshable {
@@ -100,10 +105,10 @@ struct MeView: View {
                     .clipShape(Circle())
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Guest Traveler")
+                    Text(authStore.email ?? "Guest Traveler")
                         .font(VPFont.body(17, weight: .bold))
                         .foregroundStyle(VPColor.ink)
-                    Text("AI profile · \(currentUserId.prefix(8))")
+                    Text(authStore.isSignedIn ? "Signed in · Supabase" : "AI profile · \(currentUserId.prefix(8))")
                         .font(VPFont.body(12, weight: .semibold))
                         .foregroundStyle(VPColor.inkSoft)
                 }
@@ -113,6 +118,93 @@ struct MeView: View {
                 Button("Edit") {}
                     .font(VPFont.body(13, weight: .bold))
                     .foregroundStyle(VPColor.cinnabar)
+            }
+        }
+    }
+
+    private var authSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("ACCOUNT")
+                .font(VPFont.body(12, weight: .bold))
+                .foregroundStyle(VPColor.inkSoft)
+                .padding(.leading, 4)
+
+            VPCard {
+                if authStore.isSignedIn {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Label(authStore.email ?? "Signed in", systemImage: "person.crop.circle.fill")
+                            .font(VPFont.body(15, weight: .bold))
+                            .foregroundStyle(VPColor.ink)
+                            .accessibilityIdentifier("signedInEmail")
+
+                        Button(role: .destructive) {
+                            Task { await authStore.signOut() }
+                        } label: {
+                            Label(authStore.isLoading ? "Signing out..." : "Sign out", systemImage: "rectangle.portrait.and.arrow.right")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(VPColor.cinnabar)
+                        .disabled(authStore.isLoading)
+                        .accessibilityIdentifier("signOutButton")
+                    }
+                } else {
+                    VStack(alignment: .leading, spacing: 12) {
+                        TextField("Email", text: $authEmail)
+                            .textInputAutocapitalization(.never)
+                            .keyboardType(.emailAddress)
+                            .autocorrectionDisabled()
+                            .textContentType(.username)
+                            .authField()
+                            .accessibilityIdentifier("authEmail")
+
+                        SecureField("Password", text: $authPassword)
+                            .textContentType(.password)
+                            .authField()
+                            .accessibilityIdentifier("authPassword")
+
+                        HStack(spacing: 10) {
+                            Button {
+                                Task { await authStore.signIn(email: authEmail, password: authPassword) }
+                            } label: {
+                                Text(authStore.isLoading ? "Working..." : "Sign in")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(VPColor.cinnabar)
+                            .disabled(authStore.isLoading || !canSubmitAuth)
+                            .accessibilityIdentifier("signInButton")
+
+                            Button {
+                                Task { await authStore.signUp(email: authEmail, password: authPassword) }
+                            } label: {
+                                Text("Register")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.bordered)
+                            .disabled(authStore.isLoading || !canSubmitAuth)
+                            .accessibilityIdentifier("registerButton")
+                        }
+                        .font(VPFont.body(14, weight: .bold))
+
+                        Button {
+                            authStore.signInWithGoogle()
+                        } label: {
+                            Label("Continue with Google", systemImage: "globe")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                        .disabled(authStore.isLoading)
+
+                        if let message = authStore.errorMessage {
+                            Label(message, systemImage: "exclamationmark.triangle")
+                                .font(VPFont.body(13, weight: .semibold))
+                                .foregroundStyle(VPColor.cinnabar)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("authError")
+                        }
+                    }
+                }
             }
         }
     }
@@ -224,12 +316,19 @@ struct MeView: View {
     }
 
     private var currentUserId: String {
+        if let userId = authStore.userId {
+            return userId
+        }
         if storedUserId.isEmpty {
             let newId = UUID().uuidString.lowercased()
             storedUserId = newId
             return newId
         }
         return storedUserId
+    }
+
+    private var canSubmitAuth: Bool {
+        authEmail.contains("@") && authPassword.count >= 6
     }
 
     private func loadProfileIfNeeded() async {
@@ -281,6 +380,15 @@ private struct ProfileRow: Identifiable, Equatable {
     var id: String { title + value }
     var title: String
     var value: String
+}
+
+private extension View {
+    func authField() -> some View {
+        font(VPFont.body(15, weight: .semibold))
+            .padding(12)
+            .background(VPColor.paper)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
 }
 
 private struct MemoryEntryRow: View {
@@ -423,6 +531,9 @@ enum MeScreenshotScenario: String {
     case profile = "me-profile"
     case delete = "me-delete"
     case offline = "me-offline"
+    case authSignedOut = "auth-signed-out"
+    case authSignedIn = "auth-signed-in"
+    case authOffline = "auth-offline"
 
     static var launchArgument: MeScreenshotScenario? {
         ProcessInfo.processInfo.arguments
