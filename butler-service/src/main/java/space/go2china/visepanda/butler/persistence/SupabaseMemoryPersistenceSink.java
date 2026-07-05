@@ -40,6 +40,18 @@ public class SupabaseMemoryPersistenceSink implements MemoryPersistenceSink {
     }
 
     @Override
+    public void deleteUserMemory(String userKey, String entryKey, String entryValue) {
+        if (!properties.configured()) return;
+        try {
+            delete("user_memories", "user_key=eq." + encode(userKey)
+                    + "&memory_key=eq." + encode(entryKey)
+                    + "&memory_value=eq." + encode(entryValue));
+        } catch (Exception ignored) {
+            // ponytail: Supabase is write-through only; in-memory fallback remains authoritative for this process.
+        }
+    }
+
+    @Override
     public void saveTripMemory(TripMemoryEntry entry) {
         if (!properties.configured()) return;
         try {
@@ -64,5 +76,19 @@ public class SupabaseMemoryPersistenceSink implements MemoryPersistenceSink {
                 .POST(HttpRequest.BodyPublishers.ofString(json))
                 .build();
         httpClient.send(request, HttpResponse.BodyHandlers.discarding());
+    }
+
+    private void delete(String table, String filterQuery) throws Exception {
+        String base = properties.url().replaceAll("/+$", "");
+        HttpRequest request = HttpRequest.newBuilder(URI.create(base + "/rest/v1/" + table + "?" + filterQuery))
+                .header("apikey", properties.serviceRoleKey())
+                .header("Authorization", "Bearer " + properties.serviceRoleKey())
+                .DELETE()
+                .build();
+        httpClient.send(request, HttpResponse.BodyHandlers.discarding());
+    }
+
+    private static String encode(String value) {
+        return java.net.URLEncoder.encode(value, java.nio.charset.StandardCharsets.UTF_8);
     }
 }

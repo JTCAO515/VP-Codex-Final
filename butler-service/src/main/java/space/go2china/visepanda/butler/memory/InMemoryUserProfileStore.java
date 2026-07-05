@@ -60,6 +60,28 @@ public class InMemoryUserProfileStore implements UserProfileStore {
     }
 
     @Override
+    public List<UserMemoryEntry> listAll(String userKey) {
+        Map<String, UserMemoryEntry> profile = profiles.getOrDefault(userKey, Map.of());
+        // Same confidence(>0) filter as topK: a corrected-away preference is kept at
+        // confidence 0 only so its evidence trail survives internally — showing it on
+        // the "your profile" surface would look like a preference the user still has,
+        // right after they explicitly said otherwise.
+        return profile.values().stream()
+                .filter(entry -> entry.confidence() > 0)
+                .sorted(Comparator.comparing(UserMemoryEntry::updatedAt).reversed())
+                .toList();
+    }
+
+    @Override
+    public boolean delete(String userKey, String entryKey, String entryValue) {
+        Map<String, UserMemoryEntry> profile = profiles.get(userKey);
+        if (profile == null) return false;
+        boolean removed = profile.remove(entryKey + ":" + entryValue) != null;
+        if (removed) persistenceSink.deleteUserMemory(userKey, entryKey, entryValue);
+        return removed;
+    }
+
+    @Override
     public void migrateGuestToUser(String guestKey, String userKey) {
         Map<String, UserMemoryEntry> guest = profiles.get(guestKey);
         if (guest == null || guest.isEmpty()) return;

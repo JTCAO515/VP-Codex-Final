@@ -10,4 +10,8 @@ class MemoryPersistenceNoop implements MemoryPersistenceSink {
     @Override
     public void saveTripMemory(TripMemoryEntry entry) {
     }
+
+    @Override
+    public void deleteUserMemory(String userKey, String entryKey, String entryValue) {
+    }
 }
