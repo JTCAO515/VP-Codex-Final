@@ -14,7 +14,6 @@ import space.go2china.visepanda.data.model.LoginRequest
 import space.go2china.visepanda.data.model.RefreshTokenRequest
 import space.go2china.visepanda.data.model.SignUpRequest
 import space.go2china.visepanda.data.remote.AuthApiService
-import space.go2china.visepanda.data.remote.SupabaseConfig
 
 class AuthRepositoryTest {
 
@@ -100,32 +99,7 @@ class AuthRepositoryTest {
     }
 
     @Test
-    fun testMockLogin_success() = runBlocking {
-        SupabaseConfig.MOCK_AUTH_ENABLED = true
-        val repository = LiveAuthRepository(MockAuthApiService(), mockPrefs)
-        
-        val result = repository.login("user@test.com", "password123")
-        assertTrue(result.isSuccess)
-        
-        val response = result.getOrNull()
-        assertEquals("mock-access-token", response?.accessToken)
-        assertEquals("user@test.com", mockPrefs.getEmail())
-        assertTrue(repository.isLoggedIn())
-    }
-
-    @Test
-    fun testMockLogin_invalidEmail() = runBlocking {
-        SupabaseConfig.MOCK_AUTH_ENABLED = true
-        val repository = LiveAuthRepository(MockAuthApiService(), mockPrefs)
-        
-        val result = repository.login("invalidemail", "password123")
-        assertTrue(result.isFailure)
-        assertFalse(repository.isLoggedIn())
-    }
-
-    @Test
     fun testRealLogin_success() = runBlocking {
-        SupabaseConfig.MOCK_AUTH_ENABLED = false
         val repository = LiveAuthRepository(MockAuthApiService(shouldFail = false), mockPrefs)
         
         val result = repository.login("user@test.com", "password123")
@@ -139,7 +113,6 @@ class AuthRepositoryTest {
 
     @Test
     fun testRealLogin_failure() = runBlocking {
-        SupabaseConfig.MOCK_AUTH_ENABLED = false
         val repository = LiveAuthRepository(MockAuthApiService(shouldFail = true), mockPrefs)
         
         val result = repository.login("user@test.com", "password123")
@@ -149,7 +122,6 @@ class AuthRepositoryTest {
 
     @Test
     fun testRealSignUp_success() = runBlocking {
-        SupabaseConfig.MOCK_AUTH_ENABLED = false
         val repository = LiveAuthRepository(MockAuthApiService(shouldFail = false), mockPrefs)
         
         val result = repository.signUp("user@test.com", "password123")
@@ -161,7 +133,6 @@ class AuthRepositoryTest {
     fun testRealLogout_clearsSession() = runBlocking {
         mockPrefs.saveSession("access", "refresh", "user@test.com", "id123")
         
-        SupabaseConfig.MOCK_AUTH_ENABLED = false
         val repository = LiveAuthRepository(MockAuthApiService(), mockPrefs)
         
         assertTrue(repository.isLoggedIn())

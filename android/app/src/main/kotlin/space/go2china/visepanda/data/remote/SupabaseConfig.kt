@@ -1,9 +1,18 @@
 package space.go2china.visepanda.data.remote
 
-object SupabaseConfig {
-    // 开启 mock 开关以便能在没有部署 Supabase 实例时进行模拟测试
-    var MOCK_AUTH_ENABLED = true
+import space.go2china.visepanda.BuildConfig
 
-    const val SUPABASE_URL = "https://your-project.supabase.co"
-    const val SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy-anon-key"
+/**
+ * Supabase project configuration.
+ *
+ * Values are injected at build time via buildConfigField in app/build.gradle.kts.
+ * Only SUPABASE_URL and SUPABASE_ANON_KEY (public by design) are present here.
+ * SUPABASE_SERVICE_ROLE_KEY is server-side only and MUST NEVER appear in client code.
+ */
+object SupabaseConfig {
+    val SUPABASE_URL: String
+        get() = BuildConfig.SUPABASE_URL
+
+    val SUPABASE_ANON_KEY: String
+        get() = BuildConfig.SUPABASE_ANON_KEY
 }

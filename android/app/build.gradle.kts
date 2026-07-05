@@ -14,11 +14,13 @@ android {
         applicationId = "space.go2china.visepanda"
         minSdk = 26
         targetSdk = 34
-        versionCode = 18
-        versionName = "0.3.18"
+        versionCode = 20
+        versionName = "0.3.20"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "VISEPANDA_API_BASE_URL", "\"https://www.go2china.space/\"")
+        buildConfigField("String", "SUPABASE_URL", "\"https://eqbbnworuyksalfpimzw.supabase.co\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxYmJud29ydXlrc2FsZnBpbXp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MzM3MzIsImV4cCI6MjA5ODMwOTczMn0.Ucr4lIxsz6w7EbIqbOQVYx1pauxJhOxS54UTL07WarM\"")
     }
 
     buildTypes {
