@@ -38,6 +38,10 @@ struct ChatView: View {
             }
         }
         .background(VPColor.paper)
+        .onAppear(perform: consumePendingDraft)
+        .onChange(of: store.pendingChatDraft) { _, _ in
+            consumePendingDraft()
+        }
     }
 
     private var chatHeader: some View {
@@ -110,6 +114,11 @@ struct ChatView: View {
         store.send(text)
     }
 
+    private func consumePendingDraft() {
+        guard let pending = store.consumePendingChatDraft() else { return }
+        draft = pending
+    }
+
     private func scrollToLatest(_ proxy: ScrollViewProxy) {
         guard let last = store.messages.last else { return }
         DispatchQueue.main.async {
@@ -121,6 +130,7 @@ struct ChatView: View {
 }
 
 private struct MessageBubble: View {
+    @EnvironmentObject private var store: TripStore
     let message: ChatMessage
 
     var body: some View {
@@ -181,6 +191,12 @@ private struct MessageBubble: View {
                                 }
                             }
 
+                            if let refs = response.exploreRefs, !refs.isEmpty {
+                                ExploreRefsRow(refs: refs) { ref in
+                                    store.openExplore(ref: ref)
+                                }
+                            }
+
                             Text(response.nextStep)
                                 .font(VPFont.body(14, weight: .bold))
                                 .foregroundStyle(VPColor.ink)
@@ -190,6 +206,52 @@ private struct MessageBubble: View {
                                 .foregroundStyle(VPColor.inkMuted)
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+private struct ExploreRefsRow: View {
+    let refs: [ButlerExploreRef]
+    let onTap: (ButlerExploreRef) -> Void
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 10) {
+                ForEach(refs) { ref in
+                    Button {
+                        onTap(ref)
+                    } label: {
+                        VStack(alignment: .leading, spacing: 7) {
+                            HStack(spacing: 6) {
+                                Text(ref.name)
+                                    .font(VPFont.body(13, weight: .bold))
+                                    .foregroundStyle(VPColor.ink)
+                                    .lineLimit(2)
+                                if ref.editorial == true {
+                                    Image(systemName: "checkmark.seal.fill")
+                                        .foregroundStyle(VPColor.sage)
+                                }
+                            }
+
+                            HStack(spacing: 8) {
+                                if let rating = ref.rating {
+                                    Label(String(format: "%.1f", rating), systemImage: "star.fill")
+                                }
+                                if let price = ref.pricePerPerson, !price.isEmpty {
+                                    Text("¥\(price)/person")
+                                }
+                            }
+                            .font(VPFont.body(11, weight: .semibold))
+                            .foregroundStyle(VPColor.inkSoft)
+                        }
+                        .frame(width: 150, alignment: .leading)
+                        .padding(12)
+                        .background(VPColor.paperWarm)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
                 }
             }
         }

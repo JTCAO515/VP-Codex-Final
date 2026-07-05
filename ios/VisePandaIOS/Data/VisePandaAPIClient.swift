@@ -52,6 +52,33 @@ struct VisePandaAPIClient {
         return try await perform(request, as: TranslateSttResponse.self)
     }
 
+    func fetchExploreAmap(
+        cityId: String,
+        type: String,
+        page: Int,
+        mode: String = "city",
+        location: String? = nil,
+        radius: Int? = nil,
+        sort: String = "weight"
+    ) async throws -> ExploreAmapResponse {
+        var queryItems = [
+            URLQueryItem(name: "cityId", value: cityId),
+            URLQueryItem(name: "type", value: type),
+            URLQueryItem(name: "page", value: String(page)),
+            URLQueryItem(name: "mode", value: mode),
+            URLQueryItem(name: "sort", value: sort)
+        ]
+        if let location {
+            queryItems.append(URLQueryItem(name: "location", value: location))
+        }
+        if let radius {
+            queryItems.append(URLQueryItem(name: "radius", value: String(radius)))
+        }
+
+        let request = makeJSONRequest(path: "api/explore/amap", method: "GET", queryItems: queryItems)
+        return try await perform(request, as: ExploreAmapResponse.self)
+    }
+
     func fetchMemoryProfile(userId: String) async throws -> UserMemoryProfileResponse {
         let request = makeJSONRequest(path: "butler/memory/profile", method: "GET", queryItems: [
             URLQueryItem(name: "userId", value: userId)
