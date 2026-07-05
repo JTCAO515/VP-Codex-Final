@@ -1,15 +1,70 @@
 package space.go2china.visepanda.data.explore
 
+import space.go2china.visepanda.data.model.BookingCandidate
+import space.go2china.visepanda.data.model.Coordinates
+
 /**
- * v0.3.14: static mock POI catalog for the Explore screen. Mock-first per
- * operator constraint — no real Amap/POI API call is made; "Add to Trip"
- * writes one of these directly into the active trip via
- * [space.go2china.visepanda.data.repository.TripRepository.addPoiToDay].
+ * v0.3.22 (#47): Dianping-style Explore — expanded from 3 to 5 categories,
+ * subcategory support, distance field, editorial overlay.
  */
-enum class ExploreCategory {
-    Attraction,
-    Food,
-    Stay,
+enum class ExploreCategory(val labelEn: String, val labelZh: String, val emoji: String) {
+    Food("Food", "美食", "🍜"),
+    Attraction("Attractions", "景点", "🏯"),
+    Stay("Hotels", "酒店", "🏨"),
+    Shopping("Shopping", "购物", "🛍️"),
+    Experience("Experiences", "体验", "💆"),
+}
+
+/** Subcategory — the semantic key sent to /api/explore/amap as [type] param. */
+enum class ExploreSubcategory(
+    val key: String,
+    val labelEn: String,
+    val labelZh: String,
+    val category: ExploreCategory
+) {
+    // Food
+    FoodAll("food", "All", "全部", ExploreCategory.Food),
+    Hotpot("food.hotpot", "Hot Pot", "火锅", ExploreCategory.Food),
+    Sichuan("food.sichuan", "Sichuan", "川菜", ExploreCategory.Food),
+    Cantonese("food.cantonese", "Cantonese", "粤菜", ExploreCategory.Food),
+    Japanese("food.japanese", "Japanese", "日料", ExploreCategory.Food),
+    Bbq("food.bbq", "BBQ", "烧烤", ExploreCategory.Food),
+    Bakery("food.bakery", "Bakery & Desserts", "面包甜品", ExploreCategory.Food),
+    Snacks("food.snacks", "Snacks", "小吃快餐", ExploreCategory.Food),
+    Coffee("food.coffee", "Coffee", "咖啡厅", ExploreCategory.Food),
+    // Attraction
+    AttractionAll("attractions", "All", "全部", ExploreCategory.Attraction),
+    Scenic("attractions.scenic", "Scenic Spots", "风景名胜", ExploreCategory.Attraction),
+    Park("attractions.park", "Parks & Squares", "公园广场", ExploreCategory.Attraction),
+    Museum("attractions.museum", "Museums", "博物馆", ExploreCategory.Attraction),
+    Temple("attractions.temple", "Temples", "寺庙道观", ExploreCategory.Attraction),
+    // Stay
+    StayAll("stays", "All", "全部", ExploreCategory.Stay),
+    StarHotel("stays.star", "Star Hotels", "星级酒店", ExploreCategory.Stay),
+    BudgetHotel("stays.budget", "Budget Hotels", "快捷连锁", ExploreCategory.Stay),
+    Guesthouse("stays.guesthouse", "Guesthouses", "民宿客栈", ExploreCategory.Stay),
+    // Shopping
+    ShoppingAll("shopping", "All", "全部", ExploreCategory.Shopping),
+    Mall("shopping.mall", "Malls", "商场", ExploreCategory.Shopping),
+    SpecialtyStreet("shopping.specialty", "Specialty Streets", "特产街区", ExploreCategory.Shopping),
+    Supermarket("shopping.supermarket", "Supermarkets", "超市便利", ExploreCategory.Shopping),
+    // Experience
+    ExperienceAll("experiences", "All", "全部", ExploreCategory.Experience),
+    Massage("experiences.massage", "Massage & Foot Spa", "按摩足疗", ExploreCategory.Experience),
+    Spa("experiences.spa", "SPA & Beauty", "SPA美容", ExploreCategory.Experience),
+    Teahouse("experiences.teahouse", "Teahouses", "茶馆", ExploreCategory.Experience),
+    Ktv("experiences.ktv", "KTV", "KTV", ExploreCategory.Experience),
+}
+
+/** Computed price bucket for client-side filtering. */
+enum class PriceBucket { Under50, Under100, Under200, Above200 }
+
+fun Int.toPriceBucket(): PriceBucket? = when {
+    this in 1..49 -> PriceBucket.Under50
+    this in 50..99 -> PriceBucket.Under100
+    this in 100..199 -> PriceBucket.Under200
+    this >= 200 -> PriceBucket.Above200
+    else -> null
 }
 
 data class ExplorePoi(
@@ -18,37 +73,35 @@ data class ExplorePoi(
     val chineseName: String,
     val city: String,
     val category: ExploreCategory,
-    val rating: Double,
-    val priceHint: String,
+    val subcategory: ExploreSubcategory? = null,
+    val rating: Double,          // 0.0 = no rating — use hasRating
+    val costPerPerson: Int = 0,  // 0 = unknown
+    val priceHint: String,       // legacy display string
     val description: String,
     val address: String? = null,
     val phone: String? = null,
     val openingHours: String? = null,
     val mapUrl: String? = null,
-    val bookingCandidates: List<space.go2china.visepanda.data.model.BookingCandidate> = emptyList(),
+    val photoUrl: String? = null,
+    val businessArea: String? = null,
+    val distanceMeters: Int? = null,  // null = unknown / no location
+    val bookingCandidates: List<BookingCandidate> = emptyList(),
     val sourceLabel: String? = null,
-    val coordinates: space.go2china.visepanda.data.model.Coordinates? = null
-)
-
-object MockExploreData {
-    val cities = listOf("Beijing", "Shanghai")
-
-    val pois: List<ExplorePoi> = listOf(
-        // Beijing
-        ExplorePoi("attr-bj-1", "Forbidden City", "故宫", "Beijing", ExploreCategory.Attraction, 4.8, "¥60", "The imperial palace complex at the heart of old Beijing."),
-        ExplorePoi("attr-bj-2", "Great Wall · Mutianyu", "长城·慕田峪", "Beijing", ExploreCategory.Attraction, 4.7, "¥180", "A well-preserved, less crowded stretch of the Great Wall."),
-        ExplorePoi("attr-bj-3", "Temple of Heaven", "天坛", "Beijing", ExploreCategory.Attraction, 4.6, "¥34", "A Ming-dynasty temple complex and park."),
-        ExplorePoi("food-bj-1", "Da Dong Roast Duck", "大董烤鸭", "Beijing", ExploreCategory.Food, 4.6, "¥¥¥", "Modern take on Beijing's signature roast duck."),
-        ExplorePoi("food-bj-2", "Hutong Noodle House", "胡同面馆", "Beijing", ExploreCategory.Food, 4.4, "¥", "Casual hand-pulled noodles near the old hutongs."),
-        ExplorePoi("stay-bj-1", "Beijing City-Center Hotel", "北京市中心酒店", "Beijing", ExploreCategory.Stay, 4.5, "¥600/night", "Central location close to the subway and main sights."),
-        ExplorePoi("stay-bj-2", "Hutong Courtyard Inn", "胡同四合院客栈", "Beijing", ExploreCategory.Stay, 4.3, "¥450/night", "A restored courtyard house in a historic hutong."),
-        // Shanghai
-        ExplorePoi("attr-sh-1", "The Bund", "外滩", "Shanghai", ExploreCategory.Attraction, 4.7, "Free", "Riverfront promenade with colonial-era architecture."),
-        ExplorePoi("attr-sh-2", "Yu Garden", "豫园", "Shanghai", ExploreCategory.Attraction, 4.5, "¥40", "A classical Ming-dynasty garden in the old city."),
-        ExplorePoi("attr-sh-3", "Nanjing Road", "南京路", "Shanghai", ExploreCategory.Attraction, 4.4, "Free", "Shanghai's best-known shopping and walking street."),
-        ExplorePoi("food-sh-1", "Xiaolongbao House", "小笼包馆", "Shanghai", ExploreCategory.Food, 4.6, "¥¥", "Classic Shanghainese soup dumplings."),
-        ExplorePoi("food-sh-2", "Yunnan Road Food Street", "云南路美食街", "Shanghai", ExploreCategory.Food, 4.3, "¥", "A street of local snack stalls near People's Square."),
-        ExplorePoi("stay-sh-1", "Shanghai City-Center Hotel", "上海市中心酒店", "Shanghai", ExploreCategory.Stay, 4.5, "¥750/night", "Walking distance to the Bund and Nanjing Road."),
-        ExplorePoi("stay-sh-2", "French Concession Boutique Hotel", "法租界精品酒店", "Shanghai", ExploreCategory.Stay, 4.6, "¥900/night", "A quiet boutique hotel in the former French Concession."),
-    )
+    val coordinates: Coordinates? = null,
+    /** editorial overlay (Issue #49, optional superset) */
+    val editorialSummary: String? = null,
+    val editorialBadges: List<String>? = null,
+) {
+    val hasRating: Boolean get() = rating > 0.0
+    val priceBucket: PriceBucket? get() = costPerPerson.toPriceBucket()
 }
+
+/** UGC feed mock card for Explore home page. NOT real user content. */
+data class UgcFeedItem(
+    val id: String,
+    val cityId: String,          // matches AMAP_CITY_MAP key, e.g. "beijing"
+    val title: String,
+    val imageUrl: String,        // placeholder / Unsplash public URL
+    val authorNick: String,
+    val likeCount: Int,
+)

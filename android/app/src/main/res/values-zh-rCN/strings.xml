@@ -103,4 +103,18 @@
     <string name="translate_error_perm_rejected">权限已被拒绝。请前往系统设置手动开启。</string>
     <string name="translate_error_ocr_failed">图片文字识别失败，请确保文字清晰并检查网络连接。</string>
     <string name="translate_error_stt_failed">语音识别失败，请尝试吐字清晰并检查网络连接。</string>
+
+    <!-- Explore 大众点评式重做（Issue #47） -->
+    <string name="explore_select_city">选择城市</string>
+    <string name="explore_location_off_notice">未开启定位，展示全城结果</string>
+    <string name="explore_filter_nearby">附近</string>
+    <string name="explore_filter_category">分类</string>
+    <string name="explore_filter_sort">排序</string>
+    <string name="explore_filter_more">筛选</string>
+    <string name="explore_no_results_offline">加载失败，请检查网络连接。</string>
+    <string name="explore_added_to_trip">"%1$s"已加入行程</string>
+    <string name="explore_vp_pick">✦ VP 推荐</string>
+    <string name="explore_location_enable_hint">开启定位后可使用距离筛选</string>
+    <string name="explore_ugc_coming_soon">即将上线</string>
+    <string name="explore_whole_city">全城</string>
 </resources>
