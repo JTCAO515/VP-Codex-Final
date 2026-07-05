@@ -86,7 +86,26 @@
 ```json
 { "ok": true, "cityId": "string", "type": "string", "page": 1, "hasMore": true, "pois": "AmapPoi[]" }
 ```
+每个 `poi` 若命中 `curated_pois` 知识库(Issue #49),会附加可选 `editorial` 字段(老客户端忽略即可,超集扩展):
+```json
+{ "editorial": { "summary": "string", "tags": ["string"], "badges": ["string"], "badge": "VisePanda Editorial" } }
+```
+
 **Response(失败)**:503 `not_configured`(无 `AMAP_API_KEY`)/ 400 `invalid_params` / `invalid_location`(mode=around 但 location 不合法)/ `invalid_page` / 502 `upstream_error`。
+
+## GET /api/explore/curated — VisePanda 编辑精选(Issue #49)
+
+纯知识库数据,不打真实高德请求。用于 Explore 首页的"编辑精选"置顶区和 UGC mock feed(规格 §1.1)。
+
+**Query params**:`cityId`(必填)、`category`(可选,需在 `AMAP_TYPE_MAP` 中)。
+
+**Response(成功)**
+```json
+{ "ok": true, "cityId": "string", "category": "string|null", "entries": "CuratedPoi[]" }
+```
+`CuratedPoi` 字段:`city_id`/`category`/`amap_poi_id`/`name`/`name_en`/`editorial_summary`/`tags[]`/`list_badges[]`/`photo_url`/`rank`/`source`(`wikivoyage`|`official_list`|`llm_seed`)/`source_url`。
+
+**Response(失败)**:400 `invalid_params`。表为空或 Supabase 未配置时返回 `entries: []`,不是错误。
 
 **客户端规则**:任一失败都必须回落到静态/mock POI 列表,不能空白页或崩溃。老参数组合(`cityId`+`type`,不带 mode/location)行为与升级前完全一致,向后兼容。
 
