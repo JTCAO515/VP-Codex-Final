@@ -48,7 +48,7 @@ data class MemoryUiState(
 
 @HiltViewModel
 class MeViewModel @Inject constructor(
-    tripRepository: TripRepository,
+    private val tripRepository: TripRepository,
     private val authRepository: AuthRepository,
     private val memoryRepository: MemoryRepository,
     private val syncManager: SupabaseSyncManager
@@ -193,5 +193,12 @@ class MeViewModel @Inject constructor(
 
     fun clearError() {
         authState.value = authState.value.copy(errorMessage = null)
+    }
+
+    /** Me's "Reset local draft" (Issue #85, mirrors iOS MeView.swift). */
+    fun resetLocalDraft() {
+        viewModelScope.launch {
+            tripRepository.resetLocalDraft()
+        }
     }
 }

@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.location.Location
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
@@ -256,9 +257,15 @@ private fun CategoryNavItem(category: ExploreCategory, onClick: () -> Unit) {
 
 @Composable
 private fun UgcCard(item: UgcFeedItem) {
+    val context = LocalContext.current
+    val comingSoonMessage = stringResource(R.string.explore_ugc_coming_soon)
     Card(
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(1.dp),
+        // v0.3.x (Issue #85): the feed is real-looking mock UGC content, not a
+        // working community feature yet — an honest "coming soon" toast beats
+        // a card that silently does nothing when tapped.
+        onClick = { Toast.makeText(context, comingSoonMessage, Toast.LENGTH_SHORT).show() },
     ) {
         Column {
             AsyncImage(

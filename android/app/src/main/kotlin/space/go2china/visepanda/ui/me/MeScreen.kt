@@ -112,6 +112,7 @@ fun MeScreen(
             memoryError = state.memoryError,
             onRefreshMemoryProfile = { viewModel.loadMemoryProfile(force = true) },
             onMemoryEntryClick = { selectedMemoryEntry = it },
+            onResetLocalDraftClick = viewModel::resetLocalDraft,
             contentPadding = innerPadding,
         )
     }
@@ -174,6 +175,7 @@ private fun MeContent(
     memoryError: String?,
     onRefreshMemoryProfile: () -> Unit,
     onMemoryEntryClick: (MemoryEntry) -> Unit,
+    onResetLocalDraftClick: () -> Unit,
     contentPadding: PaddingValues,
 ) {
     LazyColumn(
@@ -293,6 +295,7 @@ private fun MeContent(
                 title = stringResource(R.string.me_section_trips),
                 rows = listOfNotNull(
                     activeTripTitle?.let { it to stringResource(R.string.me_trip_active) },
+                    stringResource(R.string.me_trip_history_label) to stringResource(R.string.me_trip_history_not_connected),
                 ),
                 emptyMessage = stringResource(R.string.me_trips_empty),
             )
@@ -310,6 +313,21 @@ private fun MeContent(
                     stringResource(R.string.me_privacy_offline_data) to offlineDataValue,
                 ),
             )
+            Spacer(modifier = Modifier.height(Dimens.SpaceMD))
+        }
+        item {
+            // v0.3.x (Issue #85): mirrors iOS MeView.swift's "Reset local iOS
+            // draft" — clears the cached active trip + chat transcript back to
+            // the starter seed, same category as a debug/support escape hatch.
+            TextButton(
+                onClick = onResetLocalDraftClick,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = stringResource(R.string.me_reset_local_draft),
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
         }
     }
 }

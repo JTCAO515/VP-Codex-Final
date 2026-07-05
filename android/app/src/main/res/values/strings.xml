@@ -74,6 +74,9 @@
     <string name="me_section_trips">Trips</string>
     <string name="me_trip_active">Active</string>
     <string name="me_trips_empty">No active trip yet</string>
+    <string name="me_trip_history_label">Saved trip history</string>
+    <string name="me_trip_history_not_connected">Not connected</string>
+    <string name="me_reset_local_draft">Reset local draft</string>
     <string name="me_section_privacy">Data &amp; privacy</string>
     <string name="me_privacy_offline_data">Offline data</string>
     <string name="me_value_not_set">Not set</string>

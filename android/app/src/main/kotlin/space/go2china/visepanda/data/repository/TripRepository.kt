@@ -58,4 +58,11 @@ interface TripRepository {
 
     /** DayDetail's reorder-within-day control — local-only, same category as [addPoiToDay]. */
     suspend fun moveBlock(dayNumber: Int, fromIndex: Int, toIndex: Int)
+
+    /**
+     * Me's "Reset local draft" (Issue #85, mirrors iOS MeView.swift's
+     * `store.resetLocalDraft()`) — clears the cached active trip + chat
+     * transcript so the next read falls back to the starter trip seed.
+     */
+    suspend fun resetLocalDraft()
 }
