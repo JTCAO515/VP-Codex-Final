@@ -179,6 +179,12 @@ class LiveSupabaseSyncManager @Inject constructor(
                     val persistedMessageCount = syncPreferences.getPersistedMessageCount()
                     if (messages.size > persistedMessageCount) {
                         val unsyncedMessages = messages.subList(persistedMessageCount, messages.size)
+                        // Bug fix (architect takeover, 2026-07-05): the previous version always
+                        // saved messages.size as the persisted count after the loop, even when a
+                        // message insert failed and the loop broke early — meaning a failed
+                        // message (and everything after it) was silently marked as synced and
+                        // would never be retried. Track how many actually succeeded instead.
+                        var syncedCount = persistedMessageCount
                         for (msg in unsyncedMessages) {
                             val msgRes = apiService.insertMessage(
                                 apiKey = anonKey,
@@ -196,12 +202,13 @@ class LiveSupabaseSyncManager @Inject constructor(
                             )
                             if (!msgRes.isSuccessful) {
                                 Log.e("SupabaseSyncManager", "Insert message failed: ${msgRes.code()}")
-                                // 允许消息同步失败，这不能强行阻断行程本身已同步的进度，但我们不要更新 persisted count，下次会重试
+                                // Stop here — do not advance syncedCount past this message, so it
+                                // (and anything after it) is retried on the next sync.
                                 break
                             }
+                            syncedCount++
                         }
-                        // 仅在全部增量同步或者本次尽力成功的最后更新 count
-                        syncPreferences.savePersistedMessageCount(messages.size)
+                        syncPreferences.savePersistedMessageCount(syncedCount)
                     }
 
                     _syncStatus.value = SyncStatus.SYNCED

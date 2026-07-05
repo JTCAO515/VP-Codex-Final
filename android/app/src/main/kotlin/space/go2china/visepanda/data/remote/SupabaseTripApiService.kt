@@ -51,10 +51,17 @@ interface SupabaseTripApiService {
         @Body body: SupabaseUserBody
     ): Response<Unit>
 
+    // Prefer: resolution=merge-duplicates (architect takeover, 2026-07-05) —
+    // SupabaseSyncManager retries a whole sync pass on the next trigger after
+    // any failure. Without upsert semantics, a request that actually
+    // succeeded server-side but whose response was lost client-side (timeout,
+    // dropped connection) would hit a primary-key conflict on retry and get
+    // permanently stuck instead of being treated as already-done.
     @POST("rest/v1/trips")
     suspend fun insertTrip(
         @Header("apikey") apiKey: String,
         @Header("Authorization") authorization: String,
+        @Header("Prefer") prefer: String = "resolution=merge-duplicates",
         @Body body: SupabaseTripInsertBody
     ): Response<Unit>
 
@@ -70,6 +77,7 @@ interface SupabaseTripApiService {
     suspend fun insertCanvasVersion(
         @Header("apikey") apiKey: String,
         @Header("Authorization") authorization: String,
+        @Header("Prefer") prefer: String = "resolution=merge-duplicates",
         @Body body: SupabaseCanvasVersionBody
     ): Response<Unit>
 
@@ -77,6 +85,7 @@ interface SupabaseTripApiService {
     suspend fun insertMessage(
         @Header("apikey") apiKey: String,
         @Header("Authorization") authorization: String,
+        @Header("Prefer") prefer: String = "resolution=merge-duplicates",
         @Body body: SupabaseMessageBody
     ): Response<Unit>
 }

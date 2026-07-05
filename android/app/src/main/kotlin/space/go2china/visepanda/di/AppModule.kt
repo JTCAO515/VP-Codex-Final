@@ -19,6 +19,8 @@ import space.go2china.visepanda.data.local.TripCacheDao
 import space.go2china.visepanda.data.local.VisePandaDatabase
 import space.go2china.visepanda.data.local.AuthPreferences
 import space.go2china.visepanda.data.local.SharedPrefsAuthPreferences
+import space.go2china.visepanda.data.local.SyncPreferences
+import space.go2china.visepanda.data.local.SharedPrefsSyncPreferences
 import space.go2china.visepanda.data.remote.ButlerApiService
 import space.go2china.visepanda.data.remote.ExchangeRateApiService
 import space.go2china.visepanda.data.remote.ExploreApiService
@@ -78,6 +80,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindSupabaseSyncManager(impl: LiveSupabaseSyncManager): SupabaseSyncManager
+
+    @Binds
+    @Singleton
+    abstract fun bindSyncPreferences(impl: SharedPrefsSyncPreferences): SyncPreferences
 }
 
 @Module
