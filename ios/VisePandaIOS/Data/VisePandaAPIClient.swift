@@ -36,8 +36,44 @@ struct VisePandaAPIClient {
         return try await perform(request, as: TranslationResponse.self)
     }
 
-    private func makeJSONRequest(path: String, method: String) -> URLRequest {
-        var request = URLRequest(url: baseURL.appendingPathComponent(path))
+    func translateOcr(imageBase64: String, mimeType: String = "image/jpeg") async throws -> TranslateOcrResponse {
+        var request = makeJSONRequest(path: "api/translate/ocr", method: "POST")
+        request.httpBody = try JSONEncoder.visePanda.encode(
+            TranslateOcrRequest(imageBase64: imageBase64, mimeType: mimeType)
+        )
+        return try await perform(request, as: TranslateOcrResponse.self)
+    }
+
+    func translateStt(audioBase64: String, mimeType: String = "audio/mp4", language: String = "zh") async throws -> TranslateSttResponse {
+        var request = makeJSONRequest(path: "api/translate/stt", method: "POST")
+        request.httpBody = try JSONEncoder.visePanda.encode(
+            TranslateSttRequest(audioBase64: audioBase64, mimeType: mimeType, language: language)
+        )
+        return try await perform(request, as: TranslateSttResponse.self)
+    }
+
+    func fetchMemoryProfile(userId: String) async throws -> UserMemoryProfileResponse {
+        let request = makeJSONRequest(path: "butler/memory/profile", method: "GET", queryItems: [
+            URLQueryItem(name: "userId", value: userId)
+        ])
+        return try await perform(request, as: UserMemoryProfileResponse.self)
+    }
+
+    func deleteMemoryProfileEntry(userId: String, key: String, value: String) async throws -> UserMemoryDeleteResponse {
+        let request = makeJSONRequest(path: "butler/memory/profile", method: "DELETE", queryItems: [
+            URLQueryItem(name: "userId", value: userId),
+            URLQueryItem(name: "key", value: key),
+            URLQueryItem(name: "value", value: value)
+        ])
+        return try await perform(request, as: UserMemoryDeleteResponse.self)
+    }
+
+    private func makeJSONRequest(path: String, method: String, queryItems: [URLQueryItem] = []) -> URLRequest {
+        let url = baseURL.appendingPathComponent(path)
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        components?.queryItems = queryItems.isEmpty ? nil : queryItems
+
+        var request = URLRequest(url: components?.url ?? url)
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

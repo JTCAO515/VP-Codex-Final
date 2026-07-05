@@ -136,4 +136,5 @@ export interface ChatMessage {
   changeDigest?: ChangeDigestEntry[];
   /** ISO timestamp set at creation time. Optional so older saved/loaded messages without it still render. */
   createdAt?: string;
+  isError?: boolean;
 }

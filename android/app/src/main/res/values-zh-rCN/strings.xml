@@ -45,6 +45,12 @@
     <string name="me_login_submit">登录</string>
     <string name="me_login_cancel">取消</string>
     <string name="me_login_not_connected">账号登录需要配置 Supabase 服务 — 当前版本不会创建真实登录会话。</string>
+    <string name="me_account_logged_in">当前登录为：</string>
+    <string name="me_account_log_out">退出登录</string>
+    <string name="me_login_dialog_signup_tab">注册</string>
+    <string name="me_login_switch_to_signup">还没有账号？立即注册</string>
+    <string name="me_login_switch_to_login">已有账号？立即登录</string>
+    <string name="me_google_signin_coming_soon">Google 账号登录(即将推出)</string>
     <string name="me_section_language">语言</string>
     <string name="me_language_english">English</string>
     <string name="me_language_chinese">中文</string>
@@ -85,4 +91,16 @@
     <string name="translate_pinyin">拼音</string>
     <string name="translate_error_unavailable">翻译服务当前不可用，请检查你的网络连接。</string>
     <string name="translate_show_local">向当地人展示此内容</string>
+    <string name="day_detail_needs_scheduling">需要安排日程</string>
+    <string name="day_detail_candidate_hint">来自 Explore 的候选景点；尚未锁定至当日日程。</string>
+    <string name="day_detail_ask_schedule">让 VisePanda 安排行程</string>
+
+    <!-- Translate Screen Phase 2 权限与状态文案 -->
+    <string name="translate_perm_camera_explain">我们需要相机权限以拍摄照片进行文字识别翻译，请在设置中开启该权限。</string>
+    <string name="translate_perm_mic_explain">我们需要麦克风权限以录制语音进行语音转文字翻译，请在设置中开启该权限。</string>
+    <string name="translate_status_recording">正在录音… 点击结束（最多 30 秒）</string>
+    <string name="translate_status_processing">正在识别语音/图片…</string>
+    <string name="translate_error_perm_rejected">权限已被拒绝。请前往系统设置手动开启。</string>
+    <string name="translate_error_ocr_failed">图片文字识别失败，请确保文字清晰并检查网络连接。</string>
+    <string name="translate_error_stt_failed">语音识别失败，请尝试吐字清晰并检查网络连接。</string>
 </resources>

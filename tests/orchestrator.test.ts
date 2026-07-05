@@ -135,19 +135,13 @@ describe("requestOrchestratedButlerPatch", () => {
     expect(result.strategy).toBe("parallel");
   });
 
-  it("falls back to the mock butler when no provider is configured", async () => {
-    const result = await requestOrchestratedButlerPatch({
+  it("throws an error when no provider is configured", async () => {
+    await expect(requestOrchestratedButlerPatch({
       message: "first time in China for 5 days",
       currentTrip: initialTripState,
       env: {},
       fetchImpl: vi.fn(),
-    });
-
-    expect(result.mode).toBe("mock");
-    expect(result.strategy).toBe("mock");
-    expect(result.patch.days?.some((day) => day.city === "Beijing")).toBe(true);
-    expect(result.suggestions).toHaveLength(2);
-    expect(result.fallbackReason).toBeTruthy();
+    })).rejects.toThrow("No Chinese LLM provider is configured.");
   });
 
   it("answers factual travel-tool questions without calling an LLM provider", async () => {
@@ -167,17 +161,14 @@ describe("requestOrchestratedButlerPatch", () => {
     expect(provider.complete).not.toHaveBeenCalled();
   });
 
-  it("falls back to the mock butler when every provider throws", async () => {
-    const result = await requestOrchestratedButlerPatch({
+  it("throws an error when every provider throws", async () => {
+    await expect(requestOrchestratedButlerPatch({
       message: "Make the plan easier",
       currentTrip: initialTripState,
       env: { DEEPSEEK_API_KEY: "k" },
       fetchImpl: vi.fn(),
       providers: [makeProvider("deepseek", { behavior: "throw" })],
-    });
-
-    expect(result.mode).toBe("mock");
-    expect(result.fallbackReason).toContain("deepseek failed");
+    })).rejects.toThrow("deepseek failed");
   });
 
   it("normalizes days missing blocks so write-through never crashes (v0.3.18)", async () => {
@@ -227,16 +218,13 @@ describe("requestOrchestratedButlerPatch", () => {
       reason: "claims to have planned but returned no days",
       suggestions: ["A?", "B?"],
     });
-    const result = await requestOrchestratedButlerPatch({
+    await expect(requestOrchestratedButlerPatch({
       message: "Plan me a 5 day trip in China",
       currentTrip: initialTripState,
       env: { DEEPSEEK_API_KEY: "k" },
       fetchImpl: vi.fn(),
       providers: [makeProvider("deepseek", { content: lazyPatch })],
-    });
-
-    expect(result.mode).toBe("mock");
-    expect(result.fallbackReason).toContain("days");
+    })).rejects.toThrow("create_trip patch is missing the complete days array.");
   });
 
   it("skips a provider tripped by the circuit breaker on the next request (v0.3.17)", async () => {
@@ -267,6 +255,44 @@ describe("requestOrchestratedButlerPatch", () => {
     expect(result.providersTried).toEqual(["qwen"]);
   });
 
+  it("aborts the losing candidate once a winner is found, without tripping its circuit breaker (v0.3.20)", async () => {
+    const fast = makeProvider("deepseek");
+    let capturedSignal: AbortSignal | undefined;
+    const slow: ChatCompletionProvider = {
+      id: "qwen",
+      label: "Provider qwen",
+      model: "qwen-model",
+      capabilities: ["reasoning"],
+      isConfigured: () => true,
+      complete: vi.fn(
+        (options) =>
+          new Promise((resolve, reject) => {
+            capturedSignal = options.signal;
+            options.signal?.addEventListener("abort", () => reject(new Error("qwen aborted")));
+            // Never resolves on its own within the test — only settles via abort.
+          }),
+      ),
+    };
+    const env = { DEEPSEEK_API_KEY: "k", DASHSCOPE_API_KEY: "k" };
+
+    for (let i = 0; i < 3; i++) {
+      const result = await requestOrchestratedButlerPatch({
+        message: "Plan me a 5 day trip in China",
+        currentTrip: initialTripState,
+        env,
+        fetchImpl: vi.fn(),
+        providers: [fast, slow],
+      });
+      expect(result.mode).toBe("deepseek");
+      // The slow candidate must still be raced every time — if its abort-
+      // induced rejection had spuriously tripped the breaker, later requests
+      // would stop trying it (providersTried would drop to just ["deepseek"]).
+      expect(result.providersTried).toEqual(["deepseek", "qwen"]);
+    }
+
+    expect(capturedSignal?.aborted).toBe(true);
+  });
+
   it("ignores the breaker when every candidate is tripped (never mock-locked)", async () => {
     const failing = makeProvider("deepseek", { behavior: "throw" });
     const env = { DEEPSEEK_API_KEY: "k" };
@@ -278,18 +304,16 @@ describe("requestOrchestratedButlerPatch", () => {
         env,
         fetchImpl: vi.fn(),
         providers: [failing],
-      });
+      }).catch(() => {});
     }
 
-    // Even fully tripped, the sole provider is still attempted (then mock).
-    const result = await requestOrchestratedButlerPatch({
+    // Even fully tripped, the sole provider is still attempted and throws.
+    await expect(requestOrchestratedButlerPatch({
       message: "Make it less tiring",
       currentTrip: initialTripState,
       env,
       fetchImpl: vi.fn(),
       providers: [failing],
-    });
-    expect(result.providersTried).toEqual(["deepseek"]);
-    expect(result.mode).toBe("mock");
+    })).rejects.toThrow("deepseek failed");
   });
 });

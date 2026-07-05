@@ -9,11 +9,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
@@ -23,21 +27,24 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import space.go2china.visepanda.R
 import space.go2china.visepanda.ui.theme.Dimens
 
 /**
- * New v0.3.8 profile/settings surface (the bottom-nav restructure's "Me").
- * Account editing waits for Supabase auth to be configured; local trip data
- * still appears in the trip section.
+ * v0.3.18 profile/settings surface (the bottom-nav restructure's "Me").
+ * Deploys real Supabase GoTrue authentication endpoints over Retrofit (Phase 1).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,32 +57,54 @@ fun MeScreen(
     val state by viewModel.uiState.collectAsState()
     var showLoginDialog by remember { mutableStateOf(false) }
 
+    // Automatically close dialog when log in succeeds
+    LaunchedEffect(state.isLoggedIn) {
+        if (state.isLoggedIn) {
+            showLoginDialog = false
+        }
+    }
+
     Scaffold(
         modifier = modifier,
         topBar = { TopAppBar(title = { Text(stringResource(R.string.me_title)) }) },
     ) { innerPadding ->
         MeContent(
+            isLoggedIn = state.isLoggedIn,
+            userEmail = state.userEmail,
             activeTripTitle = state.activeTripTitle,
             hasCachedTripData = state.hasCachedTripData,
             languageCode = languageCode,
             onSelectLanguage = onSelectLanguage,
             onLogInClick = { showLoginDialog = true },
+            onLogOutClick = { viewModel.logout() },
             contentPadding = innerPadding,
         )
     }
 
     if (showLoginDialog) {
-        LogInDialog(onDismiss = { showLoginDialog = false })
+        LogInDialog(
+            isLoading = state.isLoading,
+            errorMessage = state.errorMessage,
+            onLogin = { email, password -> viewModel.login(email, password) },
+            onSignUp = { email, password -> viewModel.signUp(email, password) },
+            onDismiss = {
+                showLoginDialog = false
+                viewModel.clearError()
+            }
+        )
     }
 }
 
 @Composable
 private fun MeContent(
+    isLoggedIn: Boolean,
+    userEmail: String?,
     activeTripTitle: String?,
     hasCachedTripData: Boolean,
     languageCode: String,
     onSelectLanguage: (String) -> Unit,
     onLogInClick: () -> Unit,
+    onLogOutClick: () -> Unit,
     contentPadding: PaddingValues,
 ) {
     LazyColumn(
@@ -106,14 +135,36 @@ private fun MeContent(
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(Dimens.SpaceMD),
                     horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = stringResource(R.string.me_account_log_in),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    TextButton(onClick = onLogInClick) {
-                        Text(stringResource(R.string.me_account_log_in))
+                    if (isLoggedIn) {
+                        Column {
+                            Text(
+                                text = stringResource(R.string.me_account_logged_in),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                text = userEmail.orEmpty(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
+                        TextButton(onClick = onLogOutClick) {
+                            Text(
+                                text = stringResource(R.string.me_account_log_out),
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = stringResource(R.string.me_account_log_in),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        TextButton(onClick = onLogInClick) {
+                            Text(stringResource(R.string.me_account_log_in))
+                        }
                     }
                 }
             }
@@ -151,9 +202,6 @@ private fun MeContent(
             Spacer(modifier = Modifier.height(Dimens.SpaceMD))
         }
         item {
-            // v0.3.14 Phase 5 — this reads the same Room-backed active-trip
-            // cache every other screen uses, so it reports what's actually
-            // on-device instead of a permanent placeholder.
             val offlineDataValue = if (hasCachedTripData) {
                 stringResource(R.string.me_privacy_offline_cached)
             } else {
@@ -229,22 +277,38 @@ private fun LanguageToggle(languageCode: String, onSelectLanguage: (String) -> U
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun LogInDialog(onDismiss: () -> Unit) {
+private fun LogInDialog(
+    isLoading: Boolean,
+    errorMessage: String?,
+    onLogin: (String, String) -> Unit,
+    onSignUp: (String, String) -> Unit,
+    onDismiss: () -> Unit
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var isSignUp by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.me_login_dialog_title)) },
+        title = {
+            Text(
+                text = if (isSignUp) {
+                    stringResource(R.string.me_login_dialog_signup_tab)
+                } else {
+                    stringResource(R.string.me_login_dialog_title)
+                }
+            )
+        },
         text = {
-            Column {
+            Column(modifier = Modifier.fillMaxWidth()) {
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
                     label = { Text(stringResource(R.string.me_login_email_label)) },
                     modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    enabled = !isLoading
                 )
                 Spacer(modifier = Modifier.height(Dimens.SpaceSM))
                 OutlinedTextField(
@@ -252,25 +316,85 @@ private fun LogInDialog(onDismiss: () -> Unit) {
                     onValueChange = { password = it },
                     label = { Text(stringResource(R.string.me_login_password_label)) },
                     modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    enabled = !isLoading
                 )
+                
+                if (errorMessage != null) {
+                    Spacer(modifier = Modifier.height(Dimens.SpaceSM))
+                    Text(
+                        text = errorMessage,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+                
                 Spacer(modifier = Modifier.height(Dimens.SpaceMD))
-                // Honest disclosure per DESIGN.md ADR-118 — this is a real,
-                // functional form, but there is no Supabase session behind
-                // it yet; submitting must not pretend to log the user in.
-                Text(
-                    text = stringResource(R.string.me_login_not_connected),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
-                )
+                
+                // Google OAuth is not implemented yet (tracked separately from
+                // email/password Phase 1) — disabled and honestly labeled
+                // instead of a clickable button that claimed readiness while
+                // doing nothing.
+                OutlinedButton(
+                    onClick = {},
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = false
+                ) {
+                    Text(stringResource(R.string.me_google_signin_coming_soon))
+                }
+
+                Spacer(modifier = Modifier.height(Dimens.SpaceSM))
+                
+                // Toggle between Login & SignUp
+                TextButton(
+                    onClick = { isSignUp = !isSignUp },
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    enabled = !isLoading
+                ) {
+                    Text(
+                        text = if (isSignUp) {
+                            stringResource(R.string.me_login_switch_to_login)
+                        } else {
+                            stringResource(R.string.me_login_switch_to_signup)
+                        }
+                    )
+                }
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss, enabled = false) {
-                Text(stringResource(R.string.me_login_submit))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp).padding(end = 8.dp),
+                        strokeWidth = 2.dp
+                    )
+                }
+                TextButton(
+                    onClick = {
+                        if (isSignUp) {
+                            onSignUp(email, password)
+                        } else {
+                            onLogin(email, password)
+                        }
+                    },
+                    enabled = email.isNotEmpty() && password.isNotEmpty() && !isLoading
+                ) {
+                    Text(
+                        text = if (isSignUp) {
+                            stringResource(R.string.me_login_dialog_signup_tab)
+                        } else {
+                            stringResource(R.string.me_login_submit)
+                        }
+                    )
+                }
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(onClick = onDismiss, enabled = !isLoading) {
                 Text(stringResource(R.string.me_login_cancel))
             }
         },

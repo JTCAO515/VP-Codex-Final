@@ -20,13 +20,15 @@ VP-Codex-Final/
 ## 2. 数据流：CanvasPatch 管道(跨三端统一契约)
 
 ```
-用户输入 → Chat UI → /api/chat → orchestrator(意图分类→provider选择→LLM/mock)
-        → CanvasPatch { assistantMessage, assistantResponse?, patch, suggestions }
-        → 客户端 applyCanvasPatch(本地 TripState 合并)
+用户输入 → Chat UI → /api/chat → orchestrator(意图分类→provider选择→LLM)
+        → 成功: CanvasPatch { assistantMessage, assistantResponse?, patch, suggestions }
+        → 失败: 诚实错误(HTTP 非 2xx + { ok:false, error, message })，不返回伪造的 CanvasPatch
+        → 客户端 applyCanvasPatch(本地 TripState 合并) 或展示连接失败状态
         → Trips/Day Detail 渲染
 ```
 
 - 这是全项目最核心的不变量：**任何端**都不允许绕开这条链路直接拼装/合并 `TripState`/`TripDay`（例外：Explore 的 "Add to Trip" 一类的本地确定性追加，见下方 4.2，仍需在 ADR 中显式记录为例外）。
+- **Chat 失败契约（2026-07 定案，DESIGN.md ADR-120）**：LLM 不可用时，`/api/chat` 必须返回诚实的失败响应，**不得**用 mock Butler 编造一份看起来像真实 AI 生成的 CanvasPatch 顶替。三端客户端收到失败必须展示"连接失败"，不得静默显示假行程。这是 §4.3"离线优先"规则的例外：离线优先说的是"网络/数据源不可达时退回本地缓存/静态数据"，不是"AI 决策不可用时伪造一个假的 AI 决策"——两者不是一回事。
 - Android 镜像实现：`data/model/ButlerModels.kt` + `CanvasPatchApplier.kt`。
 - iOS 镜像实现：`Models/ButlerModels.swift` + `Data/CanvasPatchApplier.swift`。
 - 三端字段必须保持 1:1（新增字段先改 `lib/types/trip.ts` 权威定义，再同步两端）。

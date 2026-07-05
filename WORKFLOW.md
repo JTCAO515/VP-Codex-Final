@@ -56,9 +56,12 @@ Claude Code 二选一：
 
 ## 当前泳道状态（由 Claude Code 在每轮审核后更新）
 
-- **Android 泳道**（Antigravity）：#3 Translator（v0.3.15）→ 完成后 #4 Explore 真实数据源（v0.3.16），严格串行
-- **iOS 泳道**（Codex）：#5 已合并（PR #7）✅
-- **Butler 泳道**（Codex）：#8 butler-service Phase A 骨架（Java/LangChain4j，部署 Fly.io hkg）——iOS #5 完成后 Codex 的新任务；Next.js 转发开关已由架构师实现（`BUTLER_SERVICE_URL`，默认关闭）
+- **Android 泳道**（Antigravity）：#3、#4、#16、#20、#24 均已合并 ✅ → **#28 已改派给 Codex**（PR #30 CI 红灯,操作者决定换人接手,Antigravity 不再碰这个分支）→ 排队 #22 真实 Supabase 登录 Phase 1
+- **iOS 泳道**（Codex）：#5、#19、#25 已合并 ✅ → #14 排队（暂缓，#27 插队优先）→ #23 排队
+- **Butler 泳道**：#8+#11+#13 已合并 ✅ → **进行中 #27** 接入真实 LLM(Codex,优先于 iOS #14)
+  - ⚠️ 生产 `BUTLER_SERVICE_URL` 仍不打开，等 #27 完成并验证等效
+- **Web 泳道**：#20/#26(Antigravity)、#28(Codex,PR #30) 均已合并 ✅ → Web 恢复冻结
+
 
 ## 完整规则出处
 

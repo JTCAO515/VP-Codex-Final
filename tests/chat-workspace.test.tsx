@@ -1,11 +1,17 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ButlerWorkspace } from "@/components/chat/ButlerWorkspace";
+import { mockFailedChatFetch, mockSuccessfulChatFetch } from "./mockChatFetch";
 
 describe("ButlerWorkspace", () => {
   beforeEach(() => {
     window.localStorage.clear();
     window.history.replaceState(null, "", "/chat");
+    mockSuccessfulChatFetch();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it("starts without demo conversation and shows three first-run suggestions", () => {
@@ -27,6 +33,20 @@ describe("ButlerWorkspace", () => {
     expect(await screen.findAllByText(/Beijing/i)).not.toHaveLength(0);
     expect(await screen.findAllByText(/Shanghai/i)).not.toHaveLength(0);
     expect(await screen.findByText(/VisePanda updated the canvas/i)).toBeInTheDocument();
+  });
+
+  it("shows a connection failure instead of changing the canvas on chat failure", async () => {
+    mockFailedChatFetch();
+    render(<ButlerWorkspace />);
+
+    fireEvent.change(screen.getByLabelText(/ask visepanda/i), {
+      target: { value: "I am visiting China for the first time for 5 days" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /send/i }));
+
+    expect(await screen.findByText(/HTTP error 502/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Connection failed: Could not reach VisePanda AI Butler/i)).toBeInTheDocument();
+    expect(screen.queryByText(/VisePanda updated the canvas/i)).not.toBeInTheDocument();
   });
 
   it("has no manual Save to Trips button (chats auto-save)", () => {

@@ -9,6 +9,18 @@
 // point, and (3) if that still fails, walk backwards to the last structural
 // boundary and retry — salvaging the longest valid prefix of the patch.
 //
+// v0.3.19 addition: a *complete* JSON object can also be followed by trailing
+// human-language commentary (verified with a real Kimi K2.6 response,
+// 2026-07-05 — reasoning models sometimes self-narrate "Yes, this is valid
+// JSON..." after the answer). If that trailing text happens to contain a
+// comma, the backtrack loop below finds it before any comma inside the JSON
+// body, cuts there, and can silently corrupt a field deep inside the object
+// (a real repro: a day block's `"title":"Yu Garden"` was chopped down to
+// nothing while the outer `days` array length looked unchanged). `findObjectEnd`
+// closes this hole by scanning for the brace that actually matches the
+// leading `{` and cutting there first — only genuinely truncated payloads
+// (no matching end brace) fall through to the backtrack loop.
+//
 // This is deliberately dependency-free and deterministic so it is trivial to
 // unit test (tests/jsonRepair.test.ts).
 
@@ -71,6 +83,37 @@ export function repairTruncatedJson(input: string): string {
   return repaired;
 }
 
+/**
+ * Scan a string that starts with `{` for the brace that closes it (tracking
+ * nested `{}`/`[]` and skipping over string contents/escapes). Returns the
+ * index just past that closing brace, or -1 if the input ends before the
+ * braces balance out (a genuine truncation, not trailing extra text).
+ */
+export function findObjectEnd(input: string): number {
+  if (input[0] !== "{") return -1;
+  const stack: string[] = [];
+  let inString = false;
+  let escaped = false;
+
+  for (let i = 0; i < input.length; i++) {
+    const ch = input[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === "\\") escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') inString = true;
+    else if (ch === "{" || ch === "[") stack.push(ch === "{" ? "}" : "]");
+    else if (ch === "}" || ch === "]") {
+      if (!stack.length || stack[stack.length - 1] !== ch) return -1; // mismatched — not a clean object
+      stack.pop();
+      if (stack.length === 0) return i + 1;
+    }
+  }
+  return -1; // ran off the end still open — genuinely truncated
+}
+
 const MAX_BACKTRACK_STEPS = 24;
 
 /**
@@ -80,7 +123,17 @@ const MAX_BACKTRACK_STEPS = 24;
  * salvageable remains.
  */
 export function safeParseLlmJson(raw: string): unknown {
-  const candidate = extractJsonCandidate(raw);
+  let candidate = extractJsonCandidate(raw);
+
+  // A complete object followed by trailing chatter (e.g. a reasoning model
+  // narrating "Yes, this is valid JSON") must be cut exactly at the matching
+  // brace — before the backtrack loop below ever runs, since that loop hunts
+  // for the last comma/brace and trailing text can contain one that shadows
+  // a real comma inside the object, corrupting it instead of just trimming it.
+  const objectEnd = findObjectEnd(candidate);
+  if (objectEnd !== -1) {
+    candidate = candidate.slice(0, objectEnd);
+  }
 
   try {
     return JSON.parse(candidate);

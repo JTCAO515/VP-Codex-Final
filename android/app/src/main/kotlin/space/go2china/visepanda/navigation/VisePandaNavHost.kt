@@ -38,7 +38,8 @@ import space.go2china.visepanda.ui.translate.TranslateScreen
 fun VisePandaApp() {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val isTopLevelDestination = TopLevelDestination.all.any { it.route == backStackEntry?.destination?.route }
+    val currentRoute = backStackEntry?.destination?.route?.split("?")?.firstOrNull()
+    val isTopLevelDestination = TopLevelDestination.all.any { it.route == currentRoute }
 
     // v0.3.14: scoped to the Activity (this composable, not any single nav
     // route) so Me's language toggle affects every screen — see DESIGN.md
@@ -50,7 +51,7 @@ fun VisePandaApp() {
     Box(modifier = Modifier.fillMaxSize()) {
         NavHost(
             navController = navController,
-            startDestination = TopLevelDestination.Butler.route,
+            startDestination = "${TopLevelDestination.Butler.route}?message={message}",
             modifier = Modifier.fillMaxSize(),
         ) {
             composable(TopLevelDestination.Trips.route) {
@@ -59,7 +60,10 @@ fun VisePandaApp() {
                     onOpenDay = { dayNumber -> navController.navigate(DetailDestinations.dayDetailRoute(dayNumber)) },
                 )
             }
-            composable(TopLevelDestination.Butler.route) {
+            composable(
+                route = "${TopLevelDestination.Butler.route}?message={message}",
+                arguments = listOf(navArgument("message") { type = NavType.StringType; nullable = true; defaultValue = null })
+            ) {
                 ButlerScreen(
                     onOpenToolCategory = { categoryId ->
                         if (categoryId == "language" || categoryId == "translate") {
@@ -94,7 +98,17 @@ fun VisePandaApp() {
                 route = DetailDestinations.DAY_DETAIL_ROUTE,
                 arguments = listOf(navArgument(DetailDestinations.DAY_NUMBER_ARG) { type = NavType.StringType }),
             ) {
-                DayDetailScreen(onBack = { navController.popBackStack() })
+                DayDetailScreen(
+                    onBack = { navController.popBackStack() },
+                    onScheduleCandidate = { day, block ->
+                        val message = "Schedule ${block.title} into Day ${day.day} in ${day.city}. Keep the route practical, choose the best time slot, and explain what changed."
+                        navController.navigate("butler?message=${android.net.Uri.encode(message)}") {
+                            popUpTo(TopLevelDestination.Butler.route) {
+                                inclusive = false
+                            }
+                        }
+                    }
+                )
             }
             composable(
                 route = DetailDestinations.TOOL_CATEGORY_ROUTE,

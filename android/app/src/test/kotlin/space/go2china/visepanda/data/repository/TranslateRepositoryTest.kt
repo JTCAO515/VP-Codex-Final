@@ -6,6 +6,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import space.go2china.visepanda.data.model.TranslateRequest
 import space.go2china.visepanda.data.model.TranslateResponse
+import space.go2china.visepanda.data.model.OcrRequest
+import space.go2china.visepanda.data.model.OcrResponse
+import space.go2china.visepanda.data.model.SttRequest
+import space.go2china.visepanda.data.model.SttResponse
 import space.go2china.visepanda.data.remote.TranslateApiService
 
 class TranslateRepositoryTest {
@@ -17,6 +21,22 @@ class TranslateRepositoryTest {
         override suspend fun translateText(request: TranslateRequest): TranslateResponse {
             if (success) {
                 return mockResponse
+            } else {
+                throw Exception("Network failure")
+            }
+        }
+
+        override suspend fun translateOcr(request: OcrRequest): OcrResponse {
+            if (success) {
+                return OcrResponse(ok = true, text = "Extracted OCR text")
+            } else {
+                throw Exception("Network failure")
+            }
+        }
+
+        override suspend fun translateStt(request: SttRequest): SttResponse {
+            if (success) {
+                return SttResponse(ok = true, text = "Extracted STT text")
             } else {
                 throw Exception("Network failure")
             }
@@ -52,6 +72,32 @@ class TranslateRepositoryTest {
         
         assertTrue(result.isFailure)
         assertEquals("Network failure", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun translateOcr_success_returnsText() {
+        val mockApi = MockTranslateApiService(success = true)
+        val repository = LiveTranslateRepository(mockApi)
+        
+        val result = runBlocking {
+            repository.translateOcr("dummy_base64")
+        }
+        
+        assertTrue(result.isSuccess)
+        assertEquals("Extracted OCR text", result.getOrNull())
+    }
+
+    @Test
+    fun translateStt_success_returnsText() {
+        val mockApi = MockTranslateApiService(success = true)
+        val repository = LiveTranslateRepository(mockApi)
+        
+        val result = runBlocking {
+            repository.translateStt("dummy_base64")
+        }
+        
+        assertTrue(result.isSuccess)
+        assertEquals("Extracted STT text", result.getOrNull())
     }
 
     @Test

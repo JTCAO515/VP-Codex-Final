@@ -17,15 +17,24 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import space.go2china.visepanda.data.local.TripCacheDao
 import space.go2china.visepanda.data.local.VisePandaDatabase
+import space.go2china.visepanda.data.local.AuthPreferences
+import space.go2china.visepanda.data.local.SharedPrefsAuthPreferences
 import space.go2china.visepanda.data.remote.ButlerApiService
 import space.go2china.visepanda.data.remote.ExchangeRateApiService
+import space.go2china.visepanda.data.remote.ExploreApiService
 import space.go2china.visepanda.data.remote.TranslateApiService
+import space.go2china.visepanda.data.remote.AuthApiService
+import space.go2china.visepanda.data.remote.SupabaseConfig
+import space.go2china.visepanda.data.repository.ExploreRepository
+import space.go2china.visepanda.data.repository.LiveExploreRepository
 import space.go2china.visepanda.data.repository.LiveToolsRepository
 import space.go2china.visepanda.data.repository.RoomTripRepository
 import space.go2china.visepanda.data.repository.ToolsRepository
-import space.go2china.visepanda.data.repository.TripRepository
 import space.go2china.visepanda.data.repository.TranslateRepository
 import space.go2china.visepanda.data.repository.LiveTranslateRepository
+import space.go2china.visepanda.data.repository.TripRepository
+import space.go2china.visepanda.data.repository.AuthRepository
+import space.go2china.visepanda.data.repository.LiveAuthRepository
 import space.go2china.visepanda.data.serialization.TripJson
 
 @Module
@@ -41,6 +50,10 @@ abstract class RepositoryModule {
     @Singleton
     abstract fun bindTripRepository(impl: RoomTripRepository): TripRepository
 
+    @Binds
+    @Singleton
+    abstract fun bindExploreRepository(impl: LiveExploreRepository): ExploreRepository
+
     /** v0.3.13: checklist content + live exchange-rate merge — see DESIGN.md ADR-117. */
     @Binds
     @Singleton
@@ -49,6 +62,14 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindTranslateRepository(impl: LiveTranslateRepository): TranslateRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAuthRepository(impl: LiveAuthRepository): AuthRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAuthPreferences(impl: SharedPrefsAuthPreferences): AuthPreferences
 }
 
 @Module
@@ -117,6 +138,27 @@ object NetworkModule {
     @Singleton
     fun provideTranslateApiService(retrofit: Retrofit): TranslateApiService =
         retrofit.create(TranslateApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideExploreApiService(retrofit: Retrofit): ExploreApiService =
+        retrofit.create(ExploreApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideAuthApiService(okHttpClient: OkHttpClient): AuthApiService {
+        val baseUrl = if (SupabaseConfig.SUPABASE_URL.endsWith("/")) {
+            SupabaseConfig.SUPABASE_URL
+        } else {
+            "${SupabaseConfig.SUPABASE_URL}/"
+        }
+        return Retrofit.Builder()
+            .baseUrl(baseUrl)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create(TripJson.gson))
+            .build()
+            .create(AuthApiService::class.java)
+    }
 
     private fun String.ensureTrailingSlash(): String =
         if (endsWith("/")) this else "$this/"

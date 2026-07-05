@@ -1,0 +1,25 @@
+server:
+  port: ${PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+butler:
+  memory:
+    window-rounds: ${BUTLER_MEMORY_WINDOW_ROUNDS:12}
+    retention-days: ${BUTLER_CHAT_LOG_RETENTION_DAYS:30}
+
+supabase:
+  url: ${SUPABASE_URL:}
+  service-role-key: ${SUPABASE_SERVICE_ROLE_KEY:}
+
+spring:
+  jackson:
+    default-property-inclusion: non_null

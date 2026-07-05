@@ -23,7 +23,11 @@ struct ToolsView: View {
                     LazyVGrid(columns: columns, spacing: 14) {
                         ForEach(tools) { tool in
                             NavigationLink {
-                                ToolDetailView(tool: tool)
+                                if tool.id == "translate" {
+                                    TranslateView()
+                                } else {
+                                    ToolDetailView(tool: tool)
+                                }
                             } label: {
                                 ToolTile(tool: tool)
                             }
@@ -264,10 +268,6 @@ private struct ToolDetailView: View {
             VStack(alignment: .leading, spacing: 18) {
                 detailHeader
 
-                if tool.id == "translate" {
-                    TranslateToolPanel()
-                }
-
                 if tool.id == "currency" {
                     CurrencyToolPanel()
                 }
@@ -326,98 +326,6 @@ private struct ToolDetailView: View {
                 }
             }
         }
-    }
-}
-
-private struct TranslateToolPanel: View {
-    @State private var input = "Please take me to Yu Garden Old Street."
-    @State private var output = "豫园老街，请带我去这里。"
-    @State private var pinyin = "Yu yuan lao jie, qing dai wo qu zhe li."
-    @State private var status = "Saved phrase ready"
-    @State private var isLoading = false
-
-    private let api = VisePandaAPIClient()
-
-    var body: some View {
-        VPCard {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("TEXT TRANSLATE")
-                    .font(VPFont.body(12, weight: .bold))
-                    .foregroundStyle(VPColor.inkSoft)
-
-                TextField("Text to translate", text: $input, axis: .vertical)
-                    .font(VPFont.body(15))
-                    .lineLimit(2...5)
-                    .padding(12)
-                    .background(VPColor.paper)
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-
-                Button {
-                    translate()
-                } label: {
-                    HStack {
-                        if isLoading {
-                            ProgressView()
-                                .tint(VPColor.paperSoft)
-                        }
-                        Text("Translate to Chinese")
-                            .font(VPFont.body(15, weight: .bold))
-                    }
-                    .foregroundStyle(VPColor.paperSoft)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 13)
-                    .background(VPColor.cinnabar)
-                    .clipShape(Capsule())
-                }
-                .disabled(isLoading || input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(output)
-                        .font(VPFont.display(23))
-                        .foregroundStyle(VPColor.ink)
-                    if !pinyin.isEmpty {
-                        Text(pinyin)
-                            .font(VPFont.body(13, weight: .semibold))
-                            .foregroundStyle(VPColor.inkSoft)
-                    }
-                    Text(status)
-                        .font(VPFont.body(12, weight: .semibold))
-                        .foregroundStyle(VPColor.sage)
-                }
-                .padding(12)
-                .background(VPColor.paperWarm)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            }
-        }
-    }
-
-    private func translate() {
-        let text = input.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else { return }
-        isLoading = true
-        status = "Translating..."
-
-        Task {
-            do {
-                let response = try await api.translateText(text, from: "en", to: "zh")
-                if response.ok, let translation = response.translation {
-                    output = translation
-                    pinyin = response.pinyin ?? ""
-                    status = "Translation ready"
-                } else {
-                    showTranslationUnavailable()
-                }
-            } catch {
-                showTranslationUnavailable()
-            }
-            isLoading = false
-        }
-    }
-
-    private func showTranslationUnavailable() {
-        output = "Translation unavailable"
-        pinyin = ""
-        status = "Try again when the network is available."
     }
 }
 

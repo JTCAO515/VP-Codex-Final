@@ -1794,6 +1794,12 @@ select:focus-visible {
   color: var(--ink);
 }
 
+.chat-message[data-error="true"] p {
+  border-color: rgba(220, 38, 38, 0.35);
+  background: rgba(254, 242, 242, 0.9);
+  color: rgb(220, 38, 38);
+}
+
 .chat-message__response {
   display: grid;
   gap: 8px;
@@ -3076,7 +3082,7 @@ select:focus-visible {
 
   .nav-tabs {
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     width: 100%;
     margin-top: 0;
     gap: 0;
@@ -4564,6 +4570,7 @@ select:focus-visible {
 .community-hotspot-card--attraction { border-left-color: var(--cinnabar); }
 .community-hotspot-card--food { border-left-color: var(--gold); }
 .community-hotspot-card--hidden { border-left-color: var(--sage); }
+.community-hotspot-card--practical { border-left-color: #3f6b8e; }
 
 .community-hotspot-card:hover {
   box-shadow: var(--shadow-soft);

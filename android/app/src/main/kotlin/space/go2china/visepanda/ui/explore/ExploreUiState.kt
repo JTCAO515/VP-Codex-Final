@@ -13,5 +13,8 @@ sealed interface ExploreUiState {
         /** Day numbers of the active trip, for the "Add to Trip" picker. Empty if no trip exists yet. */
         val availableDays: List<Int>,
         val lastAddedPoiName: String? = null,
+        val isFallback: Boolean = false,
+        val errorNotice: String? = null,
+        val isLoading: Boolean = false,
     ) : ExploreUiState
 }

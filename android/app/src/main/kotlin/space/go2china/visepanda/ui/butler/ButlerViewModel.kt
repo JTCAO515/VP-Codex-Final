@@ -1,5 +1,6 @@
 package space.go2china.visepanda.ui.butler
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,9 +17,18 @@ import space.go2china.visepanda.data.repository.TripRepository
 @HiltViewModel
 class ButlerViewModel @Inject constructor(
     private val tripRepository: TripRepository,
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private val localState = MutableStateFlow(ButlerUiState())
+
+    init {
+        val preFilledMsg = savedStateHandle.get<String>("message")
+        if (!preFilledMsg.isNullOrEmpty()) {
+            send(preFilledMsg)
+            savedStateHandle["message"] = null
+        }
+    }
 
     val uiState: StateFlow<ButlerUiState> = combine(
         localState,

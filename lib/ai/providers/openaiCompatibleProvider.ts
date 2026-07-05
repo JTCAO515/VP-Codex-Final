@@ -39,6 +39,30 @@ export interface OpenAiCompatibleConfig {
    * carries the planning rules.
    */
   extraBody?: Record<string, unknown>;
+  /**
+   * Vendor-enforced floor on the request timeout, regardless of what the
+   * orchestrator's per-intent budget requests. v0.3.19: Moonshot Kimi-K2.6 is
+   * a genuine reasoning model — verified with a real key (2026-07-05) that no
+   * combination of `thinking:{type:"disabled"}` / `enable_thinking:false` /
+   * `reasoning_effort:"minimal"` actually suppresses its reasoning pass (some
+   * are silently ignored, one changes the model's accepted temperature and
+   * 400s). A real itinerary-sized completion took 33.5s end-to-end. Racing it
+   * against faster providers is fine (a healthy faster answer still wins),
+   * but it must not be timed out early when it's the only/last candidate.
+   */
+  minTimeoutMs?: number;
+  /**
+   * Vendor-enforced floor on max_tokens, regardless of the orchestrator's
+   * per-intent token budget. v0.3.19: Moonshot Kimi-K2.6's reasoning pass
+   * cannot be disabled and its reasoning_content shares the same max_tokens
+   * ceiling as content — verified with a real key (2026-07-05) that the
+   * itinerary budget (4096) occasionally left zero room for content after a
+   * long reasoning pass on the real (much longer) system prompt, producing
+   * "response did not include message content." A real request with
+   * max_tokens=8192 completed with room to spare (1511 completion tokens,
+   * 1304 of them reasoning). Floor it there instead of fighting the model.
+   */
+  minMaxTokens?: number;
 }
 
 // Hard ceiling on a single provider call. A slow or misconfigured model must
@@ -82,7 +106,7 @@ export function createOpenAiCompatibleProvider(config: OpenAiCompatibleConfig): 
       const body: Record<string, unknown> = {
         model: resolvedModel,
         messages: options.messages,
-        max_tokens: options.maxTokens ?? 2200,
+        max_tokens: Math.max(options.maxTokens ?? 2200, config.minMaxTokens ?? 0),
         // jsonMode implies a structured contract — keep sampling tight so the
         // shape stays stable; free-text replies keep the slightly warmer 0.4.
         temperature: options.temperature ?? (options.jsonMode ? 0.3 : 0.4),
@@ -92,7 +116,7 @@ export function createOpenAiCompatibleProvider(config: OpenAiCompatibleConfig): 
         body.response_format = { type: "json_object" };
       }
 
-      const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+      const timeoutMs = Math.max(options.timeoutMs ?? DEFAULT_TIMEOUT_MS, config.minTimeoutMs ?? 0);
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), timeoutMs);
       if (options.signal) {

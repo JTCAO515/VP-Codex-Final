@@ -50,6 +50,12 @@
     <string name="me_login_submit">Log in</string>
     <string name="me_login_cancel">Cancel</string>
     <string name="me_login_not_connected">Account sign-in needs Supabase configuration — this build does not create a real session.</string>
+    <string name="me_account_logged_in">Logged in as:</string>
+    <string name="me_account_log_out">Log Out</string>
+    <string name="me_login_dialog_signup_tab">Sign Up</string>
+    <string name="me_login_switch_to_signup">Need an account? Sign Up</string>
+    <string name="me_login_switch_to_login">Already have an account? Log In</string>
+    <string name="me_google_signin_coming_soon">Sign in with Google (coming soon)</string>
     <string name="me_section_language">Language</string>
     <string name="me_language_english">English</string>
     <string name="me_language_chinese">中文</string>
@@ -90,4 +96,16 @@
     <string name="translate_pinyin">Pinyin</string>
     <string name="translate_error_unavailable">Translation service is currently offline. Please check your network connection.</string>
     <string name="translate_show_local">Show this to local people</string>
+    <string name="day_detail_needs_scheduling">Needs scheduling</string>
+    <string name="day_detail_candidate_hint">Candidate from Explore; not locked into the day yet.</string>
+    <string name="day_detail_ask_schedule">Ask VisePanda to schedule</string>
+
+    <!-- Translate Screen Phase 2 Permissions & State Strings -->
+    <string name="translate_perm_camera_explain">Camera permission is required to capture images for OCR translation. Please enable it in Settings.</string>
+    <string name="translate_perm_mic_explain">Microphone permission is required to record audio for voice translation. Please enable it in Settings.</string>
+    <string name="translate_status_recording">Recording… Click to finish (Max 30s)</string>
+    <string name="translate_status_processing">Processing voice/image…</string>
+    <string name="translate_error_perm_rejected">Permission was denied. Please go to system settings to enable it.</string>
+    <string name="translate_error_ocr_failed">OCR text extraction failed. Please ensure the image has clear text and check network.</string>
+    <string name="translate_error_stt_failed">STT voice recognition failed. Please try speaking clearly and check network.</string>
 </resources>

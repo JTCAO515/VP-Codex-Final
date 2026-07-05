@@ -34,4 +34,10 @@ describe("classifyIntent", () => {
     expect(classifyIntent("someone stolen my wallet")).toBe("concern");
     expect(classifyIntent("I'm injured and need urgent help")).toBe("concern");
   });
+
+  it("classifies add-a-poi requests, including 'in the itinerary' phrasing (v0.3.20)", () => {
+    expect(classifyIntent("add the Forbidden City to my trip")).toBe("add_poi");
+    expect(classifyIntent("add the Forbidden City to my itinerary")).toBe("add_poi");
+    expect(classifyIntent("can you put the Summer Palace in the itinerary?")).toBe("add_poi");
+  });
 });
