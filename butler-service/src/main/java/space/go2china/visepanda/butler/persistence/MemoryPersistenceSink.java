@@ -7,4 +7,8 @@ public interface MemoryPersistenceSink {
     void saveUserMemory(String userKey, UserMemoryEntry entry);
 
     void saveTripMemory(TripMemoryEntry entry);
+
+    /** Durable delete counterpart to saveUserMemory — must be called on every delete so a
+     * later cold-start rehydration from Supabase cannot resurrect a "deleted" entry. */
+    void deleteUserMemory(String userKey, String entryKey, String entryValue);
 }

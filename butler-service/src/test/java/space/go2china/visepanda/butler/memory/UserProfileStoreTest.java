@@ -43,6 +43,28 @@ class UserProfileStoreTest {
     }
 
     @Test
+    void listAllExcludesCorrectedAwayEntries() {
+        store.applySignals("guest:g5", extractor.extract("I am vegetarian"));
+
+        assertThat(store.listAll("guest:g5")).hasSize(1);
+
+        store.applySignals("guest:g5", extractor.extract("I am now not vegetarian"));
+
+        assertThat(store.listAll("guest:g5")).isEmpty();
+    }
+
+    @Test
+    void deleteRemovesExactEntryAndReportsWhetherSomethingWasRemoved() {
+        store.applySignals("guest:g6", extractor.extract("I am vegetarian"));
+
+        assertThat(store.delete("guest:g6", "dietary", "not-a-real-value")).isFalse();
+        assertThat(store.listAll("guest:g6")).hasSize(1);
+
+        assertThat(store.delete("guest:g6", "dietary", "vegetarian")).isTrue();
+        assertThat(store.listAll("guest:g6")).isEmpty();
+    }
+
+    @Test
     void migratesGuestProfileToUserProfile() {
         store.applySignals("guest:g4", extractor.extract("I am vegetarian"));
 
