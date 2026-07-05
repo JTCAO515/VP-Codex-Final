@@ -26,6 +26,10 @@
 		AA2000000000000000000018 /* MeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000018 /* MeView.swift */; };
 		AA2000000000000000000019 /* TranslateModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000019 /* TranslateModels.swift */; };
 		AA2000000000000000000020 /* TranslateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000020 /* TranslateView.swift */; };
+		AA2000000000000000000021 /* AuthModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000021 /* AuthModels.swift */; };
+		AA2000000000000000000022 /* SupabaseAuthClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000022 /* SupabaseAuthClient.swift */; };
+		AA2000000000000000000023 /* KeychainSessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000023 /* KeychainSessionStore.swift */; };
+		AA2000000000000000000024 /* AuthStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000024 /* AuthStore.swift */; };
 		AA4000000000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA3000000000000000000001 /* Assets.xcassets */; };
 		AA4000000000000000000002 /* DMSans.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA3000000000000000000002 /* DMSans.ttf */; };
 		AA4000000000000000000003 /* PlayfairDisplay.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA3000000000000000000003 /* PlayfairDisplay.ttf */; };
@@ -52,6 +56,10 @@
 		AA1000000000000000000018 /* MeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeView.swift; sourceTree = "<group>"; };
 		AA1000000000000000000019 /* TranslateModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslateModels.swift; sourceTree = "<group>"; };
 		AA1000000000000000000020 /* TranslateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslateView.swift; sourceTree = "<group>"; };
+		AA1000000000000000000021 /* AuthModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthModels.swift; sourceTree = "<group>"; };
+		AA1000000000000000000022 /* SupabaseAuthClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseAuthClient.swift; sourceTree = "<group>"; };
+		AA1000000000000000000023 /* KeychainSessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainSessionStore.swift; sourceTree = "<group>"; };
+		AA1000000000000000000024 /* AuthStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthStore.swift; sourceTree = "<group>"; };
 		AA3000000000000000000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AA3000000000000000000002 /* DMSans.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = DMSans.ttf; sourceTree = "<group>"; };
 		AA3000000000000000000003 /* PlayfairDisplay.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = PlayfairDisplay.ttf; sourceTree = "<group>"; };
@@ -114,6 +122,7 @@
 				AA1000000000000000000005 /* TripModels.swift */,
 				AA1000000000000000000006 /* ButlerModels.swift */,
 				AA1000000000000000000019 /* TranslateModels.swift */,
+				AA1000000000000000000021 /* AuthModels.swift */,
 			);
 			path = VisePandaIOS/Models;
 			sourceTree = "<group>";
@@ -125,6 +134,9 @@
 				AA1000000000000000000008 /* CanvasPatchApplier.swift */,
 				AA1000000000000000000009 /* VisePandaAPIClient.swift */,
 				AA1000000000000000000011 /* TripStore.swift */,
+				AA1000000000000000000022 /* SupabaseAuthClient.swift */,
+				AA1000000000000000000023 /* KeychainSessionStore.swift */,
+				AA1000000000000000000024 /* AuthStore.swift */,
 			);
 			path = VisePandaIOS/Data;
 			sourceTree = "<group>";
@@ -309,6 +321,10 @@
 				AA2000000000000000000018 /* MeView.swift in Sources */,
 				AA2000000000000000000019 /* TranslateModels.swift in Sources */,
 				AA2000000000000000000020 /* TranslateView.swift in Sources */,
+				AA2000000000000000000021 /* AuthModels.swift in Sources */,
+				AA2000000000000000000022 /* SupabaseAuthClient.swift in Sources */,
+				AA2000000000000000000023 /* KeychainSessionStore.swift in Sources */,
+				AA2000000000000000000024 /* AuthStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
