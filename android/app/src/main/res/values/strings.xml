@@ -129,4 +129,19 @@
     <string name="me_sync_status_syncing">Syncing…</string>
     <string name="me_sync_status_synced">Synced</string>
     <string name="me_sync_status_failed">Sync Failed</string>
+
+    <!-- Subscription placeholder (Issue #67) -->
+    <string name="me_section_subscription">SUBSCRIPTION</string>
+    <string name="me_subscription_placeholder_title">Subscription placeholder</string>
+    <string name="me_subscription_human_title">Human Service</string>
+    <string name="me_subscription_human_price">$9.99 / month</string>
+    <string name="me_subscription_human_summary">Priority human travel help for itinerary fixes, booking questions, and urgent trip problems.</string>
+    <string name="me_subscription_premium_title">Premium Service</string>
+    <string name="me_subscription_premium_price">$19.99 / month</string>
+    <string name="me_subscription_premium_summary">Advanced concierge support with deeper planning review and faster response windows.</string>
+    <string name="me_subscription_subscribe">Subscribe</string>
+    <string name="me_subscription_restore">Restore Purchase</string>
+    <string name="me_subscription_renewal_notice">Subscriptions auto-renew until cancelled. Manage or cancel from your Google Play account. Payment will be charged to your Google Play account after confirmation. Terms and Privacy Policy links will be connected before release.</string>
+    <string name="me_subscription_terms">Terms of Use</string>
+    <string name="me_subscription_privacy">Privacy Policy</string>
 </resources>

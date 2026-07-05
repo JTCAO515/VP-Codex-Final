@@ -96,12 +96,29 @@ fun ToolsScreen(
     }
 }
 
+/**
+ * v0.3.x (Issue #67): 2-column order mirrors iOS PR #66 — Translate/Emergency,
+ * Payment/Transport, Currency/Network, Entry Checklist/(iOS-only Offline
+ * Pack). Android has no "Offline Pack" content category (iOS's is new and
+ * iOS-specific), so "booking" fills that last slot instead of inventing
+ * placeholder content for a category that doesn't exist here yet.
+ */
+private val toolsDisplayOrder = listOf(
+    "translate", "emergency",
+    "payment-setup", "metro",
+    "currency", "esim-vpn",
+    "visa-and-entry", "booking",
+)
+
 @Composable
 private fun ToolsGrid(
     categories: List<ToolCategory>,
     onOpenCategory: (String) -> Unit,
     contentPadding: PaddingValues,
 ) {
+    val ordered = categories.sortedBy { category ->
+        toolsDisplayOrder.indexOf(category.id).let { if (it < 0) toolsDisplayOrder.size else it }
+    }
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier.padding(contentPadding),
@@ -114,7 +131,7 @@ private fun ToolsGrid(
         horizontalArrangement = Arrangement.spacedBy(Dimens.SpaceMD),
         verticalArrangement = Arrangement.spacedBy(Dimens.SpaceMD),
     ) {
-        items(categories, key = { it.id }) { category ->
+        items(ordered, key = { it.id }) { category ->
             ToolCategoryCard(category = category, onClick = { onOpenCategory(category.id) })
         }
     }
