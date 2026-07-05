@@ -120,3 +120,39 @@
 - 断网:显示缓存/空态+诚实错误提示,不显示假商户
 - 无评分/无人均/无图片的真实商户正确降级显示,不编造
 - 每端附:五品类各一张截图 + 四个下拉面板各一张 + 拒绝定位回退一张 + 断网一张
+
+## 7. 数据源战略(架构师调研定案,2026-07-05)
+
+操作者要求在高德之外调研更多实现路径(API/MCP/自建知识库)。结论与分工:
+
+### 7.1 调研结论(逐个排除/采纳的理由)
+
+| 数据源 | 结论 | 理由 |
+|---|---|---|
+| 大众点评/美团开放平台 | ❌ 走不通 | 评分/评价数据不对第三方消费级 App 开放,开放平台只做 B2B 商户直连(预订/核销),需商务合作准入 |
+| 高德(现状) | ✅ 主数据源 | 已接入,POI 覆盖国内第一梯队,`biz_ext` 带评分/人均,升级 around/分页即满足 §2 全部筛选需求 |
+| 百度地图开放平台 | 🟡 Phase 2 备选 | POI 商业要素(评分/价格/营业状态)业内最丰富,生活服务类目(按摩足疗 SPA)比高德细;留作"体验"品类补强 + 评分交叉验证的第二数据源,本轮不接(避免双源合并复杂度拖慢交互重做) |
+| 腾讯位置服务 | ❌ 暂不接 | 商业属性弱于高德/百度,优势在微信生态,与本项目无关 |
+| TripAdvisor Content API | ❌ 不碰 | 官方 API 已 deprecated,现存第三方途径全是爬虫服务(Apify/Netrows),合规风险,违反项目"不碰灰色数据"底线 |
+| Google Places | ❌ 不适用 | 大陆封锁 + GCJ-02 坐标偏移 + 大陆 POI 覆盖差 |
+| OSM/Overpass | ❌ 不适用 | 免费但中国 POI 几乎无商业属性(无评分/人均),对点评式体验零价值 |
+| Trip.com/携程开放平台 | 🟡 远期 | 主打机票/酒店/门票预订 B2B affiliate;"酒店"品类未来接预订分佣时再评估,不是 POI 浏览数据源 |
+| 高德/百度官方 MCP Server | ✅ 两个用途 | ① 开发期:агents/架构师可在 MCP 客户端里直查真实 POI 验证分类码;② **规划中**:butler-service/Chat 的 LLM 编排挂高德 MCP(12 个接口含关键词/周边/详情搜索),让 Butler 对话获得实时 POI 能力——这是 Chat 与 Explore 数据打通的路径,记入 Butler 2.0 后续 Phase |
+
+### 7.2 自建知识库(操作者点名方向,采纳为 Phase 1.5)
+
+高德给的是"原始 POI",缺外国游客视角的策展——这正是 VisePanda 的差异化空间:
+
+- **`curated_pois` 表**(复用现有 Supabase 实例):9 城 × 5 品类,每格 20-50 条精选。字段:`city_id`/`category`/`amap_poi_id`(与高德实时数据关联的锚)/`name_en`/`editorial_summary`(1-2 句编辑推荐语,英文)/`tags`(`halal`/`vegetarian-friendly`/`english-menu`/`card-accepted`/`tourist-trap-warning` 等)/`photo_url`/`rank`
+- **生产管线**:已接入的四家 LLM 批量生成初稿(城市×品类分批,prompt 要求只写广为人知、可验证的场所,输出结构化 JSON)→ 架构师抽验(高德实时查证该 POI 真实存在且营业)→ 入库。生成内容标注来源 `VisePanda Editorial`,**绝不冒充真实用户评价**(honest disclosure)
+- **运行时合并**:`/api/explore` 列表返回时,`amap_poi_id` 命中 curated 库的条目附加 `editorial` 字段 → 移动端渲染"VisePanda 推荐"角标 + 推荐语;另提供"编辑精选"置顶区(纯 curated,离线可缓存)
+- **一箭双雕**:§1.1 的 UGC mock feed 内容直接从 curated 库出(有真图真店真推荐语的"编辑内容"),后期 Community 真做 UGC 时平滑替换,不用先造一批假用户内容
+
+### 7.3 更新后的泳道
+
+| Issue | 归属 | 内容 | 依赖 |
+|---|---|---|---|
+| A(#46) | 架构师 | 高德 API 升级(不变) | 先行 |
+| D(新) | 架构师 | curated 知识库:Supabase 表 + LLM 生成管线 + API 合并逻辑 | 与 A 并行,B/C 不强依赖(editorial 字段为可选超集) |
+| B(#47)/C(#48) | Antigravity/Codex | 移动端重做(不变);editorial 角标作为"若 API 返回则渲染"的可选增强写进各自 PR | A 合并后 |
+| Phase 2(记录不立即做) | — | 百度第二数据源(体验类补强)、高德 MCP 挂 butler-service、Trip.com 酒店预订 | — |
