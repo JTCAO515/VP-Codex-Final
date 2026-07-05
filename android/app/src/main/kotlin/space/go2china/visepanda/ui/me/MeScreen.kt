@@ -1,6 +1,5 @@
 package space.go2china.visepanda.ui.me
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -36,7 +35,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -290,7 +288,6 @@ private fun LogInDialog(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isSignUp by remember { mutableStateOf(false) }
-    val context = LocalContext.current
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -335,19 +332,16 @@ private fun LogInDialog(
                 
                 Spacer(modifier = Modifier.height(Dimens.SpaceMD))
                 
-                // Google OAuth Sign-In (Phase 1 Native mock flow)
+                // Google OAuth is not implemented yet (tracked separately from
+                // email/password Phase 1) — disabled and honestly labeled
+                // instead of a clickable button that claimed readiness while
+                // doing nothing.
                 OutlinedButton(
-                    onClick = {
-                        Toast.makeText(
-                            context,
-                            "Google OAuth (Phase 1): Google Sign-In SDK is prepared. Once identity token is generated, it is ready to exchange for Supabase session.",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    },
+                    onClick = {},
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = !isLoading
+                    enabled = false
                 ) {
-                    Text(stringResource(R.string.me_google_signin))
+                    Text(stringResource(R.string.me_google_signin_coming_soon))
                 }
 
                 Spacer(modifier = Modifier.height(Dimens.SpaceSM))
