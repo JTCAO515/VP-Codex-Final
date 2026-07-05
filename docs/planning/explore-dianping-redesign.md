@@ -156,3 +156,25 @@
 | D(新) | 架构师 | curated 知识库:Supabase 表 + LLM 生成管线 + API 合并逻辑 | 与 A 并行,B/C 不强依赖(editorial 字段为可选超集) |
 | B(#47)/C(#48) | Antigravity/Codex | 移动端重做(不变);editorial 角标作为"若 API 返回则渲染"的可选增强写进各自 PR | A 合并后 |
 | Phase 2(记录不立即做) | — | 百度第二数据源(体验类补强)、高德 MCP 挂 butler-service、Trip.com 酒店预订 | — |
+
+## 8. Chat ↔ Explore 打通(操作者指令,2026-07-05)
+
+服务端地基已存在:Chat 的 `buildButlerToolContext`(`lib/ai/toolContext.ts`)与 Explore 共用同一个 `amapSearch` 层,Butler 回答推荐类问题时后端已经拿到真实 Amap POI。缺的是**双向可点的通路**,分三层:
+
+### 8.1 契约层(架构师,Issue E)
+- `AssistantResponse` 新增可选 `exploreRefs[]`:`{amapPoiId, name, cityId, category, subcategory?, rating?, pricePerPerson?}`——Butler 推荐的每个真实场所变成结构化引用,不再只是纯文本里的店名
+- 生成规则:orchestrator 在 `ask_recommendation`/`add_poi`/`ask_factual`(地点类)意图下,把 toolContext 命中的真实 POI 与模型回答文本做名称匹配,匹配上的写入 `exploreRefs`(**只引用 toolContext 里真实存在的 POI,绝不让模型自由生成 id**——防幻觉)
+- `API_SPEC.md` 同步,三端契约一致
+
+### 8.2 Chat → Explore(移动端,并入 #47/#48)
+- Butler 消息气泡下渲染 `exploreRefs` 为可点横滑小卡(名称+评分+人均)
+- 点卡片 → 跳 Explore 频道页,自动定位到该 POI 详情(城市/品类按 ref 切换);返回可回到对话
+- ref 为空时不渲染任何占位,不造假卡
+
+### 8.3 Explore → Chat(移动端,并入 #47/#48)
+- 商户详情页加「Ask Butler」按钮 → 跳 Chat 并预填结构化上下文消息(如 "Tell me about 老盛兴汤包馆 (Yu Garden area, rating 4.6) — is it good for vegetarians? Can you fit it into my trip?" 的模板,用户可改再发)
+- 现有「Add to Trip」流程保持不变,两个按钮并存
+
+### 8.4 知识库注入(架构师,依赖 #49,并入 Issue E)
+- 推荐类意图下,orchestrator 把该城市 `curated_pois` 命中条目(带 tags/editorial_summary)注入 prompt,并指示模型优先推荐已验证场所;`exploreRefs` 命中 curated 的条目带 `editorial` 标记,移动端渲染"VisePanda 推荐"角标——Chat 和 Explore 看到的是同一套策展数据
+- Phase 2:高德 MCP 挂 butler-service(§7.1 已记录),让 JVM 侧编排也有实时 POI 工具
