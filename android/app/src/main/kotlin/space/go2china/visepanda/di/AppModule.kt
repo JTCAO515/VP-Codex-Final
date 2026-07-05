@@ -19,6 +19,8 @@ import space.go2china.visepanda.data.local.TripCacheDao
 import space.go2china.visepanda.data.local.VisePandaDatabase
 import space.go2china.visepanda.data.local.AuthPreferences
 import space.go2china.visepanda.data.local.SharedPrefsAuthPreferences
+import space.go2china.visepanda.data.local.SyncPreferences
+import space.go2china.visepanda.data.local.SharedPrefsSyncPreferences
 import space.go2china.visepanda.data.remote.ButlerApiService
 import space.go2china.visepanda.data.remote.ExchangeRateApiService
 import space.go2china.visepanda.data.remote.ExploreApiService
@@ -36,6 +38,10 @@ import space.go2china.visepanda.data.repository.TripRepository
 import space.go2china.visepanda.data.repository.AuthRepository
 import space.go2china.visepanda.data.repository.LiveAuthRepository
 import space.go2china.visepanda.data.serialization.TripJson
+import space.go2china.visepanda.data.remote.SupabaseTripApiService
+import space.go2china.visepanda.data.repository.SupabaseSyncManager
+import space.go2china.visepanda.data.repository.LiveSupabaseSyncManager
+
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -70,6 +76,14 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindAuthPreferences(impl: SharedPrefsAuthPreferences): AuthPreferences
+
+    @Binds
+    @Singleton
+    abstract fun bindSupabaseSyncManager(impl: LiveSupabaseSyncManager): SupabaseSyncManager
+
+    @Binds
+    @Singleton
+    abstract fun bindSyncPreferences(impl: SharedPrefsSyncPreferences): SyncPreferences
 }
 
 @Module
@@ -158,6 +172,22 @@ object NetworkModule {
             .addConverterFactory(GsonConverterFactory.create(TripJson.gson))
             .build()
             .create(AuthApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSupabaseTripApiService(okHttpClient: OkHttpClient): SupabaseTripApiService {
+        val baseUrl = if (SupabaseConfig.SUPABASE_URL.endsWith("/")) {
+            SupabaseConfig.SUPABASE_URL
+        } else {
+            "${SupabaseConfig.SUPABASE_URL}/"
+        }
+        return Retrofit.Builder()
+            .baseUrl(baseUrl)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create(TripJson.gson))
+            .build()
+            .create(SupabaseTripApiService::class.java)
     }
 
     private fun String.ensureTrailingSlash(): String =

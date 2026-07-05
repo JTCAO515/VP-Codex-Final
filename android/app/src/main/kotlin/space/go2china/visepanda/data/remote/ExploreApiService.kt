@@ -47,6 +47,8 @@ data class AmapPoiJson(
     val location: String? = null,
     val biz_ext: JsonElement? = null,
     val photos: List<AmapPhoto>? = null,
+    /** metres from the query location — only present in "around" mode responses */
+    val distance: String? = null,
     /** optional editorial overlay — present only when curated_pois has a match */
     val editorial: AmapEditorial? = null,
 ) {

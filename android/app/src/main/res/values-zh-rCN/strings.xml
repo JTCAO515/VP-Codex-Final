@@ -117,4 +117,12 @@
     <string name="explore_location_enable_hint">开启定位后可使用距离筛选</string>
     <string name="explore_ugc_coming_soon">即将上线</string>
     <string name="explore_whole_city">全城</string>
+
+    <!-- Cloud Sync Status -->
+    <string name="me_sync_status_label">云同步</string>
+    <string name="me_sync_status_not_signed_in">未登录</string>
+    <string name="me_sync_status_not_synced">未同步</string>
+    <string name="me_sync_status_syncing">同步中…</string>
+    <string name="me_sync_status_synced">已同步</string>
+    <string name="me_sync_status_failed">同步失败</string>
 </resources>

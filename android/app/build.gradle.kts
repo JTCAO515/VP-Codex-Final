@@ -59,6 +59,13 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    // android.util.Log isn't mocked under plain JVM unit tests (no Robolectric
+    // in this project) — without this, any Log.* call in code under test
+    // throws instead of no-op'ing, silently aborting the calling function.
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {

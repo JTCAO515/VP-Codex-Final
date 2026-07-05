@@ -22,7 +22,16 @@ class ExploreRepositoryTest {
         var shouldFail = false
         var mockResponse: ExploreAmapResponse? = null
 
-        override suspend fun searchAmapPois(cityId: String, type: String, keyword: String?): ExploreAmapResponse {
+        override suspend fun searchAmapPois(
+            cityId: String,
+            type: String,
+            keyword: String?,
+            mode: String?,
+            location: String?,
+            radius: Int?,
+            sort: String?,
+            page: Int?,
+        ): ExploreAmapResponse {
             if (shouldFail) throw IOException("Network disconnect simulated")
             return mockResponse ?: ExploreAmapResponse(ok = true, cityId = cityId, type = type, pois = emptyList())
         }
@@ -56,7 +65,8 @@ class ExploreRepositoryTest {
                     opentime_week = "08:30-17:00",
                     business_area = "Dongcheng",
                     location = "116.397,39.918",
-                    biz_ext = bizExtJson
+                    biz_ext = bizExtJson,
+                    distance = "905",
                 )
             )
         )
@@ -68,7 +78,9 @@ class ExploreRepositoryTest {
         val attraction = result[0]
         assertEquals("amap-poi_1", attraction.id)
         assertEquals("Forbidden City", attraction.name)
-        assertEquals("Beijing", attraction.city)
+        // v0.3.22 (#47): getPois() now lowercases the city id before mapping,
+        // matching the SUPPORTED_CITIES convention (ids are always lowercase).
+        assertEquals("beijing", attraction.city)
         assertEquals(ExploreCategory.Attraction, attraction.category)
         assertEquals(4.9, attraction.rating, 0.01)
         assertEquals("¥120", attraction.priceHint)
@@ -79,6 +91,12 @@ class ExploreRepositoryTest {
         assertEquals("Amap", attraction.sourceLabel)
         assertEquals(39.918, attraction.coordinates?.lat ?: 0.0, 0.01)
         assertEquals(116.397, attraction.coordinates?.lng ?: 0.0, 0.01)
+        // Regression test for the architect-takeover fix: Amap's around-search
+        // response carries a real "distance" field (verified live via curl),
+        // but the original #47 submission never declared it on AmapPoiJson nor
+        // mapped it onto ExplorePoi.distanceMeters — so the "附近" distance
+        // label never rendered even when correctly configured.
+        assertEquals(905, attraction.distanceMeters)
         assertTrue(repository.isLiveMode("Beijing"))
     }
 
@@ -122,18 +140,16 @@ class ExploreRepositoryTest {
 
     @Test
     fun testFetchPoisFailureFallback() = runBlocking {
+        // v0.3.22 (#47): the old mock-data fallback was removed as part of the
+        // Dianping redesign — a failed live fetch now surfaces an honest empty
+        // state (ExploreViewModel shows a "could not load places" notice)
+        // instead of silently substituting fake POIs.
         val mockApi = MockExploreApiService().apply { shouldFail = true }
         val repository = LiveExploreRepository(mockApi)
-        
-        // This should fall back to mock data
+
         val result = repository.getPois("Beijing", ExploreCategory.Attraction)
-        
-        // Check if fallback results match MockExploreData list
-        assertTrue(result.isNotEmpty())
-        result.forEach { poi ->
-            assertEquals("Beijing", poi.city)
-            assertEquals(ExploreCategory.Attraction, poi.category)
-        }
+
+        assertTrue(result.isEmpty())
         assertFalse(repository.isLiveMode("Beijing"))
     }
 }

@@ -213,10 +213,17 @@ class ExploreViewModel @Inject constructor(
         isPageLoading = true
         viewModelScope.launch {
             val result = runCatching {
-                val locationStr = filters.proximity.radiusMeters?.let { _ ->
-                    currentUserLocation()
-                }
-                val radiusMeters = filters.proximity.radiusMeters
+                // Bug fix (architect takeover, 2026-07-05): location was only fetched
+                // when a distance filter (proximity != City) was active, so picking
+                // Sort=Nearest while Proximity stayed "Whole City" silently fell back
+                // to weight-sort with no indication to the user. Fetch location for
+                // either signal — the API's "around" mode needs it for both cases.
+                val needsLocation = filters.proximity.radiusMeters != null || filters.sort == SortMode.Nearest
+                val locationStr = if (needsLocation) currentUserLocation() else null
+                // Amap's around-search requires a radius; "Whole City" has none, so
+                // fall back to its max (50km) to keep "whole city" scope while still
+                // getting server-side distance sorting.
+                val radiusMeters = filters.proximity.radiusMeters ?: 50_000
                 val sortKey = when (filters.sort) {
                     SortMode.Nearest -> if (locationStr != null) "distance" else "weight"
                     else -> "weight"

@@ -156,6 +156,7 @@ class LiveExploreRepository @Inject constructor(
             mapUrl = mapUrlVal,
             photoUrl = photoUrl,
             businessArea = poi.business_area,
+            distanceMeters = poi.distance?.toDoubleOrNull()?.toInt(),
             bookingCandidates = bookingCandidatesList,
             sourceLabel = "Amap",
             coordinates = coords,
