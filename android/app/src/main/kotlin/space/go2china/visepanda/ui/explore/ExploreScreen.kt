@@ -162,6 +162,12 @@ private fun ExploreHomeContent(
         Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            // Bug fix (real-device report, 2026-07-05): this screen doesn't
+            // use Scaffold like the other top-level destinations do (they
+            // get systemBars insets for free via Scaffold's default
+            // contentWindowInsets), so the city selector was rendering
+            // directly under the status bar.
+            .statusBarsPadding()
     ) {
         // ── top bar ──
         Row(
@@ -351,7 +357,7 @@ private fun ExploreChannelContent(
     }
 
     Box(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize().statusBarsPadding()) {
             // ── top bar ──
             Row(
                 Modifier

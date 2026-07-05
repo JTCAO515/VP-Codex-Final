@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -334,6 +336,7 @@ private fun InlineToolCardView(toolCard: InlineToolCard, onOpenToolCategory: (St
     }
 }
 
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun ButlerComposer(
     state: ButlerUiState,
@@ -349,12 +352,22 @@ private fun ButlerComposer(
         // Bottom padding clears the v0.3.10 floating overlay nav bar
         // (DESIGN.md ADR-114) — Chat is a top-level destination, so the
         // send/camera/mic controls must never render underneath it.
+        //
+        // Bug fix (real-device report, 2026-07-05): this clearance was a
+        // constant 96dp regardless of keyboard state. The floating nav bar
+        // is hidden behind the keyboard once it's up, so keeping the same
+        // 96dp reservation left a matching gap of empty space between the
+        // composer and the keyboard instead of the composer sitting flush
+        // above it. Only reserve the nav-bar clearance when the keyboard is
+        // not shown; once it is, `.imePadding()` on the parent Column already
+        // does the right positioning and no extra bottom space is needed.
+        val imeVisible = WindowInsets.isImeVisible
         Column(
             modifier = Modifier.padding(
                 start = Dimens.SpaceLG,
                 end = Dimens.SpaceLG,
                 top = Dimens.SpaceLG,
-                bottom = Dimens.BottomNavContentClearance,
+                bottom = if (imeVisible) Dimens.SpaceLG else Dimens.BottomNavContentClearance,
             ),
         ) {
             if (state.errorMessage != null) {

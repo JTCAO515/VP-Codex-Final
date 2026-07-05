@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -450,7 +451,11 @@ private fun AccountSheetContent(
     onLogOutClick: () -> Unit,
     onClearError: () -> Unit,
 ) {
-    Column(modifier = Modifier.fillMaxWidth().padding(Dimens.SpaceLG)) {
+    // Bug fix (real-device report, 2026-07-05): ModalBottomSheet applies
+    // navigationBars insets to its content by default, but not ime — without
+    // this, the keyboard covers the sign-in/sign-up button when the email or
+    // password field is focused.
+    Column(modifier = Modifier.fillMaxWidth().padding(Dimens.SpaceLG).imePadding()) {
         if (isLoggedIn) {
             Text(
                 text = stringResource(R.string.me_account_logged_in),
