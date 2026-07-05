@@ -10,6 +10,8 @@ final class TripStore: ObservableObject {
     @Published var isSending = false
     @Published var pendingExploreRef: ButlerExploreRef?
     @Published var pendingChatDraft: String?
+    @Published var pendingToolId: String?
+    @Published var hidesBottomBar = false
 
     private let api = VisePandaAPIClient()
     private let persistenceKey = "space.go2china.visepanda.ios.localState.v3"
@@ -59,6 +61,48 @@ final class TripStore: ObservableObject {
     func prefillChat(_ text: String) {
         pendingChatDraft = text
         selectedTab = .chat
+    }
+
+    func openTool(_ id: String) {
+        pendingToolId = normalizedToolId(id)
+        selectedTab = .tools
+    }
+
+    func consumePendingToolId() -> String? {
+        defer { pendingToolId = nil }
+        return pendingToolId
+    }
+
+    func setBottomBarHidden(_ hidden: Bool) {
+        hidesBottomBar = hidden
+    }
+
+    private func normalizedToolId(_ id: String) -> String {
+        switch id {
+        case "language":
+            return "translate"
+        case "esim-vpn":
+            return "network"
+        default:
+            return id
+        }
+    }
+
+    func updateBlockDescription(dayNumber: Int, blockId: String, description: String) {
+        guard let dayIndex = trip.days.firstIndex(where: { $0.day == dayNumber }),
+              let blockIndex = trip.days[dayIndex].blocks.firstIndex(where: { $0.id == blockId }) else { return }
+        trip.days[dayIndex].blocks[blockIndex].description = description
+        trip.lastUpdatedReason = "Edited a day block locally."
+        persist()
+    }
+
+    func moveBlock(dayNumber: Int, from source: Int, to destination: Int) {
+        guard let dayIndex = trip.days.firstIndex(where: { $0.day == dayNumber }),
+              trip.days[dayIndex].blocks.indices.contains(source),
+              trip.days[dayIndex].blocks.indices.contains(destination) else { return }
+        trip.days[dayIndex].blocks.swapAt(source, destination)
+        trip.lastUpdatedReason = "Reordered a day block locally."
+        persist()
     }
 
     func consumePendingChatDraft() -> String? {

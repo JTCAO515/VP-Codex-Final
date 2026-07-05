@@ -12,11 +12,14 @@ struct TripsView: View {
                         emptyTripCard
                     } else {
                         readinessCard
+                        timelineSection
                     }
 
                     ForEach(store.trip.days) { day in
                         NavigationLink {
                             DayDetailView(day: day)
+                                .onAppear { store.setBottomBarHidden(true) }
+                                .onDisappear { store.setBottomBarHidden(false) }
                         } label: {
                             DayCard(day: day)
                         }
@@ -30,6 +33,10 @@ struct TripsView: View {
             .background(VPColor.paper)
             .navigationBarHidden(true)
         }
+    }
+
+    private var tripCompleteness: CompletenessResult {
+        TripCompleteness.calculateTripCompleteness(store.trip)
     }
 
     private var header: some View {
@@ -98,14 +105,14 @@ struct TripsView: View {
                     Text("READINESS")
                         .font(VPFont.body(11, weight: .bold))
                         .foregroundStyle(VPColor.inkSoft)
-                    Text("Almost ready to travel")
+                    Text(readinessTitle(score: tripCompleteness.score))
                         .font(VPFont.display(19))
                         .foregroundStyle(VPColor.ink)
 
                     HStack(spacing: 8) {
-                        VPStatusPill(title: "Visa", tone: .ready)
-                        VPStatusPill(title: "Pay", tone: .ready)
-                        VPStatusPill(title: "eSIM", tone: .warning)
+                        ForEach(tripCompleteness.checks) { check in
+                            VPStatusPill(title: check.id.rawValue, tone: check.complete ? .ready : .warning)
+                        }
                     }
                 }
 
@@ -115,14 +122,53 @@ struct TripsView: View {
                     Circle()
                         .stroke(VPColor.outline.opacity(0.6), lineWidth: 6)
                     Circle()
-                        .trim(from: 0, to: 0.8)
+                        .trim(from: 0, to: CGFloat(tripCompleteness.score) / 100)
                         .stroke(VPColor.cinnabar, style: StrokeStyle(lineWidth: 6, lineCap: .round))
                         .rotationEffect(.degrees(-90))
-                    Text("80%")
+                    Text("\(tripCompleteness.score)%")
                         .font(VPFont.body(15, weight: .bold))
                         .foregroundStyle(VPColor.cinnabar)
                 }
                 .frame(width: 56, height: 56)
+            }
+        }
+    }
+
+    private var timelineSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("NOW / NEXT / LATER")
+                .font(VPFont.body(11, weight: .bold))
+                .foregroundStyle(VPColor.inkSoft)
+
+            ForEach(TripTimeline.buildTimeline(store.trip).prefix(3)) { entry in
+                TimelineEntryCard(entry: entry)
+            }
+        }
+    }
+
+    private func readinessTitle(score: Int) -> String {
+        if score >= 80 { return "Almost ready to travel" }
+        if score >= 50 { return "Trip basics are taking shape" }
+        return "Keep building the trip basics"
+    }
+}
+
+private struct TimelineEntryCard: View {
+    let entry: TimelineEntry
+
+    var body: some View {
+        VPCard {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(entry.position.rawValue)
+                    .font(VPFont.body(11, weight: .bold))
+                    .foregroundStyle(VPColor.cinnabar)
+                Text(entry.block.title)
+                    .font(VPFont.body(15, weight: .bold))
+                    .foregroundStyle(VPColor.ink)
+                Text(entry.block.description)
+                    .font(VPFont.body(13))
+                    .foregroundStyle(VPColor.inkMuted)
+                    .lineLimit(2)
             }
         }
     }
@@ -132,6 +178,7 @@ private struct DayCard: View {
     let day: TripDay
 
     var body: some View {
+        let completeness = TripCompleteness.calculateDayCompleteness(day)
         VPCard {
             VStack(alignment: .leading, spacing: 14) {
                 HStack {
@@ -144,6 +191,7 @@ private struct DayCard: View {
                     if day.day == 1 {
                         VPStatusPill(title: "Today", tone: .red)
                     }
+                    VPStatusPill(title: "\(completeness)%", tone: completeness >= 75 ? .ready : .warning)
                     Spacer()
                     Image(systemName: "chevron.right")
                         .foregroundStyle(VPColor.inkSoft)

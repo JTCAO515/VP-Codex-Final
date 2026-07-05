@@ -25,6 +25,8 @@ struct ExploreView: View {
             .navigationBarHidden(true)
             .navigationDestination(for: ExploreRoute.self) { route in
                 ExploreChannelView(cityId: $selectedCityId, category: route.category, focusRef: route.ref)
+                    .onAppear { store.setBottomBarHidden(true) }
+                    .onDisappear { store.setBottomBarHidden(false) }
             }
             .sheet(isPresented: $showingCityPicker) {
                 CityPickerSheet(selectedCityId: $selectedCityId)
@@ -106,9 +108,7 @@ struct ExploreView: View {
     private var categoryGrid: some View {
         HStack(spacing: 9) {
             ForEach(ExploreCategory.allCases) { category in
-                NavigationLink {
-                    ExploreChannelView(cityId: $selectedCityId, category: category)
-                } label: {
+                NavigationLink(value: ExploreRoute(category: category)) {
                     VStack(spacing: 8) {
                         Image(systemName: category.icon)
                             .font(.system(size: 19, weight: .bold))
@@ -154,6 +154,11 @@ struct ExploreView: View {
 private struct ExploreRoute: Hashable {
     var category: ExploreCategory
     var ref: ButlerExploreRef?
+
+    init(category: ExploreCategory) {
+        self.category = category
+        ref = nil
+    }
 
     init(ref: ButlerExploreRef) {
         category = ExploreCategory.from(refCategory: ref.category)
