@@ -52,6 +52,14 @@ struct VisePandaAPIClient {
         return try await perform(request, as: TranslateSttResponse.self)
     }
 
+    func translateTts(text: String, language: String, voice: String = "Cherry") async throws -> TranslateTtsResponse {
+        var request = makeJSONRequest(path: "api/translate/tts", method: "POST")
+        request.httpBody = try JSONEncoder.visePanda.encode(
+            TranslateTtsRequest(text: text, language: language, voice: voice)
+        )
+        return try await perform(request, as: TranslateTtsResponse.self)
+    }
+
     func fetchExploreAmap(
         cityId: String,
         type: String,

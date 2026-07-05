@@ -5,6 +5,52 @@ struct TranslateResult: Equatable {
     var pinyin: String
 }
 
+struct SupportedLanguage: Identifiable, Hashable {
+    var id: String { code }
+    var code: String
+    var displayName: String
+    var ttsLanguageName: String
+    var speechLocale: String
+}
+
+enum SupportedLanguages {
+    static let all = [
+        SupportedLanguage(code: "en", displayName: "English", ttsLanguageName: "English", speechLocale: "en-US"),
+        SupportedLanguage(code: "zh", displayName: "中文", ttsLanguageName: "Chinese", speechLocale: "zh-CN"),
+        SupportedLanguage(code: "ar", displayName: "العربية", ttsLanguageName: "Arabic", speechLocale: "ar-SA"),
+        SupportedLanguage(code: "es", displayName: "Español", ttsLanguageName: "Spanish", speechLocale: "es-ES"),
+        SupportedLanguage(code: "fr", displayName: "Français", ttsLanguageName: "French", speechLocale: "fr-FR"),
+        SupportedLanguage(code: "ja", displayName: "日本語", ttsLanguageName: "Japanese", speechLocale: "ja-JP"),
+        SupportedLanguage(code: "ko", displayName: "한국어", ttsLanguageName: "Korean", speechLocale: "ko-KR")
+    ]
+
+    static func byCode(_ code: String) -> SupportedLanguage {
+        all.first { $0.code == code } ?? all[0]
+    }
+}
+
+struct TranslateTtsRequest: Codable {
+    var text: String
+    var language: String
+    var voice: String
+}
+
+struct TranslateTtsResponse: Codable {
+    var ok: Bool
+    var provider: String?
+    var model: String?
+    var audioUrl: String?
+    var expiresAt: String?
+    var error: String?
+}
+
+enum TranslateTtsURL {
+    static func playableURL(from rawValue: String?) -> URL? {
+        guard let rawValue, !rawValue.isEmpty else { return nil }
+        return URL(string: rawValue.replacingOccurrences(of: "http://", with: "https://", options: [.anchored]))
+    }
+}
+
 struct TranslateOcrRequest: Codable {
     var imageBase64: String
     var mimeType: String

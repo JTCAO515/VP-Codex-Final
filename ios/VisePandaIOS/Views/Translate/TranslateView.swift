@@ -6,12 +6,14 @@ struct TranslateView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selectedTab = 0
     @State private var input = ""
-    @State private var translateToChinese = true
+    @State private var fromLanguageCode = "en"
+    @State private var toLanguageCode = "zh"
     @State private var translating = false
     @State private var result: TranslateResult?
     @State private var errorMessage: String?
     @State private var selectedPhrase: Phrase?
     @State private var tts = AVSpeechSynthesizer()
+    @State private var audioPlayer: AVPlayer?
     @State private var allowAutoTranslate = true
     @State private var speaking = false
     @State private var processingMode: TranslateProcessingMode?
@@ -40,11 +42,13 @@ struct TranslateView: View {
             _errorMessage = State(initialValue: "translation_provider_unavailable")
         case .ocr:
             _input = State(initialValue: "地铁站在哪里？")
-            _translateToChinese = State(initialValue: false)
+            _fromLanguageCode = State(initialValue: "zh")
+            _toLanguageCode = State(initialValue: "en")
             _result = State(initialValue: TranslateResult(translation: "Where is the subway station?", pinyin: ""))
         case .stt:
             _input = State(initialValue: "我要去外滩")
-            _translateToChinese = State(initialValue: false)
+            _fromLanguageCode = State(initialValue: "zh")
+            _toLanguageCode = State(initialValue: "en")
             _result = State(initialValue: TranslateResult(translation: "I want to go to the Bund.", pinyin: ""))
         case .permission:
             _permissionMessage = State(initialValue: "Camera or microphone permission is required for OCR and voice translation. Enable it in Settings.")
@@ -72,7 +76,7 @@ struct TranslateView: View {
         .navigationTitle("Translate")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(item: $selectedPhrase) { phrase in
-            PhraseBigCard(phrase: phrase, speak: { speak(phrase.chinese, language: "zh-CN") })
+            PhraseBigCard(phrase: phrase, speak: { speak(phrase.chinese, languageCode: "zh") })
         }
         .sheet(item: $imagePicker) { picker in
             ImagePicker(sourceType: picker.sourceType) { image in
@@ -89,7 +93,7 @@ struct TranslateView: View {
             VStack(alignment: .leading, spacing: 16) {
                 VPCard {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text(translateToChinese ? "English" : "Chinese")
+                        Text(fromLanguage.displayName)
                             .font(VPFont.body(12, weight: .bold))
                             .foregroundStyle(VPColor.cinnabar)
 
@@ -103,18 +107,18 @@ struct TranslateView: View {
 
                         HStack {
                             Button {
-                                translateToChinese.toggle()
-                                result = nil
-                                errorMessage = nil
+                                swapLanguages()
                             } label: {
                                 Image(systemName: "arrow.left.arrow.right")
                             }
                             .buttonStyle(.borderless)
                             .accessibilityLabel("Swap language direction")
 
-                            Text(translateToChinese ? "English to Chinese" : "Chinese to English")
-                                .font(VPFont.body(13, weight: .semibold))
+                            languagePicker(title: "From", selection: $fromLanguageCode)
+                            Text("to")
+                                .font(VPFont.body(12, weight: .semibold))
                                 .foregroundStyle(VPColor.inkSoft)
+                            languagePicker(title: "To", selection: $toLanguageCode)
 
                             Spacer()
 
@@ -183,7 +187,7 @@ struct TranslateView: View {
             }
             .padding(20)
         }
-        .task(id: "\(input)|\(translateToChinese)") {
+        .task(id: "\(input)|\(fromLanguageCode)|\(toLanguageCode)") {
             await debounceTranslate()
         }
     }
@@ -194,7 +198,7 @@ struct TranslateView: View {
                 ForEach(groupedPhrases, id: \.0) { category, categoryPhrases in
                     Section {
                         ForEach(categoryPhrases) { phrase in
-                            PhraseRow(phrase: phrase, speak: { speak(phrase.chinese, language: "zh-CN") })
+                            PhraseRow(phrase: phrase, speak: { speak(phrase.chinese, languageCode: "zh") })
                                 .onTapGesture { selectedPhrase = phrase }
                         }
                     } header: {
@@ -220,7 +224,7 @@ struct TranslateView: View {
     private func translationCard(_ result: TranslateResult) -> some View {
         VPCard {
             VStack(alignment: .leading, spacing: 10) {
-                Text(translateToChinese ? "Chinese" : "English")
+                Text(toLanguage.displayName)
                     .font(VPFont.body(12, weight: .bold))
                     .foregroundStyle(VPColor.cinnabar)
 
@@ -229,7 +233,7 @@ struct TranslateView: View {
                     .foregroundStyle(VPColor.ink)
                     .accessibilityIdentifier("translationResult")
 
-                if translateToChinese, !result.pinyin.isEmpty {
+                if toLanguageCode == "zh", !result.pinyin.isEmpty {
                     Text("Pinyin: \(result.pinyin)")
                         .font(VPFont.body(14, weight: .semibold))
                         .foregroundStyle(VPColor.inkSoft)
@@ -245,7 +249,7 @@ struct TranslateView: View {
                     Spacer()
 
                     Button {
-                        speak(result.translation, language: translateToChinese ? "zh-CN" : "en-US")
+                        speak(result.translation, languageCode: toLanguageCode)
                     } label: {
                         Label(speaking ? "Speaking" : "Speak", systemImage: "speaker.wave.2.fill")
                     }
@@ -258,6 +262,37 @@ struct TranslateView: View {
         .onTapGesture {
             selectedPhrase = Phrase(category: "Translation", english: input, chinese: result.translation, pinyin: result.pinyin)
         }
+    }
+
+    private var fromLanguage: SupportedLanguage {
+        SupportedLanguages.byCode(fromLanguageCode)
+    }
+
+    private var toLanguage: SupportedLanguage {
+        SupportedLanguages.byCode(toLanguageCode)
+    }
+
+    private func languagePicker(title: String, selection: Binding<String>) -> some View {
+        Picker(title, selection: selection) {
+            ForEach(SupportedLanguages.all) { language in
+                Text(language.displayName).tag(language.code)
+            }
+        }
+        .pickerStyle(.menu)
+        .font(VPFont.body(13, weight: .semibold))
+        .tint(VPColor.cinnabar)
+        .onChange(of: selection.wrappedValue) { _, _ in
+            result = nil
+            errorMessage = nil
+        }
+    }
+
+    private func swapLanguages() {
+        let previousFrom = fromLanguageCode
+        fromLanguageCode = toLanguageCode
+        toLanguageCode = previousFrom
+        result = nil
+        errorMessage = nil
     }
 
     private var unavailableCard: some View {
@@ -338,7 +373,7 @@ struct TranslateView: View {
         result = nil
 
         do {
-            let response = try await api.translateText(text, from: translateToChinese ? "en" : "zh", to: translateToChinese ? "zh" : "en")
+            let response = try await api.translateText(text, from: fromLanguageCode, to: toLanguageCode)
             if response.ok, let translation = response.translation, !translation.isEmpty {
                 result = TranslateResult(translation: translation, pinyin: response.pinyin ?? "")
             } else {
@@ -505,11 +540,36 @@ struct TranslateView: View {
         processingMode = nil
     }
 
-    private func speak(_ text: String, language: String) {
+    private func speak(_ text: String, languageCode: String) {
         if tts.isSpeaking { tts.stopSpeaking(at: .immediate) }
+        audioPlayer?.pause()
         speaking = true
+        Task {
+            do {
+                let language = SupportedLanguages.byCode(languageCode)
+                let response = try await api.translateTts(text: text, language: language.ttsLanguageName)
+                if response.ok, let url = TranslateTtsURL.playableURL(from: response.audioUrl) {
+                    await MainActor.run {
+                        audioPlayer = AVPlayer(url: url)
+                        audioPlayer?.play()
+                        print("[Translate] Backend TTS playback started via \(url.scheme ?? "unknown")://\(url.host ?? "unknown")")
+                    }
+                    try? await Task.sleep(nanoseconds: 2_000_000_000)
+                    await MainActor.run { speaking = false }
+                    return
+                }
+            } catch {
+                print("[Translate] Backend TTS unavailable, falling back to local speech: \(error.localizedDescription)")
+            }
+            await MainActor.run {
+                speakLocally(text, languageCode: languageCode)
+            }
+        }
+    }
+
+    private func speakLocally(_ text: String, languageCode: String) {
         let utterance = AVSpeechUtterance(string: text)
-        utterance.voice = AVSpeechSynthesisVoice(language: language)
+        utterance.voice = AVSpeechSynthesisVoice(language: SupportedLanguages.byCode(languageCode).speechLocale)
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate
         tts.speak(utterance)
         Task {
