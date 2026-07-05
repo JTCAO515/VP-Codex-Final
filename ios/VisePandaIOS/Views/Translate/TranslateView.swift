@@ -155,6 +155,31 @@ struct TranslateView: View {
                     loading: processingMode == .stt,
                     action: toggleVoiceRecording
                 )
+
+                NavigationLink {
+                    CommunicationCardDetail()
+                } label: {
+                    VPCard {
+                        HStack {
+                            Label {
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text("Travel Talk Card")
+                                    Text("Show Chinese phrases for directions, food, pay, and help")
+                                        .font(VPFont.body(12, weight: .semibold))
+                                        .foregroundStyle(VPColor.inkSoft)
+                                }
+                            } icon: {
+                                Image(systemName: "text.bubble.fill")
+                            }
+                            .font(VPFont.body(15, weight: .bold))
+                            .foregroundStyle(VPColor.ink)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundStyle(VPColor.inkSoft)
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
             }
             .padding(20)
         }
