@@ -8,6 +8,8 @@ record LlmProvider(
         String apiKey,
         String baseUrl,
         String model,
-        Map<String, Object> extraBody
+        Map<String, Object> extraBody,
+        int minTimeoutMs,
+        int minMaxTokens
 ) {
 }
