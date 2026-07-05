@@ -53,18 +53,30 @@ struct SupabaseRefreshRequest: Codable {
 
 struct SupabaseAuthError: Codable {
     var error: String?
+    var errorCode: String?
     var errorDescription: String?
     var msg: String?
     var message: String?
 
     enum CodingKeys: String, CodingKey {
         case error
+        case errorCode = "error_code"
         case errorDescription = "error_description"
         case msg
         case message
     }
 
+    /// Surfaced separately from the generic Supabase message text: this
+    /// project has no custom SMTP configured, so its free-tier mailer rate
+    /// limit (a handful of sends per hour) gets exhausted quickly during
+    /// testing — every traveler's signup then fails with a raw
+    /// "email rate limit exceeded" until the limit resets or a real SMTP
+    /// provider is configured in the Supabase dashboard (not something the
+    /// app can fix at the API layer).
     var displayMessage: String {
-        message ?? msg ?? errorDescription ?? error ?? "Authentication failed"
+        if errorCode == "over_email_send_rate_limit" {
+            return "Too many signup emails were sent recently. Please wait a while and try again, or sign in if you already created this account."
+        }
+        return message ?? msg ?? errorDescription ?? error ?? "Authentication failed"
     }
 }

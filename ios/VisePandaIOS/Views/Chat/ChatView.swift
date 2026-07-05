@@ -65,11 +65,10 @@ struct ChatView: View {
 
     private var chatHeader: some View {
         HStack(spacing: 12) {
-            Text("熊")
-                .font(.system(size: 17, weight: .bold))
-                .foregroundStyle(VPColor.paperSoft)
+            Image("VisePandaAvatar")
+                .resizable()
+                .scaledToFill()
                 .frame(width: 42, height: 42)
-                .background(VPColor.cinnabar)
                 .clipShape(Circle())
 
             VStack(alignment: .leading, spacing: 2) {
@@ -254,11 +253,10 @@ private struct MessageBubble: View {
             }
         } else {
             HStack(alignment: .top, spacing: 10) {
-                Text("熊")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(VPColor.paperSoft)
+                Image("VisePandaAvatar")
+                    .resizable()
+                    .scaledToFill()
                     .frame(width: 32, height: 32)
-                    .background(VPColor.cinnabar)
                     .clipShape(Circle())
 
                 VPCard(padding: 16) {
