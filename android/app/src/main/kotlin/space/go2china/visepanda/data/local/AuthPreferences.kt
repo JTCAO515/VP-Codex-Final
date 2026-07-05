@@ -2,6 +2,7 @@ package space.go2china.visepanda.data.local
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -12,6 +13,12 @@ interface AuthPreferences {
     fun getEmail(): String?
     fun getUserId(): String?
     fun clearSession()
+    /**
+     * Stable local identifier for signed-out use (mirrors iOS's
+     * `currentUserId` fallback in MeView.swift), so the AI memory profile can
+     * still build up before the traveler signs in. Not sensitive, not encrypted.
+     */
+    fun getOrCreateGuestId(): String
 }
 
 @Singleton
@@ -56,5 +63,12 @@ class SharedPrefsAuthPreferences @Inject constructor(
 
     override fun clearSession() {
         sharedPrefs.edit().clear().apply()
+    }
+
+    override fun getOrCreateGuestId(): String {
+        sharedPrefs.getString("guest_id", null)?.let { return it }
+        val newId = UUID.randomUUID().toString().lowercase()
+        sharedPrefs.edit().putString("guest_id", newId).apply()
+        return newId
     }
 }

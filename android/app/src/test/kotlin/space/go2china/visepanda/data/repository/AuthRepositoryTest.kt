@@ -78,6 +78,8 @@ class AuthRepositoryTest {
             this.storedUserId = userId
         }
 
+        var storedGuestId: String? = null
+
         override fun getAccessToken(): String? = storedAccessToken
         override fun getRefreshToken(): String? = storedRefreshToken
         override fun getEmail(): String? = storedEmail
@@ -88,6 +90,13 @@ class AuthRepositoryTest {
             storedRefreshToken = null
             storedEmail = null
             storedUserId = null
+        }
+
+        override fun getOrCreateGuestId(): String {
+            storedGuestId?.let { return it }
+            val newId = "guest-test-id"
+            storedGuestId = newId
+            return newId
         }
     }
 
@@ -132,13 +141,32 @@ class AuthRepositoryTest {
     @Test
     fun testRealLogout_clearsSession() = runBlocking {
         mockPrefs.saveSession("access", "refresh", "user@test.com", "id123")
-        
+
         val repository = LiveAuthRepository(MockAuthApiService(), mockPrefs)
-        
+
         assertTrue(repository.isLoggedIn())
         val result = repository.logout()
         assertTrue(result.isSuccess)
         assertFalse(repository.isLoggedIn())
         assertNull(mockPrefs.getAccessToken())
+    }
+
+    @Test
+    fun currentUserId_signedIn_returnsSignedInUserId() {
+        mockPrefs.saveSession("access", "refresh", "user@test.com", "id123")
+        val repository = LiveAuthRepository(MockAuthApiService(), mockPrefs)
+
+        assertEquals("id123", repository.currentUserId())
+    }
+
+    @Test
+    fun currentUserId_signedOut_returnsStableGuestId() {
+        val repository = LiveAuthRepository(MockAuthApiService(), mockPrefs)
+
+        val first = repository.currentUserId()
+        val second = repository.currentUserId()
+
+        assertEquals(first, second)
+        assertEquals("guest-test-id", first)
     }
 }
