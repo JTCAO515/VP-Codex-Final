@@ -103,4 +103,12 @@
     <string name="translate_error_perm_rejected">权限已被拒绝。请前往系统设置手动开启。</string>
     <string name="translate_error_ocr_failed">图片文字识别失败，请确保文字清晰并检查网络连接。</string>
     <string name="translate_error_stt_failed">语音识别失败，请尝试吐字清晰并检查网络连接。</string>
+
+    <!-- Cloud Sync Status -->
+    <string name="me_sync_status_label">云同步</string>
+    <string name="me_sync_status_not_signed_in">未登录</string>
+    <string name="me_sync_status_not_synced">未同步</string>
+    <string name="me_sync_status_syncing">同步中…</string>
+    <string name="me_sync_status_synced">已同步</string>
+    <string name="me_sync_status_failed">同步失败</string>
 </resources>

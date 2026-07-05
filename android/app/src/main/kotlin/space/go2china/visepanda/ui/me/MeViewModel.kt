@@ -12,6 +12,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import space.go2china.visepanda.data.repository.AuthRepository
 import space.go2china.visepanda.data.repository.TripRepository
+import space.go2china.visepanda.data.repository.SyncStatus
+import space.go2china.visepanda.data.repository.SupabaseSyncManager
+
 
 data class MeUiState(
     val activeTripTitle: String? = null,
@@ -19,7 +22,8 @@ data class MeUiState(
     val isLoggedIn: Boolean = false,
     val userEmail: String? = null,
     val isLoading: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val syncStatus: SyncStatus = SyncStatus.NOT_SIGNED_IN
 )
 
 data class AuthUiState(
@@ -32,7 +36,8 @@ data class AuthUiState(
 @HiltViewModel
 class MeViewModel @Inject constructor(
     tripRepository: TripRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val syncManager: SupabaseSyncManager
 ) : ViewModel() {
 
     private val authState = MutableStateFlow(
@@ -44,15 +49,17 @@ class MeViewModel @Inject constructor(
 
     val uiState: StateFlow<MeUiState> = combine(
         tripRepository.observeActiveTrip(),
-        authState
-    ) { trip, auth ->
+        authState,
+        syncManager.syncStatus
+    ) { trip, auth, sync ->
         MeUiState(
             activeTripTitle = trip?.summary?.title,
             hasCachedTripData = trip?.days?.isNotEmpty() == true,
             isLoggedIn = auth.isLoggedIn,
             userEmail = auth.userEmail,
             isLoading = auth.isLoading,
-            errorMessage = auth.errorMessage
+            errorMessage = auth.errorMessage,
+            syncStatus = sync
         )
     }
     .stateIn(
@@ -60,7 +67,8 @@ class MeViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = MeUiState(
             isLoggedIn = authRepository.isLoggedIn(),
-            userEmail = authRepository.getEmail()
+            userEmail = authRepository.getEmail(),
+            syncStatus = syncManager.syncStatus.value
         )
     )
 
@@ -74,6 +82,7 @@ class MeViewModel @Inject constructor(
                         isLoggedIn = true,
                         userEmail = it.user.email
                     )
+                    syncManager.triggerSync()
                 }
                 .onFailure {
                     authState.value = authState.value.copy(
@@ -94,6 +103,7 @@ class MeViewModel @Inject constructor(
                         isLoggedIn = true,
                         userEmail = it.user.email
                     )
+                    syncManager.triggerSync()
                 }
                 .onFailure {
                     authState.value = authState.value.copy(
@@ -108,6 +118,7 @@ class MeViewModel @Inject constructor(
         viewModelScope.launch {
             authState.value = authState.value.copy(isLoading = true)
             authRepository.logout()
+            syncManager.clearSyncState()
             authState.value = AuthUiState()
         }
     }
