@@ -125,4 +125,19 @@
     <string name="me_sync_status_syncing">同步中…</string>
     <string name="me_sync_status_synced">已同步</string>
     <string name="me_sync_status_failed">同步失败</string>
+
+    <!-- 订阅占位(Issue #67) -->
+    <string name="me_section_subscription">订阅</string>
+    <string name="me_subscription_placeholder_title">订阅功能占位</string>
+    <string name="me_subscription_human_title">人工服务</string>
+    <string name="me_subscription_human_price">$9.99 / 月</string>
+    <string name="me_subscription_human_summary">行程调整、订购问题和紧急旅行问题的优先人工客服支持。</string>
+    <string name="me_subscription_premium_title">高级服务</string>
+    <string name="me_subscription_premium_price">$19.99 / 月</string>
+    <string name="me_subscription_premium_summary">更深入的行程规划审核和更快的响应速度,进阶管家支持。</string>
+    <string name="me_subscription_subscribe">订阅</string>
+    <string name="me_subscription_restore">恢复购买</string>
+    <string name="me_subscription_renewal_notice">订阅会自动续订直至取消。可在 Google Play 账号中管理或取消。确认后费用将从你的 Google Play 账号扣款。条款和隐私政策链接将在正式发布前接入。</string>
+    <string name="me_subscription_terms">使用条款</string>
+    <string name="me_subscription_privacy">隐私政策</string>
 </resources>
