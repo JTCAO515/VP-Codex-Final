@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -35,9 +36,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import space.go2china.visepanda.data.model.ButlerChatMessage
 import space.go2china.visepanda.data.model.ButlerMessageRole
+import space.go2china.visepanda.data.model.ExploreRef
 import space.go2china.visepanda.data.model.InlineToolCard
 import space.go2china.visepanda.data.model.InlineToolCardTone
 import space.go2china.visepanda.ui.theme.Dimens
@@ -45,6 +48,7 @@ import space.go2china.visepanda.ui.theme.Dimens
 @Composable
 fun ButlerScreen(
     onOpenToolCategory: (String) -> Unit,
+    onExploreRef: (ExploreRef) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ButlerViewModel = hiltViewModel(),
 ) {
@@ -57,6 +61,7 @@ fun ButlerScreen(
             onSend = viewModel::sendCurrentInput,
             onSuggestion = viewModel::sendSuggestion,
             onOpenToolCategory = onOpenToolCategory,
+            onExploreRef = onExploreRef,
             contentPadding = innerPadding,
         )
     }
@@ -69,6 +74,7 @@ private fun ButlerContent(
     onSend: () -> Unit,
     onSuggestion: (String) -> Unit,
     onOpenToolCategory: (String) -> Unit,
+    onExploreRef: (ExploreRef) -> Unit,
     contentPadding: PaddingValues,
 ) {
     Column(
@@ -94,7 +100,7 @@ private fun ButlerContent(
                 }
             } else {
                 items(state.messages, key = { it.id }) { message ->
-                    MessageBubble(message, onOpenToolCategory = onOpenToolCategory)
+                    MessageBubble(message, onOpenToolCategory = onOpenToolCategory, onExploreRef = onExploreRef)
                 }
             }
         }
@@ -167,7 +173,11 @@ private fun EmptyButlerPrompt(onSuggestion: (String) -> Unit) {
 }
 
 @Composable
-private fun MessageBubble(message: ButlerChatMessage, onOpenToolCategory: (String) -> Unit) {
+private fun MessageBubble(
+    message: ButlerChatMessage,
+    onOpenToolCategory: (String) -> Unit,
+    onExploreRef: (ExploreRef) -> Unit,
+) {
     val isUser = message.role == ButlerMessageRole.User
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -226,6 +236,51 @@ private fun MessageBubble(message: ButlerChatMessage, onOpenToolCategory: (Strin
                         Spacer(modifier = Modifier.height(Dimens.SpaceSM))
                         InlineToolCardView(toolCard, onOpenToolCategory = onOpenToolCategory)
                     }
+                    if (!response.exploreRefs.isNullOrEmpty()) {
+                        Spacer(modifier = Modifier.height(Dimens.SpaceSM))
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(Dimens.SpaceSM)) {
+                            items(response.exploreRefs, key = { it.amapPoiId }) { ref ->
+                                ExploreRefCardView(ref, onClick = { onExploreRef(ref) })
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ExploreRefCardView(ref: ExploreRef, onClick: () -> Unit) {
+    Card(
+        shape = RoundedCornerShape(Dimens.RadiusMD),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        modifier = Modifier.width(180.dp),
+        onClick = onClick,
+    ) {
+        Column(modifier = Modifier.padding(Dimens.SpaceMD)) {
+            Text(
+                text = ref.name,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 2,
+            )
+            Spacer(modifier = Modifier.height(Dimens.SpaceXS))
+            Row {
+                ref.rating?.let {
+                    Text(
+                        text = "★ ${String.format("%.1f", it)}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.tertiary,
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                }
+                ref.pricePerPerson?.let {
+                    Text(
+                        text = "¥${it.toInt()}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
         }
