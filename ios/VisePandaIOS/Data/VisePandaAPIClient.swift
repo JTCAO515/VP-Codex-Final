@@ -52,8 +52,28 @@ struct VisePandaAPIClient {
         return try await perform(request, as: TranslateSttResponse.self)
     }
 
-    private func makeJSONRequest(path: String, method: String) -> URLRequest {
-        var request = URLRequest(url: baseURL.appendingPathComponent(path))
+    func fetchMemoryProfile(userId: String) async throws -> UserMemoryProfileResponse {
+        let request = makeJSONRequest(path: "butler/memory/profile", method: "GET", queryItems: [
+            URLQueryItem(name: "userId", value: userId)
+        ])
+        return try await perform(request, as: UserMemoryProfileResponse.self)
+    }
+
+    func deleteMemoryProfileEntry(userId: String, key: String, value: String) async throws -> UserMemoryDeleteResponse {
+        let request = makeJSONRequest(path: "butler/memory/profile", method: "DELETE", queryItems: [
+            URLQueryItem(name: "userId", value: userId),
+            URLQueryItem(name: "key", value: key),
+            URLQueryItem(name: "value", value: value)
+        ])
+        return try await perform(request, as: UserMemoryDeleteResponse.self)
+    }
+
+    private func makeJSONRequest(path: String, method: String, queryItems: [URLQueryItem] = []) -> URLRequest {
+        let url = baseURL.appendingPathComponent(path)
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        components?.queryItems = queryItems.isEmpty ? nil : queryItems
+
+        var request = URLRequest(url: components?.url ?? url)
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

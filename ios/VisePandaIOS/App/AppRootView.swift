@@ -11,6 +11,12 @@ struct AppRootView: View {
             }
             .background(VPColor.paper)
             .tint(VPColor.cinnabar)
+        } else if let scenario = MeScreenshotScenario.launchArgument {
+            NavigationStack {
+                MeView(screenshotScenario: scenario)
+            }
+            .background(VPColor.paper)
+            .tint(VPColor.cinnabar)
         } else {
             rootContent
         }

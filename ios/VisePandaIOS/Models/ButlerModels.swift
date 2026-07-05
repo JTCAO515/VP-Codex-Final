@@ -104,3 +104,24 @@ struct ButlerTurnResult {
     var modelLabel: String
     var offlineFallback: Bool
 }
+
+struct UserMemoryEntry: Codable, Identifiable, Equatable {
+    var key: String
+    var value: String
+    var confidence: Double
+    var evidence: [String]
+    var source: String
+    var updatedAt: String
+
+    var id: String { "\(key)|\(value)|\(updatedAt)" }
+}
+
+struct UserMemoryProfileResponse: Codable, Equatable {
+    var ok: Bool
+    var entries: [UserMemoryEntry]
+}
+
+struct UserMemoryDeleteResponse: Codable, Equatable {
+    var ok: Bool
+    var removed: Bool
+}
