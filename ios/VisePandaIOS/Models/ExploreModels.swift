@@ -39,6 +39,21 @@ enum ExploreCategory: String, CaseIterable, Identifiable, Codable {
         }
     }
 
+    static func from(refCategory: String) -> ExploreCategory {
+        switch refCategory {
+        case "attraction", "attractions":
+            .attractions
+        case "hotel", "hotels", "stay", "stays":
+            .hotels
+        case "shopping":
+            .shopping
+        case "experience", "experiences":
+            .experiences
+        default:
+            .food
+        }
+    }
+
     var subcategories: [ExploreSubcategory] {
         switch self {
         case .food:

@@ -2,12 +2,14 @@ import CoreLocation
 import SwiftUI
 
 struct ExploreView: View {
+    @EnvironmentObject private var store: TripStore
     @AppStorage("space.go2china.visepanda.explore.city") private var selectedCityId = "shanghai"
     @State private var showingCityPicker = false
     @State private var comingSoonPost: ExploreUGCPost?
+    @State private var path: [ExploreRoute] = []
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     header
@@ -21,6 +23,9 @@ struct ExploreView: View {
             }
             .background(VPColor.paper)
             .navigationBarHidden(true)
+            .navigationDestination(for: ExploreRoute.self) { route in
+                ExploreChannelView(cityId: $selectedCityId, category: route.category, focusRef: route.ref)
+            }
             .sheet(isPresented: $showingCityPicker) {
                 CityPickerSheet(selectedCityId: $selectedCityId)
                     .presentationDetents([.medium])
@@ -33,11 +38,22 @@ struct ExploreView: View {
             } message: {
                 Text("Community posts are local placeholders in this build.")
             }
+            .onAppear(perform: openPendingRef)
+            .onChange(of: store.pendingExploreRef) { _, _ in
+                openPendingRef()
+            }
         }
     }
 
     private var city: ExploreCity {
         ExploreCity.city(id: selectedCityId)
+    }
+
+    private func openPendingRef() {
+        guard let ref = store.pendingExploreRef else { return }
+        selectedCityId = ref.cityId
+        path = [ExploreRoute(ref: ref)]
+        store.pendingExploreRef = nil
     }
 
     private var header: some View {
@@ -132,6 +148,16 @@ struct ExploreView: View {
                 }
             }
         }
+    }
+}
+
+private struct ExploreRoute: Hashable {
+    var category: ExploreCategory
+    var ref: ButlerExploreRef?
+
+    init(ref: ButlerExploreRef) {
+        category = ExploreCategory.from(refCategory: ref.category)
+        self.ref = ref
     }
 }
 
@@ -232,11 +258,16 @@ private struct ExploreChannelView: View {
     @State private var notice: String?
     @State private var selectedPoi: ExploreAmapPoi?
     @State private var showingCityPicker = false
+    @State private var didOpenFocusRef = false
+    private let focusRef: ButlerExploreRef?
 
-    init(cityId: Binding<String>, category: ExploreCategory) {
+    init(cityId: Binding<String>, category: ExploreCategory, focusRef: ButlerExploreRef? = nil) {
         _cityId = cityId
         self.category = category
-        _selectedSubcategory = State(initialValue: category.subcategories[0])
+        self.focusRef = focusRef
+        let key = focusRef?.subcategory ?? category.semanticKey
+        let subcategory = category.subcategories.first { $0.key == key } ?? category.subcategories[0]
+        _selectedSubcategory = State(initialValue: subcategory)
     }
 
     private var city: ExploreCity {
@@ -338,8 +369,7 @@ private struct ExploreChannelView: View {
                 category: category,
                 onAddToTrip: { store.addPlaceToPlan(poi.name) },
                 onAskButler: {
-                    store.selectedTab = .chat
-                    store.send("Tell me about \(poi.name) in \(city.name). Is it a good fit for my trip, and where would you place it?")
+                    store.prefillChat("Tell me about \(poi.name) in \(city.name). Is it a good fit for my trip, and where would you place it?")
                 }
             )
             .presentationDetents([.medium, .large])
@@ -650,6 +680,7 @@ private struct ExploreChannelView: View {
             hasMore = response.hasMore ?? false
             page = requestedPage + 1
             notice = useAround ? nil : notice
+            openFocusedPoiIfPossible()
         } catch {
             if reset {
                 pois = []
@@ -659,6 +690,15 @@ private struct ExploreChannelView: View {
         }
 
         isLoading = false
+    }
+
+    private func openFocusedPoiIfPossible() {
+        guard !didOpenFocusRef, let focusRef else { return }
+        didOpenFocusRef = true
+        selectedPoi = pois.first { $0.id == focusRef.amapPoiId || "amap-\($0.id)" == focusRef.amapPoiId }
+        if selectedPoi == nil {
+            notice = "That Butler recommendation was not in the current Explore result page."
+        }
     }
 }
 

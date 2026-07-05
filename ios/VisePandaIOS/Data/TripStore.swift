@@ -8,6 +8,8 @@ final class TripStore: ObservableObject {
     @Published var messages: [ChatMessage]
     @Published var suggestions: [String]
     @Published var isSending = false
+    @Published var pendingExploreRef: ButlerExploreRef?
+    @Published var pendingChatDraft: String?
 
     private let api = VisePandaAPIClient()
     private let persistenceKey = "space.go2china.visepanda.ios.localState.v3"
@@ -47,6 +49,21 @@ final class TripStore: ObservableObject {
     func addPlaceToPlan(_ placeName: String) {
         selectedTab = .chat
         send("Add \(placeName) to my Shanghai plan if it fits the current pace.")
+    }
+
+    func openExplore(ref: ButlerExploreRef) {
+        pendingExploreRef = ref
+        selectedTab = .explore
+    }
+
+    func prefillChat(_ text: String) {
+        pendingChatDraft = text
+        selectedTab = .chat
+    }
+
+    func consumePendingChatDraft() -> String? {
+        defer { pendingChatDraft = nil }
+        return pendingChatDraft
     }
 
     func resetLocalDraft() {

@@ -24,6 +24,94 @@ struct InlineToolCard: Codable, Identifiable, Equatable {
     var sourceLabel: String?
 }
 
+struct ButlerExploreRef: Codable, Identifiable, Equatable, Hashable {
+    var amapPoiId: String
+    var name: String
+    var cityId: String
+    var category: String
+    var subcategory: String?
+    var rating: Double?
+    var pricePerPerson: String?
+    var editorial: Bool?
+
+    var id: String { amapPoiId }
+
+    enum CodingKeys: String, CodingKey {
+        case amapPoiId
+        case name
+        case cityId
+        case category
+        case subcategory
+        case rating
+        case pricePerPerson
+        case editorial
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        amapPoiId = try container.decode(String.self, forKey: .amapPoiId)
+        name = try container.decode(String.self, forKey: .name)
+        cityId = try container.decode(String.self, forKey: .cityId)
+        category = try container.decode(String.self, forKey: .category)
+        subcategory = try container.decodeIfPresent(String.self, forKey: .subcategory)
+        rating = try container.decodeFlexibleDouble(forKey: .rating)
+        pricePerPerson = try container.decodeFlexibleString(forKey: .pricePerPerson)
+        editorial = try container.decodeFlexibleBool(forKey: .editorial)
+    }
+
+    init(
+        amapPoiId: String,
+        name: String,
+        cityId: String,
+        category: String,
+        subcategory: String? = nil,
+        rating: Double? = nil,
+        pricePerPerson: String? = nil,
+        editorial: Bool? = nil
+    ) {
+        self.amapPoiId = amapPoiId
+        self.name = name
+        self.cityId = cityId
+        self.category = category
+        self.subcategory = subcategory
+        self.rating = rating
+        self.pricePerPerson = pricePerPerson
+        self.editorial = editorial
+    }
+}
+
+private extension KeyedDecodingContainer {
+    func decodeFlexibleString(forKey key: Key) throws -> String? {
+        if let value = try? decodeIfPresent(String.self, forKey: key) {
+            return value.isEmpty ? nil : value
+        }
+        if let value = try? decodeIfPresent(Double.self, forKey: key) {
+            return String(format: "%.0f", value)
+        }
+        return nil
+    }
+
+    func decodeFlexibleDouble(forKey key: Key) throws -> Double? {
+        if let value = try? decodeIfPresent(Double.self, forKey: key) {
+            return value
+        }
+        if let value = try? decodeIfPresent(String.self, forKey: key) {
+            return Double(value)
+        }
+        return nil
+    }
+
+    func decodeFlexibleBool(forKey key: Key) throws -> Bool? {
+        if let value = try? decodeIfPresent(Bool.self, forKey: key) {
+            return value
+        }
+        if let value = try? decodeIfPresent(String.self, forKey: key) {
+            return Bool(value)
+        }
+        return nil
+    }
+}
+
 struct AssistantResponse: Codable, Equatable {
     var headline: String
     var body: String
@@ -31,6 +119,7 @@ struct AssistantResponse: Codable, Equatable {
     var watchOut: String?
     var nextStep: String
     var toolCards: [InlineToolCard]?
+    var exploreRefs: [ButlerExploreRef]? = nil
 }
 
 struct TripSummaryPatch: Codable, Equatable {
