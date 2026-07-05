@@ -659,8 +659,17 @@ private struct ExploreChannelView: View {
 
         let requestedPage = page
         let aroundLocation = locationProvider.coordinate
-        let useAround = distance.radius != nil && aroundLocation != nil
+        // Bug fix (architect review of PR #54, 2026-07-05): `useAround` only
+        // turned on when the "Nearby" filter itself had a radius, so picking
+        // Sort = Nearest while "Nearby" stayed "All city" silently fell back
+        // to weight-sort — the sort control still showed Nearest as selected
+        // with no indication it was ignored. Also request around mode when
+        // the sort alone calls for it. Amap's around-search requires a
+        // radius; "All city" has none, so fall back to its max (50km) to
+        // keep "all city" scope while still getting server-side distance sort.
+        let useAround = (distance.radius != nil || sort == .nearest) && aroundLocation != nil
         let locationString = aroundLocation.map { "\($0.longitude),\($0.latitude)" }
+        let effectiveRadius = distance.radius ?? 50_000
 
         do {
             let response = try await VisePandaAPIClient().fetchExploreAmap(
@@ -669,7 +678,7 @@ private struct ExploreChannelView: View {
                 page: requestedPage,
                 mode: useAround ? "around" : "city",
                 location: useAround ? locationString : nil,
-                radius: useAround ? distance.radius : nil,
+                radius: useAround ? effectiveRadius : nil,
                 sort: sort == .nearest && useAround ? "distance" : "weight"
             )
             if reset {
