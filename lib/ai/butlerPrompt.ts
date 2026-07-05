@@ -31,9 +31,9 @@ export function buildSystemPrompt(): string {
     "(6) When the user corrects you, accept the correction plainly and adjust — never argue or repeat the mistake.",
     // Output contract.
     "Return only valid json for a live itinerary canvas patch.",
-    'Example json shape: {"intent":"adjust_trip","assistantMessage":"...","assistantResponse":{"headline":"...","body":"...","highlights":["..."],"watchOut":"...","nextStep":"..."},"reason":"...","suggestions":["...","..."],"tripSummary":{"confidence":"Refined"},"days":[],"butlerAlerts":[]}.',
+    'Example json shape: {"intent":"adjust_trip","assistantMessage":"...","assistantResponse":{"headline":"...","body":"...","highlights":["..."],"watchOut":"...","nextStep":"..."},"reason":"...","suggestions":["...","..."],"tripSummary":{"confidence":"Refined"},"days":[{"day":1,"city":"Beijing","pace":"Balanced","blocks":[{"time":"Morning","title":"Tiananmen Square","description":"..."},{"time":"Afternoon","title":"...","description":"..."}],"food":["..."],"stay":"...","transport":"...","note":"..."}],"butlerAlerts":[]}.',
     "The json shape must be: intent, assistantMessage, assistantResponse, reason, suggestions, optional tripSummary, optional days, optional butlerAlerts.",
-    "IMPORTANT: whenever the itinerary changes (intent create_trip or adjust_trip) you MUST return the COMPLETE updated days array (every day, morning/afternoon/evening blocks, food, stay, transport, note) — never a partial delta and never omit days — and set tripSummary.title, tripSummary.durationDays, and tripSummary.destinations so the live canvas reflects the plan.",
+    "IMPORTANT: each day object MUST have a flat `blocks` array (day, city, pace, blocks, food, stay, transport, note) — never group activities under separate morning/afternoon/evening objects, and never nest an `activities` array. Every block is one flat object: {time: one of Morning/Afternoon/Evening/Flexible, title, description}. Whenever the itinerary changes (intent create_trip or adjust_trip) you MUST return the COMPLETE updated days array — never a partial delta and never omit days — and set tripSummary.title, tripSummary.durationDays, and tripSummary.destinations so the live canvas reflects the plan.",
     "Trip blocks may include optional operational POI fields when known: address, chineseAddress, phone, openingHours, mapUrl, bookingUrl, bookingCandidates, sourceLabel, and coordinates {lat,lng}. Only include them when sourced from provided context or common static fallback; never invent official booking availability.",
     "Only omit days when the user's message does not change the itinerary at all (for example a pure factual question).",
     "assistantResponse must have a short headline, one concise body paragraph, 2-4 practical highlights, an optional watchOut, and one concrete, tappable nextStep.",
@@ -116,30 +116,77 @@ function stringValue(value: unknown): string {
 }
 
 /**
+ * Some models ignore the "flat blocks array" instruction and instead group
+ * activities under morning/afternoon/evening period objects (each holding an
+ * `activities` array of `{time, poi:{name,address,note,sourceLabel}, duration}`
+ * entries) — a shape closer to what these models saw more often in training.
+ * Without this fallback, `normalizeDays` would see no `blocks` field and
+ * silently produce an empty array, discarding an entire day the model did
+ * generate correctly in substance, just under the wrong key names.
+ */
+function extractBlocksFromLegacyPeriods(raw: Record<string, unknown>): Record<string, unknown>[] {
+  const periods: { key: string; time: string }[] = [
+    { key: "morning", time: "Morning" },
+    { key: "afternoon", time: "Afternoon" },
+    { key: "evening", time: "Evening" },
+  ];
+  const blocks: Record<string, unknown>[] = [];
+  for (const { key, time } of periods) {
+    const period = raw[key];
+    if (!period || typeof period !== "object") continue;
+    const activities = (period as Record<string, unknown>).activities;
+    if (!Array.isArray(activities)) continue;
+    for (const activity of activities) {
+      if (!activity || typeof activity !== "object") continue;
+      const entry = activity as Record<string, unknown>;
+      const poi = entry.poi && typeof entry.poi === "object" ? (entry.poi as Record<string, unknown>) : {};
+      const title = stringValue(poi.name) || stringValue(entry.title);
+      if (!title) continue;
+      const descriptionParts = [stringValue(poi.note), stringValue(entry.duration) && `Duration: ${stringValue(entry.duration)}`].filter(Boolean);
+      blocks.push({
+        time,
+        title,
+        description: descriptionParts.join(". "),
+        address: stringValue(poi.address) || undefined,
+        sourceLabel: stringValue(poi.sourceLabel) || undefined,
+      });
+    }
+  }
+  return blocks;
+}
+
+/**
  * Normalize LLM-produced days at the parse boundary (v0.3.18). Real model
  * output can omit any field the TypeScript type claims is required — a day
  * without `blocks` crashed `applyToolContextToPatch` in production
  * ("Cannot read properties of undefined (reading 'map')"), throwing away an
  * otherwise-winning patch. Same philosophy as the Android TripJson
  * normalizeNulls fix: nulls/holes must never leave the decode layer.
+ *
+ * v0.3.19: also recovers content when the model used the legacy
+ * morning/afternoon/evening/activities shape instead of `blocks` (see
+ * extractBlocksFromLegacyPeriods) — real generated itinerary content was
+ * being silently dropped to an empty day rather than a decode error, which
+ * is worse: it looks like the request succeeded but the canvas stays empty.
+ * Only the canonical TripDay fields are returned (no `...raw` passthrough),
+ * so provider-specific scratch fields (dayNumber, date, morning, etc.) never
+ * reach the client.
  */
 function normalizeDays(value: unknown): TripDay[] | undefined {
   if (!Array.isArray(value)) return undefined;
   const days = value
     .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === "object")
     .map((raw, index) => {
-      const blocks = Array.isArray(raw.blocks)
-        ? raw.blocks
-            .filter((block): block is Record<string, unknown> => Boolean(block) && typeof block === "object")
-            .map((block) => ({
-              ...block,
-              time: typeof block.time === "string" && block.time ? block.time : "Flexible",
-              title: stringValue(block.title) || "Untitled stop",
-              description: stringValue(block.description),
-            }))
-        : [];
+      const rawBlocks = Array.isArray(raw.blocks) && raw.blocks.length > 0 ? raw.blocks : extractBlocksFromLegacyPeriods(raw);
+      const blocks = rawBlocks
+        .filter((block): block is Record<string, unknown> => Boolean(block) && typeof block === "object")
+        .map((block) => ({
+          ...block,
+          time: typeof block.time === "string" && block.time ? block.time : "Flexible",
+          title: stringValue(block.title) || "Untitled stop",
+          description: stringValue(block.description),
+        }));
       return {
-        ...raw,
         day: typeof raw.day === "number" ? raw.day : index + 1,
         city: stringValue(raw.city),
         pace: typeof raw.pace === "string" && raw.pace ? raw.pace : "Balanced",
