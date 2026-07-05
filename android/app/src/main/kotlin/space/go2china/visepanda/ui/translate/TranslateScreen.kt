@@ -6,6 +6,7 @@ import android.content.Context
 import android.speech.tts.TextToSpeech
 import android.widget.Toast
 import android.Manifest
+import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -44,6 +45,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import space.go2china.visepanda.R
 import space.go2china.visepanda.data.model.Phrase
+import space.go2china.visepanda.data.model.SupportedLanguage
+import space.go2china.visepanda.data.model.SupportedLanguages
 import space.go2china.visepanda.ui.theme.Dimens
 import space.go2china.visepanda.ui.theme.Ink
 import space.go2china.visepanda.ui.theme.InkSoft
@@ -188,6 +191,7 @@ fun TranslateScreen(
 
     var selectedTab by remember { mutableIntStateOf(0) }
     var showBigCardPhrase by remember { mutableStateOf<Phrase?>(null) }
+    var showBigCardLanguageCode by remember { mutableStateOf("zh") }
 
     // TTS Setup
     var ttsReady by remember { mutableStateOf(false) }
@@ -207,6 +211,57 @@ fun TranslateScreen(
             engine.stop()
             engine.shutdown()
         }
+    }
+
+    fun localeForLanguageCode(code: String): Locale = when (code) {
+        "zh" -> Locale.SIMPLIFIED_CHINESE
+        "ja" -> Locale.JAPANESE
+        "ko" -> Locale.KOREAN
+        "fr" -> Locale.FRENCH
+        "es" -> Locale("es")
+        "ar" -> Locale("ar")
+        else -> Locale.US
+    }
+
+    fun localSpeak(text: String, languageCode: String) {
+        if (ttsReady) {
+            ttsEngine?.setLanguage(localeForLanguageCode(languageCode))
+            ttsEngine?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "tts_${text.hashCode()}")
+        } else {
+            Toast.makeText(context, context.getString(R.string.translate_speak_not_ready), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Backend Qwen TTS playback: the ViewModel resolves an audioUrl and this
+    // plays it via MediaPlayer, releasing the player when done or on error.
+    var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
+    LaunchedEffect(state.ttsAudioUrl) {
+        val url = state.ttsAudioUrl ?: return@LaunchedEffect
+        mediaPlayer?.release()
+        mediaPlayer = MediaPlayer().apply {
+            setOnPreparedListener { it.start() }
+            setOnCompletionListener { it.release() }
+            setOnErrorListener { player, _, _ -> player.release(); true }
+            try {
+                setDataSource(url)
+                prepareAsync()
+            } catch (e: Exception) {
+                release()
+            }
+        }
+        viewModel.clearTtsAudioUrl()
+    }
+
+    // Backend TTS failed (offline / upstream error) — fall back to the
+    // device's local system TTS so the "speak" affordance never dead-ends.
+    LaunchedEffect(state.ttsFallbackText) {
+        val text = state.ttsFallbackText ?: return@LaunchedEffect
+        localSpeak(text, state.ttsFallbackLanguageCode ?: "zh")
+        viewModel.clearTtsFallback()
+    }
+
+    DisposableEffect(Unit) {
+        onDispose { mediaPlayer?.release() }
     }
 
     Scaffold(
@@ -253,9 +308,10 @@ fun TranslateScreen(
                     TranslatorTabContent(
                         state = state,
                         viewModel = viewModel,
-                        ttsEngine = ttsEngine,
-                        ttsReady = ttsReady,
-                        onPhraseClick = { showBigCardPhrase = it },
+                        onPhraseClick = { phrase, languageCode ->
+                            showBigCardPhrase = phrase
+                            showBigCardLanguageCode = languageCode
+                        },
                         photoUri = photoUri,
                         takePictureLauncher = takePictureLauncher,
                         cameraPermissionLauncher = cameraPermissionLauncher,
@@ -266,9 +322,11 @@ fun TranslateScreen(
                 } else {
                     PhrasebookTabContent(
                         phrases = state.phrases,
-                        ttsEngine = ttsEngine,
-                        ttsReady = ttsReady,
-                        onPhraseClick = { showBigCardPhrase = it }
+                        onPhraseClick = { phrase, languageCode ->
+                            showBigCardPhrase = phrase
+                            showBigCardLanguageCode = languageCode
+                        },
+                        viewModel = viewModel,
                     )
                 }
             }
@@ -325,23 +383,10 @@ fun TranslateScreen(
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         IconButton(
-                            onClick = {
-                                if (ttsReady) {
-                                    ttsEngine?.setLanguage(Locale.SIMPLIFIED_CHINESE)
-                                    ttsEngine?.speak(
-                                        phrase.chinese,
-                                        TextToSpeech.QUEUE_FLUSH,
-                                        null,
-                                        "big_phrase_speak_${phrase.chinese}"
-                                    )
-                                } else {
-                                    Toast.makeText(context, context.getString(R.string.translate_speak_not_ready), Toast.LENGTH_SHORT).show()
-                                }
-                            },
+                            onClick = { viewModel.speak(phrase.chinese, showBigCardLanguageCode) },
                             modifier = Modifier
                                 .size(56.dp)
                                 .background(Ink, CircleShape),
-                            enabled = ttsReady
                         ) {
                             Icon(
                                 imageVector = Icons.Default.VolumeUp,
@@ -373,9 +418,7 @@ fun TranslateScreen(
 private fun TranslatorTabContent(
     state: TranslateUiState,
     viewModel: TranslateViewModel,
-    ttsEngine: TextToSpeech?,
-    ttsReady: Boolean,
-    onPhraseClick: (Phrase) -> Unit,
+    onPhraseClick: (Phrase, String) -> Unit,
     photoUri: Uri,
     takePictureLauncher: androidx.activity.result.ActivityResultLauncher<Uri>,
     cameraPermissionLauncher: androidx.activity.result.ActivityResultLauncher<String>,
@@ -390,6 +433,16 @@ private fun TranslatorTabContent(
         verticalArrangement = Arrangement.spacedBy(Dimens.SpaceMD)
     ) {
         item {
+            LanguageSelectorRow(
+                fromLanguage = state.fromLanguage,
+                toLanguage = state.toLanguage,
+                onFromChange = viewModel::setFromLanguage,
+                onToChange = viewModel::setToLanguage,
+                onSwap = viewModel::swapLanguages,
+            )
+        }
+
+        item {
             Card(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 border = CardDefaults.outlinedCardBorder(),
@@ -398,7 +451,7 @@ private fun TranslatorTabContent(
             ) {
                 Column(modifier = Modifier.padding(Dimens.SpaceMD)) {
                     Text(
-                        text = if (state.translateToChinese) "English" else "中文",
+                        text = SupportedLanguages.byCode(state.fromLanguage).displayName,
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -429,26 +482,9 @@ private fun TranslatorTabContent(
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = viewModel::toggleDirection) {
-                    Icon(
-                        imageVector = Icons.Default.SwapHoriz,
-                        contentDescription = "Swap language direction",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-                
-                Text(
-                    text = stringResource(
-                        if (state.translateToChinese) R.string.translate_direction_en_zh
-                        else R.string.translate_direction_zh_en
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = InkSoft
-                )
-
                 Button(
                     onClick = viewModel::translate,
                     enabled = state.input.isNotBlank() && !state.translating,
@@ -483,13 +519,14 @@ private fun TranslatorTabContent(
                                     english = state.input,
                                     chinese = state.translationResult.translation,
                                     pinyin = state.translationResult.pinyin
-                                )
+                                ),
+                                state.toLanguage,
                             )
                         }
                 ) {
                     Column(modifier = Modifier.padding(Dimens.SpaceMD)) {
                         Text(
-                            text = if (state.translateToChinese) "中文" else "English",
+                            text = SupportedLanguages.byCode(state.toLanguage).displayName,
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -499,8 +536,8 @@ private fun TranslatorTabContent(
                             style = MaterialTheme.typography.headlineMedium,
                             color = Ink
                         )
-                        
-                        if (state.translateToChinese && state.translationResult.pinyin.isNotEmpty()) {
+
+                        if (state.toLanguage == "zh" && state.translationResult.pinyin.isNotEmpty()) {
                             Spacer(modifier = Modifier.height(Dimens.SpaceXS))
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
@@ -536,21 +573,7 @@ private fun TranslatorTabContent(
                             Spacer(modifier = Modifier.width(Dimens.SpaceSM))
 
                             TextButton(
-                                onClick = {
-                                    if (ttsReady) {
-                                        val loc = if (state.translateToChinese) Locale.SIMPLIFIED_CHINESE else Locale.US
-                                        ttsEngine?.setLanguage(loc)
-                                        ttsEngine?.speak(
-                                            state.translationResult.translation,
-                                            TextToSpeech.QUEUE_FLUSH,
-                                            null,
-                                            "translate_result_tts"
-                                        )
-                                    } else {
-                                        Toast.makeText(context, context.getString(R.string.translate_speak_not_ready), Toast.LENGTH_SHORT).show()
-                                    }
-                                },
-                                enabled = ttsReady
+                                onClick = { viewModel.speak(state.translationResult.translation, state.toLanguage) },
                             ) {
                                 Icon(Icons.Default.VolumeUp, contentDescription = "Speak")
                                 Spacer(modifier = Modifier.width(Dimens.SpaceXS))
@@ -708,6 +731,64 @@ private fun TranslatorTabContent(
     }
 }
 
+@Composable
+private fun LanguageSelectorRow(
+    fromLanguage: String,
+    toLanguage: String,
+    onFromChange: (String) -> Unit,
+    onToChange: (String) -> Unit,
+    onSwap: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(Dimens.SpaceXS),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        LanguageDropdown(
+            modifier = Modifier.weight(1f),
+            selectedCode = fromLanguage,
+            onSelect = onFromChange,
+        )
+        IconButton(onClick = onSwap) {
+            Icon(
+                imageVector = Icons.Default.SwapHoriz,
+                contentDescription = "Swap language direction",
+                tint = MaterialTheme.colorScheme.primary,
+            )
+        }
+        LanguageDropdown(
+            modifier = Modifier.weight(1f),
+            selectedCode = toLanguage,
+            onSelect = onToChange,
+        )
+    }
+}
+
+@Composable
+private fun LanguageDropdown(
+    selectedCode: String,
+    onSelect: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Box(modifier = modifier) {
+        OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
+            Text(SupportedLanguages.byCode(selectedCode).displayName)
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            SupportedLanguages.all.forEach { language ->
+                DropdownMenuItem(
+                    text = { Text(language.displayName) },
+                    onClick = {
+                        onSelect(language.code)
+                        expanded = false
+                    },
+                )
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TranslateCard(
@@ -761,11 +842,9 @@ private fun TranslateCard(
 @Composable
 private fun PhrasebookTabContent(
     phrases: List<Phrase>,
-    ttsEngine: TextToSpeech?,
-    ttsReady: Boolean,
-    onPhraseClick: (Phrase) -> Unit,
+    onPhraseClick: (Phrase, String) -> Unit,
+    viewModel: TranslateViewModel,
 ) {
-    val context = LocalContext.current
     val groupedPhrases = remember(phrases) { phrases.groupBy { it.category } }
 
     LazyColumn(
@@ -796,7 +875,7 @@ private fun PhrasebookTabContent(
                     shape = RoundedCornerShape(Dimens.RadiusMD),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onPhraseClick(phrase) }
+                        .clickable { onPhraseClick(phrase, "zh") }
                 ) {
                     Row(
                         modifier = Modifier
@@ -827,20 +906,7 @@ private fun PhrasebookTabContent(
                         }
 
                         IconButton(
-                            onClick = {
-                                if (ttsReady) {
-                                    ttsEngine?.setLanguage(Locale.SIMPLIFIED_CHINESE)
-                                    ttsEngine?.speak(
-                                        phrase.chinese,
-                                        TextToSpeech.QUEUE_FLUSH,
-                                        null,
-                                        "phrase_speak_${phrase.chinese}"
-                                    )
-                                } else {
-                                    Toast.makeText(context, context.getString(R.string.translate_speak_not_ready), Toast.LENGTH_SHORT).show()
-                                }
-                            },
-                            enabled = ttsReady
+                            onClick = { viewModel.speak(phrase.chinese, "zh") },
                         ) {
                             Icon(
                                 imageVector = Icons.Default.VolumeUp,
