@@ -136,6 +136,30 @@
 
 **Response(失败)**:503 `not_configured`(无 `AMAP_API_KEY`)/ 400 `invalid_params` / `invalid_location`(mode=around 但 location 不合法)/ `invalid_page` / 502 `upstream_error`。
 
+### `poi.travelerFit`(未来可选字段草案,Issue #122,尚未实现)
+
+**这是草案,不是已实现契约** —— 本节只是给"以后想把外国游客适配度判断挪到服务端"这个方向留一个契约占位,当前 `poi` 响应里不会出现这个字段。客户端侧的可选字段定义见 iOS Issue #119(TravelerFit),字段名在这里保持一致,方便以后如果真的做服务端版本时直接对齐:
+
+```json
+{
+  "travelerFit": {
+    "firstTimerFit": "boolean, optional",
+    "paymentFriendliness": "string, optional — 例如 'Card accepted'/'Cash only'",
+    "languageDifficulty": "string, optional",
+    "routeFit": "string, optional",
+    "rainyDayFit": "boolean, optional",
+    "nightFit": "boolean, optional",
+    "crowdRisk": "string, optional",
+    "luggageFit": "boolean, optional",
+    "watchOut": "string, optional"
+  }
+}
+```
+
+**诚实原则(和 `editorial` 字段的规则一致)**:任何一项无法从真实数据判断,必须省略该字段,不能给默认值凑数,也不能为了"看起来完整"而编造一个听起来合理但没有依据的判断。整个 `travelerFit` 对象在没有任何一项能判断时,应该整体省略,不是给一个全 `null` 的空对象。
+
+老客户端(不认识这个字段的版本)应该完全不受影响——这是可选的超集扩展,和 `editorial` 字段的兼容性规则相同。
+
 ## GET /api/explore/baidu — 百度 POI(体验品类 Phase 2 占位接入)
 
 独立百度地图 Place API v2 数据源,先只覆盖 `experiences*` 体验品类,不改变 `/api/explore/amap` 既有行为。服务端读取 `BAIDU_MAP_AK`; 当前未提交真实 AK/真实调用结论,部署真实 key 后再补 PR 描述里的实测响应与覆盖价值判断。
