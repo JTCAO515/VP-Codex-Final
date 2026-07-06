@@ -22,6 +22,22 @@ function usesEditIntentPath(intent: ButlerIntent): boolean {
   return intent === "adjust_trip";
 }
 
+/**
+ * Trips staged generation, stage A (docs/planning/trips-staged-generation-migration-plan.md):
+ * every create_trip request now generates a fast skeleton (summary + each
+ * day's city/pace/food/stay/transport/note, blocks left empty) instead of
+ * waiting for the full multi-day itinerary in one call. The client applies
+ * the skeleton immediately, then makes a separate completeSkeletonFor
+ * request (see buildSkeletonCompletionSystemPrompt) to fill in blocks.
+ * adjust_trip/add_alerts are untouched — only create_trip had the "one call
+ * must finish every day before the client sees anything" latency problem.
+ */
+function usesSkeletonPath(intent: ButlerIntent): boolean {
+  return intent === "create_trip";
+}
+
+export type ButlerPromptMode = "normal" | "skeletonCompletion";
+
 export const defaultSuggestions = [
   "Can you make the pace easier?",
   "What should we book first?",
@@ -93,8 +109,47 @@ function buildFullArraySystemPrompt(): string {
   ].join(" ");
 }
 
-export function buildSystemPrompt(intent: ButlerIntent = "unclear"): string {
-  return usesEditIntentPath(intent) ? buildEditIntentSystemPrompt() : buildFullArraySystemPrompt();
+/**
+ * Trips staged generation round 1: produce the skeleton only. Every day
+ * object MUST have blocks: [] — parseButlerPatch also force-clears blocks
+ * server-side afterward (see usesSkeletonPath's caller below) so the
+ * "skeleton means empty blocks" contract holds even if a provider ignores
+ * this instruction.
+ */
+function buildSkeletonSystemPrompt(): string {
+  return [
+    ...SHARED_PERSONA_AND_HARD_RULES,
+    "Return only valid json for a live itinerary canvas patch.",
+    "This is ROUND 1 of a two-round create_trip generation: produce only the trip skeleton, not the detailed day-by-day itinerary yet — that comes in round 2, so the traveler sees the shape of the plan immediately instead of waiting for everything to generate.",
+    'Example json shape: {"intent":"create_trip","assistantMessage":"...","assistantResponse":{"headline":"...","body":"...","highlights":["..."],"watchOut":"...","nextStep":"..."},"reason":"...","suggestions":["...","..."],"tripSummary":{"title":"...","durationDays":3,"destinations":["Beijing"],"confidence":"Draft"},"days":[{"day":1,"city":"Beijing","pace":"Balanced","blocks":[],"food":["Peking duck"],"stay":"City center","transport":"Subway","note":""}]}.',
+    "The json shape must be: intent (create_trip), assistantMessage, assistantResponse, reason, suggestions, tripSummary, days. Every day object's `blocks` field MUST be an empty array `[]` in this round — do not generate any block content yet. Do set city, pace, food, stay, transport, note for every day, and set tripSummary.title/durationDays/destinations so the live canvas reflects the plan's shape.",
+    "assistantMessage/assistantResponse should read as a normal, complete-feeling first pass (mention the overall shape: cities, duration, pace) — do not sound unfinished or apologize for missing details; the traveler doesn't need to know this is round 1 of 2.",
+    ...SHARED_STYLE_TAIL,
+  ].join(" ");
+}
+
+/**
+ * Trips staged generation round 2: the skeleton (day count, each day's city
+ * and pace) is already fixed and given as currentTrip in the user message —
+ * this prompt forbids changing it and asks only for blocks.
+ */
+function buildSkeletonCompletionSystemPrompt(): string {
+  return [
+    ...SHARED_PERSONA_AND_HARD_RULES,
+    "Return only valid json for a live itinerary canvas patch.",
+    "This is ROUND 2 of a two-round create_trip generation. The trip skeleton — the number of days, and each day's city and pace — is already fixed by round 1 and given to you as currentTrip in the user message. Do NOT add, remove, or reorder days, and do NOT change any day's city or pace field.",
+    "Your only job this round: fill in every day's `blocks` array with a real flat itinerary (2-4 blocks per day), and refine that day's food/stay/transport/note if useful. Trip blocks may include optional operational POI fields when known: address, chineseAddress, phone, openingHours, mapUrl, bookingUrl, bookingCandidates, sourceLabel, and coordinates {lat,lng}. Only include them when sourced from provided context or common static fallback; never invent official booking availability.",
+    'Example json shape: {"intent":"create_trip","assistantMessage":"...","assistantResponse":{"headline":"...","body":"...","highlights":["..."],"watchOut":"...","nextStep":"..."},"reason":"...","suggestions":["...","..."],"days":[{"day":1,"city":"Beijing","pace":"Balanced","blocks":[{"time":"Morning","title":"Tiananmen Square","description":"..."},{"time":"Afternoon","title":"...","description":"..."}],"food":["..."],"stay":"...","transport":"...","note":"..."}]}.',
+    "The json shape must be: intent (create_trip), assistantMessage, assistantResponse, reason, suggestions, days — return the COMPLETE days array with every day from the skeleton, each one now with blocks filled in, never a partial subset and never a different day count.",
+    ...SHARED_STYLE_TAIL,
+  ].join(" ");
+}
+
+export function buildSystemPrompt(intent: ButlerIntent = "unclear", mode: ButlerPromptMode = "normal"): string {
+  if (mode === "skeletonCompletion") return buildSkeletonCompletionSystemPrompt();
+  if (usesEditIntentPath(intent)) return buildEditIntentSystemPrompt();
+  if (usesSkeletonPath(intent)) return buildSkeletonSystemPrompt();
+  return buildFullArraySystemPrompt();
 }
 
 /**
@@ -346,6 +401,7 @@ export function parseButlerPatch(
   fallbackSuggestions: string[],
   intent: ButlerIntent = "unclear",
   currentDays: TripDay[] = [],
+  mode: ButlerPromptMode = "normal",
 ): { patch: CanvasPatch; suggestions: string[] } {
   const parsed = safeParseLlmJson(content) as Partial<CanvasPatch> & { suggestions?: unknown; editIntent?: unknown };
 
@@ -374,11 +430,36 @@ export function parseButlerPatch(
   // "Only omit days when the user's message does not change the itinerary
   // at all") — only a *present but malformed* editIntent should fail the
   // patch. Don't confuse "nothing to apply" with "invalid."
-  const days = usesEditIntentPath(intent)
+  let days = usesEditIntentPath(intent)
     ? parsed.editIntent === undefined
       ? undefined
       : applyTripEditIntent(currentDays, parseTripEditIntent(parsed.editIntent))
     : normalizeDays(parsed.days);
+
+  // Trips staged generation (docs/planning/trips-staged-generation-migration-plan.md).
+  let generationStage: CanvasPatch["generationStage"];
+  if (mode === "skeletonCompletion") {
+    // Structural validation: round 2 must preserve round 1's skeleton
+    // exactly (same day count, same city/pace per day) — a completion that
+    // silently changed the skeleton is worse than one that failed outright,
+    // since the client already committed to that skeleton and rendered it.
+    if (!days || days.length !== currentDays.length) {
+      throw new Error("Skeleton completion response changed the day count.");
+    }
+    days.forEach((day, index) => {
+      const skeletonDay = currentDays[index];
+      if (day.day !== skeletonDay.day || day.city !== skeletonDay.city || day.pace !== skeletonDay.pace) {
+        throw new Error(`Skeleton completion response changed day ${skeletonDay.day}'s day/city/pace.`);
+      }
+    });
+    generationStage = "complete";
+  } else if (usesSkeletonPath(intent) && days) {
+    // Force the invariant regardless of what the model actually returned —
+    // "generationStage: skeleton" must always mean blocks are empty so
+    // clients can trust the field without re-checking blocks themselves.
+    days = days.map((day) => ({ ...day, blocks: [] }));
+    generationStage = "skeleton";
+  }
 
   const patch: CanvasPatch = {
     intent: parsed.intent,
@@ -388,6 +469,7 @@ export function parseButlerPatch(
     tripSummary: parsed.tripSummary,
     days,
     butlerAlerts: Array.isArray(parsed.butlerAlerts) ? parsed.butlerAlerts : undefined,
+    generationStage,
   };
 
   return { patch, suggestions };

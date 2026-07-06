@@ -16,6 +16,7 @@ import {
   buildUserPrompt,
   fallbackSuggestionsFor,
   parseButlerPatch,
+  type ButlerPromptMode,
 } from "@/lib/ai/butlerPrompt";
 import { classifyIntent, type ButlerIntent } from "@/lib/ai/intentClassifier";
 import { BUTLER_PROVIDERS, getConfiguredProviders, selectProvidersForIntent } from "@/lib/ai/modelRegistry";
@@ -126,12 +127,13 @@ async function tryProvider(
   context: { preferenceProfile?: UserPreferenceProfile; toolContext?: ButlerToolContext },
   budget: { maxTokens: number; timeoutMs: number },
   raceSignal: AbortSignal,
+  mode: ButlerPromptMode = "normal",
 ): Promise<{ provider: ChatCompletionProvider; patch: CanvasPatch; suggestions: string[] }> {
   try {
     const result = await provider.complete(
       {
         messages: [
-          { role: "system", content: buildSystemPrompt(intent) },
+          { role: "system", content: buildSystemPrompt(intent, mode) },
           { role: "user", content: buildUserPrompt(input.message, input.currentTrip, input.recentMessages, context) },
         ],
         maxTokens: budget.maxTokens,
@@ -141,7 +143,7 @@ async function tryProvider(
       },
       { env, fetchImpl },
     );
-    const parsed = parseButlerPatch(result.content, fallbackSuggestions, intent, input.currentTrip.days);
+    const parsed = parseButlerPatch(result.content, fallbackSuggestions, intent, input.currentTrip.days, mode);
     recordProviderSuccess(provider.id);
     return { provider, patch: parsed.patch, suggestions: parsed.suggestions };
   } catch (error) {
@@ -245,5 +247,85 @@ export async function requestOrchestratedButlerPatch(
           ? error.message
           : "All configured providers failed.";
     throw new Error(reason || "All configured providers failed.");
+  }
+}
+
+export interface SkeletonCompletionInput {
+  skeletonTrip: TripState;
+  env?: Record<string, string | undefined>;
+  fetchImpl?: FetchLike;
+  providers?: ChatCompletionProvider[];
+}
+
+/**
+ * Trips staged generation round 2 (docs/planning/trips-staged-generation-migration-plan.md).
+ * Called by /api/chat when the request body has completeSkeletonFor set —
+ * there's no user message to classify, so intent is fixed to create_trip
+ * and tool-context prefetch is skipped (no natural-language message to
+ * derive search queries from). On total provider failure this throws
+ * (same as requestOrchestratedButlerPatch) rather than falling back to the
+ * mock Butler: a generic mock itinerary for the skeleton's specific
+ * city/pace would be misleading in a way that leaving the skeleton as-is
+ * and offering a retry is not.
+ */
+export async function requestSkeletonCompletion(
+  input: SkeletonCompletionInput,
+): Promise<OrchestratedButlerResult> {
+  const env = input.env ?? (process.env as Record<string, string | undefined>);
+  const fetchImpl = input.fetchImpl ?? fetch;
+  const intent: ButlerIntent = "create_trip";
+
+  const configured = getConfiguredProviders(env, input.providers ?? BUTLER_PROVIDERS);
+  if (configured.length === 0) {
+    throw new Error("No Chinese LLM provider is configured.");
+  }
+
+  const ranked = selectProvidersForIntent(intent, configured);
+  const now = Date.now();
+  const healthy = ranked.filter((provider) => !isTripped(provider.id, now));
+  const candidates = healthy.length > 0 ? healthy : ranked;
+
+  const budget = budgetForIntent(intent);
+  const fallbackSuggestions = fallbackSuggestionsFor("", input.skeletonTrip);
+  const normalizedInput = { message: "", currentTrip: input.skeletonTrip, recentMessages: [] };
+  const providerContext = {};
+  const tried = candidates.map((provider) => provider.id);
+
+  const raceController = new AbortController();
+  try {
+    const winner = await Promise.any(
+      candidates.map((provider) =>
+        tryProvider(
+          provider,
+          normalizedInput,
+          intent,
+          env,
+          fetchImpl,
+          fallbackSuggestions,
+          providerContext,
+          budget,
+          raceController.signal,
+          "skeletonCompletion",
+        ),
+      ),
+    );
+    raceController.abort();
+    return {
+      mode: winner.provider.id,
+      modelLabel: winner.provider.label,
+      intent,
+      strategy: candidates.length > 1 ? "parallel" : "single",
+      providersTried: tried,
+      patch: winner.patch,
+      suggestions: winner.suggestions,
+    };
+  } catch (error) {
+    const reason =
+      error instanceof AggregateError
+        ? error.errors.map((e) => (e instanceof Error ? e.message : String(e))).filter(Boolean).join("; ")
+        : error instanceof Error
+          ? error.message
+          : "All configured providers failed to complete the skeleton.";
+    throw new Error(reason || "All configured providers failed to complete the skeleton.");
   }
 }

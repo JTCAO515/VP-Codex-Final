@@ -231,3 +231,143 @@ describe("parseButlerPatch adjust_trip edit-intent path", () => {
     expect(patch.days?.[0].city).toBe("Shanghai");
   });
 });
+
+describe("parseButlerPatch staged generation (create_trip skeleton + completion)", () => {
+  it("tags a create_trip response as generationStage 'skeleton' and force-clears blocks even if the model ignored the instruction", () => {
+    const content = JSON.stringify({
+      intent: "create_trip",
+      assistantMessage: "Here is your 2-day Beijing trip.",
+      reason: "First pass.",
+      suggestions: ["A?", "B?"],
+      tripSummary: { title: "Beijing", durationDays: 2, destinations: ["Beijing"], confidence: "Draft" },
+      days: [
+        {
+          day: 1,
+          city: "Beijing",
+          pace: "Balanced",
+          blocks: [{ time: "Morning", title: "Should be stripped", description: "" }],
+          food: ["Peking duck"],
+          stay: "City center",
+          transport: "Subway",
+          note: "",
+        },
+      ],
+    });
+
+    const { patch } = parseButlerPatch(content, ["fallback1", "fallback2"], "create_trip");
+
+    expect(patch.generationStage).toBe("skeleton");
+    expect(patch.days?.[0].blocks).toEqual([]);
+    expect(patch.days?.[0].city).toBe("Beijing");
+  });
+
+  it("does not set generationStage for adjust_trip or add_alerts", () => {
+    const adjustContent = JSON.stringify({
+      intent: "adjust_trip",
+      assistantMessage: "Sure, no itinerary change.",
+      reason: "Plain answer.",
+      suggestions: ["A?", "B?"],
+    });
+    const { patch: adjustPatch } = parseButlerPatch(adjustContent, ["fallback1", "fallback2"], "adjust_trip", []);
+    expect(adjustPatch.generationStage).toBeUndefined();
+
+    const alertsContent = JSON.stringify({
+      intent: "add_alerts",
+      assistantMessage: "Added a visa reminder.",
+      reason: "Alert only.",
+      suggestions: ["A?", "B?"],
+    });
+    const { patch: alertsPatch } = parseButlerPatch(alertsContent, ["fallback1", "fallback2"], "unclear");
+    expect(alertsPatch.generationStage).toBeUndefined();
+  });
+
+  const skeletonDays = [
+    {
+      day: 1,
+      city: "Beijing",
+      pace: "Balanced" as const,
+      blocks: [],
+      food: ["Peking duck"],
+      stay: "City center",
+      transport: "Subway",
+      note: "",
+    },
+    {
+      day: 2,
+      city: "Suzhou",
+      pace: "Light" as const,
+      blocks: [],
+      food: [],
+      stay: "",
+      transport: "",
+      note: "",
+    },
+  ];
+
+  it("accepts a completion response that fills in blocks without touching the skeleton's day/city/pace", () => {
+    const content = JSON.stringify({
+      intent: "create_trip",
+      assistantMessage: "Details are in.",
+      reason: "Round 2.",
+      suggestions: ["A?", "B?"],
+      days: [
+        { ...skeletonDays[0], blocks: [{ time: "Morning", title: "Tiananmen Square", description: "Arrive early." }] },
+        { ...skeletonDays[1], blocks: [{ time: "Morning", title: "Humble Administrator's Garden", description: "" }] },
+      ],
+    });
+
+    const { patch } = parseButlerPatch(content, ["fallback1", "fallback2"], "create_trip", skeletonDays, "skeletonCompletion");
+
+    expect(patch.generationStage).toBe("complete");
+    expect(patch.days?.[0].blocks).toHaveLength(1);
+    expect(patch.days?.[1].city).toBe("Suzhou");
+  });
+
+  it("throws when a completion response changes the day count", () => {
+    const content = JSON.stringify({
+      intent: "create_trip",
+      assistantMessage: "Details are in.",
+      reason: "Round 2.",
+      suggestions: ["A?", "B?"],
+      days: [{ ...skeletonDays[0], blocks: [{ time: "Morning", title: "X", description: "" }] }],
+    });
+
+    expect(() =>
+      parseButlerPatch(content, ["fallback1", "fallback2"], "create_trip", skeletonDays, "skeletonCompletion"),
+    ).toThrow();
+  });
+
+  it("throws when a completion response changes a day's city", () => {
+    const content = JSON.stringify({
+      intent: "create_trip",
+      assistantMessage: "Details are in.",
+      reason: "Round 2.",
+      suggestions: ["A?", "B?"],
+      days: [
+        { ...skeletonDays[0], city: "Shanghai", blocks: [{ time: "Morning", title: "X", description: "" }] },
+        { ...skeletonDays[1], blocks: [{ time: "Morning", title: "Y", description: "" }] },
+      ],
+    });
+
+    expect(() =>
+      parseButlerPatch(content, ["fallback1", "fallback2"], "create_trip", skeletonDays, "skeletonCompletion"),
+    ).toThrow();
+  });
+
+  it("throws when a completion response changes a day's pace", () => {
+    const content = JSON.stringify({
+      intent: "create_trip",
+      assistantMessage: "Details are in.",
+      reason: "Round 2.",
+      suggestions: ["A?", "B?"],
+      days: [
+        { ...skeletonDays[0], pace: "Packed", blocks: [{ time: "Morning", title: "X", description: "" }] },
+        { ...skeletonDays[1], blocks: [{ time: "Morning", title: "Y", description: "" }] },
+      ],
+    });
+
+    expect(() =>
+      parseButlerPatch(content, ["fallback1", "fallback2"], "create_trip", skeletonDays, "skeletonCompletion"),
+    ).toThrow();
+  });
+});
