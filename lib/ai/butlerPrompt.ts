@@ -65,11 +65,16 @@ function buildEditIntentSystemPrompt(): string {
     "This request is an ADJUSTMENT to an existing trip — do NOT return a full days array. Instead return a single editIntent describing exactly one change.",
     'Example json shape: {"intent":"adjust_trip","assistantMessage":"...","assistantResponse":{"headline":"...","body":"...","highlights":["..."],"watchOut":"...","nextStep":"..."},"reason":"...","suggestions":["...","..."],"editIntent":{"op":"add_block","day":2,"block":{"time":"Afternoon","title":"Summer Palace","description":"..."}}}.',
     "The json shape must be: intent (always \"adjust_trip\" for this request), assistantMessage, assistantResponse, reason, suggestions, editIntent. Do not include a top-level days field.",
-    'editIntent must have one of these three shapes. "day" is the 1-based TripDay.day number exactly as shown in the current trip context (day 1 is the first day — never 0). "blockIndex"/"position" are 0-based indices into that day\'s blocks array (0 is the first block).',
+    'editIntent must have one of these eight shapes. "day" is the 1-based TripDay.day number exactly as shown in the current trip context (day 1 is the first day — never 0). "blockIndex"/"position"/"fromIndex"/"toIndex" are 0-based indices into that day\'s blocks array (0 is the first block).',
     '{"op":"add_block","day":<number>,"block":{"time":"Morning"|"Afternoon"|"Evening"|"Flexible","title":"...","description":"..."},"position":<optional number, defaults to appending>}',
     '{"op":"remove_block","day":<number>,"blockIndex":<number>}',
     '{"op":"update_block","day":<number>,"blockIndex":<number>,"patch":{"time"?:"...","title"?:"...","description"?:"..."}}',
-    "If the requested change does not fit exactly one of these three shapes (for example, reordering blocks or restructuring a whole day), say so honestly in assistantMessage and do not include an editIntent — never approximate with the wrong op or invent fields outside this schema.",
+    '{"op":"move_block","day":<number>,"fromIndex":<number>,"toIndex":<number>} — reorder one block within a single day.',
+    '{"op":"set_day_field","day":<number>,"field":"pace"|"note"|"stay"|"transport","value":"..."} — "value" for field "pace" must be one of Light/Balanced/Relaxed/Packed.',
+    '{"op":"add_day","afterDay":<number>,"content":{"city":"...","pace":"Light"|"Balanced"|"Relaxed"|"Packed","blocks":[{"time":"...","title":"...","description":"..."}],"food":["..."],"stay":"...","transport":"...","note":"..."}} — afterDay is an existing day number to insert after, or 0 to insert as the new first day; every day is automatically renumbered afterward, so never include a day number inside content.',
+    '{"op":"remove_day","day":<number>} — deletes that whole day; the remaining days are automatically renumbered afterward.',
+    '{"op":"replace_day_blocks","day":<number>,"blocks":[{"time":"...","title":"...","description":"..."}]} — escape hatch for when a day\'s blocks need broader restructuring than a single move/update can express; still scoped to exactly one day, never the whole trip.',
+    "If the requested change does not fit exactly one of these eight shapes, say so honestly in assistantMessage and do not include an editIntent — never approximate with the wrong op or invent fields outside this schema.",
     ...SHARED_STYLE_TAIL,
   ].join(" ");
 }

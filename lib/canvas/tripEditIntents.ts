@@ -1,4 +1,4 @@
-// CanvasPatch migration, phase 1 (see docs/planning/canvaspatch-edit-intent-migration-plan.md).
+// CanvasPatch migration, phases 1-3 (see docs/planning/canvaspatch-edit-intent-migration-plan.md).
 //
 // Instead of the model regenerating a whole TripDay[] to express "adjust the
 // trip", it emits one small, enumerable edit intent; this file executes it
@@ -10,18 +10,24 @@
 // Only create_trip's full-array path (butlerPrompt.ts normalizeDays) is
 // unaffected by this file; that path is intentionally left alone.
 
-import type { TripBlock, TripDay } from "@/lib/types/trip";
+import type { Pace, TripBlock, TripDay } from "@/lib/types/trip";
 
 export type TripEditIntent =
   | { op: "add_block"; day: number; block: TripBlock; position?: number }
   | { op: "remove_block"; day: number; blockIndex: number }
   | { op: "update_block"; day: number; blockIndex: number; patch: Partial<TripBlock> }
-  // Phase 2/3 ops — type placeholders only, no executor yet (see migration
-  // plan doc section 6). parseTripEditIntent rejects them until implemented.
   | { op: "move_block"; day: number; fromIndex: number; toIndex: number }
   | { op: "set_day_field"; day: number; field: "pace" | "note" | "stay" | "transport"; value: string }
-  | { op: "add_day"; afterDay: number; content: TripDay }
+  // afterDay 0 means "insert as the new first day"; content.day is ignored —
+  // the executor renumbers every day sequentially after inserting, so the
+  // model never has to get downstream day numbers right.
+  | { op: "add_day"; afterDay: number; content: Omit<TripDay, "day"> }
   | { op: "remove_day"; day: number }
+  // Tier 2 escape hatch (migration plan doc section 3.2): bounded to ONE
+  // day's blocks, not the whole trip — reuses the same tolerant/coercive
+  // block validation as the create_trip normalizeDays path (phase A
+  // hardening), not the strict Tier 1 parseTripBlock above, because this op
+  // exists precisely for requests too open-ended for a precise Tier 1 op.
   | { op: "replace_day_blocks"; day: number; blocks: TripBlock[] };
 
 /** Thrown for any structurally invalid or semantically inapplicable edit intent — callers must treat this as "the adjustment failed," not silently drop content. */
@@ -82,11 +88,68 @@ function parseBlockPatch(raw: unknown): Partial<TripBlock> {
   return patch;
 }
 
+const VALID_PACE_VALUES = new Set<Pace>(["Light", "Balanced", "Relaxed", "Packed"]);
+const DAY_STRING_FIELDS = new Set(["pace", "note", "stay", "transport"]);
+
+function requireDayField(value: unknown): "pace" | "note" | "stay" | "transport" {
+  if (typeof value !== "string" || !DAY_STRING_FIELDS.has(value)) {
+    throw new TripEditIntentError('"field" must be one of pace/note/stay/transport.');
+  }
+  return value as "pace" | "note" | "stay" | "transport";
+}
+
+function requireDayFieldValue(field: "pace" | "note" | "stay" | "transport", value: unknown): string {
+  if (field === "pace") {
+    if (typeof value !== "string" || !VALID_PACE_VALUES.has(value as Pace)) {
+      throw new TripEditIntentError('"value" for field "pace" must be one of Light/Balanced/Relaxed/Packed.');
+    }
+    return value;
+  }
+  if (typeof value !== "string") {
+    throw new TripEditIntentError(`"value" for field "${field}" must be a string (it may be empty).`);
+  }
+  return value;
+}
+
+/** Loose/coercive block parsing for the Tier 2 replace_day_blocks escape hatch — mirrors butlerPrompt.ts's normalizeDays block coercion (defaults instead of throwing), not Tier 1's strict parseTripBlock. */
+function coerceTripBlockForReplaceDayBlocks(raw: unknown): TripBlock {
+  if (!raw || typeof raw !== "object") {
+    throw new TripEditIntentError("Each block in replace_day_blocks.blocks must be an object.");
+  }
+  const candidate = raw as Record<string, unknown>;
+  const time = typeof candidate.time === "string" && VALID_BLOCK_TIMES.has(candidate.time as TripBlock["time"])
+    ? (candidate.time as TripBlock["time"])
+    : "Flexible";
+  const title = typeof candidate.title === "string" && candidate.title.trim() ? candidate.title : "Untitled stop";
+  const description = typeof candidate.description === "string" ? candidate.description : "";
+  return { time, title, description };
+}
+
+function parseDayContentForAddDay(raw: unknown): Omit<TripDay, "day"> {
+  if (!raw || typeof raw !== "object") {
+    throw new TripEditIntentError("add_day.content must be an object.");
+  }
+  const candidate = raw as Record<string, unknown>;
+  if (!Array.isArray(candidate.blocks)) {
+    throw new TripEditIntentError("add_day.content.blocks must be an array.");
+  }
+  return {
+    city: requireString(candidate.city, "content.city"),
+    pace: requireDayFieldValue("pace", candidate.pace) as Pace,
+    blocks: candidate.blocks.map(parseTripBlock),
+    food: Array.isArray(candidate.food) ? candidate.food.filter((f): f is string => typeof f === "string") : [],
+    stay: typeof candidate.stay === "string" ? candidate.stay : "",
+    transport: typeof candidate.transport === "string" ? candidate.transport : "",
+    note: typeof candidate.note === "string" ? candidate.note : "",
+  };
+}
+
 /**
  * Validates a model's raw JSON edit intent into a TripEditIntent. Throws
  * (rather than coercing with defaults) on anything malformed — an edit
  * intent that fails validation must fail the whole patch, never apply a
- * half-understood change to the traveler's itinerary.
+ * half-understood change to the traveler's itinerary. The one deliberate
+ * exception is replace_day_blocks' blocks (see coerceTripBlockForReplaceDayBlocks).
  */
 export function parseTripEditIntent(raw: unknown): TripEditIntent {
   if (!raw || typeof raw !== "object") {
@@ -115,6 +178,43 @@ export function parseTripEditIntent(raw: unknown): TripEditIntent {
         blockIndex: requireNumber(candidate.blockIndex, "blockIndex"),
         patch: parseBlockPatch(candidate.patch),
       };
+    case "move_block":
+      return {
+        op: "move_block",
+        day: requireNumber(candidate.day, "day"),
+        fromIndex: requireNumber(candidate.fromIndex, "fromIndex"),
+        toIndex: requireNumber(candidate.toIndex, "toIndex"),
+      };
+    case "set_day_field": {
+      const field = requireDayField(candidate.field);
+      return {
+        op: "set_day_field",
+        day: requireNumber(candidate.day, "day"),
+        field,
+        value: requireDayFieldValue(field, candidate.value),
+      };
+    }
+    case "add_day":
+      return {
+        op: "add_day",
+        afterDay: requireNumber(candidate.afterDay, "afterDay"),
+        content: parseDayContentForAddDay(candidate.content),
+      };
+    case "remove_day":
+      return {
+        op: "remove_day",
+        day: requireNumber(candidate.day, "day"),
+      };
+    case "replace_day_blocks": {
+      if (!Array.isArray(candidate.blocks)) {
+        throw new TripEditIntentError("replace_day_blocks.blocks must be an array.");
+      }
+      return {
+        op: "replace_day_blocks",
+        day: requireNumber(candidate.day, "day"),
+        blocks: candidate.blocks.map(coerceTripBlockForReplaceDayBlocks),
+      };
+    }
     default:
       throw new TripEditIntentError(`Unknown or not-yet-supported edit op: ${String(candidate.op)}`);
   }
@@ -162,6 +262,54 @@ function applyUpdateBlock(days: TripDay[], intent: Extract<TripEditIntent, { op:
   return withDayBlocks(days, dayIndex, nextBlocks);
 }
 
+function applyMoveBlock(days: TripDay[], intent: Extract<TripEditIntent, { op: "move_block" }>): TripDay[] {
+  const dayIndex = findDayIndex(days, intent.day);
+  const blocks = days[dayIndex].blocks;
+  if (intent.fromIndex < 0 || intent.fromIndex >= blocks.length) {
+    throw new TripEditIntentError(`move_block fromIndex ${intent.fromIndex} is out of range for day ${intent.day}.`);
+  }
+  if (intent.toIndex < 0 || intent.toIndex >= blocks.length) {
+    throw new TripEditIntentError(`move_block toIndex ${intent.toIndex} is out of range for day ${intent.day}.`);
+  }
+  const nextBlocks = [...blocks];
+  const [moved] = nextBlocks.splice(intent.fromIndex, 1);
+  nextBlocks.splice(intent.toIndex, 0, moved);
+  return withDayBlocks(days, dayIndex, nextBlocks);
+}
+
+function applySetDayField(days: TripDay[], intent: Extract<TripEditIntent, { op: "set_day_field" }>): TripDay[] {
+  const dayIndex = findDayIndex(days, intent.day);
+  return days.map((day, index) => (index === dayIndex ? { ...day, [intent.field]: intent.value } : day));
+}
+
+function renumberDays(days: TripDay[]): TripDay[] {
+  return days.map((day, index) => ({ ...day, day: index + 1 }));
+}
+
+function applyAddDay(days: TripDay[], intent: Extract<TripEditIntent, { op: "add_day" }>): TripDay[] {
+  if (intent.afterDay < 0 || intent.afterDay > days.length) {
+    throw new TripEditIntentError(`add_day afterDay ${intent.afterDay} is out of range for a ${days.length}-day trip.`);
+  }
+  const newDay: TripDay = { ...intent.content, day: 0 };
+  const next = [...days];
+  next.splice(intent.afterDay, 0, newDay);
+  return renumberDays(next);
+}
+
+function applyRemoveDay(days: TripDay[], intent: Extract<TripEditIntent, { op: "remove_day" }>): TripDay[] {
+  const dayIndex = findDayIndex(days, intent.day);
+  if (days.length === 1) {
+    throw new TripEditIntentError("remove_day cannot remove the last remaining day of a trip.");
+  }
+  const next = days.filter((_, index) => index !== dayIndex);
+  return renumberDays(next);
+}
+
+function applyReplaceDayBlocks(days: TripDay[], intent: Extract<TripEditIntent, { op: "replace_day_blocks" }>): TripDay[] {
+  const dayIndex = findDayIndex(days, intent.day);
+  return withDayBlocks(days, dayIndex, intent.blocks);
+}
+
 /** Executes a validated TripEditIntent against the current days, returning the new full array — callers put this straight into CanvasPatch.days, same shape as the create_trip path. */
 export function applyTripEditIntent(days: TripDay[], intent: TripEditIntent): TripDay[] {
   switch (intent.op) {
@@ -171,7 +319,17 @@ export function applyTripEditIntent(days: TripDay[], intent: TripEditIntent): Tr
       return applyRemoveBlock(days, intent);
     case "update_block":
       return applyUpdateBlock(days, intent);
+    case "move_block":
+      return applyMoveBlock(days, intent);
+    case "set_day_field":
+      return applySetDayField(days, intent);
+    case "add_day":
+      return applyAddDay(days, intent);
+    case "remove_day":
+      return applyRemoveDay(days, intent);
+    case "replace_day_blocks":
+      return applyReplaceDayBlocks(days, intent);
     default:
-      throw new TripEditIntentError(`Edit op "${intent.op}" is not implemented yet.`);
+      throw new TripEditIntentError(`Edit op "${(intent as { op: string }).op}" is not implemented yet.`);
   }
 }

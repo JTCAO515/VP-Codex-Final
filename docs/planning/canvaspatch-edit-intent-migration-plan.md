@@ -69,32 +69,53 @@ type TripEditIntent =
 
 **特例**：`editIntent` 字段整个缺失(不是格式错误,是模型判断"这次回复不需要改行程")视为合法的"无变更"信号,和现有全量路径里"不改行程时可以省略 `days` 字段"的规则语义一致,`patch.days` 会是 `undefined`,不会报错、也不会误判成校验失败。
 
-## 6. 已验证的真实发现(阶段1实施后,用真实 DeepSeek/Qwen/Zhipu/Moonshot 调用验证)
+## 6. 已验证的真实发现
+
+### 6.1 阶段 1(`add_block` / `remove_block` / `update_block`,用真实 DeepSeek/Qwen/Zhipu/Moonshot 调用验证)
 
 1. **端到端验证通过**:真实调用"Change the Forbidden City description on day 1..."这类请求,确认走了新路径(`intent: "adjust_trip"`),模型正确输出 `update_block` editIntent,服务端执行后只改了目标字段,其余字段(地址/开放时间/预订信息/坐标等)完全没被模型碰过、原样保留——这正是这次迁移要解决的核心问题的直接证据。
 2. **发现并修复了一个真实的提示词歧义**:最初的提示词只说"blockIndex are 0-based",没有明确说 `day` 字段本身是 1-based(和 `TripDay.day` 现有约定一致)。四个 provider(DeepSeek/Qwen/Zhipu/Moonshot)全部一致地把 day 1 理解成 `day: 0`,被校验层正确拦截(`Day 0 does not exist`),不会误改。已经修正提示词措辞明确"day 是 1-based,day 1 是第一天,永远不会是 0"。
-3. **已知的路由覆盖率缺口(记录,本阶段不处理)**:这条新路径是否被触发,取决于现有的 `intentClassifier.ts` 里 `adjust_trip` 的正则规则(`make|change|adjust|rebalance|swap|replace|less|more|lighten|shorten|extend`)。实测发现,很多用户会自然说出的"remove the Temple of Heaven from day 1"("remove"不在规则里)或"add X to day 1"(不一定命中 `add_poi` 的精确正则)这类请求,目前会被分类成 `unclear` 或压根不落进 `adjust_trip`,从而继续走旧的全量生成路径,不会经过这次新加的安全通道。这不是本阶段的 bug——`intentClassifier.ts` 是全系统共用的分类器(还用来做 provider 路由和 token 预算选择),扩大它的匹配规则影响面超出这次迁移的范围,需要单独评估、单独测试,不应该在这个阶段顺手改掉。记录为后续阶段的候选项:要么谨慎扩大 `adjust_trip` 的正则覆盖(需要补足够的回归测试防止误伤其它路由决策),要么给"是否走 edit-intent 路径"单独做一个更精确的判定,不复用广义的 `ButlerIntent`。
+3. **已知的路由覆盖率缺口(记录,当时未处理,阶段2/3也维持不处理)**:这条新路径是否被触发,取决于现有的 `intentClassifier.ts` 里 `adjust_trip` 的正则规则(`make|change|adjust|rebalance|swap|replace|less|more|lighten|shorten|extend`)。实测发现,很多用户会自然说出的"remove the Temple of Heaven from day 1"("remove"不在规则里)或"add X to day 1"(不一定命中 `add_poi` 的精确正则,反而更容易先命中 `add_location`)这类请求,目前会被分类成 `unclear`/`add_location`/`create_trip` 等其它类别,从而继续走旧的全量生成路径,不会经过这次新加的安全通道。这不是 bug——`intentClassifier.ts` 是全系统共用的分类器(还用来做 provider 路由和 token 预算选择),扩大它的匹配规则影响面超出这次迁移的范围,需要单独评估、单独测试,不应该顺手改掉。记录为后续阶段的候选项:要么谨慎扩大 `adjust_trip` 的正则覆盖(需要补足够的回归测试防止误伤其它路由决策),要么给"是否走 edit-intent 路径"单独做一个更精确的判定,不复用广义的 `ButlerIntent`。
 
-## 6. 分阶段实施计划
+### 6.2 阶段 2/3(`move_block` / `set_day_field` / `add_day` / `remove_day` / `replace_day_blocks`,真实 DeepSeek 调用验证)
 
-### 阶段 1：Tier 1 精确操作，先只做 `add_block` / `remove_block` / `update_block`
+1. **同样的分类器覆盖率缺口在阶段 2/3 的自然措辞下更明显**:用最直觉的英文表达("Add a new day after day 1 for a Suzhou excursion"、"remove day 2 entirely"、"completely redo the schedule for day 2")实测发现,这些请求分别被分类成 `add_location`、`unclear`、`create_trip`,全部没有落进 `adjust_trip`,因此走的是旧的全量生成路径,不会经过新增的 `add_day`/`remove_day`/`replace_day_blocks` 执行器——这与 6.1 记录的缺口是同一个根因,再次确认不应该在这几个阶段顺手扩大分类器覆盖。
+2. **改用命中 `adjust_trip` 现有触发词(change/replace)的措辞后,三个新 op 全部端到端验证通过**:
+   - `add_day`:"Change the schedule: put one extra day right after day 1 for a Suzhou garden excursion." → 正确插入 Suzhou 为新的 day 2,原 day 2(Great Wall)自动重新编号为 day 3,day 1 完全未被改动。
+   - `remove_day`:"Change my itinerary and delete day 2 entirely, we're skipping the Great Wall." → 正确删除 day 2,剩下的 day 1 保留原样、编号不变。
+   - `replace_day_blocks`:"Replace everything happening on day 2, rebalance it into a completely different set of stops." → 只重写了 day 2 的 blocks(替换成 Temple of Heaven / Hutong / Peking Opera 全新安排),day 1 完全未被改动。
+3. **结论**:三个新执行器的解析、校验、重新编号逻辑在真实 provider 输出下工作正常;剩余风险 100% 集中在 6.1 已记录的分类器覆盖率缺口上,不是这几个 op 本身的问题。
+
+### 6.3 阶段 4:`create_trip` 是否部分结构化的评估结论——暂不做
+
+评估结论是**暂不做**,原因:
+
+1. **`create_trip` 没有天然的"小意图"分解**。`adjust_trip` 能拆成 CRUD 是因为请求本身就是"改一个东西"(有明确的目标字段/目标天数);`create_trip` 是从零发明一整段内容,唯一能表达"生成前 3 天骨架、再补细节"的分解方式是让模型分两轮调用(先生成骨架 `days` 的浅层字段,再对每天单独生成 `blocks`),这实质上是引入一个全新的多轮编排状态机,而不是给 `TripEditIntent` 加一个新 op——工作量和这次 `adjust_trip` 迁移不在同一量级。
+2. **`create_trip` 当前路径的失败模式已经被方案 A 的归一化加固覆盖**(`extractBlocksFromLegacyPeriods` 等),不存在方案 B 要解决的"模型悄悄改坏无关字段"的核心风险——`create_trip` 每次都是全新生成,没有"无关字段被误改"这个问题,所以方案 B 的核心收益(保护已有字段不被误碰)对 `create_trip` 不成立。
+3. **建议**:如果未来要优化 `create_trip`,应该独立立项(比如"分步生成 + 逐天流式返回"改善首字延迟体验),而不是套用这次的 `TripEditIntent` 框架。本迁移到此为止,不再展开 `create_trip` 改动。
+
+## 7. 分阶段实施计划(已全部完成)
+
+### 阶段 1(已完成)：Tier 1 精确操作，先只做 `add_block` / `remove_block` / `update_block`
 最高频、最容易验证正确性的三个操作，覆盖"加一个地点""删一个地点""改一下这个地点的描述/时段"这几类最常见的编辑请求（对应分类器的 `add_poi` 和一部分 `adjust_trip`）。
 
-### 阶段 2：补齐 `move_block` / `set_day_field` / `add_day` / `remove_day`
-覆盖"调整顺序""改这天的节奏/住宿/交通说明""加一天/删一天"。
+### 阶段 2(已完成)：补齐 `move_block` / `set_day_field` / `add_day` / `remove_day`
+覆盖"调整顺序""改这天的节奏/住宿/交通说明""加一天/删一天"。`add_day`/`remove_day` 统一采用"执行后对所有天重新按顺序编号"的策略，模型只需要给出 `afterDay`（已存在的天数，或 0 表示插到最前面），不需要自己算下游天数。
 
-### 阶段 3：`replace_day_blocks`（Tier 2 逃生舱）
-覆盖"重新安排今天的节奏"这类没法精确映射成单个 op 的请求，作为兜底路径。
+### 阶段 3(已完成)：`replace_day_blocks`（Tier 2 逃生舱）
+覆盖"重新安排今天的节奏"这类没法精确映射成单个 op 的请求，作为兜底路径。范围严格限定在一天以内，`blocks` 字段的校验沿用方案 A 的容错逻辑（默认值而非报错），不是 Tier 1 的严格校验。
 
-### 阶段 4（如果前三阶段验证顺利）：评估 `create_trip` 是否也能部分结构化
-比如"先生成骨架（每天去哪个城市、大致节奏），再逐天补细节"——这是一个更大的改动，需要重新评估，本文档不展开，先把 `adjust_trip` 这条路径做扎实。
+### 阶段 4(已完成，评估类)：结论是 `create_trip` 暂不做部分结构化
+详见 6.3。
 
-每个阶段都应该独立提测试、独立可以回滚（如果某个阶段的 provider 输出质量不理想，可以只回退这一个阶段新增的 op，不影响已经验证过的其它 op）。
+每个阶段都独立有单元测试，阶段 2/3 新增的 5 个 op 均已用真实 provider 调用验证（详见 6.2），必要时可以只回退某一个阶段新增的 op，不影响已经验证过的其它 op。
 
-## 7. 验收标准（贯穿所有阶段）
+## 8. 验收标准（贯穿所有阶段）
 
 - 客户端（iOS/Android/Web）零改动，`patch.days` 字段的形状和现在完全一样。
 - 每个 Tier 1 op 都有对应的单元测试（纯函数，不需要真的调 LLM 就能测）。
 - 校验失败时不改变行程，assistantMessage 诚实说明没有成功，不能出现"界面说改好了但内容没变"的情况。
 - `create_trip` 路径的现有行为（含方案 A 的归一化加固）完全不受影响。
 - 至少完成阶段 1 后，用真实 provider（DeepSeek/Kimi/Qwen/GLM 至少各跑几次）验证输出 `TripEditIntent` 的稳定性，作为决定要不要继续阶段 2/3 的依据。
+
+**全部四个阶段现已完成**：8 个 op（`add_block`/`remove_block`/`update_block`/`move_block`/`set_day_field`/`add_day`/`remove_day`/`replace_day_blocks`）均已实现、有单元测试覆盖、并用真实 DeepSeek 调用验证过端到端行为；阶段 4 的评估结论是 `create_trip` 暂不做部分结构化（见 6.3）。已知遗留风险仅剩 6.1/6.2 记录的 `intentClassifier.ts` 覆盖率缺口，不属于本迁移范围。
