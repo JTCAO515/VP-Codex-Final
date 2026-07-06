@@ -302,6 +302,10 @@ private struct MessageBubble: View {
                                 }
                             }
 
+                            if let digest = message.changeDigest, !digest.isEmpty {
+                                TripUpdatedSummary(entries: digest)
+                            }
+
                             if let affectedDays = message.affectedDays, !affectedDays.isEmpty {
                                 UpdatedDaysRow(days: affectedDays) { day in
                                     store.openTripDay(day)
@@ -346,6 +350,35 @@ private struct UpdatedDaysRow: View {
                 }
             }
         }
+    }
+}
+
+private struct TripUpdatedSummary: View {
+    let entries: [ChangeDigestEntry]
+
+    private func icon(for kind: ChangeDigestEntry.Kind) -> String {
+        switch kind {
+        case .added: return "plus.circle"
+        case .revised: return "pencil.circle"
+        case .removed: return "minus.circle"
+        case .alert: return "bell.badge"
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Trip updated")
+                .font(VPFont.body(12, weight: .bold))
+                .foregroundStyle(VPColor.inkSoft)
+            ForEach(entries) { entry in
+                Label(entry.label, systemImage: icon(for: entry.kind))
+                    .font(VPFont.body(13, weight: .semibold))
+                    .foregroundStyle(VPColor.inkMuted)
+            }
+        }
+        .padding(12)
+        .background(VPColor.paperWarm)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
 

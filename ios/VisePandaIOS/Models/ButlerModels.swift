@@ -154,6 +154,8 @@ struct ChatMessage: Codable, Identifiable, Equatable {
     var content: String
     var response: AssistantResponse?
     var affectedDays: [Int]? = nil
+    /** Present only on assistant messages that actually changed the trip — see ChangeDigest.swift. */
+    var changeDigest: [ChangeDigestEntry]? = nil
     var createdAt: String?
 }
 
