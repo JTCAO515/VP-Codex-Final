@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="panda_amber">#F5A623</color>
+    <color name="panda_amber_dark">#E8912E</color>
+    <color name="bamboo_green">#4CAF50</color>
+    <color name="china_red">#E53935</color>
+    <color name="bg_dark">#0E0B14</color>
+    <color name="surface_dark">#1A1525</color>
+    <color name="text_primary_dark">#EDE7F6</color>
+    <color name="bg_light">#F5F0EB</color>
+    <color name="surface_light">#FFFFFF</color>
+    <color name="text_primary_light">#1A1525</color>
+</resources>
