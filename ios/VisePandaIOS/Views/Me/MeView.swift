@@ -164,21 +164,30 @@ struct MeView: View {
 
             VStack(spacing: 12) {
                 SubscriptionPlanCard(
-                    title: "Human Service",
-                    price: "$9.99 / month",
-                    summary: "Priority human travel help for itinerary fixes, booking questions, and urgent trip problems.",
-                    actionTitle: "Subscribe"
+                    title: "7-Day Trip Pass",
+                    price: "$9.99 one-time",
+                    summary: "Short-trip access to premium planning review, rescue tools, offline prep, and faster Butler help for one China trip week.",
+                    actionTitle: "Buy Pass"
                 ) {
-                    purchaseNotice = "StoreKit purchase placeholder. Product id: visepanda.human.monthly"
+                    purchaseNotice = "StoreKit purchase placeholder. Product id: visepanda.trip_pass.7day. This is a one-time trip pass, not an auto-renewing subscription."
                 }
 
                 SubscriptionPlanCard(
-                    title: "Premium Service",
-                    price: "$19.99 / month",
-                    summary: "Advanced concierge support with deeper planning review and faster response windows.",
-                    actionTitle: "Subscribe"
+                    title: "14-Day Trip Pass",
+                    price: "$19.99 one-time",
+                    summary: "Longer trip access to the same premium rescue, planning, translation, and offline-ready support for two travel weeks.",
+                    actionTitle: "Buy Pass"
                 ) {
-                    purchaseNotice = "StoreKit purchase placeholder. Product id: visepanda.premium.monthly"
+                    purchaseNotice = "StoreKit purchase placeholder. Product id: visepanda.trip_pass.14day. This is a one-time trip pass, not an auto-renewing subscription."
+                }
+
+                SubscriptionPlanCard(
+                    title: "Human Task",
+                    price: "$9.99 / task",
+                    summary: "One bounded human-help request, such as calling a hotel, confirming a booking, or explaining a payment issue.",
+                    actionTitle: "Request Help"
+                ) {
+                    purchaseNotice = "StoreKit purchase placeholder. Product id: visepanda.human_task.single. Human Task is per request, not unlimited support."
                 }
 
                 Button {
@@ -189,7 +198,7 @@ struct MeView: View {
                 }
                 .buttonStyle(.bordered)
 
-                Text("Subscriptions auto-renew until cancelled. Manage or cancel in your Apple ID subscriptions. Payment will be charged to your Apple ID after confirmation. Terms and Privacy Policy links will be connected before release.")
+                Text("Trip Pass is planned as a one-time purchase for a fixed travel window. Human Task is planned as a per-request purchase with a clear scope. Payment will be charged to your Apple ID after confirmation once StoreKit products are connected. Terms and Privacy Policy links will be connected before release.")
                     .font(VPFont.body(11, weight: .semibold))
                     .foregroundStyle(VPColor.inkSoft)
                     .fixedSize(horizontal: false, vertical: true)
