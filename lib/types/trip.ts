@@ -97,6 +97,16 @@ export interface CanvasPatch {
   days?: TripDay[];
   butlerAlerts?: ButlerAlert[];
   reason: string;
+  /**
+   * Day numbers this patch actually added, removed, or changed the content
+   * of, computed server-side by diffing against the trip state the request
+   * was made with (see computeAffectedDays in lib/canvas/applyCanvasPatch.ts).
+   * Empty/absent means this patch didn't touch the day-by-day itinerary
+   * (e.g. an add_alerts-only reply) — clients use this to decide whether to
+   * offer a "view updated day" link back to Trips, so a plain-text answer
+   * never claims to have changed the itinerary.
+   */
+  affectedDays?: number[];
 }
 
 export interface AssistantResponse {

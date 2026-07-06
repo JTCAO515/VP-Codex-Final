@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requestOrchestratedButlerPatch } from "@/lib/ai/orchestrator";
 import { tryButlerService } from "@/lib/ai/butlerServiceGateway";
+import { computeAffectedDays } from "@/lib/canvas/applyCanvasPatch";
 import { initialTripState } from "@/lib/mock-ai/mockButler";
 import type { TripState } from "@/lib/types/trip";
 import type { UserPreferenceProfile } from "@/lib/ai/preferenceProfile";
@@ -29,6 +30,14 @@ export async function POST(request: Request) {
     const forwarded = await tryButlerService({ message, currentTrip, recentMessages, preferenceProfile });
     const result = forwarded ?? (await requestOrchestratedButlerPatch({ currentTrip, message, recentMessages, preferenceProfile }));
 
+    // Single choke point covering every patch source (butler-service forward,
+    // factual tools, real LLM race, mock fallback) — clients get affectedDays
+    // without each one re-implementing the same before/after day diff.
+    const patch = {
+      ...result.patch,
+      affectedDays: computeAffectedDays(currentTrip.days, result.patch.days),
+    };
+
     return NextResponse.json({
       ok: true,
       fallbackReason: result.fallbackReason,
@@ -37,7 +46,7 @@ export async function POST(request: Request) {
       intent: result.intent,
       strategy: result.strategy,
       providersTried: result.providersTried,
-      patch: result.patch,
+      patch,
       suggestions: result.suggestions,
       toolContext: result.toolContext,
     });
