@@ -13,7 +13,6 @@ struct ExploreView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     header
-                    searchBar
                     categoryGrid
                     ugcFeed
                 }
@@ -86,25 +85,6 @@ struct ExploreView: View {
         }
     }
 
-    private var searchBar: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(VPColor.inkSoft)
-            Text("Search places, food, hotels")
-                .font(VPFont.body(15))
-                .foregroundStyle(VPColor.inkSoft)
-            Spacer()
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
-        .background(VPColor.paperSoft)
-        .clipShape(Capsule())
-        .overlay {
-            Capsule()
-                .stroke(VPColor.outline, lineWidth: 1)
-        }
-    }
-
     private var categoryGrid: some View {
         HStack(spacing: 9) {
             ForEach(ExploreCategory.allCases) { category in
@@ -132,7 +112,7 @@ struct ExploreView: View {
 
     private var ugcFeed: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("\(city.name) notes")
+            Text("Popular in \(city.name)")
                 .font(VPFont.body(18, weight: .bold))
                 .foregroundStyle(VPColor.ink)
 
@@ -783,7 +763,7 @@ private struct MerchantCard: View {
                 .foregroundStyle(VPColor.inkMuted)
 
                 if poi.editorial != nil {
-                    VPStatusPill(title: "VisePanda recommended", tone: .ready)
+                    VPStatusPill(title: "✦ VP Pick", tone: .ready)
                 }
             }
         }
@@ -823,7 +803,7 @@ private struct PoiDetailSheet: View {
                 if let summary = poi.editorial?.summary {
                     VPCard {
                         VStack(alignment: .leading, spacing: 8) {
-                            VPStatusPill(title: poi.editorial?.badge ?? "VisePanda Editorial", tone: .ready)
+                            VPStatusPill(title: "✦ VP Pick", tone: .ready)
                             Text(summary)
                                 .font(VPFont.body(14))
                                 .foregroundStyle(VPColor.inkMuted)
