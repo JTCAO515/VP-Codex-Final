@@ -117,6 +117,11 @@ dependencies {
     // Location (Explore Dianping-style nearby filter — Issue #47)
     implementation("com.google.android.gms:play-services-location:21.3.0")
 
+    // Custom Tabs — hosts the Supabase Google OAuth authorize URL for sign-in
+    // (Issue #85 item 5); no separate Google Sign-In SDK/client id needed
+    // since Supabase already owns the OAuth client on its end.
+    implementation("androidx.browser:browser:1.8.0")
+
     // Testing
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
