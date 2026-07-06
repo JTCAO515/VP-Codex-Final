@@ -388,6 +388,11 @@ private enum TravelerFitDeriver {
         .compactMap { $0 }
         .joined(separator: " ")
         .lowercased()
+        // Curated POI tags use kebab-case (e.g. "english-menu", from
+        // scripts/curated-seeds/*.sql), but the keyword lists below match on
+        // space-separated phrases ("english menu") — without this, every
+        // hyphenated tag would silently never match anything.
+        .replacingOccurrences(of: "-", with: " ")
     }
 
     private static func firstTimerFit(text: String, rating: Double?) -> Bool? {

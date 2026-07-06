@@ -61,6 +61,23 @@ final class TravelerFitTests: XCTestCase {
         XCTAssertEqual(poi.travelerFit?.paymentFriendliness, "Card accepted")
     }
 
+    func testMatchesKebabCaseCuratedTagsLikeScriptsCuratedSeedsUse() throws {
+        // scripts/curated-seeds/*.sql tags are kebab-case (e.g. "english-menu"),
+        // not space-separated — this must match the same as the space form.
+        let poi = try decodePoi("""
+        {
+          "id": "curated-1",
+          "name": "Four Seasons Beijing",
+          "type": "Food;Restaurant",
+          "editorial": {
+            "tags": ["english-menu"]
+          }
+        }
+        """)
+
+        XCTAssertEqual(poi.travelerFit?.languageDifficulty, "Lower")
+    }
+
     func testTravelerFitIsNilWhenNoRuleHasData() throws {
         let poi = try decodePoi("""
         {
