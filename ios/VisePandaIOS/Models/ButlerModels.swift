@@ -138,6 +138,7 @@ struct CanvasPatch: Codable, Equatable {
     var tripSummary: TripSummaryPatch?
     var days: [TripDay]?
     var butlerAlerts: [ButlerAlert]?
+    var affectedDays: [Int]? = nil
     var reason: String
 }
 
@@ -151,6 +152,7 @@ struct ChatMessage: Codable, Identifiable, Equatable {
     var role: ChatRole
     var content: String
     var response: AssistantResponse?
+    var affectedDays: [Int]? = nil
     var createdAt: String?
 }
 
