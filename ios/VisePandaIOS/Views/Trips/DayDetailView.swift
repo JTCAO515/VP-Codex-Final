@@ -231,6 +231,14 @@ struct DayDetailView: View {
                     .buttonStyle(.plain)
                 }
 
+                if let url = navigationURL(for: block) {
+                    Link(destination: url) {
+                        Label("Navigate", systemImage: "map")
+                            .font(VPFont.body(13, weight: .bold))
+                            .foregroundStyle(VPColor.cinnabar)
+                    }
+                }
+
                 if isDiningBlock(block), !selectedDietaryRestrictions.isEmpty {
                     Button {
                         localDisplayCard = allergyCard
@@ -319,6 +327,19 @@ struct DayDetailView: View {
             .lowercased()
         return ["food", "restaurant", "lunch", "dinner", "breakfast", "cafe", "tea", "hotpot", "noodle", "meal"]
             .contains { text.contains($0) }
+    }
+
+    private func navigationURL(for block: TripBlock) -> URL? {
+        let query = (block.chineseAddress ?? block.address ?? block.title)
+            .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+        guard let query else { return nil }
+
+        if let coordinates = block.coordinates {
+            return URL(string: "maps://?ll=\(coordinates.lat),\(coordinates.lng)&q=\(query)")
+        }
+
+        guard block.chineseAddress != nil || block.address != nil else { return nil }
+        return URL(string: "maps://?q=\(query)")
     }
 }
 
