@@ -67,6 +67,14 @@ type TripEditIntent =
 
 如果模型吐出的 `TripEditIntent` 没通过 schema 校验（比如 `op` 不在枚举里、缺必填参数、`blockIndex` 越界），**直接判定这次 patch 无效，不修改行程**，assistantMessage 诚实告知"这次没能完成这个调整，请换个说法再试一次"——比现在"内容被静默丢弃但界面显示成功"的失败模式更安全，符合项目一贯的"失败要诚实"原则。
 
+**特例**：`editIntent` 字段整个缺失(不是格式错误,是模型判断"这次回复不需要改行程")视为合法的"无变更"信号,和现有全量路径里"不改行程时可以省略 `days` 字段"的规则语义一致,`patch.days` 会是 `undefined`,不会报错、也不会误判成校验失败。
+
+## 6. 已验证的真实发现(阶段1实施后,用真实 DeepSeek/Qwen/Zhipu/Moonshot 调用验证)
+
+1. **端到端验证通过**:真实调用"Change the Forbidden City description on day 1..."这类请求,确认走了新路径(`intent: "adjust_trip"`),模型正确输出 `update_block` editIntent,服务端执行后只改了目标字段,其余字段(地址/开放时间/预订信息/坐标等)完全没被模型碰过、原样保留——这正是这次迁移要解决的核心问题的直接证据。
+2. **发现并修复了一个真实的提示词歧义**:最初的提示词只说"blockIndex are 0-based",没有明确说 `day` 字段本身是 1-based(和 `TripDay.day` 现有约定一致)。四个 provider(DeepSeek/Qwen/Zhipu/Moonshot)全部一致地把 day 1 理解成 `day: 0`,被校验层正确拦截(`Day 0 does not exist`),不会误改。已经修正提示词措辞明确"day 是 1-based,day 1 是第一天,永远不会是 0"。
+3. **已知的路由覆盖率缺口(记录,本阶段不处理)**:这条新路径是否被触发,取决于现有的 `intentClassifier.ts` 里 `adjust_trip` 的正则规则(`make|change|adjust|rebalance|swap|replace|less|more|lighten|shorten|extend`)。实测发现,很多用户会自然说出的"remove the Temple of Heaven from day 1"("remove"不在规则里)或"add X to day 1"(不一定命中 `add_poi` 的精确正则)这类请求,目前会被分类成 `unclear` 或压根不落进 `adjust_trip`,从而继续走旧的全量生成路径,不会经过这次新加的安全通道。这不是本阶段的 bug——`intentClassifier.ts` 是全系统共用的分类器(还用来做 provider 路由和 token 预算选择),扩大它的匹配规则影响面超出这次迁移的范围,需要单独评估、单独测试,不应该在这个阶段顺手改掉。记录为后续阶段的候选项:要么谨慎扩大 `adjust_trip` 的正则覆盖(需要补足够的回归测试防止误伤其它路由决策),要么给"是否走 edit-intent 路径"单独做一个更精确的判定,不复用广义的 `ButlerIntent`。
+
 ## 6. 分阶段实施计划
 
 ### 阶段 1：Tier 1 精确操作，先只做 `add_block` / `remove_block` / `update_block`

@@ -4,11 +4,23 @@
 
 import { createMockButlerPatch } from "@/lib/mock-ai/mockButler";
 import { safeParseLlmJson } from "@/lib/ai/jsonRepair";
+import { applyTripEditIntent, parseTripEditIntent } from "@/lib/canvas/tripEditIntents";
+import type { ButlerIntent } from "@/lib/ai/intentClassifier";
 import type { ButlerToolContext } from "@/lib/ai/toolContext";
 import type { UserPreferenceProfile } from "@/lib/ai/preferenceProfile";
 import type { AssistantResponse, CanvasPatch, ChatMessage, InlineToolCard, TripDay, TripState } from "@/lib/types/trip";
 
 const allowedIntents = new Set<CanvasPatch["intent"]>(["create_trip", "adjust_trip", "add_alerts"]);
+
+/**
+ * CanvasPatch migration phase 1 (docs/planning/canvaspatch-edit-intent-migration-plan.md):
+ * only requests the local ButlerIntent classifier is already confident are
+ * "adjust an existing trip" get the smaller edit-intent prompt/parse path —
+ * create_trip (and everything else) is completely untouched.
+ */
+function usesEditIntentPath(intent: ButlerIntent): boolean {
+  return intent === "adjust_trip";
+}
 
 export const defaultSuggestions = [
   "Can you make the pace easier?",
@@ -17,18 +29,54 @@ export const defaultSuggestions = [
   "Keep hotels convenient",
 ];
 
-export function buildSystemPrompt(): string {
+const SHARED_PERSONA_AND_HARD_RULES = [
+  // Persona — a knowledgeable local friend, not a call-center script.
+  "You are VisePanda, a warm, practical AI travel butler for foreign travelers in China — like a knowledgeable local friend: professional, specific, honest, never fluffy or salesy.",
+  // Constitution — hard rules that outrank everything below.
+  "HARD RULES:",
+  "(1) Never invent China facts (opening hours, prices, visa rules). When unsure, say so briefly and name an official source to verify.",
+  "(2) Bookings are info-only: never claim you can book, pay, reserve, or hold inventory.",
+  "(3) Ask at most ONE clarifying question per reply, and only when missing information would make the plan clearly wrong; otherwise make a sensible assumption and state it.",
+  "(4) Write assistantMessage/assistantResponse/suggestions in the same language as the user's latest message; JSON keys and enum values always stay in English.",
+  "(5) If the message signals danger, injury, theft, or a lost passport, lead with immediate practical safety steps (110 police / 120 ambulance / embassy) before anything else.",
+  "(6) When the user corrects you, accept the correction plainly and adjust — never argue or repeat the mistake.",
+];
+
+const SHARED_STYLE_TAIL = [
+  "assistantResponse must have a short headline, one concise body paragraph, 2-4 practical highlights, an optional watchOut, and one concrete, tappable nextStep.",
+  "Keep assistantMessage populated as a readable plain-text fallback that combines the same meaning as assistantResponse.",
+  "Suggestions must be exactly two short follow-up questions the traveler would naturally tap next — base them on the biggest gaps in the current trip (missing days, no hotel area chosen, undone high-priority alerts) or on the topic just discussed. Never repeat a question that was already answered in recentMessages.",
+  "Match reply length to the ask: factual questions get 2-3 tight sentences; itinerary work may use the full structure.",
+  "Keep the plan practical for China travel: routing, visas, payment, booking, transport, food, stay areas, and fatigue.",
+  "Be concise. Do not include markdown.",
+];
+
+/**
+ * CanvasPatch migration phase 1: requests the local ButlerIntent classifier
+ * already tags as "adjust an existing trip" get this much smaller contract —
+ * one enumerable edit intent instead of the whole days array — so structural
+ * correctness comes from lib/canvas/tripEditIntents.ts's code, not from the
+ * model's JSON shape staying stable across providers.
+ */
+function buildEditIntentSystemPrompt(): string {
   return [
-    // Persona — a knowledgeable local friend, not a call-center script.
-    "You are VisePanda, a warm, practical AI travel butler for foreign travelers in China — like a knowledgeable local friend: professional, specific, honest, never fluffy or salesy.",
-    // Constitution — hard rules that outrank everything below.
-    "HARD RULES:",
-    "(1) Never invent China facts (opening hours, prices, visa rules). When unsure, say so briefly and name an official source to verify.",
-    "(2) Bookings are info-only: never claim you can book, pay, reserve, or hold inventory.",
-    "(3) Ask at most ONE clarifying question per reply, and only when missing information would make the plan clearly wrong; otherwise make a sensible assumption and state it.",
-    "(4) Write assistantMessage/assistantResponse/suggestions in the same language as the user's latest message; JSON keys and enum values always stay in English.",
-    "(5) If the message signals danger, injury, theft, or a lost passport, lead with immediate practical safety steps (110 police / 120 ambulance / embassy) before anything else.",
-    "(6) When the user corrects you, accept the correction plainly and adjust — never argue or repeat the mistake.",
+    ...SHARED_PERSONA_AND_HARD_RULES,
+    "Return only valid json for a live itinerary canvas patch.",
+    "This request is an ADJUSTMENT to an existing trip — do NOT return a full days array. Instead return a single editIntent describing exactly one change.",
+    'Example json shape: {"intent":"adjust_trip","assistantMessage":"...","assistantResponse":{"headline":"...","body":"...","highlights":["..."],"watchOut":"...","nextStep":"..."},"reason":"...","suggestions":["...","..."],"editIntent":{"op":"add_block","day":2,"block":{"time":"Afternoon","title":"Summer Palace","description":"..."}}}.',
+    "The json shape must be: intent (always \"adjust_trip\" for this request), assistantMessage, assistantResponse, reason, suggestions, editIntent. Do not include a top-level days field.",
+    'editIntent must have one of these three shapes. "day" is the 1-based TripDay.day number exactly as shown in the current trip context (day 1 is the first day — never 0). "blockIndex"/"position" are 0-based indices into that day\'s blocks array (0 is the first block).',
+    '{"op":"add_block","day":<number>,"block":{"time":"Morning"|"Afternoon"|"Evening"|"Flexible","title":"...","description":"..."},"position":<optional number, defaults to appending>}',
+    '{"op":"remove_block","day":<number>,"blockIndex":<number>}',
+    '{"op":"update_block","day":<number>,"blockIndex":<number>,"patch":{"time"?:"...","title"?:"...","description"?:"..."}}',
+    "If the requested change does not fit exactly one of these three shapes (for example, reordering blocks or restructuring a whole day), say so honestly in assistantMessage and do not include an editIntent — never approximate with the wrong op or invent fields outside this schema.",
+    ...SHARED_STYLE_TAIL,
+  ].join(" ");
+}
+
+function buildFullArraySystemPrompt(): string {
+  return [
+    ...SHARED_PERSONA_AND_HARD_RULES,
     // Output contract.
     "Return only valid json for a live itinerary canvas patch.",
     'Example json shape: {"intent":"adjust_trip","assistantMessage":"...","assistantResponse":{"headline":"...","body":"...","highlights":["..."],"watchOut":"...","nextStep":"..."},"reason":"...","suggestions":["...","..."],"tripSummary":{"confidence":"Refined"},"days":[{"day":1,"city":"Beijing","pace":"Balanced","blocks":[{"time":"Morning","title":"Tiananmen Square","description":"..."},{"time":"Afternoon","title":"...","description":"..."}],"food":["..."],"stay":"...","transport":"...","note":"..."}],"butlerAlerts":[]}.',
@@ -36,13 +84,12 @@ export function buildSystemPrompt(): string {
     "IMPORTANT: each day object MUST have a flat `blocks` array (day, city, pace, blocks, food, stay, transport, note) — never group activities under separate morning/afternoon/evening objects, and never nest an `activities` array. Every block is one flat object: {time: one of Morning/Afternoon/Evening/Flexible, title, description}. Whenever the itinerary changes (intent create_trip or adjust_trip) you MUST return the COMPLETE updated days array — never a partial delta and never omit days — and set tripSummary.title, tripSummary.durationDays, and tripSummary.destinations so the live canvas reflects the plan.",
     "Trip blocks may include optional operational POI fields when known: address, chineseAddress, phone, openingHours, mapUrl, bookingUrl, bookingCandidates, sourceLabel, and coordinates {lat,lng}. Only include them when sourced from provided context or common static fallback; never invent official booking availability.",
     "Only omit days when the user's message does not change the itinerary at all (for example a pure factual question).",
-    "assistantResponse must have a short headline, one concise body paragraph, 2-4 practical highlights, an optional watchOut, and one concrete, tappable nextStep.",
-    "Keep assistantMessage populated as a readable plain-text fallback that combines the same meaning as assistantResponse.",
-    "Suggestions must be exactly two short follow-up questions the traveler would naturally tap next — base them on the biggest gaps in the current trip (missing days, no hotel area chosen, undone high-priority alerts) or on the topic just discussed. Never repeat a question that was already answered in recentMessages.",
-    "Match reply length to the ask: factual questions get 2-3 tight sentences; itinerary work may use the full structure.",
-    "Keep the plan practical for China travel: routing, visas, payment, booking, transport, food, stay areas, and fatigue.",
-    "Be concise. Do not include markdown.",
+    ...SHARED_STYLE_TAIL,
   ].join(" ");
+}
+
+export function buildSystemPrompt(intent: ButlerIntent = "unclear"): string {
+  return usesEditIntentPath(intent) ? buildEditIntentSystemPrompt() : buildFullArraySystemPrompt();
 }
 
 /**
@@ -280,12 +327,22 @@ function normalizeAssistantResponse(
  * quality gate rejects create_trip patches without a complete days array, so a
  * reply that *says* it planned a trip but didn't actually patch the canvas
  * loses the race to a provider that did the work.
+ *
+ * CanvasPatch migration phase 1: when `intent` is one the edit-intent prompt
+ * was sent for (see usesEditIntentPath), this expects `editIntent` instead of
+ * `days` — validates it with lib/canvas/tripEditIntents.ts's strict parser,
+ * executes it against `currentDays`, and puts the resulting full array into
+ * `patch.days` so the CanvasPatch shape returned to callers is unchanged.
+ * Any other intent (including create_trip) is completely unaffected —
+ * `currentDays`/`intent` are unused on that path, same as before this change.
  */
 export function parseButlerPatch(
   content: string,
   fallbackSuggestions: string[],
+  intent: ButlerIntent = "unclear",
+  currentDays: TripDay[] = [],
 ): { patch: CanvasPatch; suggestions: string[] } {
-  const parsed = safeParseLlmJson(content) as Partial<CanvasPatch> & { suggestions?: unknown };
+  const parsed = safeParseLlmJson(content) as Partial<CanvasPatch> & { suggestions?: unknown; editIntent?: unknown };
 
   if (!parsed.intent || !allowedIntents.has(parsed.intent)) {
     throw new Error("Butler response did not include a valid intent.");
@@ -307,13 +364,24 @@ export function parseButlerPatch(
     suggestions,
   );
 
+  // Omitting editIntent is the sanctioned way to say "this reply didn't
+  // change the itinerary" (mirrors the full-array path's existing rule:
+  // "Only omit days when the user's message does not change the itinerary
+  // at all") — only a *present but malformed* editIntent should fail the
+  // patch. Don't confuse "nothing to apply" with "invalid."
+  const days = usesEditIntentPath(intent)
+    ? parsed.editIntent === undefined
+      ? undefined
+      : applyTripEditIntent(currentDays, parseTripEditIntent(parsed.editIntent))
+    : normalizeDays(parsed.days);
+
   const patch: CanvasPatch = {
     intent: parsed.intent,
     assistantMessage: parsed.assistantMessage,
     assistantResponse,
     reason: parsed.reason,
     tripSummary: parsed.tripSummary,
-    days: normalizeDays(parsed.days),
+    days,
     butlerAlerts: Array.isArray(parsed.butlerAlerts) ? parsed.butlerAlerts : undefined,
   };
 

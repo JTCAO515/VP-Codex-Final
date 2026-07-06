@@ -119,6 +119,7 @@ async function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Pro
 async function tryProvider(
   provider: ChatCompletionProvider,
   input: Required<Pick<OrchestratedButlerInput, "message" | "currentTrip" | "recentMessages">>,
+  intent: ButlerIntent,
   env: Record<string, string | undefined>,
   fetchImpl: FetchLike,
   fallbackSuggestions: string[],
@@ -130,7 +131,7 @@ async function tryProvider(
     const result = await provider.complete(
       {
         messages: [
-          { role: "system", content: buildSystemPrompt() },
+          { role: "system", content: buildSystemPrompt(intent) },
           { role: "user", content: buildUserPrompt(input.message, input.currentTrip, input.recentMessages, context) },
         ],
         maxTokens: budget.maxTokens,
@@ -140,7 +141,7 @@ async function tryProvider(
       },
       { env, fetchImpl },
     );
-    const parsed = parseButlerPatch(result.content, fallbackSuggestions);
+    const parsed = parseButlerPatch(result.content, fallbackSuggestions, intent, input.currentTrip.days);
     recordProviderSuccess(provider.id);
     return { provider, patch: parsed.patch, suggestions: parsed.suggestions };
   } catch (error) {
@@ -222,7 +223,7 @@ export async function requestOrchestratedButlerPatch(
   try {
     const winner = await Promise.any(
       candidates.map((provider) =>
-        tryProvider(provider, normalizedInput, env, fetchImpl, fallbackSuggestions, providerContext, budget, raceController.signal),
+        tryProvider(provider, normalizedInput, intent, env, fetchImpl, fallbackSuggestions, providerContext, budget, raceController.signal),
       ),
     );
     raceController.abort();
