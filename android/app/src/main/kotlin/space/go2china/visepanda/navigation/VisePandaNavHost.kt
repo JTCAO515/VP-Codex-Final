@@ -3,6 +3,7 @@ package space.go2china.visepanda.navigation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -35,11 +36,23 @@ import space.go2china.visepanda.ui.translate.TranslateScreen
  * needs to clear the bar. See DESIGN.md ADR-114.
  */
 @Composable
-fun VisePandaApp() {
+fun VisePandaApp(
+    pendingGoogleAuthCallback: String? = null,
+    onGoogleAuthCallbackConsumed: () -> Unit = {},
+) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route?.split("?")?.firstOrNull()
     val isTopLevelDestination = TopLevelDestination.all.any { it.route == currentRoute }
+
+    // The Google sign-in Custom Tab always launches from Me, but the redirect
+    // can land while the user has since switched tabs — jump back to Me so
+    // the callback is actually consumed instead of silently waiting there.
+    LaunchedEffect(pendingGoogleAuthCallback) {
+        if (pendingGoogleAuthCallback != null && currentRoute != TopLevelDestination.Me.route) {
+            navController.navigate(TopLevelDestination.Me.route)
+        }
+    }
 
     // v0.3.14: scoped to the Activity (this composable, not any single nav
     // route) so Me's language toggle affects every screen — see DESIGN.md
@@ -116,6 +129,8 @@ fun VisePandaApp() {
                 MeScreen(
                     languageCode = languageCode,
                     onSelectLanguage = languageViewModel::setLanguage,
+                    pendingGoogleAuthCallback = pendingGoogleAuthCallback,
+                    onGoogleAuthCallbackConsumed = onGoogleAuthCallbackConsumed,
                 )
             }
             composable(

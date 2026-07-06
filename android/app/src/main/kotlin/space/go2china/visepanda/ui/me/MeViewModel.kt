@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import space.go2china.visepanda.data.model.MemoryEntry
+import space.go2china.visepanda.data.model.SignUpOutcome
 import space.go2china.visepanda.data.repository.AuthRepository
 import space.go2china.visepanda.data.repository.MemoryRepository
 import space.go2china.visepanda.data.repository.TripRepository
@@ -25,6 +26,7 @@ data class MeUiState(
     val userEmail: String? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
+    val signUpConfirmationEmail: String? = null,
     val syncStatus: SyncStatus = SyncStatus.NOT_SIGNED_IN,
     val memoryEntries: List<MemoryEntry> = emptyList(),
     val memoryLoading: Boolean = false,
@@ -36,7 +38,8 @@ data class AuthUiState(
     val isLoggedIn: Boolean = false,
     val userEmail: String? = null,
     val isLoading: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val signUpConfirmationEmail: String? = null,
 )
 
 data class MemoryUiState(
@@ -80,6 +83,7 @@ class MeViewModel @Inject constructor(
             userEmail = auth.userEmail,
             isLoading = auth.isLoading,
             errorMessage = auth.errorMessage,
+            signUpConfirmationEmail = auth.signUpConfirmationEmail,
             syncStatus = sync,
             memoryEntries = memory.entries,
             memoryLoading = memory.loading,
@@ -163,20 +167,55 @@ class MeViewModel @Inject constructor(
 
     fun signUp(email: String, password: String) {
         viewModelScope.launch {
-            authState.value = authState.value.copy(isLoading = true, errorMessage = null)
+            authState.value = authState.value.copy(isLoading = true, errorMessage = null, signUpConfirmationEmail = null)
             authRepository.signUp(email, password)
-                .onSuccess {
+                .onSuccess { outcome ->
+                    when (outcome) {
+                        is SignUpOutcome.SignedIn -> {
+                            authState.value = authState.value.copy(
+                                isLoading = false,
+                                isLoggedIn = true,
+                                userEmail = outcome.response.user.email
+                            )
+                            syncManager.triggerSync()
+                        }
+                        is SignUpOutcome.ConfirmationRequired -> {
+                            authState.value = authState.value.copy(
+                                isLoading = false,
+                                signUpConfirmationEmail = outcome.email,
+                            )
+                        }
+                    }
+                }
+                .onFailure {
+                    authState.value = authState.value.copy(
+                        isLoading = false,
+                        errorMessage = it.message ?: "Sign up failed"
+                    )
+                }
+        }
+    }
+
+    /** Google OAuth authorize URL to open in a Custom Tab (Issue #85 item 5). */
+    fun googleOAuthUrl(): String = authRepository.googleOAuthUrl()
+
+    /** Called once the Custom Tab redirects back via the auth-callback deep link. */
+    fun completeGoogleSignIn(callbackUrl: String) {
+        viewModelScope.launch {
+            authState.value = authState.value.copy(isLoading = true, errorMessage = null)
+            authRepository.completeGoogleSignIn(callbackUrl)
+                .onSuccess { response ->
                     authState.value = authState.value.copy(
                         isLoading = false,
                         isLoggedIn = true,
-                        userEmail = it.user.email
+                        userEmail = response.user.email
                     )
                     syncManager.triggerSync()
                 }
                 .onFailure {
                     authState.value = authState.value.copy(
                         isLoading = false,
-                        errorMessage = it.message ?: "Sign up failed"
+                        errorMessage = it.message ?: "Google sign-in failed"
                     )
                 }
         }
@@ -192,7 +231,7 @@ class MeViewModel @Inject constructor(
     }
 
     fun clearError() {
-        authState.value = authState.value.copy(errorMessage = null)
+        authState.value = authState.value.copy(errorMessage = null, signUpConfirmationEmail = null)
     }
 
     /** Me's "Reset local draft" (Issue #85, mirrors iOS MeView.swift). */

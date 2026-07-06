@@ -55,7 +55,7 @@
     <string name="me_login_dialog_signup_tab">Sign Up</string>
     <string name="me_login_switch_to_signup">Need an account? Sign Up</string>
     <string name="me_login_switch_to_login">Already have an account? Log In</string>
-    <string name="me_google_signin_coming_soon">Sign in with Google (coming soon)</string>
+    <string name="me_google_signin_button">Continue with Google</string>
     <string name="me_section_language">Language</string>
     <string name="me_language_english">English</string>
     <string name="me_language_chinese">中文</string>

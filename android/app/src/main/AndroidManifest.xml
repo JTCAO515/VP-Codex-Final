@@ -40,11 +40,22 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:theme="@style/Theme.VisePanda"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- Google sign-in (Issue #85 item 5) — Supabase's OAuth authorize
+                 URL is opened in a Custom Tab and redirects here on completion.
+                 Requires this scheme to be added to the Supabase project's
+                 Auth > URL Configuration > Redirect URLs allow-list. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="space.go2china.visepanda" android:host="auth-callback" />
             </intent-filter>
         </activity>
 
