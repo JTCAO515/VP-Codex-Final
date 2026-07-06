@@ -37,7 +37,7 @@ const FEATURES: Feature[] = [
     accent: "#a33a2d",
     bg: "rgba(163,58,45,0.07)",
     getTitle: (t) => t.nav.chat,
-    desc: "AI Butler builds your full itinerary in real time as you chat.",
+    desc: "Your AI Copilot builds your full itinerary in real time as you chat.",
   },
   {
     key: "trips",
@@ -107,7 +107,7 @@ export function HomePage() {
           />
           <span>
             <strong>VisePanda</strong>
-            <small>AI China Travel Butler</small>
+            <small>China Travel AI Copilot</small>
           </span>
         </a>
         <div className="home-header__actions">

@@ -26,12 +26,12 @@ describe("TripCanvas", () => {
     expect(screen.getAllByText(/^Morning$/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/^Afternoon$/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/^Evening$/i).length).toBeGreaterThan(0);
-    expect(screen.queryByText("Butler reminders")).not.toBeInTheDocument();
+    expect(screen.queryByText("Copilot reminders")).not.toBeInTheDocument();
     // Guards against the removed top-of-canvas five-task-card strip
     // (CanvasTaskStrip) reappearing. "Visa" now legitimately appears as a
     // completeness-checklist label (see assertion above), so this checks the
     // strip's own aria-label instead of a bare text match.
-    expect(screen.queryByLabelText(/butler planning tasks/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/copilot planning tasks/i)).not.toBeInTheDocument();
   });
 
   it("maps canvas confidence into traveler-facing status copy", () => {
