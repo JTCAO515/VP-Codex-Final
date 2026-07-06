@@ -37,6 +37,14 @@
 
 **客户端契约**：收到 `patch` 后必须走 `applyCanvasPatch`（或镜像实现）合并本地 `TripState`，不允许自己拼装。Android 参考 `CanvasPatchApplier.kt`，iOS 参考 `CanvasPatchApplier.swift`。
 
+### `patch.affectedDays`（Chat→Trips 反向链路契约，2026-07-07）
+
+`CanvasPatch` 新增可选字段 `affectedDays?: number[]`：服务端在 `app/api/chat/route.ts` 的单一出口处，用请求带上来的 `trip.days`（改动前）和 `patch.days`（改动后）逐天 diff 算出的实际被新增/删除/改动过的 day 序号（`lib/canvas/applyCanvasPatch.ts` 的 `computeAffectedDays`），覆盖 butler-service 转发、factual tools、真实 LLM race、mock 兜底所有路径，客户端不需要自己 diff。
+
+- `patch.days` 未提供（比如纯 `add_alerts` 回复）→ `affectedDays` 为 `[]`。
+- 客户端只在 `affectedDays` 非空时才允许在 Chat 消息里展示"跳转到 Trips 对应天"的入口，纯文本回答或没有真正改动行程时不能出现这个入口。
+- 如果某个 day 序号出现在 `affectedDays` 里但客户端本地 Trips 数据中已经不存在这一天（比如该天被同一个 patch 删除），跳转动作应该优雅降级为切到 Trips 首页而不是崩溃或报错。
+
 ### `patch.assistantResponse.exploreRefs`（Issue #50，Chat↔Explore 打通契约）
 
 `AssistantResponse` 新增可选字段 `exploreRefs?: ExploreRef[]`：
