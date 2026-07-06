@@ -204,6 +204,20 @@ private struct ToolEntry: Identifiable {
                 ToolSection(title: "Next", items: ["City JSON packs", "Map pins", "OCR phrase history"])
             ],
             offlineTips: sharedOfflineTips + ["Open this page before travel to confirm local data is available."]
+        ),
+        ToolEntry(
+            id: "booking",
+            title: "Booking",
+            subtitle: "Reservation notes",
+            icon: "calendar.badge.clock",
+            badge: "Info only",
+            accent: Color(hex: 0x8B5CF6),
+            tips: ["Hotel and ticket candidates are planning references in this build.", "Confirm prices, cancellation rules, and passport-name spelling on the provider site before paying."],
+            sections: [
+                ToolSection(title: "Before booking", items: ["Match passport name exactly.", "Check free-cancellation deadline.", "Save the confirmation number offline."]),
+                ToolSection(title: "On arrival", items: ["Show the Chinese hotel address.", "Keep a screenshot of booking proof.", "Ask staff to write any room or pickup notes in Chinese."])
+            ],
+            offlineTips: sharedOfflineTips + ["Save booking confirmations and QR codes to Photos before travel."]
         )
     ]
 }
@@ -604,7 +618,7 @@ struct CommunicationCardDetail: View {
                                 .clipShape(Circle())
 
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Travel Talk Card")
+                                Text("Quick Phrases")
                                     .font(VPFont.display(30))
                                     .foregroundStyle(VPColor.ink)
                                 Text("Show simple phrases when speaking with local people")
@@ -637,7 +651,7 @@ struct CommunicationCardDetail: View {
             .padding(20)
         }
         .background(VPColor.paper)
-        .navigationTitle("Travel Talk Card")
+        .navigationTitle("Quick Phrases")
         .navigationBarTitleDisplayMode(.inline)
     }
 }
