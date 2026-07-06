@@ -7,7 +7,8 @@ struct DayDetailView: View {
     let day: TripDay
     @State private var editingBlock: TripBlock?
     @State private var editedDescription = ""
-    @State private var showToLocalAddress: LocalAddressCard?
+    @State private var localDisplayCard: LocalDisplayCard?
+    @AppStorage("localDisplayDietaryRestrictions") private var dietaryRestrictionStorage = ""
 
     private var currentDay: TripDay {
         store.trip.days.first { $0.day == day.day } ?? day
@@ -74,7 +75,7 @@ struct DayDetailView: View {
                 }
             }
         }
-        .sheet(item: $showToLocalAddress) { card in
+        .sheet(item: $localDisplayCard) { card in
             ShowToLocalSheet(card: card)
                 .presentationDetents([.medium, .large])
         }
@@ -123,13 +124,25 @@ struct DayDetailView: View {
                         .foregroundStyle(VPColor.inkSoft)
 
                     Button {
-                        showToLocalAddress = LocalAddressCard(
+                        localDisplayCard = LocalDisplayCard(
+                            kind: .address,
                             title: block.title,
-                            address: address,
+                            headline: address,
                             detail: block.chineseAddress == nil ? nil : block.address
                         )
                     } label: {
                         Label("Show to Local", systemImage: "text.viewfinder")
+                            .font(VPFont.body(13, weight: .bold))
+                            .foregroundStyle(VPColor.cinnabar)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                if isDiningBlock(block), !selectedDietaryRestrictions.isEmpty {
+                    Button {
+                        localDisplayCard = allergyCard
+                    } label: {
+                        Label("Show dietary needs", systemImage: "fork.knife.circle")
                             .font(VPFont.body(13, weight: .bold))
                             .foregroundStyle(VPColor.cinnabar)
                     }
@@ -181,17 +194,33 @@ struct DayDetailView: View {
         .background(VPColor.paperWarm)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
+
+    private var selectedDietaryRestrictions: [DietaryRestriction] {
+        dietaryRestrictionStorage
+            .split(separator: ",")
+            .compactMap { DietaryRestriction(rawValue: String($0)) }
+    }
+
+    private var allergyCard: LocalDisplayCard {
+        LocalDisplayCard(
+            kind: .allergy,
+            title: "Dietary needs",
+            headline: selectedDietaryRestrictions.map(\.chinese).joined(separator: "\n"),
+            detail: "Please show this to restaurant staff."
+        )
+    }
+
+    private func isDiningBlock(_ block: TripBlock) -> Bool {
+        let text = ([block.title, block.description] + (block.highlights ?? []))
+            .joined(separator: " ")
+            .lowercased()
+        return ["food", "restaurant", "lunch", "dinner", "breakfast", "cafe", "tea", "hotpot", "noodle", "meal"]
+            .contains { text.contains($0) }
+    }
 }
 
-struct LocalAddressCard: Identifiable {
-    var id: String { title + address }
-    var title: String
-    var address: String
-    var detail: String?
-}
-
-private struct ShowToLocalSheet: View {
-    let card: LocalAddressCard
+struct ShowToLocalSheet: View {
+    let card: LocalDisplayCard
     @Environment(\.dismiss) private var dismiss
     @State private var speaker = AVSpeechSynthesizer()
     @State private var copied = false
@@ -208,7 +237,7 @@ private struct ShowToLocalSheet: View {
                             Text(card.title)
                                 .font(VPFont.display(24))
                                 .foregroundStyle(VPColor.ink)
-                            Text(card.address)
+                            Text(card.headline)
                                 .font(VPFont.display(34, weight: .bold))
                                 .foregroundStyle(VPColor.ink)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -217,6 +246,26 @@ private struct ShowToLocalSheet: View {
                                     .font(VPFont.body(15, weight: .semibold))
                                     .foregroundStyle(VPColor.inkMuted)
                             }
+                            if let disclaimer = card.disclaimer, !disclaimer.isEmpty {
+                                Text(disclaimer)
+                                    .font(VPFont.body(12, weight: .bold))
+                                    .foregroundStyle(VPColor.cinnabar)
+                                    .padding(10)
+                                    .background(VPColor.cinnabar.opacity(0.08))
+                                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            }
+                        }
+                    }
+
+                    if card.showEmergencyAction {
+                        Link(destination: URL(string: "tel:120")!) {
+                            Label("Call 120 ambulance", systemImage: "phone.fill")
+                                .font(VPFont.body(15, weight: .bold))
+                                .foregroundStyle(VPColor.paperSoft)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(VPColor.cinnabar)
+                                .clipShape(Capsule())
                         }
                     }
 
@@ -231,7 +280,7 @@ private struct ShowToLocalSheet: View {
                         .tint(VPColor.cinnabar)
 
                         Button {
-                            UIPasteboard.general.string = card.address
+                            UIPasteboard.general.string = card.copyText
                             copied = true
                         } label: {
                             Label(copied ? "Copied" : "Copy", systemImage: copied ? "checkmark" : "doc.on.doc")
@@ -240,7 +289,7 @@ private struct ShowToLocalSheet: View {
                         .buttonStyle(.bordered)
                     }
 
-                    Text("Use this when speaking with taxi drivers, hotel staff, restaurants, or station staff.")
+                    Text(helpText)
                         .font(VPFont.body(13, weight: .semibold))
                         .foregroundStyle(VPColor.inkSoft)
                         .fixedSize(horizontal: false, vertical: true)
@@ -262,9 +311,20 @@ private struct ShowToLocalSheet: View {
         if speaker.isSpeaking {
             speaker.stopSpeaking(at: .immediate)
         }
-        let utterance = AVSpeechUtterance(string: card.address)
+        let utterance = AVSpeechUtterance(string: card.headline)
         utterance.voice = AVSpeechSynthesisVoice(language: "zh-CN")
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate
         speaker.speak(utterance)
+    }
+
+    private var helpText: String {
+        switch card.kind {
+        case .address:
+            "Use this when speaking with taxi drivers, hotel staff, restaurants, or station staff."
+        case .allergy:
+            "Use this when speaking with restaurant staff. The Chinese text is fixed and pre-translated."
+        case .symptom:
+            "Use this with pharmacy staff, doctors, hotel staff, or nearby helpers."
+        }
     }
 }

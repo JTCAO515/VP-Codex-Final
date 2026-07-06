@@ -21,6 +21,8 @@ struct TranslateView: View {
     @State private var imagePicker: TranslateImagePickerSource?
     @State private var recorder: AVAudioRecorder?
     @State private var recordingTask: Task<Void, Never>?
+    @State private var localDisplayCard: LocalDisplayCard?
+    @AppStorage("localDisplayDietaryRestrictions") private var dietaryRestrictionStorage = ""
 
     private let api = VisePandaAPIClient()
     private let phrases = StaticTranslateData.phrases
@@ -82,6 +84,10 @@ struct TranslateView: View {
             ImagePicker(sourceType: picker.sourceType) { image in
                 Task { await handlePickedImage(image) }
             }
+        }
+        .sheet(item: $localDisplayCard) { card in
+            ShowToLocalSheet(card: card)
+                .presentationDetents([.medium, .large])
         }
         .onDisappear {
             stopRecording(send: false)
@@ -198,6 +204,8 @@ struct TranslateView: View {
                     }
                 }
                 .buttonStyle(.plain)
+
+                allergyNeedsCard
             }
             .padding(20)
         }
@@ -233,6 +241,71 @@ struct TranslateView: View {
         Dictionary(grouping: phrases, by: \.category)
             .sorted { $0.key < $1.key }
             .map { ($0.key, $0.value) }
+    }
+
+    private var allergyNeedsCard: some View {
+        VPCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Label("Dietary card", systemImage: "fork.knife.circle.fill")
+                    .font(VPFont.body(15, weight: .bold))
+                    .foregroundStyle(VPColor.ink)
+
+                Text("Save allergy or dietary needs, then show fixed Chinese text to restaurant staff.")
+                    .font(VPFont.body(13, weight: .semibold))
+                    .foregroundStyle(VPColor.inkSoft)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], alignment: .leading, spacing: 8) {
+                    ForEach(DietaryRestriction.allCases) { restriction in
+                        Button {
+                            toggleRestriction(restriction)
+                        } label: {
+                            Label(restriction.label, systemImage: selectedDietaryRestrictions.contains(restriction) ? "checkmark.circle.fill" : "circle")
+                                .font(VPFont.body(12, weight: .bold))
+                                .foregroundStyle(selectedDietaryRestrictions.contains(restriction) ? VPColor.cinnabar : VPColor.inkMuted)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+
+                Button {
+                    localDisplayCard = allergyCard
+                } label: {
+                    Label("Show dietary needs", systemImage: "text.viewfinder")
+                        .font(VPFont.body(14, weight: .bold))
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(VPColor.cinnabar)
+                .disabled(selectedDietaryRestrictions.isEmpty)
+            }
+        }
+    }
+
+    private var selectedDietaryRestrictions: [DietaryRestriction] {
+        dietaryRestrictionStorage
+            .split(separator: ",")
+            .compactMap { DietaryRestriction(rawValue: String($0)) }
+    }
+
+    private var allergyCard: LocalDisplayCard {
+        LocalDisplayCard(
+            kind: .allergy,
+            title: "Dietary needs",
+            headline: selectedDietaryRestrictions.map(\.chinese).joined(separator: "\n"),
+            detail: "Please show this to restaurant staff."
+        )
+    }
+
+    private func toggleRestriction(_ restriction: DietaryRestriction) {
+        var restrictions = selectedDietaryRestrictions
+        if restrictions.contains(restriction) {
+            restrictions.removeAll { $0 == restriction }
+        } else {
+            restrictions.append(restriction)
+        }
+        dietaryRestrictionStorage = restrictions.map(\.rawValue).joined(separator: ",")
     }
 
     private func translationCard(_ result: TranslateResult) -> some View {
