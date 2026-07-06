@@ -9,14 +9,15 @@
 **Request body**
 ```json
 {
-  "message": "string, required, 非空",
+  "message": "string, required, 非空 — completeSkeletonFor 请求时可传空字符串,被忽略",
   "trip": "TripState, required — 见 lib/types/trip.ts",
   "messages": "ChatMessage[], optional，最近对话历史",
-  "preferenceProfile": "UserPreferenceProfile, optional"
+  "preferenceProfile": "UserPreferenceProfile, optional",
+  "completeSkeletonFor": "TripState, optional — 见下方 Trips 分阶段生成契约，存在时忽略 message/messages/preferenceProfile,跳过 butler-service 转发和意图分类"
 }
 ```
 - `trip` 缺失或不是合法 `TripState`(至少含 `summary`/`days: []`/`alerts: []`) → 400 `trip_required`。
-- `message` 空 → 400 `message_required`。
+- `message` 空 → 400 `message_required`(`completeSkeletonFor` 存在时不受此校验约束)。
 
 **Response（成功）**
 ```json
@@ -44,6 +45,20 @@
 - `patch.days` 未提供（比如纯 `add_alerts` 回复）→ `affectedDays` 为 `[]`。
 - 客户端只在 `affectedDays` 非空时才允许在 Chat 消息里展示"跳转到 Trips 对应天"的入口，纯文本回答或没有真正改动行程时不能出现这个入口。
 - 如果某个 day 序号出现在 `affectedDays` 里但客户端本地 Trips 数据中已经不存在这一天（比如该天被同一个 patch 删除），跳转动作应该优雅降级为切到 Trips 首页而不是崩溃或报错。
+
+### `patch.generationStage` + `completeSkeletonFor`（Trips 分阶段生成契约，2026-07-07，docs/planning/trips-staged-generation-migration-plan.md）
+
+只影响 `create_trip`(从零生成新行程);`adjust_trip`/`add_alerts` 的 `patch.generationStage` 始终是 `undefined`,行为完全不变。
+
+**第一轮(普通 `create_trip` 请求)**:`patch.generationStage` 会是 `"skeleton"`,此时 `patch.days` 里每天的 `blocks` 服务端保证是空数组 `[]`(不管 LLM 是否遵守提示词都会强制清空),但 `city`/`pace`/`food`/`stay`/`transport`/`note` 和 `tripSummary` 都是真实生成的内容,可以立刻渲染。
+
+**客户端拿到骨架后的动作**:
+1. 照常走 `applyCanvasPatch`/`CanvasPatchApplier` 合并进本地 `TripState`(`blocks: []` 是既有的合法空状态,不需要新的合并分支)。
+2. 立刻(不等用户下一次输入,不产生新的用户消息气泡)用合并后的 `trip` 再发一次 `POST /api/chat`,这次 body 里带 `completeSkeletonFor: <合并后的 trip>`,`message` 可传空字符串。
+3. 这次请求成功时,`patch.generationStage` 会是 `"complete"`,`patch.days` 与骨架**逐天同序**、`day`/`city`/`pace` 与骨架完全一致,只是 `blocks` 补全为真实内容——按 `day` 合并回本地状态即可,不产生新的聊天气泡。
+4. 这次请求失败(网络错误或 502)时,骨架保留原样,不要静默重试轰炸——UI 应该给一个"生成中/加载失败,点击重试"的入口,重新发起同一个 `completeSkeletonFor` 请求。
+
+**老客户端兼容性**:不认识 `generationStage` 字段的老客户端会把骨架当成"这几天还没有安排"的既有空状态正常渲染,不会崩溃,只是不会自动补全(需要独立升级消费这个字段才能拿到完整体验)。
 
 ### `patch.assistantResponse.exploreRefs`（Issue #50，Chat↔Explore 打通契约）
 
