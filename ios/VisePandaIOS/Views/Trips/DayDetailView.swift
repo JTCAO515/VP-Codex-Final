@@ -24,6 +24,12 @@ struct DayDetailView: View {
                     Text(currentDay.note)
                         .font(VPFont.body(14))
                         .foregroundStyle(VPColor.inkSoft)
+                    if store.recentlyUpdatedDays.contains(currentDay.day) {
+                        Label("Updated by Butler just now", systemImage: "sparkles")
+                            .font(VPFont.body(12, weight: .bold))
+                            .foregroundStyle(VPColor.cinnabar)
+                            .padding(.top, 4)
+                    }
                 }
 
                 VPCard {

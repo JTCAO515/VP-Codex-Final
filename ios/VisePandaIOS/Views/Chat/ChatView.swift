@@ -302,6 +302,12 @@ private struct MessageBubble: View {
                                 }
                             }
 
+                            if let affectedDays = message.affectedDays, !affectedDays.isEmpty {
+                                UpdatedDaysRow(days: affectedDays) { day in
+                                    store.openTripDay(day)
+                                }
+                            }
+
                             Text(response.nextStep)
                                 .font(VPFont.body(14, weight: .bold))
                                 .foregroundStyle(VPColor.ink)
@@ -311,6 +317,32 @@ private struct MessageBubble: View {
                                 .foregroundStyle(VPColor.inkMuted)
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+private struct UpdatedDaysRow: View {
+    let days: [Int]
+    let onTap: (Int) -> Void
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 10) {
+                ForEach(days, id: \.self) { day in
+                    Button {
+                        onTap(day)
+                    } label: {
+                        Label("View Day \(day)", systemImage: "calendar.badge.clock")
+                            .font(VPFont.body(13, weight: .bold))
+                            .foregroundStyle(VPColor.cinnabar)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 10)
+                            .background(VPColor.paperWarm)
+                            .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
                 }
             }
         }

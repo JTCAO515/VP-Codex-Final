@@ -11,6 +11,8 @@ final class TripStore: ObservableObject {
     @Published var pendingExploreRef: ButlerExploreRef?
     @Published var pendingChatDraft: String?
     @Published var pendingToolId: String?
+    @Published var pendingTripDayNumber: Int?
+    @Published var recentlyUpdatedDays: Set<Int> = []
     @Published var hidesBottomBar = false
 
     private let api = VisePandaAPIClient()
@@ -57,6 +59,11 @@ final class TripStore: ObservableObject {
         selectedTab = .explore
     }
 
+    func openTripDay(_ dayNumber: Int) {
+        pendingTripDayNumber = dayNumber
+        selectedTab = .trips
+    }
+
     func prefillChat(_ text: String) {
         pendingChatDraft = text
         selectedTab = .chat
@@ -70,6 +77,11 @@ final class TripStore: ObservableObject {
     func consumePendingToolId() -> String? {
         defer { pendingToolId = nil }
         return pendingToolId
+    }
+
+    func consumePendingTripDayNumber() -> Int? {
+        defer { pendingTripDayNumber = nil }
+        return pendingTripDayNumber
     }
 
     func setBottomBarHidden(_ hidden: Bool) {
@@ -125,14 +137,20 @@ final class TripStore: ObservableObject {
                 preferenceProfile: StarterTripData.preferenceProfile
             )
             let updatedTrip = CanvasPatchApplier.apply(current: trip, patch: response.patch)
+            let affectedDays = response.patch.affectedDays
+            let existingAffectedDays = affectedDays?.filter { day in
+                updatedTrip.days.contains { $0.day == day }
+            }
             let assistant = ChatMessage(
                 id: UUID().uuidString,
                 role: .assistant,
                 content: response.patch.assistantMessage,
                 response: response.patch.assistantResponse,
+                affectedDays: affectedDays,
                 createdAt: ISO8601DateFormatter().string(from: Date())
             )
             trip = updatedTrip
+            recentlyUpdatedDays = Set(existingAffectedDays ?? [])
             messages.append(assistant)
             suggestions = response.suggestions?.isEmpty == false ? response.suggestions! : StarterTripData.suggestions
         } catch {

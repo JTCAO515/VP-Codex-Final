@@ -87,4 +87,29 @@ final class Issue84P0Tests: XCTestCase {
         XCTAssertEqual(ProfileSyncStatus.evaluate(isSignedIn: true, isLoading: false, hasError: false, hasEntries: true).title, "Synced")
         XCTAssertEqual(ProfileSyncStatus.evaluate(isSignedIn: true, isLoading: false, hasError: false, hasEntries: false).title, "Not synced")
     }
+
+    func testCanvasPatchDecodesAffectedDays() throws {
+        let data = """
+        {
+          "intent": "adjust_trip",
+          "assistantMessage": "Updated Day 2.",
+          "affectedDays": [2, 3],
+          "reason": "test"
+        }
+        """.data(using: .utf8)!
+
+        let patch = try JSONDecoder.visePanda.decode(CanvasPatch.self, from: data)
+        XCTAssertEqual(patch.affectedDays, [2, 3])
+    }
+
+    @MainActor
+    func testTripStoreConsumesPendingTripDay() {
+        let store = TripStore()
+
+        store.openTripDay(2)
+
+        XCTAssertEqual(store.selectedTab, .trips)
+        XCTAssertEqual(store.consumePendingTripDayNumber(), 2)
+        XCTAssertNil(store.consumePendingTripDayNumber())
+    }
 }
