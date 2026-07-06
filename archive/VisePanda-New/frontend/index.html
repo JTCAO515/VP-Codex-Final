@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>China Travel Agent — AI-Powered Trip Planner</title>
+    <meta name="description" content="Plan your China trip with AI. Itineraries, hotels, local tips — all in one chat. Supports English, Chinese, Russian, Spanish, Arabic, Korean, Japanese, French, German." />
+    <meta name="keywords" content="China travel, trip planner, itinerary, hotel booking, AI travel assistant" />
+    <meta property="og:title" content="China Travel Agent — AI Trip Planner" />
+    <meta property="og:description" content="Chat with AI to plan your perfect China trip. Multi-language support." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://go2china.space" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="theme-color" content="#7dd3fc" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="canonical" href="https://go2china.space" />
+    <link rel="alternate" hreflang="en" href="https://go2china.space/?lang=en" />
+    <link rel="alternate" hreflang="zh" href="https://go2china.space/?lang=zh" />
+    <link rel="alternate" hreflang="ru" href="https://go2china.space/?lang=ru" />
+    <link rel="alternate" hreflang="es" href="https://go2china.space/?lang=es" />
+    <link rel="alternate" hreflang="ar" href="https://go2china.space/?lang=ar" />
+    <link rel="alternate" hreflang="ko" href="https://go2china.space/?lang=ko" />
+    <link rel="alternate" hreflang="ja" href="https://go2china.space/?lang=ja" />
+    <link rel="alternate" hreflang="fr" href="https://go2china.space/?lang=fr" />
+    <link rel="alternate" hreflang="de" href="https://go2china.space/?lang=de" />
+    <link rel="alternate" hreflang="x-default" href="https://go2china.space" />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "China Travel Agent",
+      "url": "https://go2china.space",
+      "description": "AI-powered China travel planner with itinerary builder, hotel booking, and multi-language support.",
+      "applicationCategory": "TravelApplication",
+      "operatingSystem": "All",
+      "inLanguage": ["en","zh","ru","es","ar","ko","ja","fr","de"],
+      "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
+    }
+    </script>
+    <style>
+      :root{
+        --bg0:#05070b;
+        --bg1:#0a0f17;
+        --line:rgba(255,255,255,.08);
+        --muted:rgba(255,255,255,.62);
+        --text:rgba(255,255,255,.92);
+        --accent:#7dd3fc;
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC","Hiragino Sans GB","Microsoft YaHei", Arial, sans-serif;
+      }
+      body{
+        margin:0;
+        min-height:100vh;
+        background: radial-gradient(1200px 800px at 30% 15%, #121826 0%, var(--bg1) 55%, var(--bg0) 100%);
+        color:var(--text);
+      }
+      .bg-shanshui{position:fixed; inset:0; background:url("/assets/bg/shanshui.svg") center/cover no-repeat; opacity:.12; filter: blur(6px); pointer-events:none;}
+      .bg-cloud{position:fixed; inset:0; background:url("/assets/patterns/cloud.svg") center/420px repeat; opacity:.06; mix-blend-mode: screen; pointer-events:none;}
+      header{
+        position:relative;
+        height:56px;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        padding:0 16px;
+      }
+      .brand{display:flex; gap:10px; align-items:center;}
+      .dot{width:10px;height:10px;border-radius:99px;background:var(--accent); box-shadow:0 0 18px rgba(125,211,252,.45);}
+      .name{font-weight:650; font-size:14px; letter-spacing:.2px;}
+      .badge{font-size:12px; padding:6px 10px; border:1px solid var(--line); border-radius:999px; background:rgba(255,255,255,.04)}
+      button.ghost{font-size:12px; padding:7px 10px; border:1px solid var(--line); border-radius:999px; background:rgba(255,255,255,.03); color:var(--text); cursor:pointer;}
+      button.ghost:hover{background:rgba(255,255,255,.06)}
+      main{
+        position:relative;
+        min-height:calc(100vh - 56px);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        padding:24px 16px 90px;
+      }
+      .hero{width:min(720px, 96%); text-align:center;}
+      h1{margin:0 0 10px; font-size:34px; letter-spacing:-.02em;}
+      .sub{margin:0 0 22px; color:var(--muted); line-height:1.5;}
+      form{display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap;}
+      input#prompt{
+        width:min(560px, 92vw);
+        height:48px;
+        border-radius:999px;
+        border:1px solid var(--line);
+        background:rgba(255,255,255,.03);
+        color:var(--text);
+        padding:0 16px;
+        outline:none;
+      }
+      input#prompt:focus{border-color:rgba(125,211,252,.35); box-shadow:0 0 0 4px rgba(125,211,252,.12)}
+      button#startBtn{
+        height:48px;
+        padding:0 16px;
+        border-radius:999px;
+        border:1px solid rgba(125,211,252,.35);
+        background:rgba(125,211,252,.14);
+        color:var(--text);
+        cursor:pointer;
+      }
+      button#startBtn:hover{background:rgba(125,211,252,.20)}
+      .links{margin-top:14px; font-size:12px; color:var(--muted);}
+      .links a{color:rgba(255,255,255,.78); text-decoration:none}
+      .links a:hover{text-decoration:underline}
+      .links .sep{opacity:.5; padding:0 8px}
+      footer{position:fixed; left:0; right:0; bottom:0; padding:10px 16px; border-top:1px solid var(--line); background:rgba(8,10,14,.45); backdrop-filter: blur(10px); font-size:12px; color:var(--muted);}
+    </style>
+  </head>
+  <body>
+    <div class="bg-shanshui"></div>
+    <div class="bg-cloud"></div>
+    <header>
+      <div class="brand">
+        <div class="dot"></div>
+        <div class="name" data-i18n="app.title">China Travel Agent</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div id="langSwitcherArea"></div>
+        <div id="authArea"></div>
+      </div>
+    </header>
+
+    <main>
+      <div class="hero">
+        <h1 data-i18n="app.tagline">Plan your China trip</h1>
+        <p class="sub" data-i18n="app.subtitle">Ask less, chat more. Trip history saved automatically (after login).</p>
+        <form id="startForm">
+          <input id="prompt" data-i18n="app.placeholder" placeholder="Start chatting... (e.g. Beijing 5 days, food+history, relaxed pace)" />
+          <button id="startBtn" type="submit" data-i18n="app.start">Start</button>
+        </form>
+        <div class="links">
+          <a href="/chat" data-i18n="app.open_chat">Open chat</a>
+          <span class="sep">·</span>
+          <a href="#" id="googleLink" data-i18n="app.sign_in">Sign in with Google</a>
+          <span class="sep">·</span>
+          <span data-i18n="app.guest">Continue as guest</span>
+        </div>
+      </div>
+    </main>
+
+    <footer data-i18n="app.footer">Tip: Try without login (last 3 sessions saved locally). Login to sync across devices.</footer>
+
+    <script>if (location.hostname === "localhost" || location.hostname === "127.0.0.1") window.__API_BASE__ = "http://localhost:8000";</script>
+    <script>
+      // Pre-fetch Supabase config before module loads
+      let _resolveConfig;
+      window.__SUPABASE_CONFIG__ = { supabase_url: "", supabase_anon_key: "" };
+      window.__CONFIG_READY__ = new Promise(r => { _resolveConfig = r; });
+      (async () => {
+        try {
+          const base = window.__API_BASE__ || "";
+          const urls = base ? [base + "/public-config", "/api/public-config"] : ["/api/public-config"];
+          for (const url of urls) {
+            try {
+              const r = await fetch(url);
+              if (r.ok) { window.__SUPABASE_CONFIG__ = await r.json(); break; }
+            } catch (_) {}
+          }
+        } catch (_) {}
+        _resolveConfig();
+      })();
+    </script>
+    <script type="module">
+      import { newTripId, signInWithGoogle, setTopRightAuthUI } from "/app.js";
+      import { initI18n, renderLangSwitcher } from "/i18n.js";
+      initI18n();
+      renderLangSwitcher("langSwitcherArea");
+      setTopRightAuthUI({ containerId: "authArea" });
+      document.getElementById("googleLink").onclick = (e) => { e.preventDefault(); signInWithGoogle(); };
+      document.getElementById("startForm").onsubmit = (e) => {
+        e.preventDefault();
+        const t = document.getElementById("prompt").value.trim();
+        const trip = newTripId();
+        const u = new URL(window.location.origin + "/chat");
+        u.searchParams.set("trip", trip);
+        if (t) u.searchParams.set("q", t);
+        window.location.href = u.toString();
+      };
+    </script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("/sw.js").catch(() => {});
+      }
+    </script>
+  </body>
+</html>

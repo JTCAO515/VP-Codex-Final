@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="fog" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="rgba(255,255,255,0.08)"/>
+      <stop offset="1" stop-color="rgba(255,255,255,0.00)"/>
+    </linearGradient>
+    <filter id="soft">
+      <feGaussianBlur stdDeviation="2.2"/>
+    </filter>
+  </defs>
+  <rect width="1600" height="900" fill="transparent"/>
+
+  <!-- distant ink mountains -->
+  <g filter="url(#soft)" opacity="0.9">
+    <path d="M0 640 C180 560, 260 520, 360 560 C450 595, 560 520, 690 560 C820 602, 920 520, 1040 560 C1180 604, 1290 520, 1600 610 L1600 900 L0 900 Z"
+          fill="rgba(255,255,255,0.06)"/>
+    <path d="M0 700 C140 650, 260 620, 360 640 C480 666, 590 610, 720 640 C860 673, 1010 610, 1140 645 C1300 690, 1420 620, 1600 665 L1600 900 L0 900 Z"
+          fill="rgba(255,255,255,0.04)"/>
+    <path d="M0 760 C200 720, 310 720, 420 740 C550 764, 680 700, 820 740 C980 784, 1120 700, 1260 740 C1390 770, 1500 745, 1600 760 L1600 900 L0 900 Z"
+          fill="rgba(255,255,255,0.03)"/>
+  </g>
+
+  <!-- fog layers -->
+  <rect y="520" width="1600" height="380" fill="url(#fog)" opacity="0.9"/>
+</svg>
+
