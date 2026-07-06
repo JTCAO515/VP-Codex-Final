@@ -18,7 +18,7 @@ struct TripsView: View {
 
                     ForEach(store.trip.days) { day in
                         NavigationLink(value: day.day) {
-                            DayCard(day: day, updatedByButler: store.recentlyUpdatedDays.contains(day.day))
+                            DayCard(day: day, updatedByCopilot: store.recentlyUpdatedDays.contains(day.day))
                         }
                         .buttonStyle(.plain)
                     }
@@ -97,7 +97,7 @@ struct TripsView: View {
                 Text("No itinerary created yet")
                     .font(VPFont.display(21))
                     .foregroundStyle(VPColor.ink)
-                Text("Ask Butler to create a plan. If the network is offline, the app keeps this starter canvas instead of inventing trip days.")
+                Text("Ask Copilot to create a plan. If the network is offline, the app keeps this starter canvas instead of inventing trip days.")
                     .font(VPFont.body(14, weight: .semibold))
                     .foregroundStyle(VPColor.inkMuted)
                     .fixedSize(horizontal: false, vertical: true)
@@ -105,7 +105,7 @@ struct TripsView: View {
                 Button {
                     store.selectedTab = .chat
                 } label: {
-                    Text("Ask Butler")
+                    Text("Ask Copilot")
                         .font(VPFont.body(15, weight: .bold))
                         .foregroundStyle(VPColor.paperSoft)
                         .frame(maxWidth: .infinity)
@@ -195,7 +195,7 @@ private struct TimelineEntryCard: View {
 
 private struct DayCard: View {
     let day: TripDay
-    let updatedByButler: Bool
+    let updatedByCopilot: Bool
 
     var body: some View {
         let completeness = TripCompleteness.calculateDayCompleteness(day)
@@ -211,7 +211,7 @@ private struct DayCard: View {
                     if day.day == 1 {
                         VPStatusPill(title: "Today", tone: .red)
                     }
-                    if updatedByButler {
+                    if updatedByCopilot {
                         VPStatusPill(title: "Updated", tone: .ready)
                     }
                     VPStatusPill(title: "\(completeness)%", tone: completeness >= 75 ? .ready : .warning)

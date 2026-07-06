@@ -25,7 +25,7 @@ struct DayDetailView: View {
                         .font(VPFont.body(14))
                         .foregroundStyle(VPColor.inkSoft)
                     if store.recentlyUpdatedDays.contains(currentDay.day) {
-                        Label("Updated by Butler just now", systemImage: "sparkles")
+                        Label("Updated by Copilot just now", systemImage: "sparkles")
                             .font(VPFont.body(12, weight: .bold))
                             .foregroundStyle(VPColor.cinnabar)
                             .padding(.top, 4)
@@ -169,7 +169,7 @@ struct DayDetailView: View {
                     Button {
                         store.prefillChat("Please schedule \(block.title) into Day \(currentDay.day) in \(currentDay.city) and rebalance the day.")
                     } label: {
-                        Text("Ask Butler to schedule")
+                        Text("Ask Copilot to schedule")
                             .font(VPFont.body(14, weight: .bold))
                             .foregroundStyle(VPColor.paperSoft)
                             .frame(maxWidth: .infinity)

@@ -166,9 +166,9 @@ final class TripStore: ObservableObject {
         ChatMessage(
             id: UUID().uuidString,
             role: .assistant,
-            content: "VisePanda could not reach the live Butler service. Your saved trip was not changed.",
+            content: "VisePanda could not reach the live Copilot service. Your saved trip was not changed.",
             response: AssistantResponse(
-                headline: "Live Butler unavailable",
+                headline: "Live Copilot unavailable",
                 body: "I could not reach /api/chat, so I did not create or edit your itinerary. You can still view saved trip data and use the local Tools and Explore starter lists.",
                 highlights: [
                     "No AI or third-party key is stored in this iOS app",

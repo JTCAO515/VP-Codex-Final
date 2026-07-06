@@ -75,7 +75,7 @@ struct ChatView: View {
                 Text("VisePanda")
                     .font(VPFont.display(22))
                     .foregroundStyle(VPColor.ink)
-                Text("AI China Travel Butler")
+                Text("China Travel AI Copilot")
                     .font(VPFont.body(12))
                     .foregroundStyle(VPColor.inkSoft)
             }
@@ -165,12 +165,12 @@ struct ChatView: View {
                     if granted {
                         beginRecording()
                     } else {
-                        voiceError = "Microphone permission is required for Butler voice input."
+                        voiceError = "Microphone permission is required for Copilot voice input."
                     }
                 }
             }
         default:
-            voiceError = "Microphone permission is required for Butler voice input."
+            voiceError = "Microphone permission is required for Copilot voice input."
         }
     }
 
@@ -179,7 +179,7 @@ struct ChatView: View {
             let session = AVAudioSession.sharedInstance()
             try session.setCategory(.playAndRecord, mode: .spokenAudio, options: [.defaultToSpeaker])
             try session.setActive(true)
-            let url = FileManager.default.temporaryDirectory.appendingPathComponent("visepanda-butler-voice.m4a")
+            let url = FileManager.default.temporaryDirectory.appendingPathComponent("visepanda-copilot-voice.m4a")
             try? FileManager.default.removeItem(at: url)
             let nextRecorder = try AVAudioRecorder(url: url, settings: [
                 AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
