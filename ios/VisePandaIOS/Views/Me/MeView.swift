@@ -4,6 +4,7 @@ struct MeView: View {
     @EnvironmentObject private var store: TripStore
     @EnvironmentObject private var authStore: AuthStore
     @AppStorage("space.go2china.visepanda.ios.memoryProfileUserId") private var storedUserId = ""
+    @AppStorage("space.go2china.visepanda.ios.preferredLanguage") private var preferredLanguage = "en"
     @State private var entries: [UserMemoryEntry] = []
     @State private var isLoadingProfile = false
     @State private var errorMessage: String?
@@ -61,6 +62,8 @@ struct MeView: View {
 
                 profileCard
                 subscriptionSection
+                languageSection
+                syncStatusSection
                 memoryProfileSection
                 section(title: "TRIP HISTORY", rows: trips)
                 section(title: "DATA & OFFLINE", rows: dataRows)
@@ -161,21 +164,30 @@ struct MeView: View {
 
             VStack(spacing: 12) {
                 SubscriptionPlanCard(
-                    title: "Human Service",
-                    price: "$9.99 / month",
-                    summary: "Priority human travel help for itinerary fixes, booking questions, and urgent trip problems.",
-                    actionTitle: "Subscribe"
+                    title: "7-Day Trip Pass",
+                    price: "$9.99 one-time",
+                    summary: "Short-trip access to premium planning review, rescue tools, offline prep, and faster Butler help for one China trip week.",
+                    actionTitle: "Buy Pass"
                 ) {
-                    purchaseNotice = "StoreKit purchase placeholder. Product id: visepanda.human.monthly"
+                    purchaseNotice = "StoreKit purchase placeholder. Product id: visepanda.trip_pass.7day. This is a one-time trip pass, not an auto-renewing subscription."
                 }
 
                 SubscriptionPlanCard(
-                    title: "Premium Service",
-                    price: "$19.99 / month",
-                    summary: "Advanced concierge support with deeper planning review and faster response windows.",
-                    actionTitle: "Subscribe"
+                    title: "14-Day Trip Pass",
+                    price: "$19.99 one-time",
+                    summary: "Longer trip access to the same premium rescue, planning, translation, and offline-ready support for two travel weeks.",
+                    actionTitle: "Buy Pass"
                 ) {
-                    purchaseNotice = "StoreKit purchase placeholder. Product id: visepanda.premium.monthly"
+                    purchaseNotice = "StoreKit purchase placeholder. Product id: visepanda.trip_pass.14day. This is a one-time trip pass, not an auto-renewing subscription."
+                }
+
+                SubscriptionPlanCard(
+                    title: "Human Task",
+                    price: "$9.99 / task",
+                    summary: "One bounded human-help request, such as calling a hotel, confirming a booking, or explaining a payment issue.",
+                    actionTitle: "Request Help"
+                ) {
+                    purchaseNotice = "StoreKit purchase placeholder. Product id: visepanda.human_task.single. Human Task is per request, not unlimited support."
                 }
 
                 Button {
@@ -186,7 +198,7 @@ struct MeView: View {
                 }
                 .buttonStyle(.bordered)
 
-                Text("Subscriptions auto-renew until cancelled. Manage or cancel in your Apple ID subscriptions. Payment will be charged to your Apple ID after confirmation. Terms and Privacy Policy links will be connected before release.")
+                Text("Trip Pass is planned as a one-time purchase for a fixed travel window. Human Task is planned as a per-request purchase with a clear scope. Payment will be charged to your Apple ID after confirmation once StoreKit products are connected. Terms and Privacy Policy links will be connected before release.")
                     .font(VPFont.body(11, weight: .semibold))
                     .foregroundStyle(VPColor.inkSoft)
                     .fixedSize(horizontal: false, vertical: true)
@@ -275,6 +287,47 @@ struct MeView: View {
         }
     }
 
+    private var languageSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("LANGUAGE")
+                .font(VPFont.body(12, weight: .bold))
+                .foregroundStyle(VPColor.inkSoft)
+                .padding(.leading, 4)
+
+            VPCard {
+                VStack(alignment: .leading, spacing: 10) {
+                    Picker("Language", selection: $preferredLanguage) {
+                        Text("English").tag("en")
+                        Text("简体中文").tag("zh-CN")
+                    }
+                    .pickerStyle(.segmented)
+
+                    Text("Saved locally. Full app localization is not wired on iOS yet.")
+                        .font(VPFont.body(12, weight: .semibold))
+                        .foregroundStyle(VPColor.inkSoft)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+    }
+
+    private var syncStatusSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("SYNC STATUS")
+                .font(VPFont.body(12, weight: .bold))
+                .foregroundStyle(VPColor.inkSoft)
+                .padding(.leading, 4)
+
+            VPCard(padding: 0) {
+                MemoryStatusRow(
+                    title: syncStatus.title,
+                    value: syncStatus.message,
+                    icon: syncStatus.icon
+                )
+            }
+        }
+    }
+
     private var trips: [ProfileRow] {
         [
             ProfileRow(title: store.trip.summary.title, value: "Current"),
@@ -285,9 +338,18 @@ struct MeView: View {
     private var dataRows: [ProfileRow] {
         [
             ProfileRow(title: "Offline storage", value: "Trip + chat cache"),
-            ProfileRow(title: "Language", value: "English"),
+            ProfileRow(title: "Language", value: preferredLanguage == "zh-CN" ? "简体中文" : "English"),
             ProfileRow(title: "Export my data", value: "Not available")
         ]
+    }
+
+    private var syncStatus: ProfileSyncStatus {
+        ProfileSyncStatus.evaluate(
+            isSignedIn: authStore.isSignedIn,
+            isLoading: isLoadingProfile,
+            hasError: errorMessage != nil,
+            hasEntries: !entries.isEmpty
+        )
     }
 
     private func section(title: String, rows: [ProfileRow]) -> some View {
@@ -377,6 +439,48 @@ private struct ProfileRow: Identifiable, Equatable {
     var id: String { title + value }
     var title: String
     var value: String
+}
+
+struct ProfileSyncStatus: Equatable {
+    var title: String
+    var message: String
+    var icon: String
+
+    static func evaluate(isSignedIn: Bool, isLoading: Bool, hasError: Bool, hasEntries: Bool) -> ProfileSyncStatus {
+        if !isSignedIn {
+            return ProfileSyncStatus(
+                title: "Not signed in",
+                message: "Sign in to keep your account profile ready for sync.",
+                icon: "person.crop.circle.badge.exclamationmark"
+            )
+        }
+        if isLoading {
+            return ProfileSyncStatus(
+                title: "Syncing",
+                message: "Refreshing your AI profile from butler-service.",
+                icon: "arrow.triangle.2.circlepath"
+            )
+        }
+        if hasError {
+            return ProfileSyncStatus(
+                title: "Sync failed",
+                message: "The profile service is unavailable. Local trip data is unchanged.",
+                icon: "wifi.exclamationmark"
+            )
+        }
+        if hasEntries {
+            return ProfileSyncStatus(
+                title: "Synced",
+                message: "Your AI profile memories are available on this device.",
+                icon: "checkmark.circle"
+            )
+        }
+        return ProfileSyncStatus(
+            title: "Not synced",
+            message: "No AI profile memories are available yet.",
+            icon: "icloud.slash"
+        )
+    }
 }
 
 private struct SubscriptionPlanCard: View {

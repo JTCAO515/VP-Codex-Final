@@ -26,9 +26,11 @@ Claude Code 创建 Issue（定义任务 + Scope + 验收标准）
 
 | Agent | 角色 | 做什么 | 不做什么 |
 |-------|------|--------|---------|
-| **Claude Code** | 项目架构师 + Reviewer | 创建 Issue 分配任务、维护架构文档（`ARCHITECTURE.md` / `API_SPEC.md` / `MOBILE_STANDARD.md`）、审核所有 PR 的架构合规性、仲裁冲突 | 不编写端侧业务代码、不直接修改 PR 内容 |
-| **Codex** | 主力开发工程师 | 复杂逻辑实现、后端 API 开发、Bug Fix、重构、iOS 端开发 | 不私自改动数据库 Schema 和系统 Prompt、不触及架构决策层 |
-| **Antigravity** | 前端体验 + 验证 | Android 端开发、前端 UI 实现、浏览器交互验证、视觉一致性检查、E2E 测试 | 不制定架构规范、不私自新增接口与字段 |
+| **Claude Code** | 项目架构师 + Reviewer | 创建 Issue 分配任务、维护架构文档（`ARCHITECTURE.md` / `API_SPEC.md` / `MOBILE_STANDARD.md`）、审核所有 PR 的架构合规性、仲裁冲突；也会直接执行跨端/架构层面的任务（技术方案文档、后端契约变更评估等），不代表把执行权让渡出去 | 不代表任何一个客户端平台做最终 UI/交互决策、不直接修改别人 PR 内容 |
+| **Codex** | 主力开发工程师 + **iOS 主线（2026-07-06起）** | 复杂逻辑实现、后端 API 开发、Bug Fix、重构、iOS 端开发；**新功能默认先在 iOS 设计和实现** | 不私自改动数据库 Schema 和系统 Prompt、不触及架构决策层 |
+| **Antigravity** | 前端体验 + 验证 + **Android 追平（2026-07-06起）** | Android 端开发、前端 UI 实现、浏览器交互验证、视觉一致性检查、E2E 测试；**新功能等 iOS 对应 PR 合并后再追平，不要自创交互/命名** | 不制定架构规范、不私自新增接口与字段 |
+
+**任务分派不预先锁定平台**：以上"角色"栏描述的是默认倾向，不是硬性锁定——具体某个任务派给哪个 Agent，由架构师按任务性质临场判断（例如跨端架构评估、后端契约设计这类工作可能直接由架构师本人执行，而不是转派给 Codex/Antigravity）。
 
 ## 分支策略
 
@@ -725,3 +727,18 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 
 - `dev` = 集成分支，合并后必须随时可构建。
 - `main` = 稳定分支，架构师按里程碑合并 dev→main 并打版本 tag。
+
+## 2026-07-06 Agent Update — 平台优先级对调：iOS 主线，Android 追平
+
+操作者拍板：新功能从本日起先在 iOS 设计和实现，Android 随后追平（原来是 Android 主线、iOS 追平，反过来了）。
+
+**依据**：经三轮四模型（DeepSeek v4 Pro / Kimi k2.6 / Qwen3.7-plus）对抗性评审，最初"欧美/日韩游客 iPhone 占比高"这条理由被认为缺乏数据支撑（项目还没有真实用户分布数据）。架构师提出的替代依据：这几周 Codex 交付的 iOS PR 质量稳定可信（多个 PR 均用真实 `xcodebuild` 编译 + 测试验证过，分支基底干净，自查清单如实），这是基于真实工程产出的判断。
+
+**执行规则**：
+1. 只对**新功能**生效，Android 已有的、比 iOS 更成熟的功能不做倒退式迁移。
+2. 新 Issue 拆分方式：iOS 侧先出详细设计（交互稿/数据模型/验收标准）并实现，Codex 的 PR 合并到 `dev` 后，才给 Antigravity 开对应的 Android 追平 Issue，Android 不允许自创字段/命名/交互，除非先和架构师确认。
+3. 如果某个任务"只有方向没有详细方案"，设计这部分工作本身就是 iOS 执行方（通常是 Codex）Issue 的一部分产出，不需要架构师先出完整规格再派发。
+4. 这不解决"两端体验分叉"的根本问题（三模型一致提醒：只是把"二等公民"从 iOS 换成 Android），跨端一致的字段/命名契约（沿用 `API_SPEC.md` 的做法）仍然是强制要求，不能因为"Android 只是追平"就放松审查。
+5. KMM（Kotlin Multiplatform）被外部模型提出可以从根本上解决双端分叉，操作者未决定投入，是已知但未采纳的长期选项，不纳入近期任务。
+
+详见 `docs/planning/final-product-positioning-moat-and-risk-assessment.md`。

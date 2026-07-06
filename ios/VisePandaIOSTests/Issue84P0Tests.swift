@@ -79,4 +79,12 @@ final class Issue84P0Tests: XCTestCase {
 
         XCTAssertEqual(TripTimeline.buildTimeline(trip).map(\.position), [.now, .next, .later])
     }
+
+    func testProfileSyncStatusCoversP1States() {
+        XCTAssertEqual(ProfileSyncStatus.evaluate(isSignedIn: false, isLoading: false, hasError: false, hasEntries: false).title, "Not signed in")
+        XCTAssertEqual(ProfileSyncStatus.evaluate(isSignedIn: true, isLoading: true, hasError: false, hasEntries: false).title, "Syncing")
+        XCTAssertEqual(ProfileSyncStatus.evaluate(isSignedIn: true, isLoading: false, hasError: true, hasEntries: false).title, "Sync failed")
+        XCTAssertEqual(ProfileSyncStatus.evaluate(isSignedIn: true, isLoading: false, hasError: false, hasEntries: true).title, "Synced")
+        XCTAssertEqual(ProfileSyncStatus.evaluate(isSignedIn: true, isLoading: false, hasError: false, hasEntries: false).title, "Not synced")
+    }
 }

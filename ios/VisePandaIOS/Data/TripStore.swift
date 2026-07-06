@@ -49,7 +49,6 @@ final class TripStore: ObservableObject {
     }
 
     func addPlaceToPlan(_ placeName: String) {
-        selectedTab = .chat
         send("Add \(placeName) to my Shanghai plan if it fits the current pace.")
     }
 

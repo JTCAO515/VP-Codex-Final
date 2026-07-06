@@ -13,6 +13,7 @@ struct TranslateView: View {
     @State private var errorMessage: String?
     @State private var selectedPhrase: Phrase?
     @State private var tts = AVSpeechSynthesizer()
+    @State private var audioPlayer: AVPlayer?
     @State private var allowAutoTranslate = true
     @State private var speaking = false
     @State private var processingMode: TranslateProcessingMode?
@@ -20,6 +21,8 @@ struct TranslateView: View {
     @State private var imagePicker: TranslateImagePickerSource?
     @State private var recorder: AVAudioRecorder?
     @State private var recordingTask: Task<Void, Never>?
+    @State private var localDisplayCard: LocalDisplayCard?
+    @AppStorage("localDisplayDietaryRestrictions") private var dietaryRestrictionStorage = ""
 
     private let api = VisePandaAPIClient()
     private let phrases = StaticTranslateData.phrases
@@ -75,15 +78,20 @@ struct TranslateView: View {
         .navigationTitle("Translate")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(item: $selectedPhrase) { phrase in
-            PhraseBigCard(phrase: phrase, speak: { speak(phrase.chinese, language: "zh-CN") })
+            PhraseBigCard(phrase: phrase, speak: { speak(phrase.chinese, languageCode: "zh") })
         }
         .sheet(item: $imagePicker) { picker in
             ImagePicker(sourceType: picker.sourceType) { image in
                 Task { await handlePickedImage(image) }
             }
         }
+        .sheet(item: $localDisplayCard) { card in
+            ShowToLocalSheet(card: card)
+                .presentationDetents([.medium, .large])
+        }
         .onDisappear {
             stopRecording(send: false)
+            audioPlayer?.pause()
         }
     }
 
@@ -179,7 +187,7 @@ struct TranslateView: View {
                         HStack {
                             Label {
                                 VStack(alignment: .leading, spacing: 3) {
-                                    Text("Travel Talk Card")
+                                    Text("Quick Phrases")
                                     Text("Show Chinese phrases for directions, food, pay, and help")
                                         .font(VPFont.body(12, weight: .semibold))
                                         .foregroundStyle(VPColor.inkSoft)
@@ -196,6 +204,8 @@ struct TranslateView: View {
                     }
                 }
                 .buttonStyle(.plain)
+
+                allergyNeedsCard
             }
             .padding(20)
         }
@@ -210,7 +220,7 @@ struct TranslateView: View {
                 ForEach(groupedPhrases, id: \.0) { category, categoryPhrases in
                     Section {
                         ForEach(categoryPhrases) { phrase in
-                            PhraseRow(phrase: phrase, speak: { speak(phrase.chinese, language: "zh-CN") })
+                            PhraseRow(phrase: phrase, speak: { speak(phrase.chinese, languageCode: "zh") })
                                 .onTapGesture { selectedPhrase = phrase }
                         }
                     } header: {
@@ -231,6 +241,71 @@ struct TranslateView: View {
         Dictionary(grouping: phrases, by: \.category)
             .sorted { $0.key < $1.key }
             .map { ($0.key, $0.value) }
+    }
+
+    private var allergyNeedsCard: some View {
+        VPCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Label("Dietary card", systemImage: "fork.knife.circle.fill")
+                    .font(VPFont.body(15, weight: .bold))
+                    .foregroundStyle(VPColor.ink)
+
+                Text("Save allergy or dietary needs, then show fixed Chinese text to restaurant staff.")
+                    .font(VPFont.body(13, weight: .semibold))
+                    .foregroundStyle(VPColor.inkSoft)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], alignment: .leading, spacing: 8) {
+                    ForEach(DietaryRestriction.allCases) { restriction in
+                        Button {
+                            toggleRestriction(restriction)
+                        } label: {
+                            Label(restriction.label, systemImage: selectedDietaryRestrictions.contains(restriction) ? "checkmark.circle.fill" : "circle")
+                                .font(VPFont.body(12, weight: .bold))
+                                .foregroundStyle(selectedDietaryRestrictions.contains(restriction) ? VPColor.cinnabar : VPColor.inkMuted)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+
+                Button {
+                    localDisplayCard = allergyCard
+                } label: {
+                    Label("Show dietary needs", systemImage: "text.viewfinder")
+                        .font(VPFont.body(14, weight: .bold))
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(VPColor.cinnabar)
+                .disabled(selectedDietaryRestrictions.isEmpty)
+            }
+        }
+    }
+
+    private var selectedDietaryRestrictions: [DietaryRestriction] {
+        dietaryRestrictionStorage
+            .split(separator: ",")
+            .compactMap { DietaryRestriction(rawValue: String($0)) }
+    }
+
+    private var allergyCard: LocalDisplayCard {
+        LocalDisplayCard(
+            kind: .allergy,
+            title: "Dietary needs",
+            headline: selectedDietaryRestrictions.map(\.chinese).joined(separator: "\n"),
+            detail: "Please show this to restaurant staff."
+        )
+    }
+
+    private func toggleRestriction(_ restriction: DietaryRestriction) {
+        var restrictions = selectedDietaryRestrictions
+        if restrictions.contains(restriction) {
+            restrictions.removeAll { $0 == restriction }
+        } else {
+            restrictions.append(restriction)
+        }
+        dietaryRestrictionStorage = restrictions.map(\.rawValue).joined(separator: ",")
     }
 
     private func translationCard(_ result: TranslateResult) -> some View {
@@ -261,7 +336,7 @@ struct TranslateView: View {
                     Spacer()
 
                     Button {
-                        speak(result.translation, language: toLanguage.speechLocale)
+                        speak(result.translation, languageCode: toLanguageCode)
                     } label: {
                         Label(speaking ? "Speaking" : "Speak", systemImage: "speaker.wave.2.fill")
                     }
@@ -518,11 +593,34 @@ struct TranslateView: View {
         processingMode = nil
     }
 
-    private func speak(_ text: String, language: String) {
+    private func speak(_ text: String, languageCode: String) {
+        Task { await speakWithBackendFallback(text, languageCode: languageCode) }
+    }
+
+    @MainActor
+    private func speakWithBackendFallback(_ text: String, languageCode: String) async {
+        if tts.isSpeaking { tts.stopSpeaking(at: .immediate) }
+        audioPlayer?.pause()
+        speaking = true
+        do {
+            let language = SupportedLanguages.byCode(languageCode)
+            let audio = try await api.translateTts(text: text, language: language.ttsLanguageName)
+            guard let url = audio.httpsURL else { throw URLError(.badURL) }
+            let player = AVPlayer(url: url)
+            audioPlayer = player
+            player.play()
+            try? await Task.sleep(nanoseconds: 1_600_000_000)
+            speaking = false
+        } catch {
+            speakLocally(text, languageCode: languageCode)
+        }
+    }
+
+    private func speakLocally(_ text: String, languageCode: String) {
         if tts.isSpeaking { tts.stopSpeaking(at: .immediate) }
         speaking = true
         let utterance = AVSpeechUtterance(string: text)
-        utterance.voice = AVSpeechSynthesisVoice(language: language)
+        utterance.voice = AVSpeechSynthesisVoice(language: SupportedLanguages.byCode(languageCode).speechLocale)
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate
         tts.speak(utterance)
         Task {

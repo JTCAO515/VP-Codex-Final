@@ -420,6 +420,21 @@ private struct ChatComposer: View {
 
     var body: some View {
         HStack(spacing: 12) {
+            VStack(spacing: 2) {
+                Image(systemName: "camera.fill")
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundStyle(VPColor.inkSoft.opacity(0.45))
+                    .frame(width: 30, height: 30)
+                    .background(VPColor.paperWarm)
+                    .clipShape(Circle())
+                    .accessibilityLabel("Camera input unavailable")
+                Text("Backend needed")
+                    .font(VPFont.body(8, weight: .bold))
+                    .foregroundStyle(VPColor.inkSoft.opacity(0.7))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+
             Button(action: onMic) {
                 Image(systemName: isRecording ? "stop.circle.fill" : "mic.fill")
                     .foregroundStyle(isRecording ? VPColor.cinnabar : VPColor.inkSoft)

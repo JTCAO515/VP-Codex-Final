@@ -1,5 +1,7 @@
 package space.go2china.visepanda.ui.me
 
+import android.net.Uri
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -44,6 +47,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -65,8 +69,11 @@ fun MeScreen(
     onSelectLanguage: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: MeViewModel = hiltViewModel(),
+    pendingGoogleAuthCallback: String? = null,
+    onGoogleAuthCallbackConsumed: () -> Unit = {},
 ) {
     val state by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
     // v0.3.x (Issue #67): the profile card is now the single entry point into
     // account state — tapping it opens this sheet, which shows either the
     // login form or signed-in info + sign out, instead of a form/row that was
@@ -78,6 +85,17 @@ fun MeScreen(
     LaunchedEffect(state.isLoggedIn) {
         if (state.isLoggedIn) {
             showAccountSheet = false
+        }
+    }
+
+    // MainActivity forwards the auth-callback deep link from the Google
+    // sign-in Custom Tab redirect here (Issue #85 item 5) — consume it once
+    // so config changes/recomposition don't replay a stale callback.
+    LaunchedEffect(pendingGoogleAuthCallback) {
+        pendingGoogleAuthCallback?.let { callbackUrl ->
+            showAccountSheet = true
+            viewModel.completeGoogleSignIn(callbackUrl)
+            onGoogleAuthCallbackConsumed()
         }
     }
 
@@ -133,8 +151,13 @@ fun MeScreen(
                 userEmail = state.userEmail,
                 isLoading = state.isLoading,
                 errorMessage = state.errorMessage,
+                signUpConfirmationEmail = state.signUpConfirmationEmail,
                 onLogin = { email, password -> viewModel.login(email, password) },
                 onSignUp = { email, password -> viewModel.signUp(email, password) },
+                onGoogleSignIn = {
+                    CustomTabsIntent.Builder().build()
+                        .launchUrl(context, Uri.parse(viewModel.googleOAuthUrl()))
+                },
                 onLogOutClick = {
                     viewModel.logout()
                     showAccountSheet = false
@@ -657,12 +680,18 @@ private fun AccountSheetContent(
     userEmail: String?,
     isLoading: Boolean,
     errorMessage: String?,
+    signUpConfirmationEmail: String?,
     onLogin: (String, String) -> Unit,
     onSignUp: (String, String) -> Unit,
+    onGoogleSignIn: () -> Unit,
     onLogOutClick: () -> Unit,
     onClearError: () -> Unit,
 ) {
-    Column(modifier = Modifier.fillMaxWidth().padding(Dimens.SpaceLG)) {
+    // Bug fix (real-device report, 2026-07-05): ModalBottomSheet applies
+    // navigationBars insets to its content by default, but not ime — without
+    // this, the keyboard covers the sign-in/sign-up button when the email or
+    // password field is focused.
+    Column(modifier = Modifier.fillMaxWidth().padding(Dimens.SpaceLG).imePadding()) {
         if (isLoggedIn) {
             Text(
                 text = stringResource(R.string.me_account_logged_in),
@@ -687,8 +716,10 @@ private fun AccountSheetContent(
             LogInForm(
                 isLoading = isLoading,
                 errorMessage = errorMessage,
+                signUpConfirmationEmail = signUpConfirmationEmail,
                 onLogin = onLogin,
                 onSignUp = onSignUp,
+                onGoogleSignIn = onGoogleSignIn,
                 onClearError = onClearError,
             )
         }
@@ -700,8 +731,10 @@ private fun AccountSheetContent(
 private fun ColumnScope.LogInForm(
     isLoading: Boolean,
     errorMessage: String?,
+    signUpConfirmationEmail: String?,
     onLogin: (String, String) -> Unit,
     onSignUp: (String, String) -> Unit,
+    onGoogleSignIn: () -> Unit,
     onClearError: () -> Unit,
 ) {
     var email by remember { mutableStateOf("") }
@@ -748,6 +781,18 @@ private fun ColumnScope.LogInForm(
         )
     }
 
+    // Email confirmation ON for this Supabase project — signUp succeeds
+    // without a session and the user must confirm via email before signing
+    // in, mirrors iOS's signUpConfirmationEmail notice.
+    if (signUpConfirmationEmail != null) {
+        Spacer(modifier = Modifier.height(Dimens.SpaceSM))
+        Text(
+            text = "Account created for $signUpConfirmationEmail. Check your email and tap the confirmation link, then sign in.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
+
     Spacer(modifier = Modifier.height(Dimens.SpaceMD))
 
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
@@ -766,11 +811,11 @@ private fun ColumnScope.LogInForm(
 
     Spacer(modifier = Modifier.height(Dimens.SpaceSM))
 
-    // Google OAuth is not implemented yet (tracked separately from
-    // email/password Phase 1) — disabled and honestly labeled instead of a
-    // clickable button that claimed readiness while doing nothing.
-    OutlinedButton(onClick = {}, modifier = Modifier.fillMaxWidth(), enabled = false) {
-        Text(stringResource(R.string.me_google_signin_coming_soon))
+    // Google OAuth (Issue #85 item 5) — opens Supabase's authorize URL in a
+    // Custom Tab; the app catches the redirect via the auth-callback deep
+    // link registered in AndroidManifest.xml and completes sign-in there.
+    OutlinedButton(onClick = onGoogleSignIn, modifier = Modifier.fillMaxWidth(), enabled = !isLoading) {
+        Text(stringResource(R.string.me_google_signin_button))
     }
 
     Spacer(modifier = Modifier.height(Dimens.SpaceSM))

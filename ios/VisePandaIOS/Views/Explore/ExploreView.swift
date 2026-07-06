@@ -7,13 +7,18 @@ struct ExploreView: View {
     @State private var showingCityPicker = false
     @State private var comingSoonPost: ExploreUGCPost?
     @State private var path: [ExploreRoute] = []
+    @StateObject private var locationProvider = ExploreLocationProvider()
+    @State private var contextualPois: [ExploreAmapPoi] = []
+    @State private var contextualLoading = false
+    @State private var contextualNotice: String?
+    @State private var selectedContextPoi: ExploreAmapPoi?
 
     var body: some View {
         NavigationStack(path: $path) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     header
-                    searchBar
+                    contextualDiscovery
                     categoryGrid
                     ugcFeed
                 }
@@ -32,6 +37,20 @@ struct ExploreView: View {
                 CityPickerSheet(selectedCityId: $selectedCityId)
                     .presentationDetents([.medium])
             }
+            .sheet(item: $selectedContextPoi) { poi in
+                PoiDetailSheet(
+                    poi: poi,
+                    category: contextualCategory,
+                    onAddToTrip: {
+                        store.addPlaceToPlan(poi.name)
+                        contextualNotice = "Added \(poi.name) to your trip request."
+                    },
+                    onAskButler: {
+                        store.prefillChat("Tell me about \(poi.name) in \(city.name). Is it a good fit for my trip, and where would you place it?")
+                    }
+                )
+                .presentationDetents([.medium, .large])
+            }
             .alert("Coming soon", isPresented: Binding(
                 get: { comingSoonPost != nil },
                 set: { if !$0 { comingSoonPost = nil } }
@@ -44,11 +63,64 @@ struct ExploreView: View {
             .onChange(of: store.pendingExploreRef) { _, _ in
                 openPendingRef()
             }
+            .task {
+                locationProvider.requestOnce()
+                await loadContextualPois()
+            }
+            .onChange(of: locationProvider.status) { _, status in
+                if status == .available {
+                    Task { await loadContextualPois() }
+                } else if status == .denied || status == .failed {
+                    contextualNotice = "Location is unavailable, so Explore is showing all-city suggestions."
+                }
+            }
+            .onChange(of: selectedCityId) { _, _ in
+                Task { await loadContextualPois() }
+            }
         }
     }
 
     private var city: ExploreCity {
         ExploreCity.city(id: selectedCityId)
+    }
+
+    private var contextualCategory: ExploreCategory {
+        switch Calendar.current.component(.hour, from: Date()) {
+        case 6...13, 18...21:
+            .food
+        case 14...17:
+            .experiences
+        default:
+            .attractions
+        }
+    }
+
+    private var contextualSubcategoryKey: String {
+        switch Calendar.current.component(.hour, from: Date()) {
+        case 6...10:
+            "food.cafe"
+        case 11...13, 18...21:
+            "food"
+        case 14...17:
+            "experiences.teahouse"
+        default:
+            contextualCategory.semanticKey
+        }
+    }
+
+    private var contextualTitle: String {
+        switch Calendar.current.component(.hour, from: Date()) {
+        case 6...10:
+            "Coffee and breakfast near you"
+        case 11...13:
+            "Lunch options near you"
+        case 14...17:
+            "Afternoon experiences near you"
+        case 18...21:
+            "Dinner options near you"
+        default:
+            "Useful places near you"
+        }
     }
 
     private func openPendingRef() {
@@ -86,53 +158,111 @@ struct ExploreView: View {
         }
     }
 
-    private var searchBar: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(VPColor.inkSoft)
-            Text("Search places, food, hotels")
-                .font(VPFont.body(15))
-                .foregroundStyle(VPColor.inkSoft)
-            Spacer()
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
-        .background(VPColor.paperSoft)
-        .clipShape(Capsule())
-        .overlay {
-            Capsule()
-                .stroke(VPColor.outline, lineWidth: 1)
+    private var categoryGrid: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Choose a scene")
+                .font(VPFont.body(18, weight: .bold))
+                .foregroundStyle(VPColor.ink)
+            HStack(spacing: 9) {
+                ForEach(ExploreCategory.allCases) { category in
+                    NavigationLink(value: ExploreRoute(category: category)) {
+                        VStack(spacing: 8) {
+                            Image(systemName: category.icon)
+                                .font(.system(size: 19, weight: .bold))
+                                .foregroundStyle(VPColor.cinnabar)
+                                .frame(width: 42, height: 42)
+                                .background(VPColor.cinnabar.opacity(0.1))
+                                .clipShape(Circle())
+
+                            Text(category.title)
+                                .font(VPFont.body(11, weight: .bold))
+                                .foregroundStyle(VPColor.inkMuted)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.75)
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
         }
     }
 
-    private var categoryGrid: some View {
-        HStack(spacing: 9) {
-            ForEach(ExploreCategory.allCases) { category in
-                NavigationLink(value: ExploreRoute(category: category)) {
-                    VStack(spacing: 8) {
-                        Image(systemName: category.icon)
-                            .font(.system(size: 19, weight: .bold))
-                            .foregroundStyle(VPColor.cinnabar)
-                            .frame(width: 42, height: 42)
-                            .background(VPColor.cinnabar.opacity(0.1))
-                            .clipShape(Circle())
-
-                        Text(category.title)
-                            .font(VPFont.body(11, weight: .bold))
-                            .foregroundStyle(VPColor.inkMuted)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.75)
-                    }
-                    .frame(maxWidth: .infinity)
+    private var contextualDiscovery: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(contextualTitle)
+                        .font(VPFont.body(18, weight: .bold))
+                        .foregroundStyle(VPColor.ink)
+                    Text(locationProvider.coordinate == nil ? "Citywide fallback · \(city.name)" : "Walking-distance first · \(city.name)")
+                        .font(VPFont.body(12, weight: .semibold))
+                        .foregroundStyle(VPColor.inkSoft)
                 }
-                .buttonStyle(.plain)
+                Spacer()
+                NavigationLink(value: ExploreRoute(category: contextualCategory)) {
+                    Text("See all")
+                        .font(VPFont.body(12, weight: .bold))
+                        .foregroundStyle(VPColor.cinnabar)
+                }
             }
+
+            if let contextualNotice {
+                NoticeBanner(text: contextualNotice) {
+                    self.contextualNotice = nil
+                }
+            }
+
+            if contextualLoading {
+                ProgressView()
+                    .tint(VPColor.cinnabar)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 24)
+            } else if contextualPois.isEmpty {
+                EmptyExploreState(message: "Live suggestions are unavailable right now.")
+            } else {
+                VStack(spacing: 12) {
+                    ForEach(contextualPois.prefix(3)) { poi in
+                        Button {
+                            selectedContextPoi = poi
+                        } label: {
+                            MerchantCard(poi: poi, category: contextualCategory, userLocation: locationProvider.coordinate)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
+    }
+
+    private func loadContextualPois() async {
+        if contextualLoading { return }
+        contextualLoading = true
+        defer { contextualLoading = false }
+
+        let coordinate = locationProvider.coordinate
+        let locationString = coordinate.map { "\($0.longitude),\($0.latitude)" }
+
+        do {
+            let response = try await VisePandaAPIClient().fetchExploreAmap(
+                cityId: selectedCityId,
+                type: contextualSubcategoryKey,
+                page: 1,
+                mode: coordinate == nil ? "city" : "around",
+                location: locationString,
+                radius: coordinate == nil ? nil : 3_000,
+                sort: coordinate == nil ? "weight" : "distance"
+            )
+            contextualPois = response.pois
+        } catch {
+            contextualPois = []
+            contextualNotice = "Live Explore is unavailable: \(error.localizedDescription)"
         }
     }
 
     private var ugcFeed: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("\(city.name) notes")
+            Text("Popular in \(city.name)")
                 .font(VPFont.body(18, weight: .bold))
                 .foregroundStyle(VPColor.ink)
 
@@ -251,11 +381,7 @@ private struct ExploreChannelView: View {
 
     @StateObject private var locationProvider = ExploreLocationProvider()
     @State private var selectedSubcategory: ExploreSubcategory
-    @State private var distance: ExploreDistance = .citywide
     @State private var sort: ExploreSort = .smart
-    @State private var filters = ExploreFilterState()
-    @State private var draftFilters = ExploreFilterState()
-    @State private var openPanel: FilterPanel?
     @State private var pois: [ExploreAmapPoi] = []
     @State private var page = 1
     @State private var hasMore = true
@@ -280,89 +406,64 @@ private struct ExploreChannelView: View {
     }
 
     private var visiblePois: [ExploreAmapPoi] {
-        var result = pois
-        if filters.requiresRating {
-            result = result.filter { $0.ratingValue != nil }
-        }
-        if !filters.priceFilters.isEmpty {
-            result = result.filter { poi in
-                guard let cost = poi.costValue else { return false }
-                return filters.priceFilters.contains { $0.contains(cost) }
-            }
-        }
         switch sort {
         case .smart, .nearest:
-            return result
+            return pois
         case .rating:
-            return result.sorted { ($0.ratingValue ?? -1) > ($1.ratingValue ?? -1) }
+            return pois.sorted { ($0.ratingValue ?? -1) > ($1.ratingValue ?? -1) }
         case .priceLow:
-            return result.sorted { ($0.costValue ?? .greatestFiniteMagnitude) < ($1.costValue ?? .greatestFiniteMagnitude) }
+            return pois.sorted { ($0.costValue ?? .greatestFiniteMagnitude) < ($1.costValue ?? .greatestFiniteMagnitude) }
         }
     }
 
     var body: some View {
-        ZStack(alignment: .top) {
-            VPColor.paper.ignoresSafeArea()
+        VStack(spacing: 0) {
+            header
 
-            VStack(spacing: 0) {
-                header
-                filterBar
+            ScrollView {
+                LazyVStack(spacing: 12) {
+                    contextPanel
 
-                ScrollView {
-                    LazyVStack(spacing: 12) {
-                        if let notice {
-                            NoticeBanner(text: notice)
-                                .padding(.horizontal, 20)
+                    if let notice {
+                        NoticeBanner(text: notice) {
+                            self.notice = nil
                         }
+                            .padding(.horizontal, 20)
+                    }
 
-                        if visiblePois.isEmpty && !isLoading {
-                            EmptyExploreState(message: pois.isEmpty ? "Live Explore data is unavailable or empty right now." : "No merchants match these filters.")
-                                .padding(.horizontal, 20)
-                                .padding(.top, 28)
-                        } else {
-                            ForEach(visiblePois) { poi in
-                                Button {
-                                    selectedPoi = poi
-                                } label: {
-                                    MerchantCard(poi: poi, category: category, userLocation: locationProvider.coordinate)
-                                }
-                                .buttonStyle(.plain)
-                                .padding(.horizontal, 20)
-                                .onAppear {
-                                    loadMoreIfNeeded(current: poi)
-                                }
+                    if visiblePois.isEmpty && !isLoading {
+                        EmptyExploreState(message: pois.isEmpty ? "Live Explore data is unavailable or empty right now." : "No places match this scene.")
+                            .padding(.horizontal, 20)
+                            .padding(.top, 12)
+                    } else {
+                        ForEach(visiblePois) { poi in
+                            Button {
+                                selectedPoi = poi
+                            } label: {
+                                MerchantCard(poi: poi, category: category, userLocation: locationProvider.coordinate)
+                            }
+                            .buttonStyle(.plain)
+                            .padding(.horizontal, 20)
+                            .onAppear {
+                                loadMoreIfNeeded(current: poi)
                             }
                         }
-
-                        if isLoading {
-                            ProgressView()
-                                .tint(VPColor.cinnabar)
-                                .padding(.vertical, 24)
-                        }
                     }
-                    .padding(.top, 12)
-                    .padding(.bottom, 26)
+
+                    if isLoading {
+                        ProgressView()
+                            .tint(VPColor.cinnabar)
+                            .padding(.vertical, 24)
+                    }
                 }
-                .refreshable {
-                    await load(reset: true)
-                }
+                .padding(.top, 12)
+                .padding(.bottom, 26)
             }
-
-            if let openPanel {
-                Color.black.opacity(0.2)
-                    .ignoresSafeArea()
-                    .padding(.top, 106)
-                    .onTapGesture {
-                        withAnimation(.easeOut(duration: 0.18)) {
-                            self.openPanel = nil
-                        }
-                    }
-
-                dropdown(panel: openPanel)
-                    .padding(.top, 106)
-                    .transition(.move(edge: .top).combined(with: .opacity))
+            .refreshable {
+                await load(reset: true)
             }
         }
+        .background(VPColor.paper.ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
         .sheet(isPresented: $showingCityPicker) {
             CityPickerSheet(selectedCityId: $cityId)
@@ -372,7 +473,10 @@ private struct ExploreChannelView: View {
             PoiDetailSheet(
                 poi: poi,
                 category: category,
-                onAddToTrip: { store.addPlaceToPlan(poi.name) },
+                onAddToTrip: {
+                    store.addPlaceToPlan(poi.name)
+                    notice = "Added \(poi.name) to your trip request."
+                },
                 onAskButler: {
                     store.prefillChat("Tell me about \(poi.name) in \(city.name). Is it a good fit for my trip, and where would you place it?")
                 }
@@ -384,11 +488,9 @@ private struct ExploreChannelView: View {
             await load(reset: true)
         }
         .onChange(of: locationProvider.status) { _, status in
-            if status == .available, distance == .citywide {
-                distance = .nearby3000
+            if status == .available {
                 Task { await load(reset: true) }
             } else if status == .denied || status == .failed {
-                distance = .citywide
                 notice = "Location is unavailable, so Explore is showing all-city results."
             }
         }
@@ -440,176 +542,58 @@ private struct ExploreChannelView: View {
         .background(VPColor.paper)
     }
 
-    private var filterBar: some View {
-        HStack(spacing: 0) {
-            filterButton(.distance, title: distance.title)
-            filterButton(.category, title: selectedSubcategory.title)
-            filterButton(.sort, title: sort.title)
-            filterButton(.filters, title: filters.activeCount == 0 ? "Filter" : "Filter·\(filters.activeCount)")
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(VPColor.paperSoft)
-        .overlay(alignment: .bottom) {
-            Rectangle()
-                .fill(VPColor.outline.opacity(0.8))
-                .frame(height: 1)
-        }
-    }
+    private var contextPanel: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(locationProvider.coordinate == nil ? "Citywide suggestions for \(city.name)" : "Near you now")
+                .font(VPFont.body(18, weight: .bold))
+                .foregroundStyle(VPColor.ink)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-    private func filterButton(_ panel: FilterPanel, title: String) -> some View {
-        Button {
-            withAnimation(.easeOut(duration: 0.18)) {
-                if openPanel == panel {
-                    openPanel = nil
-                } else {
-                    if panel == .filters {
-                        draftFilters = filters
-                    }
-                    openPanel = panel
-                }
-            }
-        } label: {
-            HStack(spacing: 4) {
-                Text(title)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.72)
-                Image(systemName: openPanel == panel ? "chevron.up" : "chevron.down")
-                    .font(.system(size: 9, weight: .bold))
-            }
-            .font(VPFont.body(12, weight: .bold))
-            .foregroundStyle(openPanel == panel || isActive(panel) ? VPColor.cinnabar : VPColor.inkMuted)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 9)
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func dropdown(panel: FilterPanel) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            switch panel {
-            case .distance:
-                singleSelection(ExploreDistance.allCases, selected: distance, disabled: { _ in false }) { value in
-                    distance = value
-                    openPanel = nil
-                    Task { await load(reset: true) }
-                }
-            case .category:
-                singleSelection(category.subcategories, selected: selectedSubcategory, disabled: { _ in false }) { value in
-                    selectedSubcategory = value
-                    openPanel = nil
-                    Task { await load(reset: true) }
-                }
-            case .sort:
-                singleSelection(ExploreSort.allCases, selected: sort, disabled: { value in
-                    value == .nearest && locationProvider.coordinate == nil
-                }) { value in
-                    sort = value
-                    openPanel = nil
-                    Task { await load(reset: true) }
-                }
-            case .filters:
-                filterPanel
-            }
-        }
-        .background(VPColor.paperSoft)
-        .overlay(alignment: .bottom) {
-            Rectangle()
-                .fill(VPColor.outline.opacity(0.8))
-                .frame(height: 1)
-        }
-    }
-
-    private func singleSelection<Item: Identifiable & Equatable>(
-        _ items: [Item],
-        selected: Item,
-        disabled: @escaping (Item) -> Bool,
-        onSelect: @escaping (Item) -> Void
-    ) -> some View where Item.ID == String {
-        VStack(spacing: 0) {
-            ForEach(items) { item in
-                Button {
-                    if !disabled(item) {
-                        onSelect(item)
-                    }
-                } label: {
-                    HStack {
-                        Text(title(for: item))
-                            .font(VPFont.body(15, weight: .semibold))
-                            .foregroundStyle(disabled(item) ? VPColor.inkSoft.opacity(0.45) : VPColor.ink)
-                        Spacer()
-                        if item == selected {
-                            Image(systemName: "checkmark")
-                                .foregroundStyle(VPColor.cinnabar)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(category.subcategories) { subcategory in
+                        chip(title: subcategory.title, selected: subcategory == selectedSubcategory) {
+                            selectedSubcategory = subcategory
+                            Task { await load(reset: true) }
                         }
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 14)
                 }
-                .buttonStyle(.plain)
+                .padding(.horizontal, 20)
             }
-        }
-    }
 
-    private var filterPanel: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Price per person")
-                .font(VPFont.body(14, weight: .bold))
-                .foregroundStyle(VPColor.ink)
-            Text("Price filters only include merchants with Amap cost data.")
+            HStack(spacing: 8) {
+                chip(title: "Smart", selected: sort == .smart) {
+                    sort = .smart
+                    Task { await load(reset: true) }
+                }
+                chip(title: "Nearest", selected: sort == .nearest) {
+                    sort = .nearest
+                    Task { await load(reset: true) }
+                }
+                chip(title: "Top rated", selected: sort == .rating) {
+                    sort = .rating
+                }
+                chip(title: "Lower price", selected: sort == .priceLow) {
+                    sort = .priceLow
+                }
+            }
+            .padding(.horizontal, 20)
+
+            Text("Explore now uses location, time, and scene chips instead of dropdown filters.")
                 .font(VPFont.body(12, weight: .semibold))
                 .foregroundStyle(VPColor.inkSoft)
-
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                ForEach(ExplorePriceFilter.allCases) { price in
-                    toggleChip(title: price.title, selected: draftFilters.priceFilters.contains(price)) {
-                        if draftFilters.priceFilters.contains(price) {
-                            draftFilters.priceFilters.remove(price)
-                        } else {
-                            draftFilters.priceFilters.insert(price)
-                        }
-                    }
-                }
-            }
-
-            Toggle(isOn: $draftFilters.requiresRating) {
-                Text("Has rating")
-                    .font(VPFont.body(15, weight: .semibold))
-                    .foregroundStyle(VPColor.ink)
-            }
-            .tint(VPColor.cinnabar)
-
-            HStack(spacing: 12) {
-                Button {
-                    draftFilters = ExploreFilterState()
-                } label: {
-                    Text("Reset")
-                        .font(VPFont.body(15, weight: .bold))
-                        .foregroundStyle(VPColor.inkMuted)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 13)
-                        .background(VPColor.paperWarm)
-                        .clipShape(Capsule())
-                }
-
-                Button {
-                    filters = draftFilters
-                    openPanel = nil
-                } label: {
-                    Text("Apply")
-                        .font(VPFont.body(15, weight: .bold))
-                        .foregroundStyle(VPColor.paperSoft)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 13)
-                        .background(VPColor.cinnabar)
-                        .clipShape(Capsule())
-                }
-            }
+                .padding(.horizontal, 20)
         }
-        .padding(20)
+        .padding(.vertical, 12)
+        .background(VPColor.paperSoft)
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(VPColor.outline.opacity(0.8))
+                .frame(height: 1)
+        }
     }
 
-    private func toggleChip(title: String, selected: Bool, action: @escaping () -> Void) -> some View {
+    private func chip(title: String, selected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
                 .font(VPFont.body(13, weight: .bold))
@@ -620,32 +604,6 @@ private struct ExploreChannelView: View {
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)
-    }
-
-    private func isActive(_ panel: FilterPanel) -> Bool {
-        switch panel {
-        case .distance:
-            distance != .citywide
-        case .category:
-            selectedSubcategory.key != category.semanticKey
-        case .sort:
-            sort != .smart
-        case .filters:
-            filters.activeCount > 0
-        }
-    }
-
-    private func title<Item>(for item: Item) -> String {
-        switch item {
-        case let value as ExploreDistance:
-            value == .citywide ? value.title : "Nearby \(value.title)"
-        case let value as ExploreSubcategory:
-            value.title
-        case let value as ExploreSort:
-            value.title
-        default:
-            String(describing: item)
-        }
     }
 
     private func loadMoreIfNeeded(current poi: ExploreAmapPoi) {
@@ -664,17 +622,8 @@ private struct ExploreChannelView: View {
 
         let requestedPage = page
         let aroundLocation = locationProvider.coordinate
-        // Bug fix (architect review of PR #54, 2026-07-05): `useAround` only
-        // turned on when the "Nearby" filter itself had a radius, so picking
-        // Sort = Nearest while "Nearby" stayed "All city" silently fell back
-        // to weight-sort — the sort control still showed Nearest as selected
-        // with no indication it was ignored. Also request around mode when
-        // the sort alone calls for it. Amap's around-search requires a
-        // radius; "All city" has none, so fall back to its max (50km) to
-        // keep "all city" scope while still getting server-side distance sort.
-        let useAround = (distance.radius != nil || sort == .nearest) && aroundLocation != nil
+        let useAround = aroundLocation != nil
         let locationString = aroundLocation.map { "\($0.longitude),\($0.latitude)" }
-        let effectiveRadius = distance.radius ?? 50_000
 
         do {
             let response = try await VisePandaAPIClient().fetchExploreAmap(
@@ -683,7 +632,7 @@ private struct ExploreChannelView: View {
                 page: requestedPage,
                 mode: useAround ? "around" : "city",
                 location: useAround ? locationString : nil,
-                radius: useAround ? effectiveRadius : nil,
+                radius: useAround ? 3_000 : nil,
                 sort: sort == .nearest && useAround ? "distance" : "weight"
             )
             if reset {
@@ -714,15 +663,6 @@ private struct ExploreChannelView: View {
             notice = "That Butler recommendation was not in the current Explore result page."
         }
     }
-}
-
-private enum FilterPanel: String, Identifiable {
-    case distance
-    case category
-    case sort
-    case filters
-
-    var id: String { rawValue }
 }
 
 private struct MerchantCard: View {
@@ -783,7 +723,7 @@ private struct MerchantCard: View {
                 .foregroundStyle(VPColor.inkMuted)
 
                 if poi.editorial != nil {
-                    VPStatusPill(title: "VisePanda recommended", tone: .ready)
+                    VPStatusPill(title: "✦ VP Pick", tone: .ready)
                 }
             }
         }
@@ -823,7 +763,7 @@ private struct PoiDetailSheet: View {
                 if let summary = poi.editorial?.summary {
                     VPCard {
                         VStack(alignment: .leading, spacing: 8) {
-                            VPStatusPill(title: poi.editorial?.badge ?? "VisePanda Editorial", tone: .ready)
+                            VPStatusPill(title: "✦ VP Pick", tone: .ready)
                             Text(summary)
                                 .font(VPFont.body(14))
                                 .foregroundStyle(VPColor.inkMuted)
@@ -888,15 +828,25 @@ private struct PoiDetailSheet: View {
 
 private struct NoticeBanner: View {
     let text: String
+    let onDismiss: () -> Void
 
     var body: some View {
-        Label(text, systemImage: "exclamationmark.triangle")
-            .font(VPFont.body(12, weight: .semibold))
-            .foregroundStyle(VPColor.cinnabar)
-            .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(VPColor.cinnabar.opacity(0.08))
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: text.hasPrefix("Added") ? "checkmark.circle" : "exclamationmark.triangle")
+            Text(text)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Button(action: onDismiss) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 10, weight: .bold))
+            }
+            .accessibilityLabel("Dismiss Explore notice")
+        }
+        .font(VPFont.body(12, weight: .semibold))
+        .foregroundStyle(text.hasPrefix("Added") ? VPColor.sage : VPColor.cinnabar)
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background((text.hasPrefix("Added") ? VPColor.sage : VPColor.cinnabar).opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
 

@@ -1,10 +1,14 @@
+import AVFoundation
 import SwiftUI
+import UIKit
 
 struct DayDetailView: View {
     @EnvironmentObject private var store: TripStore
     let day: TripDay
     @State private var editingBlock: TripBlock?
     @State private var editedDescription = ""
+    @State private var localDisplayCard: LocalDisplayCard?
+    @AppStorage("localDisplayDietaryRestrictions") private var dietaryRestrictionStorage = ""
 
     private var currentDay: TripDay {
         store.trip.days.first { $0.day == day.day } ?? day
@@ -71,6 +75,10 @@ struct DayDetailView: View {
                 }
             }
         }
+        .sheet(item: $localDisplayCard) { card in
+            ShowToLocalSheet(card: card)
+                .presentationDetents([.medium, .large])
+        }
     }
 
     private func blockCard(block: TripBlock, index: Int) -> some View {
@@ -114,6 +122,31 @@ struct DayDetailView: View {
                     Label(address, systemImage: "mappin.and.ellipse")
                         .font(VPFont.body(13, weight: .semibold))
                         .foregroundStyle(VPColor.inkSoft)
+
+                    Button {
+                        localDisplayCard = LocalDisplayCard(
+                            kind: .address,
+                            title: block.title,
+                            headline: address,
+                            detail: block.chineseAddress == nil ? nil : block.address
+                        )
+                    } label: {
+                        Label("Show to Local", systemImage: "text.viewfinder")
+                            .font(VPFont.body(13, weight: .bold))
+                            .foregroundStyle(VPColor.cinnabar)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                if isDiningBlock(block), !selectedDietaryRestrictions.isEmpty {
+                    Button {
+                        localDisplayCard = allergyCard
+                    } label: {
+                        Label("Show dietary needs", systemImage: "fork.knife.circle")
+                            .font(VPFont.body(13, weight: .bold))
+                            .foregroundStyle(VPColor.cinnabar)
+                    }
+                    .buttonStyle(.plain)
                 }
 
                 ForEach(block.highlights ?? [], id: \.self) { highlight in
@@ -160,5 +193,138 @@ struct DayDetailView: View {
         .padding(10)
         .background(VPColor.paperWarm)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    private var selectedDietaryRestrictions: [DietaryRestriction] {
+        dietaryRestrictionStorage
+            .split(separator: ",")
+            .compactMap { DietaryRestriction(rawValue: String($0)) }
+    }
+
+    private var allergyCard: LocalDisplayCard {
+        LocalDisplayCard(
+            kind: .allergy,
+            title: "Dietary needs",
+            headline: selectedDietaryRestrictions.map(\.chinese).joined(separator: "\n"),
+            detail: "Please show this to restaurant staff."
+        )
+    }
+
+    private func isDiningBlock(_ block: TripBlock) -> Bool {
+        let text = ([block.title, block.description] + (block.highlights ?? []))
+            .joined(separator: " ")
+            .lowercased()
+        return ["food", "restaurant", "lunch", "dinner", "breakfast", "cafe", "tea", "hotpot", "noodle", "meal"]
+            .contains { text.contains($0) }
+    }
+}
+
+struct ShowToLocalSheet: View {
+    let card: LocalDisplayCard
+    @Environment(\.dismiss) private var dismiss
+    @State private var speaker = AVSpeechSynthesizer()
+    @State private var copied = false
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    VPCard {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Show to Local")
+                                .font(VPFont.body(13, weight: .bold))
+                                .foregroundStyle(VPColor.cinnabar)
+                            Text(card.title)
+                                .font(VPFont.display(24))
+                                .foregroundStyle(VPColor.ink)
+                            Text(card.headline)
+                                .font(VPFont.display(34, weight: .bold))
+                                .foregroundStyle(VPColor.ink)
+                                .fixedSize(horizontal: false, vertical: true)
+                            if let detail = card.detail, !detail.isEmpty {
+                                Text(detail)
+                                    .font(VPFont.body(15, weight: .semibold))
+                                    .foregroundStyle(VPColor.inkMuted)
+                            }
+                            if let disclaimer = card.disclaimer, !disclaimer.isEmpty {
+                                Text(disclaimer)
+                                    .font(VPFont.body(12, weight: .bold))
+                                    .foregroundStyle(VPColor.cinnabar)
+                                    .padding(10)
+                                    .background(VPColor.cinnabar.opacity(0.08))
+                                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            }
+                        }
+                    }
+
+                    if card.showEmergencyAction {
+                        Link(destination: URL(string: "tel:120")!) {
+                            Label("Call 120 ambulance", systemImage: "phone.fill")
+                                .font(VPFont.body(15, weight: .bold))
+                                .foregroundStyle(VPColor.paperSoft)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(VPColor.cinnabar)
+                                .clipShape(Capsule())
+                        }
+                    }
+
+                    HStack(spacing: 12) {
+                        Button {
+                            speak()
+                        } label: {
+                            Label("Speak", systemImage: "speaker.wave.2.fill")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(VPColor.cinnabar)
+
+                        Button {
+                            UIPasteboard.general.string = card.copyText
+                            copied = true
+                        } label: {
+                            Label(copied ? "Copied" : "Copy", systemImage: copied ? "checkmark" : "doc.on.doc")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                    }
+
+                    Text(helpText)
+                        .font(VPFont.body(13, weight: .semibold))
+                        .foregroundStyle(VPColor.inkSoft)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(20)
+            }
+            .background(VPColor.paper)
+            .navigationTitle("Show to Local")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+    }
+
+    private func speak() {
+        if speaker.isSpeaking {
+            speaker.stopSpeaking(at: .immediate)
+        }
+        let utterance = AVSpeechUtterance(string: card.headline)
+        utterance.voice = AVSpeechSynthesisVoice(language: "zh-CN")
+        utterance.rate = AVSpeechUtteranceDefaultSpeechRate
+        speaker.speak(utterance)
+    }
+
+    private var helpText: String {
+        switch card.kind {
+        case .address:
+            "Use this when speaking with taxi drivers, hotel staff, restaurants, or station staff."
+        case .allergy:
+            "Use this when speaking with restaurant staff. The Chinese text is fixed and pre-translated."
+        case .symptom:
+            "Use this with pharmacy staff, doctors, hotel staff, or nearby helpers."
+        }
     }
 }
