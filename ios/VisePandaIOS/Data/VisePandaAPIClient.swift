@@ -8,7 +8,8 @@ struct VisePandaAPIClient {
         message: String,
         trip: TripState,
         messages: [ChatMessage],
-        preferenceProfile: UserPreferenceProfile?
+        preferenceProfile: UserPreferenceProfile?,
+        completeSkeletonFor: TripState? = nil
     ) async throws -> ButlerChatResponse {
         var request = makeJSONRequest(path: "api/chat", method: "POST")
         request.httpBody = try JSONEncoder.visePanda.encode(
@@ -16,7 +17,8 @@ struct VisePandaAPIClient {
                 message: message,
                 trip: trip,
                 messages: messages,
-                preferenceProfile: preferenceProfile
+                preferenceProfile: preferenceProfile,
+                completeSkeletonFor: completeSkeletonFor
             )
         )
 

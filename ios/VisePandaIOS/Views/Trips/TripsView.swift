@@ -18,7 +18,14 @@ struct TripsView: View {
 
                     ForEach(store.trip.days) { day in
                         NavigationLink(value: day.day) {
-                            DayCard(day: day, updatedByCopilot: store.recentlyUpdatedDays.contains(day.day))
+                            DayCard(
+                                day: day,
+                                updatedByCopilot: store.recentlyUpdatedDays.contains(day.day),
+                                isGeneratingDetails: store.pendingDetailDays.contains(day.day),
+                                didFailDetails: store.failedDetailDays.contains(day.day)
+                            ) {
+                                store.retrySkeletonDetails(for: day.day)
+                            }
                         }
                         .buttonStyle(.plain)
                     }
@@ -196,6 +203,9 @@ private struct TimelineEntryCard: View {
 private struct DayCard: View {
     let day: TripDay
     let updatedByCopilot: Bool
+    let isGeneratingDetails: Bool
+    let didFailDetails: Bool
+    let onRetryDetails: () -> Void
 
     var body: some View {
         let completeness = TripCompleteness.calculateDayCompleteness(day)
@@ -221,8 +231,31 @@ private struct DayCard: View {
                 }
 
                 VStack(spacing: 8) {
-                    ForEach(day.blocks) { block in
-                        TripBlockRow(block: block)
+                    if day.blocks.isEmpty {
+                        if isGeneratingDetails {
+                            Label("Generating details…", systemImage: "sparkles")
+                                .font(VPFont.body(13, weight: .bold))
+                                .foregroundStyle(VPColor.inkSoft)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(12)
+                                .background(VPColor.paper.opacity(0.75))
+                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        } else if didFailDetails {
+                            Button(action: onRetryDetails) {
+                                Label("Details didn't load — tap to retry", systemImage: "arrow.clockwise")
+                                    .font(VPFont.body(13, weight: .bold))
+                                    .foregroundStyle(VPColor.cinnabar)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(12)
+                                    .background(VPColor.paper.opacity(0.75))
+                                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    } else {
+                        ForEach(day.blocks) { block in
+                            TripBlockRow(block: block)
+                        }
                     }
                 }
             }

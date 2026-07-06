@@ -42,8 +42,12 @@ struct DayDetailView: View {
                     .foregroundStyle(VPColor.inkMuted)
                 }
 
-                ForEach(Array(currentDay.blocks.enumerated()), id: \.element.id) { index, block in
-                    blockCard(block: block, index: index)
+                if currentDay.blocks.isEmpty {
+                    detailLoadingCard
+                } else {
+                    ForEach(Array(currentDay.blocks.enumerated()), id: \.element.id) { index, block in
+                        blockCard(block: block, index: index)
+                    }
                 }
             }
             .padding(20)
@@ -84,6 +88,41 @@ struct DayDetailView: View {
         .sheet(item: $localDisplayCard) { card in
             ShowToLocalSheet(card: card)
                 .presentationDetents([.medium, .large])
+        }
+    }
+
+    private var detailLoadingCard: some View {
+        VPCard {
+            VStack(alignment: .leading, spacing: 10) {
+                if store.pendingDetailDays.contains(currentDay.day) {
+                    Label("Generating details…", systemImage: "sparkles")
+                        .font(VPFont.body(15, weight: .bold))
+                        .foregroundStyle(VPColor.ink)
+                    Text("Copilot has created the trip outline and is filling in the daily schedule.")
+                        .font(VPFont.body(13, weight: .semibold))
+                        .foregroundStyle(VPColor.inkMuted)
+                } else if store.failedDetailDays.contains(currentDay.day) {
+                    Text("Details didn't load")
+                        .font(VPFont.body(15, weight: .bold))
+                        .foregroundStyle(VPColor.ink)
+                    Button {
+                        store.retrySkeletonDetails(for: currentDay.day)
+                    } label: {
+                        Label("Tap to retry", systemImage: "arrow.clockwise")
+                            .font(VPFont.body(14, weight: .bold))
+                            .foregroundStyle(VPColor.paperSoft)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(VPColor.cinnabar)
+                            .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    Text("This day has no scheduled blocks yet.")
+                        .font(VPFont.body(15, weight: .semibold))
+                        .foregroundStyle(VPColor.inkMuted)
+                }
+            }
         }
     }
 

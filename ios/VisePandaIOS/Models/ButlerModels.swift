@@ -139,6 +139,7 @@ struct CanvasPatch: Codable, Equatable {
     var days: [TripDay]?
     var butlerAlerts: [ButlerAlert]?
     var affectedDays: [Int]? = nil
+    var generationStage: String? = nil
     var reason: String
 }
 
@@ -173,6 +174,7 @@ struct ButlerChatRequest: Codable {
     var trip: TripState
     var messages: [ChatMessage]
     var preferenceProfile: UserPreferenceProfile?
+    var completeSkeletonFor: TripState? = nil
 }
 
 struct ButlerChatResponse: Codable {
