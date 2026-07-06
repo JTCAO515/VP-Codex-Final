@@ -260,6 +260,7 @@ private struct ToolTile: View {
 
 private struct ToolDetailView: View {
     let tool: ToolEntry
+    @State private var localDisplayCard: LocalDisplayCard?
 
     var body: some View {
         ScrollView {
@@ -275,6 +276,18 @@ private struct ToolDetailView: View {
                 if tool.id == "payment-setup" {
                     PaymentWizardPanel()
                 }
+                if tool.id == "emergency" {
+                    SymptomCardPanel { symptom in
+                        localDisplayCard = LocalDisplayCard(
+                            kind: .symptom,
+                            title: "Symptom card",
+                            headline: symptom.chinese,
+                            detail: "Please show this to pharmacy staff, doctors, hotel staff, or nearby helpers.",
+                            disclaimer: "这不是医疗诊断，请尽快就医。",
+                            showEmergencyAction: symptom.isEmergency
+                        )
+                    }
+                }
 
                 checklistSection(title: "Tips", items: tool.tips, icon: "sparkle")
 
@@ -289,6 +302,10 @@ private struct ToolDetailView: View {
         .background(VPColor.paper)
         .navigationTitle(tool.title)
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(item: $localDisplayCard) { card in
+            ShowToLocalSheet(card: card)
+                .presentationDetents([.medium, .large])
+        }
     }
 
     private var detailHeader: some View {
@@ -328,6 +345,65 @@ private struct ToolDetailView: View {
                         .foregroundStyle(VPColor.inkMuted)
                         .fixedSize(horizontal: false, vertical: true)
                 }
+            }
+        }
+    }
+}
+
+private struct SymptomCardPanel: View {
+    let show: (CommonSymptom) -> Void
+    @State private var selected = CommonSymptom.headache
+
+    var body: some View {
+        VPCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("SYMPTOM CARD")
+                    .font(VPFont.body(12, weight: .bold))
+                    .foregroundStyle(VPColor.inkSoft)
+
+                Text("Pick one symptom and show fixed Chinese text to pharmacy staff, doctors, hotel staff, or nearby helpers.")
+                    .font(VPFont.body(13, weight: .semibold))
+                    .foregroundStyle(VPColor.inkSoft)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Picker("Symptom", selection: $selected) {
+                    ForEach(CommonSymptom.allCases) { symptom in
+                        Text(symptom.label).tag(symptom)
+                    }
+                }
+                .pickerStyle(.menu)
+                .tint(VPColor.cinnabar)
+
+                Text(selected.chinese)
+                    .font(VPFont.display(25, weight: .bold))
+                    .foregroundStyle(VPColor.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(VPColor.paperWarm)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+                if selected.isEmergency {
+                    Link(destination: URL(string: "tel:120")!) {
+                        Label("Call 120 ambulance", systemImage: "phone.fill")
+                            .font(VPFont.body(14, weight: .bold))
+                            .foregroundStyle(VPColor.cinnabar)
+                    }
+                }
+
+                Button {
+                    show(selected)
+                } label: {
+                    Label("Show symptom card", systemImage: "text.viewfinder")
+                        .font(VPFont.body(14, weight: .bold))
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(VPColor.cinnabar)
+
+                Text("This is not a medical diagnosis. Seek medical care as soon as possible.")
+                    .font(VPFont.body(12, weight: .semibold))
+                    .foregroundStyle(VPColor.inkSoft)
             }
         }
     }
