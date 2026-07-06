@@ -13,9 +13,12 @@ final class TripStore: ObservableObject {
     @Published var pendingToolId: String?
     @Published var pendingTripDayNumber: Int?
     @Published var recentlyUpdatedDays: Set<Int> = []
+    @Published var pendingDetailDays: Set<Int> = []
+    @Published var failedDetailDays: Set<Int> = []
     @Published var hidesBottomBar = false
 
     private let api = VisePandaAPIClient()
+    private var isCompletingSkeleton = false
     private let persistenceKey = "space.go2china.visepanda.ios.localState.v3"
 
     init() {
@@ -125,7 +128,18 @@ final class TripStore: ObservableObject {
         trip = StarterTripData.initialTrip
         messages = StarterTripData.seedMessages
         suggestions = StarterTripData.suggestions
+        pendingDetailDays.removeAll()
+        failedDetailDays.removeAll()
         persist()
+    }
+
+    func retrySkeletonDetails(for dayNumber: Int) {
+        pendingDetailDays.insert(dayNumber)
+        failedDetailDays.remove(dayNumber)
+        let skeletonTrip = trip
+        Task {
+            await completeSkeletonDetails(for: skeletonTrip, dayNumbers: [dayNumber])
+        }
     }
 
     private func resolve(_ text: String) async {
@@ -150,9 +164,18 @@ final class TripStore: ObservableObject {
                 createdAt: ISO8601DateFormatter().string(from: Date())
             )
             trip = updatedTrip
+            clearDetailStateForFilledDays(in: updatedTrip)
             recentlyUpdatedDays = Set(existingAffectedDays ?? [])
             messages.append(assistant)
             suggestions = response.suggestions?.isEmpty == false ? response.suggestions! : StarterTripData.suggestions
+            if response.patch.generationStage == "skeleton" {
+                let skeletonDays = Set(updatedTrip.days.filter(\.blocks.isEmpty).map(\.day))
+                pendingDetailDays = skeletonDays
+                failedDetailDays.subtract(skeletonDays)
+                Task {
+                    await completeSkeletonDetails(for: updatedTrip, dayNumbers: skeletonDays)
+                }
+            }
         } catch {
             messages.append(serviceUnavailableMessage(error))
             suggestions = StarterTripData.suggestions
@@ -162,13 +185,48 @@ final class TripStore: ObservableObject {
         persist()
     }
 
+    private func completeSkeletonDetails(for skeletonTrip: TripState, dayNumbers: Set<Int>) async {
+        guard !dayNumbers.isEmpty, !isCompletingSkeleton else { return }
+        isCompletingSkeleton = true
+        defer { isCompletingSkeleton = false }
+
+        do {
+            let response = try await api.sendChat(
+                message: "",
+                trip: skeletonTrip,
+                messages: messages,
+                preferenceProfile: StarterTripData.preferenceProfile,
+                completeSkeletonFor: skeletonTrip
+            )
+            let updatedTrip = CanvasPatchApplier.apply(current: trip, patch: response.patch)
+            let completedDays = Set((response.patch.days ?? updatedTrip.days).map(\.day))
+            trip = updatedTrip
+            clearDetailStateForFilledDays(in: updatedTrip)
+            pendingDetailDays.subtract(completedDays)
+            failedDetailDays.subtract(completedDays)
+            recentlyUpdatedDays = completedDays.intersection(Set(updatedTrip.days.map(\.day)))
+            suggestions = response.suggestions?.isEmpty == false ? response.suggestions! : suggestions
+        } catch {
+            pendingDetailDays.subtract(dayNumbers)
+            failedDetailDays.formUnion(dayNumbers)
+        }
+
+        persist()
+    }
+
+    private func clearDetailStateForFilledDays(in trip: TripState) {
+        let filledDays = Set(trip.days.filter { !$0.blocks.isEmpty }.map(\.day))
+        pendingDetailDays.subtract(filledDays)
+        failedDetailDays.subtract(filledDays)
+    }
+
     private func serviceUnavailableMessage(_ error: Error) -> ChatMessage {
         ChatMessage(
             id: UUID().uuidString,
             role: .assistant,
-            content: "VisePanda could not reach the live Butler service. Your saved trip was not changed.",
+            content: "VisePanda could not reach the live Copilot service. Your saved trip was not changed.",
             response: AssistantResponse(
-                headline: "Live Butler unavailable",
+                headline: "Live Copilot unavailable",
                 body: "I could not reach /api/chat, so I did not create or edit your itinerary. You can still view saved trip data and use the local Tools and Explore starter lists.",
                 highlights: [
                     "No AI or third-party key is stored in this iOS app",

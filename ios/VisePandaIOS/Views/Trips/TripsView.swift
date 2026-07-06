@@ -18,7 +18,14 @@ struct TripsView: View {
 
                     ForEach(store.trip.days) { day in
                         NavigationLink(value: day.day) {
-                            DayCard(day: day, updatedByButler: store.recentlyUpdatedDays.contains(day.day))
+                            DayCard(
+                                day: day,
+                                updatedByCopilot: store.recentlyUpdatedDays.contains(day.day),
+                                isGeneratingDetails: store.pendingDetailDays.contains(day.day),
+                                didFailDetails: store.failedDetailDays.contains(day.day)
+                            ) {
+                                store.retrySkeletonDetails(for: day.day)
+                            }
                         }
                         .buttonStyle(.plain)
                     }
@@ -97,7 +104,7 @@ struct TripsView: View {
                 Text("No itinerary created yet")
                     .font(VPFont.display(21))
                     .foregroundStyle(VPColor.ink)
-                Text("Ask Butler to create a plan. If the network is offline, the app keeps this starter canvas instead of inventing trip days.")
+                Text("Ask Copilot to create a plan. If the network is offline, the app keeps this starter canvas instead of inventing trip days.")
                     .font(VPFont.body(14, weight: .semibold))
                     .foregroundStyle(VPColor.inkMuted)
                     .fixedSize(horizontal: false, vertical: true)
@@ -105,7 +112,7 @@ struct TripsView: View {
                 Button {
                     store.selectedTab = .chat
                 } label: {
-                    Text("Ask Butler")
+                    Text("Ask Copilot")
                         .font(VPFont.body(15, weight: .bold))
                         .foregroundStyle(VPColor.paperSoft)
                         .frame(maxWidth: .infinity)
@@ -195,7 +202,10 @@ private struct TimelineEntryCard: View {
 
 private struct DayCard: View {
     let day: TripDay
-    let updatedByButler: Bool
+    let updatedByCopilot: Bool
+    let isGeneratingDetails: Bool
+    let didFailDetails: Bool
+    let onRetryDetails: () -> Void
 
     var body: some View {
         let completeness = TripCompleteness.calculateDayCompleteness(day)
@@ -211,7 +221,7 @@ private struct DayCard: View {
                     if day.day == 1 {
                         VPStatusPill(title: "Today", tone: .red)
                     }
-                    if updatedByButler {
+                    if updatedByCopilot {
                         VPStatusPill(title: "Updated", tone: .ready)
                     }
                     VPStatusPill(title: "\(completeness)%", tone: completeness >= 75 ? .ready : .warning)
@@ -221,8 +231,31 @@ private struct DayCard: View {
                 }
 
                 VStack(spacing: 8) {
-                    ForEach(day.blocks) { block in
-                        TripBlockRow(block: block)
+                    if day.blocks.isEmpty {
+                        if isGeneratingDetails {
+                            Label("Generating details…", systemImage: "sparkles")
+                                .font(VPFont.body(13, weight: .bold))
+                                .foregroundStyle(VPColor.inkSoft)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(12)
+                                .background(VPColor.paper.opacity(0.75))
+                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        } else if didFailDetails {
+                            Button(action: onRetryDetails) {
+                                Label("Details didn't load — tap to retry", systemImage: "arrow.clockwise")
+                                    .font(VPFont.body(13, weight: .bold))
+                                    .foregroundStyle(VPColor.cinnabar)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(12)
+                                    .background(VPColor.paper.opacity(0.75))
+                                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    } else {
+                        ForEach(day.blocks) { block in
+                            TripBlockRow(block: block)
+                        }
                     }
                 }
             }
