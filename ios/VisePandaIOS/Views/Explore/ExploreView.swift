@@ -722,6 +722,21 @@ private struct MerchantCard: View {
                 .font(VPFont.body(12, weight: .semibold))
                 .foregroundStyle(VPColor.inkMuted)
 
+                if !fitTags.isEmpty {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 108), spacing: 6, alignment: .leading)], alignment: .leading, spacing: 6) {
+                        ForEach(fitTags, id: \.self) { tag in
+                            Text(tag)
+                                .font(VPFont.body(11, weight: .bold))
+                                .foregroundStyle(VPColor.sage)
+                                .fixedSize(horizontal: true, vertical: false)
+                                .padding(.horizontal, 9)
+                                .padding(.vertical, 5)
+                                .background(VPColor.sage.opacity(0.12))
+                                .clipShape(Capsule())
+                        }
+                    }
+                }
+
                 if poi.editorial != nil {
                     VPStatusPill(title: "✦ VP Pick", tone: .ready)
                 }
@@ -745,6 +760,38 @@ private struct MerchantCard: View {
             return "\(Int(meters))m"
         }
         return String(format: "%.1fkm", meters / 1_000)
+    }
+
+    private var fitTags: [String] {
+        guard let fit = poi.travelerFit else { return [] }
+        var tags: [String] = []
+
+        if fit.firstTimerFit == true {
+            tags.append("Good for first-timers")
+        }
+        if fit.routeFit?.localizedCaseInsensitiveContains("metro") == true {
+            tags.append("Easy by metro")
+        }
+        if fit.crowdRisk == "High" {
+            tags.append("May be crowded")
+        }
+        if fit.nightFit == false {
+            tags.append("Better in daytime")
+        }
+        if fit.rainyDayFit == true {
+            tags.append("Rainy day friendly")
+        }
+        if fit.luggageFit == true {
+            tags.append("Luggage friendly")
+        }
+        if fit.languageDifficulty == "Lower" {
+            tags.append("Easier communication")
+        }
+        if let payment = fit.paymentFriendliness {
+            tags.append(payment)
+        }
+
+        return Array(tags.prefix(3))
     }
 }
 
