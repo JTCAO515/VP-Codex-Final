@@ -231,14 +231,6 @@ struct DayDetailView: View {
                     .buttonStyle(.plain)
                 }
 
-                if let url = navigationURL(for: block) {
-                    Link(destination: url) {
-                        Label("Navigate", systemImage: "map")
-                            .font(VPFont.body(13, weight: .bold))
-                            .foregroundStyle(VPColor.cinnabar)
-                    }
-                }
-
                 if isDiningBlock(block), !selectedDietaryRestrictions.isEmpty {
                     Button {
                         localDisplayCard = allergyCard
@@ -272,6 +264,14 @@ struct DayDetailView: View {
                             .background(VPColor.cinnabar)
                             .clipShape(Capsule())
                         }
+                }
+
+                if let url = navigationURL(for: block) {
+                    Link(destination: url) {
+                        Label("Navigate", systemImage: "map")
+                            .font(VPFont.body(13, weight: .bold))
+                            .foregroundStyle(VPColor.cinnabar)
+                    }
                 }
 
                 Button {
