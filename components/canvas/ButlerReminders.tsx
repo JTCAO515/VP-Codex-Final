@@ -13,8 +13,8 @@ export function ButlerReminders({ alerts }: { alerts: ButlerAlert[] }) {
   if (alerts.length === 0) return null;
 
   return (
-    <section className="butler-reminders" aria-label="Butler reminders">
-      <h3>Butler reminders</h3>
+    <section className="butler-reminders" aria-label="Copilot reminders">
+      <h3>Copilot reminders</h3>
       <ul>
         {alerts.map((alert, index) => {
           const actionHref = alertActionHrefMap[alert.type];

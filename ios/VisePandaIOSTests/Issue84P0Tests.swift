@@ -87,4 +87,71 @@ final class Issue84P0Tests: XCTestCase {
         XCTAssertEqual(ProfileSyncStatus.evaluate(isSignedIn: true, isLoading: false, hasError: false, hasEntries: true).title, "Synced")
         XCTAssertEqual(ProfileSyncStatus.evaluate(isSignedIn: true, isLoading: false, hasError: false, hasEntries: false).title, "Not synced")
     }
+
+    func testCanvasPatchDecodesAffectedDays() throws {
+        let data = """
+        {
+          "intent": "adjust_trip",
+          "assistantMessage": "Updated Day 2.",
+          "affectedDays": [2, 3],
+          "generationStage": "complete",
+          "reason": "test"
+        }
+        """.data(using: .utf8)!
+
+        let patch = try JSONDecoder.visePanda.decode(CanvasPatch.self, from: data)
+        XCTAssertEqual(patch.affectedDays, [2, 3])
+        XCTAssertEqual(patch.generationStage, "complete")
+    }
+
+    func testChatRequestEncodesCompleteSkeletonFor() throws {
+        let trip = TripState(
+            summary: TripSummary(
+                title: "Beijing",
+                durationDays: 1,
+                pace: .balanced,
+                travelerStyle: "solo",
+                destinations: ["Beijing"],
+                confidence: .draft
+            ),
+            days: [
+                TripDay(
+                    day: 1,
+                    city: "Beijing",
+                    pace: .balanced,
+                    blocks: [],
+                    food: ["noodles"],
+                    stay: "Dongcheng",
+                    transport: "Metro",
+                    note: "Skeleton day",
+                    status: .new
+                )
+            ],
+            alerts: [],
+            lastUpdatedReason: "skeleton"
+        )
+
+        let request = ButlerChatRequest(
+            message: "",
+            trip: trip,
+            messages: [],
+            preferenceProfile: nil,
+            completeSkeletonFor: trip
+        )
+        let object = try JSONSerialization.jsonObject(with: JSONEncoder.visePanda.encode(request)) as? [String: Any]
+
+        XCTAssertEqual(object?["message"] as? String, "")
+        XCTAssertNotNil(object?["completeSkeletonFor"])
+    }
+
+    @MainActor
+    func testTripStoreConsumesPendingTripDay() {
+        let store = TripStore()
+
+        store.openTripDay(2)
+
+        XCTAssertEqual(store.selectedTab, .trips)
+        XCTAssertEqual(store.consumePendingTripDayNumber(), 2)
+        XCTAssertNil(store.consumePendingTripDayNumber())
+    }
 }

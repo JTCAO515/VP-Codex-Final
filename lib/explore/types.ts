@@ -6,6 +6,26 @@ export interface ExploreCity {
   bestFor: string[];
 }
 
+/**
+ * Client-derived-only judgment fields for "can a first-time foreign visitor
+ * go here" (Issue #119/#122). Never returned by the backend today — this
+ * type exists so Web UI code can consume the same shape iOS derives
+ * client-side (ios/VisePandaIOS/Models/ExploreModels.swift's
+ * TravelerFitDeriver), without inventing its own field names. All fields
+ * optional; omit rather than guess when a signal isn't there.
+ */
+export interface TravelerFit {
+  firstTimerFit?: boolean;
+  paymentFriendliness?: string;
+  languageDifficulty?: string;
+  routeFit?: string;
+  rainyDayFit?: boolean;
+  nightFit?: boolean;
+  crowdRisk?: string;
+  luggageFit?: boolean;
+  watchOut?: string;
+}
+
 export interface ExploreRichMeta {
   rating?: string;
   pricePerPerson?: string;
@@ -19,6 +39,8 @@ export interface ExploreRichMeta {
     lat: number;
     lng: number;
   };
+  /** Not populated by any Web/API code today — see TravelerFit's doc comment. */
+  travelerFit?: TravelerFit;
 }
 
 export interface ExploreAttraction extends ExploreRichMeta {

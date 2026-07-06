@@ -6,7 +6,9 @@ struct DayDetailView: View {
     @EnvironmentObject private var store: TripStore
     let day: TripDay
     @State private var editingBlock: TripBlock?
+    @State private var editingNote: BlockNoteDraft?
     @State private var editedDescription = ""
+    @State private var editedNote = ""
     @State private var localDisplayCard: LocalDisplayCard?
     @AppStorage("localDisplayDietaryRestrictions") private var dietaryRestrictionStorage = ""
 
@@ -24,6 +26,12 @@ struct DayDetailView: View {
                     Text(currentDay.note)
                         .font(VPFont.body(14))
                         .foregroundStyle(VPColor.inkSoft)
+                    if store.recentlyUpdatedDays.contains(currentDay.day) {
+                        Label("Updated by Copilot just now", systemImage: "sparkles")
+                            .font(VPFont.body(12, weight: .bold))
+                            .foregroundStyle(VPColor.cinnabar)
+                            .padding(.top, 4)
+                    }
                 }
 
                 VPCard {
@@ -36,8 +44,12 @@ struct DayDetailView: View {
                     .foregroundStyle(VPColor.inkMuted)
                 }
 
-                ForEach(Array(currentDay.blocks.enumerated()), id: \.element.id) { index, block in
-                    blockCard(block: block, index: index)
+                if currentDay.blocks.isEmpty {
+                    detailLoadingCard
+                } else {
+                    ForEach(Array(currentDay.blocks.enumerated()), id: \.element.id) { index, block in
+                        blockCard(block: block, index: index)
+                    }
                 }
             }
             .padding(20)
@@ -75,9 +87,76 @@ struct DayDetailView: View {
                 }
             }
         }
+        .sheet(item: $editingNote) { draft in
+            NavigationStack {
+                VStack(alignment: .leading, spacing: 14) {
+                    Text(draft.title)
+                        .font(VPFont.display(24))
+                    TextEditor(text: $editedNote)
+                        .font(VPFont.body(15))
+                        .frame(minHeight: 160)
+                        .padding(8)
+                        .background(VPColor.paperWarm)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    Text("This note is saved only on this device and is not sent to Copilot.")
+                        .font(VPFont.body(12, weight: .semibold))
+                        .foregroundStyle(VPColor.inkSoft)
+                    Spacer()
+                }
+                .padding(20)
+                .background(VPColor.paper)
+                .navigationTitle("Add note")
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { editingNote = nil }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Save") {
+                            store.updateBlockNote(dayNumber: draft.dayNumber, blockId: draft.blockId, note: editedNote)
+                            editingNote = nil
+                        }
+                    }
+                }
+            }
+        }
         .sheet(item: $localDisplayCard) { card in
             ShowToLocalSheet(card: card)
                 .presentationDetents([.medium, .large])
+        }
+    }
+
+    private var detailLoadingCard: some View {
+        VPCard {
+            VStack(alignment: .leading, spacing: 10) {
+                if store.pendingDetailDays.contains(currentDay.day) {
+                    Label("Generating details…", systemImage: "sparkles")
+                        .font(VPFont.body(15, weight: .bold))
+                        .foregroundStyle(VPColor.ink)
+                    Text("Copilot has created the trip outline and is filling in the daily schedule.")
+                        .font(VPFont.body(13, weight: .semibold))
+                        .foregroundStyle(VPColor.inkMuted)
+                } else if store.failedDetailDays.contains(currentDay.day) {
+                    Text("Details didn't load")
+                        .font(VPFont.body(15, weight: .bold))
+                        .foregroundStyle(VPColor.ink)
+                    Button {
+                        store.retrySkeletonDetails(for: currentDay.day)
+                    } label: {
+                        Label("Tap to retry", systemImage: "arrow.clockwise")
+                            .font(VPFont.body(14, weight: .bold))
+                            .foregroundStyle(VPColor.paperSoft)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(VPColor.cinnabar)
+                            .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    Text("This day has no scheduled blocks yet.")
+                        .font(VPFont.body(15, weight: .semibold))
+                        .foregroundStyle(VPColor.inkMuted)
+                }
+            }
         }
     }
 
@@ -117,6 +196,20 @@ struct DayDetailView: View {
                 Text(block.description)
                     .font(VPFont.body(15))
                     .foregroundStyle(VPColor.inkMuted)
+
+                if let note = store.blockNote(dayNumber: currentDay.day, blockId: block.id), !note.isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Label("Your note", systemImage: "note.text")
+                            .font(VPFont.body(12, weight: .bold))
+                            .foregroundStyle(VPColor.cinnabar)
+                        Text(note)
+                            .font(VPFont.body(13, weight: .semibold))
+                            .foregroundStyle(VPColor.inkMuted)
+                    }
+                    .padding(10)
+                    .background(VPColor.paperWarm)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
 
                 if let address = block.chineseAddress ?? block.address {
                     Label(address, systemImage: "mappin.and.ellipse")
@@ -163,15 +256,33 @@ struct DayDetailView: View {
                     Button {
                         store.prefillChat("Please schedule \(block.title) into Day \(currentDay.day) in \(currentDay.city) and rebalance the day.")
                     } label: {
-                        Text("Ask Butler to schedule")
+                        Text("Ask Copilot to schedule")
                             .font(VPFont.body(14, weight: .bold))
                             .foregroundStyle(VPColor.paperSoft)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
                             .background(VPColor.cinnabar)
                             .clipShape(Capsule())
+                        }
+                }
+
+                if let url = navigationURL(for: block) {
+                    Link(destination: url) {
+                        Label("Navigate", systemImage: "map")
+                            .font(VPFont.body(13, weight: .bold))
+                            .foregroundStyle(VPColor.cinnabar)
                     }
                 }
+
+                Button {
+                    editedNote = store.blockNote(dayNumber: currentDay.day, blockId: block.id) ?? ""
+                    editingNote = BlockNoteDraft(dayNumber: currentDay.day, blockId: block.id, title: block.title)
+                } label: {
+                    Label(store.blockNote(dayNumber: currentDay.day, blockId: block.id) == nil ? "Add note" : "Edit note", systemImage: "note.text")
+                        .font(VPFont.body(13, weight: .bold))
+                        .foregroundStyle(VPColor.cinnabar)
+                }
+                .buttonStyle(.plain)
             }
         }
     }
@@ -217,6 +328,26 @@ struct DayDetailView: View {
         return ["food", "restaurant", "lunch", "dinner", "breakfast", "cafe", "tea", "hotpot", "noodle", "meal"]
             .contains { text.contains($0) }
     }
+
+    private func navigationURL(for block: TripBlock) -> URL? {
+        let query = (block.chineseAddress ?? block.address ?? block.title)
+            .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+        guard let query else { return nil }
+
+        if let coordinates = block.coordinates {
+            return URL(string: "maps://?ll=\(coordinates.lat),\(coordinates.lng)&q=\(query)")
+        }
+
+        guard block.chineseAddress != nil || block.address != nil else { return nil }
+        return URL(string: "maps://?q=\(query)")
+    }
+}
+
+private struct BlockNoteDraft: Identifiable {
+    var dayNumber: Int
+    var blockId: String
+    var title: String
+    var id: String { "\(dayNumber)-\(blockId)" }
 }
 
 struct ShowToLocalSheet: View {

@@ -97,7 +97,7 @@ const en: Translations = {
     planInChat: "Plan in Chat",
     summaryTrips: "Trips",
     summaryDays: "Days planned",
-    summaryTasks: "Butler tasks",
+    summaryTasks: "Copilot tasks",
     filterAll: "All",
     filterDraft: "Draft",
     filterReady: "Ready",

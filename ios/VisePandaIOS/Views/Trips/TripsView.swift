@@ -2,9 +2,10 @@ import SwiftUI
 
 struct TripsView: View {
     @EnvironmentObject private var store: TripStore
+    @State private var path: [Int] = []
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             ScrollView {
                 VStack(spacing: 18) {
                     header
@@ -16,12 +17,15 @@ struct TripsView: View {
                     }
 
                     ForEach(store.trip.days) { day in
-                        NavigationLink {
-                            DayDetailView(day: day)
-                                .onAppear { store.setBottomBarHidden(true) }
-                                .onDisappear { store.setBottomBarHidden(false) }
-                        } label: {
-                            DayCard(day: day)
+                        NavigationLink(value: day.day) {
+                            DayCard(
+                                day: day,
+                                updatedByCopilot: store.recentlyUpdatedDays.contains(day.day),
+                                isGeneratingDetails: store.pendingDetailDays.contains(day.day),
+                                didFailDetails: store.failedDetailDays.contains(day.day)
+                            ) {
+                                store.retrySkeletonDetails(for: day.day)
+                            }
                         }
                         .buttonStyle(.plain)
                     }
@@ -32,6 +36,28 @@ struct TripsView: View {
             }
             .background(VPColor.paper)
             .navigationBarHidden(true)
+            .navigationDestination(for: Int.self) { dayNumber in
+                if let day = store.trip.days.first(where: { $0.day == dayNumber }) {
+                    DayDetailView(day: day)
+                        .onAppear { store.setBottomBarHidden(true) }
+                        .onDisappear { store.setBottomBarHidden(false) }
+                } else {
+                    EmptyTripCard(message: "That day is no longer in this trip.")
+                }
+            }
+            .onAppear(perform: consumePendingDay)
+            .onChange(of: store.pendingTripDayNumber) { _, _ in
+                consumePendingDay()
+            }
+        }
+    }
+
+    private func consumePendingDay() {
+        guard let dayNumber = store.consumePendingTripDayNumber() else { return }
+        if store.trip.days.contains(where: { $0.day == dayNumber }) {
+            path = [dayNumber]
+        } else {
+            path = []
         }
     }
 
@@ -78,7 +104,7 @@ struct TripsView: View {
                 Text("No itinerary created yet")
                     .font(VPFont.display(21))
                     .foregroundStyle(VPColor.ink)
-                Text("Ask Butler to create a plan. If the network is offline, the app keeps this starter canvas instead of inventing trip days.")
+                Text("Ask Copilot to create a plan. If the network is offline, the app keeps this starter canvas instead of inventing trip days.")
                     .font(VPFont.body(14, weight: .semibold))
                     .foregroundStyle(VPColor.inkMuted)
                     .fixedSize(horizontal: false, vertical: true)
@@ -86,7 +112,7 @@ struct TripsView: View {
                 Button {
                     store.selectedTab = .chat
                 } label: {
-                    Text("Ask Butler")
+                    Text("Ask Copilot")
                         .font(VPFont.body(15, weight: .bold))
                         .foregroundStyle(VPColor.paperSoft)
                         .frame(maxWidth: .infinity)
@@ -176,6 +202,10 @@ private struct TimelineEntryCard: View {
 
 private struct DayCard: View {
     let day: TripDay
+    let updatedByCopilot: Bool
+    let isGeneratingDetails: Bool
+    let didFailDetails: Bool
+    let onRetryDetails: () -> Void
 
     var body: some View {
         let completeness = TripCompleteness.calculateDayCompleteness(day)
@@ -191,6 +221,9 @@ private struct DayCard: View {
                     if day.day == 1 {
                         VPStatusPill(title: "Today", tone: .red)
                     }
+                    if updatedByCopilot {
+                        VPStatusPill(title: "Updated", tone: .ready)
+                    }
                     VPStatusPill(title: "\(completeness)%", tone: completeness >= 75 ? .ready : .warning)
                     Spacer()
                     Image(systemName: "chevron.right")
@@ -198,8 +231,31 @@ private struct DayCard: View {
                 }
 
                 VStack(spacing: 8) {
-                    ForEach(day.blocks) { block in
-                        TripBlockRow(block: block)
+                    if day.blocks.isEmpty {
+                        if isGeneratingDetails {
+                            Label("Generating details…", systemImage: "sparkles")
+                                .font(VPFont.body(13, weight: .bold))
+                                .foregroundStyle(VPColor.inkSoft)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(12)
+                                .background(VPColor.paper.opacity(0.75))
+                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        } else if didFailDetails {
+                            Button(action: onRetryDetails) {
+                                Label("Details didn't load — tap to retry", systemImage: "arrow.clockwise")
+                                    .font(VPFont.body(13, weight: .bold))
+                                    .foregroundStyle(VPColor.cinnabar)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(12)
+                                    .background(VPColor.paper.opacity(0.75))
+                                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    } else {
+                        ForEach(day.blocks) { block in
+                            TripBlockRow(block: block)
+                        }
                     }
                 }
             }
@@ -216,6 +272,19 @@ private struct DayCard: View {
         let weekday = day.day == 1 ? "Tue" : "Wed"
         let date = day.day == 1 ? "Mar 12" : "Mar 13"
         return "\(weekday) · \(date)"
+    }
+}
+
+private struct EmptyTripCard: View {
+    let message: String
+
+    var body: some View {
+        VPCard {
+            Text(message)
+                .font(VPFont.body(15, weight: .semibold))
+                .foregroundStyle(VPColor.inkMuted)
+        }
+        .padding(20)
     }
 }
 

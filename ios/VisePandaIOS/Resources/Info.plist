@@ -42,7 +42,7 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>VisePanda uses photo access for future OCR translation and document import.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>VisePanda uses speech recognition for future voice translation and AI Butler voice input.</string>
+	<string>VisePanda uses speech recognition for future voice translation and AI Copilot voice input.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

@@ -45,7 +45,7 @@ describe("ButlerWorkspace", () => {
     fireEvent.click(screen.getByRole("button", { name: /send/i }));
 
     expect(await screen.findByText(/HTTP error 502/i)).toBeInTheDocument();
-    expect(await screen.findByText(/Connection failed: Could not reach VisePanda AI Butler/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Connection failed: Could not reach VisePanda AI Copilot/i)).toBeInTheDocument();
     expect(screen.queryByText(/VisePanda updated the canvas/i)).not.toBeInTheDocument();
   });
 

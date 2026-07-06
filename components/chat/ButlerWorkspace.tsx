@@ -304,7 +304,7 @@ export function ButlerWorkspace() {
       );
       setMessages((current) => [...current, errorMsg]);
       setSuggestions([]);
-      setStatus(`Connection failed: Could not reach VisePanda AI Butler.`);
+      setStatus(`Connection failed: Could not reach VisePanda AI Copilot.`);
     } finally {
       setBusy(false);
     }
@@ -372,7 +372,7 @@ export function ButlerWorkspace() {
   }
 
   return (
-    <section className="butler-workspace" aria-label="VisePanda AI Butler workspace">
+    <section className="butler-workspace" aria-label="VisePanda AI Copilot workspace">
       <div className="butler-workspace__canvas">
         <TripCanvas
           busy={busy}

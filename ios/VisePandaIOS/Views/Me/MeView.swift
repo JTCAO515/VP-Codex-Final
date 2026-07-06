@@ -47,7 +47,7 @@ struct MeView: View {
             _entries = State(initialValue: [sample])
             _selectedEntry = State(initialValue: sample)
         case .offline:
-            _errorMessage = State(initialValue: "Could not reach /butler/memory/profile. Check the network and try again.")
+            _errorMessage = State(initialValue: "Could not reach the Copilot memory profile. Check the network and try again.")
         }
     }
     #endif
@@ -166,7 +166,7 @@ struct MeView: View {
                 SubscriptionPlanCard(
                     title: "7-Day Trip Pass",
                     price: "$9.99 one-time",
-                    summary: "Short-trip access to premium planning review, rescue tools, offline prep, and faster Butler help for one China trip week.",
+                    summary: "Short-trip access to premium planning review, rescue tools, offline prep, and faster Copilot help for one China trip week.",
                     actionTitle: "Buy Pass"
                 ) {
                     purchaseNotice = "StoreKit purchase placeholder. Product id: visepanda.trip_pass.7day. This is a one-time trip pass, not an auto-renewing subscription."
@@ -255,7 +255,7 @@ struct MeView: View {
                     } else if entries.isEmpty {
                         MemoryStatusRow(
                             title: "No AI profile yet",
-                            value: "Chat with Butler to build a preference profile.",
+                            value: "Chat with Copilot to build a preference profile.",
                             icon: "sparkles"
                         )
                     } else {
@@ -412,7 +412,7 @@ struct MeView: View {
             entries = response.ok ? response.entries.sorted { $0.updatedAt > $1.updatedAt } : []
             errorMessage = nil
         } catch {
-            errorMessage = "Could not reach /butler/memory/profile. Check the network and try again."
+            errorMessage = "Could not reach the Copilot memory profile. Check the network and try again."
         }
     }
 
@@ -457,7 +457,7 @@ struct ProfileSyncStatus: Equatable {
         if isLoading {
             return ProfileSyncStatus(
                 title: "Syncing",
-                message: "Refreshing your AI profile from butler-service.",
+                message: "Refreshing your AI profile from Copilot memory.",
                 icon: "arrow.triangle.2.circlepath"
             )
         }

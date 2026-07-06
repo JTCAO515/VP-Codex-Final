@@ -138,6 +138,8 @@ struct CanvasPatch: Codable, Equatable {
     var tripSummary: TripSummaryPatch?
     var days: [TripDay]?
     var butlerAlerts: [ButlerAlert]?
+    var affectedDays: [Int]? = nil
+    var generationStage: String? = nil
     var reason: String
 }
 
@@ -151,6 +153,9 @@ struct ChatMessage: Codable, Identifiable, Equatable {
     var role: ChatRole
     var content: String
     var response: AssistantResponse?
+    var affectedDays: [Int]? = nil
+    /** Present only on assistant messages that actually changed the trip — see ChangeDigest.swift. */
+    var changeDigest: [ChangeDigestEntry]? = nil
     var createdAt: String?
 }
 
@@ -171,6 +176,7 @@ struct ButlerChatRequest: Codable {
     var trip: TripState
     var messages: [ChatMessage]
     var preferenceProfile: UserPreferenceProfile?
+    var completeSkeletonFor: TripState? = nil
 }
 
 struct ButlerChatResponse: Codable {

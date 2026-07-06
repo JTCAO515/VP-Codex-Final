@@ -4,11 +4,39 @@
 
 import { createMockButlerPatch } from "@/lib/mock-ai/mockButler";
 import { safeParseLlmJson } from "@/lib/ai/jsonRepair";
+import { applyTripEditIntent, parseTripEditIntent } from "@/lib/canvas/tripEditIntents";
+import type { ButlerIntent } from "@/lib/ai/intentClassifier";
 import type { ButlerToolContext } from "@/lib/ai/toolContext";
 import type { UserPreferenceProfile } from "@/lib/ai/preferenceProfile";
 import type { AssistantResponse, CanvasPatch, ChatMessage, InlineToolCard, TripDay, TripState } from "@/lib/types/trip";
 
 const allowedIntents = new Set<CanvasPatch["intent"]>(["create_trip", "adjust_trip", "add_alerts"]);
+
+/**
+ * CanvasPatch migration phase 1 (docs/planning/canvaspatch-edit-intent-migration-plan.md):
+ * only requests the local ButlerIntent classifier is already confident are
+ * "adjust an existing trip" get the smaller edit-intent prompt/parse path —
+ * create_trip (and everything else) is completely untouched.
+ */
+function usesEditIntentPath(intent: ButlerIntent): boolean {
+  return intent === "adjust_trip";
+}
+
+/**
+ * Trips staged generation, stage A (docs/planning/trips-staged-generation-migration-plan.md):
+ * every create_trip request now generates a fast skeleton (summary + each
+ * day's city/pace/food/stay/transport/note, blocks left empty) instead of
+ * waiting for the full multi-day itinerary in one call. The client applies
+ * the skeleton immediately, then makes a separate completeSkeletonFor
+ * request (see buildSkeletonCompletionSystemPrompt) to fill in blocks.
+ * adjust_trip/add_alerts are untouched — only create_trip had the "one call
+ * must finish every day before the client sees anything" latency problem.
+ */
+function usesSkeletonPath(intent: ButlerIntent): boolean {
+  return intent === "create_trip";
+}
+
+export type ButlerPromptMode = "normal" | "skeletonCompletion";
 
 export const defaultSuggestions = [
   "Can you make the pace easier?",
@@ -17,18 +45,59 @@ export const defaultSuggestions = [
   "Keep hotels convenient",
 ];
 
-export function buildSystemPrompt(): string {
+const SHARED_PERSONA_AND_HARD_RULES = [
+  // Persona — a knowledgeable local friend, not a call-center script.
+  "You are VisePanda, a warm, practical AI travel butler for foreign travelers in China — like a knowledgeable local friend: professional, specific, honest, never fluffy or salesy.",
+  // Constitution — hard rules that outrank everything below.
+  "HARD RULES:",
+  "(1) Never invent China facts (opening hours, prices, visa rules). When unsure, say so briefly and name an official source to verify.",
+  "(2) Bookings are info-only: never claim you can book, pay, reserve, or hold inventory.",
+  "(3) Ask at most ONE clarifying question per reply, and only when missing information would make the plan clearly wrong; otherwise make a sensible assumption and state it.",
+  "(4) Write assistantMessage/assistantResponse/suggestions in the same language as the user's latest message; JSON keys and enum values always stay in English.",
+  "(5) If the message signals danger, injury, theft, or a lost passport, lead with immediate practical safety steps (110 police / 120 ambulance / embassy) before anything else.",
+  "(6) When the user corrects you, accept the correction plainly and adjust — never argue or repeat the mistake.",
+];
+
+const SHARED_STYLE_TAIL = [
+  "assistantResponse must have a short headline, one concise body paragraph, 2-4 practical highlights, an optional watchOut, and one concrete, tappable nextStep.",
+  "Keep assistantMessage populated as a readable plain-text fallback that combines the same meaning as assistantResponse.",
+  "Suggestions must be exactly two short follow-up questions the traveler would naturally tap next — base them on the biggest gaps in the current trip (missing days, no hotel area chosen, undone high-priority alerts) or on the topic just discussed. Never repeat a question that was already answered in recentMessages.",
+  "Match reply length to the ask: factual questions get 2-3 tight sentences; itinerary work may use the full structure.",
+  "Keep the plan practical for China travel: routing, visas, payment, booking, transport, food, stay areas, and fatigue.",
+  "Be concise. Do not include markdown.",
+];
+
+/**
+ * CanvasPatch migration phase 1: requests the local ButlerIntent classifier
+ * already tags as "adjust an existing trip" get this much smaller contract —
+ * one enumerable edit intent instead of the whole days array — so structural
+ * correctness comes from lib/canvas/tripEditIntents.ts's code, not from the
+ * model's JSON shape staying stable across providers.
+ */
+function buildEditIntentSystemPrompt(): string {
   return [
-    // Persona — a knowledgeable local friend, not a call-center script.
-    "You are VisePanda, a warm, practical AI travel butler for foreign travelers in China — like a knowledgeable local friend: professional, specific, honest, never fluffy or salesy.",
-    // Constitution — hard rules that outrank everything below.
-    "HARD RULES:",
-    "(1) Never invent China facts (opening hours, prices, visa rules). When unsure, say so briefly and name an official source to verify.",
-    "(2) Bookings are info-only: never claim you can book, pay, reserve, or hold inventory.",
-    "(3) Ask at most ONE clarifying question per reply, and only when missing information would make the plan clearly wrong; otherwise make a sensible assumption and state it.",
-    "(4) Write assistantMessage/assistantResponse/suggestions in the same language as the user's latest message; JSON keys and enum values always stay in English.",
-    "(5) If the message signals danger, injury, theft, or a lost passport, lead with immediate practical safety steps (110 police / 120 ambulance / embassy) before anything else.",
-    "(6) When the user corrects you, accept the correction plainly and adjust — never argue or repeat the mistake.",
+    ...SHARED_PERSONA_AND_HARD_RULES,
+    "Return only valid json for a live itinerary canvas patch.",
+    "This request is an ADJUSTMENT to an existing trip — do NOT return a full days array. Instead return a single editIntent describing exactly one change.",
+    'Example json shape: {"intent":"adjust_trip","assistantMessage":"...","assistantResponse":{"headline":"...","body":"...","highlights":["..."],"watchOut":"...","nextStep":"..."},"reason":"...","suggestions":["...","..."],"editIntent":{"op":"add_block","day":2,"block":{"time":"Afternoon","title":"Summer Palace","description":"..."}}}.',
+    "The json shape must be: intent (always \"adjust_trip\" for this request), assistantMessage, assistantResponse, reason, suggestions, editIntent. Do not include a top-level days field.",
+    'editIntent must have one of these eight shapes. "day" is the 1-based TripDay.day number exactly as shown in the current trip context (day 1 is the first day — never 0). "blockIndex"/"position"/"fromIndex"/"toIndex" are 0-based indices into that day\'s blocks array (0 is the first block).',
+    '{"op":"add_block","day":<number>,"block":{"time":"Morning"|"Afternoon"|"Evening"|"Flexible","title":"...","description":"..."},"position":<optional number, defaults to appending>}',
+    '{"op":"remove_block","day":<number>,"blockIndex":<number>}',
+    '{"op":"update_block","day":<number>,"blockIndex":<number>,"patch":{"time"?:"...","title"?:"...","description"?:"..."}}',
+    '{"op":"move_block","day":<number>,"fromIndex":<number>,"toIndex":<number>} — reorder one block within a single day.',
+    '{"op":"set_day_field","day":<number>,"field":"pace"|"note"|"stay"|"transport","value":"..."} — "value" for field "pace" must be one of Light/Balanced/Relaxed/Packed.',
+    '{"op":"add_day","afterDay":<number>,"content":{"city":"...","pace":"Light"|"Balanced"|"Relaxed"|"Packed","blocks":[{"time":"...","title":"...","description":"..."}],"food":["..."],"stay":"...","transport":"...","note":"..."}} — afterDay is an existing day number to insert after, or 0 to insert as the new first day; every day is automatically renumbered afterward, so never include a day number inside content.',
+    '{"op":"remove_day","day":<number>} — deletes that whole day; the remaining days are automatically renumbered afterward.',
+    '{"op":"replace_day_blocks","day":<number>,"blocks":[{"time":"...","title":"...","description":"..."}]} — escape hatch for when a day\'s blocks need broader restructuring than a single move/update can express; still scoped to exactly one day, never the whole trip.',
+    "If the requested change does not fit exactly one of these eight shapes, say so honestly in assistantMessage and do not include an editIntent — never approximate with the wrong op or invent fields outside this schema.",
+    ...SHARED_STYLE_TAIL,
+  ].join(" ");
+}
+
+function buildFullArraySystemPrompt(): string {
+  return [
+    ...SHARED_PERSONA_AND_HARD_RULES,
     // Output contract.
     "Return only valid json for a live itinerary canvas patch.",
     'Example json shape: {"intent":"adjust_trip","assistantMessage":"...","assistantResponse":{"headline":"...","body":"...","highlights":["..."],"watchOut":"...","nextStep":"..."},"reason":"...","suggestions":["...","..."],"tripSummary":{"confidence":"Refined"},"days":[{"day":1,"city":"Beijing","pace":"Balanced","blocks":[{"time":"Morning","title":"Tiananmen Square","description":"..."},{"time":"Afternoon","title":"...","description":"..."}],"food":["..."],"stay":"...","transport":"...","note":"..."}],"butlerAlerts":[]}.',
@@ -36,13 +105,51 @@ export function buildSystemPrompt(): string {
     "IMPORTANT: each day object MUST have a flat `blocks` array (day, city, pace, blocks, food, stay, transport, note) — never group activities under separate morning/afternoon/evening objects, and never nest an `activities` array. Every block is one flat object: {time: one of Morning/Afternoon/Evening/Flexible, title, description}. Whenever the itinerary changes (intent create_trip or adjust_trip) you MUST return the COMPLETE updated days array — never a partial delta and never omit days — and set tripSummary.title, tripSummary.durationDays, and tripSummary.destinations so the live canvas reflects the plan.",
     "Trip blocks may include optional operational POI fields when known: address, chineseAddress, phone, openingHours, mapUrl, bookingUrl, bookingCandidates, sourceLabel, and coordinates {lat,lng}. Only include them when sourced from provided context or common static fallback; never invent official booking availability.",
     "Only omit days when the user's message does not change the itinerary at all (for example a pure factual question).",
-    "assistantResponse must have a short headline, one concise body paragraph, 2-4 practical highlights, an optional watchOut, and one concrete, tappable nextStep.",
-    "Keep assistantMessage populated as a readable plain-text fallback that combines the same meaning as assistantResponse.",
-    "Suggestions must be exactly two short follow-up questions the traveler would naturally tap next — base them on the biggest gaps in the current trip (missing days, no hotel area chosen, undone high-priority alerts) or on the topic just discussed. Never repeat a question that was already answered in recentMessages.",
-    "Match reply length to the ask: factual questions get 2-3 tight sentences; itinerary work may use the full structure.",
-    "Keep the plan practical for China travel: routing, visas, payment, booking, transport, food, stay areas, and fatigue.",
-    "Be concise. Do not include markdown.",
+    ...SHARED_STYLE_TAIL,
   ].join(" ");
+}
+
+/**
+ * Trips staged generation round 1: produce the skeleton only. Every day
+ * object MUST have blocks: [] — parseButlerPatch also force-clears blocks
+ * server-side afterward (see usesSkeletonPath's caller below) so the
+ * "skeleton means empty blocks" contract holds even if a provider ignores
+ * this instruction.
+ */
+function buildSkeletonSystemPrompt(): string {
+  return [
+    ...SHARED_PERSONA_AND_HARD_RULES,
+    "Return only valid json for a live itinerary canvas patch.",
+    "This is ROUND 1 of a two-round create_trip generation: produce only the trip skeleton, not the detailed day-by-day itinerary yet — that comes in round 2, so the traveler sees the shape of the plan immediately instead of waiting for everything to generate.",
+    'Example json shape: {"intent":"create_trip","assistantMessage":"...","assistantResponse":{"headline":"...","body":"...","highlights":["..."],"watchOut":"...","nextStep":"..."},"reason":"...","suggestions":["...","..."],"tripSummary":{"title":"...","durationDays":3,"destinations":["Beijing"],"confidence":"Draft"},"days":[{"day":1,"city":"Beijing","pace":"Balanced","blocks":[],"food":["Peking duck"],"stay":"City center","transport":"Subway","note":""}]}.',
+    "The json shape must be: intent (create_trip), assistantMessage, assistantResponse, reason, suggestions, tripSummary, days. Every day object's `blocks` field MUST be an empty array `[]` in this round — do not generate any block content yet. Do set city, pace, food, stay, transport, note for every day, and set tripSummary.title/durationDays/destinations so the live canvas reflects the plan's shape.",
+    "assistantMessage/assistantResponse should read as a normal, complete-feeling first pass (mention the overall shape: cities, duration, pace) — do not sound unfinished or apologize for missing details; the traveler doesn't need to know this is round 1 of 2.",
+    ...SHARED_STYLE_TAIL,
+  ].join(" ");
+}
+
+/**
+ * Trips staged generation round 2: the skeleton (day count, each day's city
+ * and pace) is already fixed and given as currentTrip in the user message —
+ * this prompt forbids changing it and asks only for blocks.
+ */
+function buildSkeletonCompletionSystemPrompt(): string {
+  return [
+    ...SHARED_PERSONA_AND_HARD_RULES,
+    "Return only valid json for a live itinerary canvas patch.",
+    "This is ROUND 2 of a two-round create_trip generation. The trip skeleton — the number of days, and each day's city and pace — is already fixed by round 1 and given to you as currentTrip in the user message. Do NOT add, remove, or reorder days, and do NOT change any day's city or pace field.",
+    "Your only job this round: fill in every day's `blocks` array with a real flat itinerary (2-4 blocks per day), and refine that day's food/stay/transport/note if useful. Trip blocks may include optional operational POI fields when known: address, chineseAddress, phone, openingHours, mapUrl, bookingUrl, bookingCandidates, sourceLabel, and coordinates {lat,lng}. Only include them when sourced from provided context or common static fallback; never invent official booking availability.",
+    'Example json shape: {"intent":"create_trip","assistantMessage":"...","assistantResponse":{"headline":"...","body":"...","highlights":["..."],"watchOut":"...","nextStep":"..."},"reason":"...","suggestions":["...","..."],"days":[{"day":1,"city":"Beijing","pace":"Balanced","blocks":[{"time":"Morning","title":"Tiananmen Square","description":"..."},{"time":"Afternoon","title":"...","description":"..."}],"food":["..."],"stay":"...","transport":"...","note":"..."}]}.',
+    "The json shape must be: intent (create_trip), assistantMessage, assistantResponse, reason, suggestions, days — return the COMPLETE days array with every day from the skeleton, each one now with blocks filled in, never a partial subset and never a different day count.",
+    ...SHARED_STYLE_TAIL,
+  ].join(" ");
+}
+
+export function buildSystemPrompt(intent: ButlerIntent = "unclear", mode: ButlerPromptMode = "normal"): string {
+  if (mode === "skeletonCompletion") return buildSkeletonCompletionSystemPrompt();
+  if (usesEditIntentPath(intent)) return buildEditIntentSystemPrompt();
+  if (usesSkeletonPath(intent)) return buildSkeletonSystemPrompt();
+  return buildFullArraySystemPrompt();
 }
 
 /**
@@ -280,12 +387,23 @@ function normalizeAssistantResponse(
  * quality gate rejects create_trip patches without a complete days array, so a
  * reply that *says* it planned a trip but didn't actually patch the canvas
  * loses the race to a provider that did the work.
+ *
+ * CanvasPatch migration phase 1: when `intent` is one the edit-intent prompt
+ * was sent for (see usesEditIntentPath), this expects `editIntent` instead of
+ * `days` — validates it with lib/canvas/tripEditIntents.ts's strict parser,
+ * executes it against `currentDays`, and puts the resulting full array into
+ * `patch.days` so the CanvasPatch shape returned to callers is unchanged.
+ * Any other intent (including create_trip) is completely unaffected —
+ * `currentDays`/`intent` are unused on that path, same as before this change.
  */
 export function parseButlerPatch(
   content: string,
   fallbackSuggestions: string[],
+  intent: ButlerIntent = "unclear",
+  currentDays: TripDay[] = [],
+  mode: ButlerPromptMode = "normal",
 ): { patch: CanvasPatch; suggestions: string[] } {
-  const parsed = safeParseLlmJson(content) as Partial<CanvasPatch> & { suggestions?: unknown };
+  const parsed = safeParseLlmJson(content) as Partial<CanvasPatch> & { suggestions?: unknown; editIntent?: unknown };
 
   if (!parsed.intent || !allowedIntents.has(parsed.intent)) {
     throw new Error("Butler response did not include a valid intent.");
@@ -307,14 +425,51 @@ export function parseButlerPatch(
     suggestions,
   );
 
+  // Omitting editIntent is the sanctioned way to say "this reply didn't
+  // change the itinerary" (mirrors the full-array path's existing rule:
+  // "Only omit days when the user's message does not change the itinerary
+  // at all") — only a *present but malformed* editIntent should fail the
+  // patch. Don't confuse "nothing to apply" with "invalid."
+  let days = usesEditIntentPath(intent)
+    ? parsed.editIntent === undefined
+      ? undefined
+      : applyTripEditIntent(currentDays, parseTripEditIntent(parsed.editIntent))
+    : normalizeDays(parsed.days);
+
+  // Trips staged generation (docs/planning/trips-staged-generation-migration-plan.md).
+  let generationStage: CanvasPatch["generationStage"];
+  if (mode === "skeletonCompletion") {
+    // Structural validation: round 2 must preserve round 1's skeleton
+    // exactly (same day count, same city/pace per day) — a completion that
+    // silently changed the skeleton is worse than one that failed outright,
+    // since the client already committed to that skeleton and rendered it.
+    if (!days || days.length !== currentDays.length) {
+      throw new Error("Skeleton completion response changed the day count.");
+    }
+    days.forEach((day, index) => {
+      const skeletonDay = currentDays[index];
+      if (day.day !== skeletonDay.day || day.city !== skeletonDay.city || day.pace !== skeletonDay.pace) {
+        throw new Error(`Skeleton completion response changed day ${skeletonDay.day}'s day/city/pace.`);
+      }
+    });
+    generationStage = "complete";
+  } else if (usesSkeletonPath(intent) && days) {
+    // Force the invariant regardless of what the model actually returned —
+    // "generationStage: skeleton" must always mean blocks are empty so
+    // clients can trust the field without re-checking blocks themselves.
+    days = days.map((day) => ({ ...day, blocks: [] }));
+    generationStage = "skeleton";
+  }
+
   const patch: CanvasPatch = {
     intent: parsed.intent,
     assistantMessage: parsed.assistantMessage,
     assistantResponse,
     reason: parsed.reason,
     tripSummary: parsed.tripSummary,
-    days: normalizeDays(parsed.days),
+    days,
     butlerAlerts: Array.isArray(parsed.butlerAlerts) ? parsed.butlerAlerts : undefined,
+    generationStage,
   };
 
   return { patch, suggestions };

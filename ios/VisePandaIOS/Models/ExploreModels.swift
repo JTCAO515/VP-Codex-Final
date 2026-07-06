@@ -215,6 +215,30 @@ struct ExploreFilterState: Equatable {
     }
 }
 
+struct TravelerFit: Equatable {
+    var firstTimerFit: Bool?
+    var paymentFriendliness: String?
+    var languageDifficulty: String?
+    var routeFit: String?
+    var rainyDayFit: Bool?
+    var nightFit: Bool?
+    var crowdRisk: String?
+    var luggageFit: Bool?
+    var watchOut: String?
+
+    var isEmpty: Bool {
+        firstTimerFit == nil &&
+            paymentFriendliness == nil &&
+            languageDifficulty == nil &&
+            routeFit == nil &&
+            rainyDayFit == nil &&
+            nightFit == nil &&
+            crowdRisk == nil &&
+            luggageFit == nil &&
+            watchOut == nil
+    }
+}
+
 struct ExploreAmapResponse: Decodable {
     var ok: Bool
     var cityId: String
@@ -284,6 +308,10 @@ struct ExploreAmapPoi: Decodable, Identifiable, Equatable {
         guard parts.count == 2 else { return nil }
         return Coordinates(lat: parts[1], lng: parts[0])
     }
+
+    var travelerFit: TravelerFit? {
+        TravelerFitDeriver.derive(from: self)
+    }
 }
 
 struct ExploreBizExt: Decodable, Equatable {
@@ -323,5 +351,135 @@ private extension KeyedDecodingContainer {
             return values.first { !$0.isEmpty }
         }
         return nil
+    }
+}
+
+private enum TravelerFitDeriver {
+    static func derive(from poi: ExploreAmapPoi) -> TravelerFit? {
+        let text = searchText(for: poi)
+        guard !text.isEmpty else { return nil }
+
+        var fit = TravelerFit()
+        fit.firstTimerFit = firstTimerFit(text: text, rating: poi.ratingValue)
+        fit.paymentFriendliness = paymentFriendliness(text: text)
+        fit.languageDifficulty = languageDifficulty(text: text)
+        fit.rainyDayFit = rainyDayFit(text: text)
+        fit.nightFit = nightFit(openingText: poi.opentimeWeek)
+        fit.crowdRisk = crowdRisk(text: text, rating: poi.ratingValue)
+        fit.luggageFit = luggageFit(text: text)
+        fit.watchOut = watchOut(for: fit)
+
+        return fit.isEmpty ? nil : fit
+    }
+
+    private static func searchText(for poi: ExploreAmapPoi) -> String {
+        (
+            [
+                poi.type,
+                poi.address,
+                poi.businessArea,
+                poi.opentimeWeek,
+                poi.editorial?.summary,
+                poi.editorial?.badge
+            ] +
+            (poi.editorial?.tags ?? []) +
+            (poi.editorial?.badges ?? [])
+        )
+        .compactMap { $0 }
+        .joined(separator: " ")
+        .lowercased()
+        // Curated POI tags use kebab-case (e.g. "english-menu", from
+        // scripts/curated-seeds/*.sql), but the keyword lists below match on
+        // space-separated phrases ("english menu") — without this, every
+        // hyphenated tag would silently never match anything.
+        .replacingOccurrences(of: "-", with: " ")
+    }
+
+    private static func firstTimerFit(text: String, rating: Double?) -> Bool? {
+        if containsAny(text, ["first-timer", "first timer", "beginner", "classic", "landmark", "vp pick"]) {
+            return true
+        }
+        if containsAny(text, ["local-only", "locals only", "hard to find"]) {
+            return false
+        }
+        if let rating, rating >= 4.6, containsAny(text, ["museum", "scenic", "sight", "attraction"]) {
+            return true
+        }
+        return nil
+    }
+
+    private static func paymentFriendliness(text: String) -> String? {
+        if containsAny(text, ["card accepted", "visa accepted", "mastercard accepted", "foreign card"]) {
+            return "Card accepted"
+        }
+        if containsAny(text, ["cash only", "cash-only"]) {
+            return "Cash only"
+        }
+        return nil
+    }
+
+    private static func languageDifficulty(text: String) -> String? {
+        if containsAny(text, ["english menu", "english service", "foreigner-friendly", "foreign visitor"]) {
+            return "Lower"
+        }
+        if containsAny(text, ["chinese only", "no english", "local-only"]) {
+            return "Higher"
+        }
+        return nil
+    }
+
+    private static func rainyDayFit(text: String) -> Bool? {
+        if containsAny(text, ["museum", "mall", "shopping", "hotel", "spa", "massage", "ktv", "cinema", "teahouse"]) {
+            return true
+        }
+        if containsAny(text, ["park", "garden", "mountain", "beach", "outdoor"]) {
+            return false
+        }
+        return nil
+    }
+
+    private static func nightFit(openingText: String?) -> Bool? {
+        guard let openingText, !openingText.isEmpty else { return nil }
+        let text = openingText.lowercased()
+        if containsAny(text, ["24小时", "全天", "24h", "24 h", "all day"]) {
+            return true
+        }
+
+        let hours = text
+            .split { !$0.isNumber && $0 != ":" }
+            .compactMap { Int($0.split(separator: ":").first ?? "") }
+        guard let latestHour = hours.max() else { return nil }
+        return latestHour >= 21
+    }
+
+    private static func crowdRisk(text: String, rating: Double?) -> String? {
+        if containsAny(text, ["crowded", "busy", "popular", "hot spot", "landmark"]) || (rating ?? 0) >= 4.7 {
+            return "High"
+        }
+        return nil
+    }
+
+    private static func luggageFit(text: String) -> Bool? {
+        if containsAny(text, ["hotel", "mall", "airport", "railway station", "train station"]) {
+            return true
+        }
+        if containsAny(text, ["park", "garden", "mountain", "temple", "crowded"]) {
+            return false
+        }
+        return nil
+    }
+
+    private static func watchOut(for fit: TravelerFit) -> String? {
+        if fit.crowdRisk == "High" {
+            return "Expect crowds at peak times."
+        }
+        if fit.rainyDayFit == false {
+            return "Best in dry weather."
+        }
+        return nil
+    }
+
+    private static func containsAny(_ text: String, _ needles: [String]) -> Bool {
+        needles.contains { text.contains($0) }
     }
 }

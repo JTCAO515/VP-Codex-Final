@@ -75,7 +75,7 @@ struct ChatView: View {
                 Text("VisePanda")
                     .font(VPFont.display(22))
                     .foregroundStyle(VPColor.ink)
-                Text("AI China Travel Butler")
+                Text("China Travel AI Copilot")
                     .font(VPFont.body(12))
                     .foregroundStyle(VPColor.inkSoft)
             }
@@ -165,12 +165,12 @@ struct ChatView: View {
                     if granted {
                         beginRecording()
                     } else {
-                        voiceError = "Microphone permission is required for Butler voice input."
+                        voiceError = "Microphone permission is required for Copilot voice input."
                     }
                 }
             }
         default:
-            voiceError = "Microphone permission is required for Butler voice input."
+            voiceError = "Microphone permission is required for Copilot voice input."
         }
     }
 
@@ -179,7 +179,7 @@ struct ChatView: View {
             let session = AVAudioSession.sharedInstance()
             try session.setCategory(.playAndRecord, mode: .spokenAudio, options: [.defaultToSpeaker])
             try session.setActive(true)
-            let url = FileManager.default.temporaryDirectory.appendingPathComponent("visepanda-butler-voice.m4a")
+            let url = FileManager.default.temporaryDirectory.appendingPathComponent("visepanda-copilot-voice.m4a")
             try? FileManager.default.removeItem(at: url)
             let nextRecorder = try AVAudioRecorder(url: url, settings: [
                 AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
@@ -302,6 +302,16 @@ private struct MessageBubble: View {
                                 }
                             }
 
+                            if let digest = message.changeDigest, !digest.isEmpty {
+                                TripUpdatedSummary(entries: digest)
+                            }
+
+                            if let affectedDays = message.affectedDays, !affectedDays.isEmpty {
+                                UpdatedDaysRow(days: affectedDays) { day in
+                                    store.openTripDay(day)
+                                }
+                            }
+
                             Text(response.nextStep)
                                 .font(VPFont.body(14, weight: .bold))
                                 .foregroundStyle(VPColor.ink)
@@ -314,6 +324,61 @@ private struct MessageBubble: View {
                 }
             }
         }
+    }
+}
+
+private struct UpdatedDaysRow: View {
+    let days: [Int]
+    let onTap: (Int) -> Void
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 10) {
+                ForEach(days, id: \.self) { day in
+                    Button {
+                        onTap(day)
+                    } label: {
+                        Label("View Day \(day)", systemImage: "calendar.badge.clock")
+                            .font(VPFont.body(13, weight: .bold))
+                            .foregroundStyle(VPColor.cinnabar)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 10)
+                            .background(VPColor.paperWarm)
+                            .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+}
+
+private struct TripUpdatedSummary: View {
+    let entries: [ChangeDigestEntry]
+
+    private func icon(for kind: ChangeDigestEntry.Kind) -> String {
+        switch kind {
+        case .added: return "plus.circle"
+        case .revised: return "pencil.circle"
+        case .removed: return "minus.circle"
+        case .alert: return "bell.badge"
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Trip updated")
+                .font(VPFont.body(12, weight: .bold))
+                .foregroundStyle(VPColor.inkSoft)
+            ForEach(entries) { entry in
+                Label(entry.label, systemImage: icon(for: entry.kind))
+                    .font(VPFont.body(13, weight: .semibold))
+                    .foregroundStyle(VPColor.inkMuted)
+            }
+        }
+        .padding(12)
+        .background(VPColor.paperWarm)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
 

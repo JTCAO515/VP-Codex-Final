@@ -33,8 +33,11 @@
 		AA2000000000000000000025 /* ExploreModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000025 /* ExploreModels.swift */; };
 		AA2000000000000000000026 /* ExploreMockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000026 /* ExploreMockData.swift */; };
 		AA2000000000000000000027 /* LocalDisplayModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000027 /* LocalDisplayModels.swift */; };
+		AA2000000000000000000028 /* ChangeDigest.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000028 /* ChangeDigest.swift */; };
 		AA6200000000000000000001 /* Issue84P0Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA6100000000000000000001 /* Issue84P0Tests.swift */; };
 		AA6200000000000000000002 /* TranslateTtsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA6100000000000000000002 /* TranslateTtsTests.swift */; };
+		AA6200000000000000000004 /* TravelerFitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA6100000000000000000004 /* TravelerFitTests.swift */; };
+		AA6200000000000000000003 /* ChangeDigestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA6100000000000000000003 /* ChangeDigestTests.swift */; };
 		AA4000000000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA3000000000000000000001 /* Assets.xcassets */; };
 		AA4000000000000000000002 /* DMSans.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA3000000000000000000002 /* DMSans.ttf */; };
 		AA4000000000000000000003 /* PlayfairDisplay.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA3000000000000000000003 /* PlayfairDisplay.ttf */; };
@@ -79,12 +82,15 @@
 		AA1000000000000000000025 /* ExploreModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreModels.swift; sourceTree = "<group>"; };
 		AA1000000000000000000026 /* ExploreMockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreMockData.swift; sourceTree = "<group>"; };
 		AA1000000000000000000027 /* LocalDisplayModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalDisplayModels.swift; sourceTree = "<group>"; };
+		AA1000000000000000000028 /* ChangeDigest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangeDigest.swift; sourceTree = "<group>"; };
 		AA3000000000000000000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AA3000000000000000000002 /* DMSans.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = DMSans.ttf; sourceTree = "<group>"; };
 		AA3000000000000000000003 /* PlayfairDisplay.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = PlayfairDisplay.ttf; sourceTree = "<group>"; };
 		AA3000000000000000000004 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA6100000000000000000001 /* Issue84P0Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Issue84P0Tests.swift; sourceTree = "<group>"; };
 		AA6100000000000000000002 /* TranslateTtsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslateTtsTests.swift; sourceTree = "<group>"; };
+		AA6100000000000000000004 /* TravelerFitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TravelerFitTests.swift; sourceTree = "<group>"; };
+		AA6100000000000000000003 /* ChangeDigestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangeDigestTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -170,6 +176,7 @@
 				AA1000000000000000000023 /* KeychainSessionStore.swift */,
 				AA1000000000000000000024 /* AuthStore.swift */,
 				AA1000000000000000000026 /* ExploreMockData.swift */,
+				AA1000000000000000000028 /* ChangeDigest.swift */,
 			);
 			path = VisePandaIOS/Data;
 			sourceTree = "<group>";
@@ -269,6 +276,8 @@
 			children = (
 				AA6100000000000000000001 /* Issue84P0Tests.swift */,
 				AA6100000000000000000002 /* TranslateTtsTests.swift */,
+				AA6100000000000000000004 /* TravelerFitTests.swift */,
+				AA6100000000000000000003 /* ChangeDigestTests.swift */,
 			);
 			path = VisePandaIOSTests;
 			sourceTree = "<group>";
@@ -400,6 +409,7 @@
 				AA2000000000000000000025 /* ExploreModels.swift in Sources */,
 				AA2000000000000000000026 /* ExploreMockData.swift in Sources */,
 				AA2000000000000000000027 /* LocalDisplayModels.swift in Sources */,
+				AA2000000000000000000028 /* ChangeDigest.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -409,6 +419,8 @@
 			files = (
 				AA6200000000000000000001 /* Issue84P0Tests.swift in Sources */,
 				AA6200000000000000000002 /* TranslateTtsTests.swift in Sources */,
+				AA6200000000000000000004 /* TravelerFitTests.swift in Sources */,
+				AA6200000000000000000003 /* ChangeDigestTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

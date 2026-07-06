@@ -9,14 +9,15 @@
 **Request body**
 ```json
 {
-  "message": "string, required, 非空",
+  "message": "string, required, 非空 — completeSkeletonFor 请求时可传空字符串,被忽略",
   "trip": "TripState, required — 见 lib/types/trip.ts",
   "messages": "ChatMessage[], optional，最近对话历史",
-  "preferenceProfile": "UserPreferenceProfile, optional"
+  "preferenceProfile": "UserPreferenceProfile, optional",
+  "completeSkeletonFor": "TripState, optional — 见下方 Trips 分阶段生成契约，存在时忽略 message/messages/preferenceProfile,跳过 butler-service 转发和意图分类"
 }
 ```
 - `trip` 缺失或不是合法 `TripState`(至少含 `summary`/`days: []`/`alerts: []`) → 400 `trip_required`。
-- `message` 空 → 400 `message_required`。
+- `message` 空 → 400 `message_required`(`completeSkeletonFor` 存在时不受此校验约束)。
 
 **Response（成功）**
 ```json
@@ -36,6 +37,28 @@
 **Response（失败）**：503 `{ ok: false, error: "butler_unavailable", message }`。
 
 **客户端契约**：收到 `patch` 后必须走 `applyCanvasPatch`（或镜像实现）合并本地 `TripState`，不允许自己拼装。Android 参考 `CanvasPatchApplier.kt`，iOS 参考 `CanvasPatchApplier.swift`。
+
+### `patch.affectedDays`（Chat→Trips 反向链路契约，2026-07-07）
+
+`CanvasPatch` 新增可选字段 `affectedDays?: number[]`：服务端在 `app/api/chat/route.ts` 的单一出口处，用请求带上来的 `trip.days`（改动前）和 `patch.days`（改动后）逐天 diff 算出的实际被新增/删除/改动过的 day 序号（`lib/canvas/applyCanvasPatch.ts` 的 `computeAffectedDays`），覆盖 butler-service 转发、factual tools、真实 LLM race、mock 兜底所有路径，客户端不需要自己 diff。
+
+- `patch.days` 未提供（比如纯 `add_alerts` 回复）→ `affectedDays` 为 `[]`。
+- 客户端只在 `affectedDays` 非空时才允许在 Chat 消息里展示"跳转到 Trips 对应天"的入口，纯文本回答或没有真正改动行程时不能出现这个入口。
+- 如果某个 day 序号出现在 `affectedDays` 里但客户端本地 Trips 数据中已经不存在这一天（比如该天被同一个 patch 删除），跳转动作应该优雅降级为切到 Trips 首页而不是崩溃或报错。
+
+### `patch.generationStage` + `completeSkeletonFor`（Trips 分阶段生成契约，2026-07-07，docs/planning/trips-staged-generation-migration-plan.md）
+
+只影响 `create_trip`(从零生成新行程);`adjust_trip`/`add_alerts` 的 `patch.generationStage` 始终是 `undefined`,行为完全不变。
+
+**第一轮(普通 `create_trip` 请求)**:`patch.generationStage` 会是 `"skeleton"`,此时 `patch.days` 里每天的 `blocks` 服务端保证是空数组 `[]`(不管 LLM 是否遵守提示词都会强制清空),但 `city`/`pace`/`food`/`stay`/`transport`/`note` 和 `tripSummary` 都是真实生成的内容,可以立刻渲染。
+
+**客户端拿到骨架后的动作**:
+1. 照常走 `applyCanvasPatch`/`CanvasPatchApplier` 合并进本地 `TripState`(`blocks: []` 是既有的合法空状态,不需要新的合并分支)。
+2. 立刻(不等用户下一次输入,不产生新的用户消息气泡)用合并后的 `trip` 再发一次 `POST /api/chat`,这次 body 里带 `completeSkeletonFor: <合并后的 trip>`,`message` 可传空字符串。
+3. 这次请求成功时,`patch.generationStage` 会是 `"complete"`,`patch.days` 与骨架**逐天同序**、`day`/`city`/`pace` 与骨架完全一致,只是 `blocks` 补全为真实内容——按 `day` 合并回本地状态即可,不产生新的聊天气泡。
+4. 这次请求失败(网络错误或 502)时,骨架保留原样,不要静默重试轰炸——UI 应该给一个"生成中/加载失败,点击重试"的入口,重新发起同一个 `completeSkeletonFor` 请求。
+
+**老客户端兼容性**:不认识 `generationStage` 字段的老客户端会把骨架当成"这几天还没有安排"的既有空状态正常渲染,不会崩溃,只是不会自动补全(需要独立升级消费这个字段才能拿到完整体验)。
 
 ### `patch.assistantResponse.exploreRefs`（Issue #50，Chat↔Explore 打通契约）
 
@@ -112,6 +135,30 @@
 ```
 
 **Response(失败)**:503 `not_configured`(无 `AMAP_API_KEY`)/ 400 `invalid_params` / `invalid_location`(mode=around 但 location 不合法)/ `invalid_page` / 502 `upstream_error`。
+
+### `poi.travelerFit`(未来可选字段草案,Issue #122,尚未实现)
+
+**这是草案,不是已实现契约** —— 本节只是给"以后想把外国游客适配度判断挪到服务端"这个方向留一个契约占位,当前 `poi` 响应里不会出现这个字段。客户端侧的可选字段定义见 iOS Issue #119(TravelerFit),字段名在这里保持一致,方便以后如果真的做服务端版本时直接对齐:
+
+```json
+{
+  "travelerFit": {
+    "firstTimerFit": "boolean, optional",
+    "paymentFriendliness": "string, optional — 例如 'Card accepted'/'Cash only'",
+    "languageDifficulty": "string, optional",
+    "routeFit": "string, optional",
+    "rainyDayFit": "boolean, optional",
+    "nightFit": "boolean, optional",
+    "crowdRisk": "string, optional",
+    "luggageFit": "boolean, optional",
+    "watchOut": "string, optional"
+  }
+}
+```
+
+**诚实原则(和 `editorial` 字段的规则一致)**:任何一项无法从真实数据判断,必须省略该字段,不能给默认值凑数,也不能为了"看起来完整"而编造一个听起来合理但没有依据的判断。整个 `travelerFit` 对象在没有任何一项能判断时,应该整体省略,不是给一个全 `null` 的空对象。
+
+老客户端(不认识这个字段的版本)应该完全不受影响——这是可选的超集扩展,和 `editorial` 字段的兼容性规则相同。
 
 ## GET /api/explore/baidu — 百度 POI(体验品类 Phase 2 占位接入)
 

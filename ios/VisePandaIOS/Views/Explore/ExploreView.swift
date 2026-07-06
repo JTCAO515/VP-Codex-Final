@@ -45,7 +45,7 @@ struct ExploreView: View {
                         store.addPlaceToPlan(poi.name)
                         contextualNotice = "Added \(poi.name) to your trip request."
                     },
-                    onAskButler: {
+                    onAskCopilot: {
                         store.prefillChat("Tell me about \(poi.name) in \(city.name). Is it a good fit for my trip, and where would you place it?")
                     }
                 )
@@ -477,7 +477,7 @@ private struct ExploreChannelView: View {
                     store.addPlaceToPlan(poi.name)
                     notice = "Added \(poi.name) to your trip request."
                 },
-                onAskButler: {
+                onAskCopilot: {
                     store.prefillChat("Tell me about \(poi.name) in \(city.name). Is it a good fit for my trip, and where would you place it?")
                 }
             )
@@ -660,7 +660,7 @@ private struct ExploreChannelView: View {
         didOpenFocusRef = true
         selectedPoi = pois.first { $0.id == focusRef.amapPoiId || "amap-\($0.id)" == focusRef.amapPoiId }
         if selectedPoi == nil {
-            notice = "That Butler recommendation was not in the current Explore result page."
+            notice = "That Copilot recommendation was not in the current Explore result page."
         }
     }
 }
@@ -752,7 +752,7 @@ private struct PoiDetailSheet: View {
     let poi: ExploreAmapPoi
     let category: ExploreCategory
     let onAddToTrip: () -> Void
-    let onAskButler: () -> Void
+    let onAskCopilot: () -> Void
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -792,10 +792,10 @@ private struct PoiDetailSheet: View {
                     }
 
                     Button {
-                        onAskButler()
+                        onAskCopilot()
                         dismiss()
                     } label: {
-                        Text("Ask Butler")
+                        Text("Ask Copilot")
                             .font(VPFont.body(15, weight: .bold))
                             .foregroundStyle(VPColor.ink)
                             .frame(maxWidth: .infinity)
