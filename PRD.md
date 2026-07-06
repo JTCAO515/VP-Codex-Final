@@ -8,6 +8,8 @@ VisePanda 是一个专为**非跟团自由行（FIT）外国来华游客**打造
 
 > VisePanda is a one-stop AI travel butler for independent foreign travelers in China, integrating itinerary planning, booking, translation, and local utility plugins (transit, payment, maps) into a live, actionable trip canvas.
 
+> **v0.3.23 定位修订说明**:上述定位写于 Web 优先阶段,产品主线现已转向 Android/iOS 原生双端。经过一轮产品定位对抗性评审(`docs/planning/v0.3.23-product-positioning-adversarial-synthesis.md`),修订后的一句话定位为:**"救急内核 + 可信发现层"的中国旅行随身管家** —— 救急能力(支付/翻译/签证/交通/地址/紧急联系)必须做到不能掉线,发现层(Explore 的大众点评式发现体验)是让用户愿意反复打开、形成口碑的理由,两者缺一不可。本节以下功能清单仍反映 Web 阶段的历史实现细节,供参考,不代表当前双端产品的完整能力范围(完整能力见 `docs/planning/v0.3.2-android-planning-synthesis.md` 及后续各版本 CHANGELOG)。
+
 ## 2. 目标用户
 
 - **独立自由行外国游客（FIT）**：不希望跟团，渴望自由探索中国，但面临信息壁垒（如景点实名预约、复杂的国内地铁与支付配置等）的国际游客。
