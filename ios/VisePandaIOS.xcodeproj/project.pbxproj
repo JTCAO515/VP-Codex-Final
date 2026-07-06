@@ -33,6 +33,7 @@
 		AA2000000000000000000025 /* ExploreModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000025 /* ExploreModels.swift */; };
 		AA2000000000000000000026 /* ExploreMockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000000000000000000026 /* ExploreMockData.swift */; };
 		AA6200000000000000000001 /* Issue84P0Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA6100000000000000000001 /* Issue84P0Tests.swift */; };
+		AA6200000000000000000002 /* TranslateTtsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA6100000000000000000002 /* TranslateTtsTests.swift */; };
 		AA4000000000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA3000000000000000000001 /* Assets.xcassets */; };
 		AA4000000000000000000002 /* DMSans.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA3000000000000000000002 /* DMSans.ttf */; };
 		AA4000000000000000000003 /* PlayfairDisplay.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA3000000000000000000003 /* PlayfairDisplay.ttf */; };
@@ -81,6 +82,7 @@
 		AA3000000000000000000003 /* PlayfairDisplay.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = PlayfairDisplay.ttf; sourceTree = "<group>"; };
 		AA3000000000000000000004 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA6100000000000000000001 /* Issue84P0Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Issue84P0Tests.swift; sourceTree = "<group>"; };
+		AA6100000000000000000002 /* TranslateTtsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslateTtsTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -263,6 +265,7 @@
 			isa = PBXGroup;
 			children = (
 				AA6100000000000000000001 /* Issue84P0Tests.swift */,
+				AA6100000000000000000002 /* TranslateTtsTests.swift */,
 			);
 			path = VisePandaIOSTests;
 			sourceTree = "<group>";
@@ -401,6 +404,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA6200000000000000000001 /* Issue84P0Tests.swift in Sources */,
+				AA6200000000000000000002 /* TranslateTtsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

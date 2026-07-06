@@ -52,6 +52,18 @@ struct VisePandaAPIClient {
         return try await perform(request, as: TranslateSttResponse.self)
     }
 
+    func translateTts(text: String, language: String, voice: String? = nil) async throws -> TranslateTtsURL {
+        var request = makeJSONRequest(path: "api/translate/tts", method: "POST")
+        request.httpBody = try JSONEncoder.visePanda.encode(
+            TranslateTtsRequest(text: text, language: language, voice: voice)
+        )
+        let response = try await perform(request, as: TranslateTtsResponse.self)
+        guard response.ok, let audioUrl = response.audioUrl else {
+            throw VisePandaAPIError.http(statusCode: -1, body: response.error ?? "TTS audio URL is blank")
+        }
+        return audioUrl
+    }
+
     func fetchExploreAmap(
         cityId: String,
         type: String,
