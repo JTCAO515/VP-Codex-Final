@@ -1,10 +1,13 @@
+import AVFoundation
 import SwiftUI
+import UIKit
 
 struct DayDetailView: View {
     @EnvironmentObject private var store: TripStore
     let day: TripDay
     @State private var editingBlock: TripBlock?
     @State private var editedDescription = ""
+    @State private var showToLocalAddress: LocalAddressCard?
 
     private var currentDay: TripDay {
         store.trip.days.first { $0.day == day.day } ?? day
@@ -71,6 +74,10 @@ struct DayDetailView: View {
                 }
             }
         }
+        .sheet(item: $showToLocalAddress) { card in
+            ShowToLocalSheet(card: card)
+                .presentationDetents([.medium, .large])
+        }
     }
 
     private func blockCard(block: TripBlock, index: Int) -> some View {
@@ -114,6 +121,19 @@ struct DayDetailView: View {
                     Label(address, systemImage: "mappin.and.ellipse")
                         .font(VPFont.body(13, weight: .semibold))
                         .foregroundStyle(VPColor.inkSoft)
+
+                    Button {
+                        showToLocalAddress = LocalAddressCard(
+                            title: block.title,
+                            address: address,
+                            detail: block.chineseAddress == nil ? nil : block.address
+                        )
+                    } label: {
+                        Label("Show to Local", systemImage: "text.viewfinder")
+                            .font(VPFont.body(13, weight: .bold))
+                            .foregroundStyle(VPColor.cinnabar)
+                    }
+                    .buttonStyle(.plain)
                 }
 
                 ForEach(block.highlights ?? [], id: \.self) { highlight in
@@ -160,5 +180,91 @@ struct DayDetailView: View {
         .padding(10)
         .background(VPColor.paperWarm)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+}
+
+struct LocalAddressCard: Identifiable {
+    var id: String { title + address }
+    var title: String
+    var address: String
+    var detail: String?
+}
+
+private struct ShowToLocalSheet: View {
+    let card: LocalAddressCard
+    @Environment(\.dismiss) private var dismiss
+    @State private var speaker = AVSpeechSynthesizer()
+    @State private var copied = false
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    VPCard {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Show to Local")
+                                .font(VPFont.body(13, weight: .bold))
+                                .foregroundStyle(VPColor.cinnabar)
+                            Text(card.title)
+                                .font(VPFont.display(24))
+                                .foregroundStyle(VPColor.ink)
+                            Text(card.address)
+                                .font(VPFont.display(34, weight: .bold))
+                                .foregroundStyle(VPColor.ink)
+                                .fixedSize(horizontal: false, vertical: true)
+                            if let detail = card.detail, !detail.isEmpty {
+                                Text(detail)
+                                    .font(VPFont.body(15, weight: .semibold))
+                                    .foregroundStyle(VPColor.inkMuted)
+                            }
+                        }
+                    }
+
+                    HStack(spacing: 12) {
+                        Button {
+                            speak()
+                        } label: {
+                            Label("Speak", systemImage: "speaker.wave.2.fill")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(VPColor.cinnabar)
+
+                        Button {
+                            UIPasteboard.general.string = card.address
+                            copied = true
+                        } label: {
+                            Label(copied ? "Copied" : "Copy", systemImage: copied ? "checkmark" : "doc.on.doc")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                    }
+
+                    Text("Use this when speaking with taxi drivers, hotel staff, restaurants, or station staff.")
+                        .font(VPFont.body(13, weight: .semibold))
+                        .foregroundStyle(VPColor.inkSoft)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(20)
+            }
+            .background(VPColor.paper)
+            .navigationTitle("Show to Local")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+    }
+
+    private func speak() {
+        if speaker.isSpeaking {
+            speaker.stopSpeaking(at: .immediate)
+        }
+        let utterance = AVSpeechUtterance(string: card.address)
+        utterance.voice = AVSpeechSynthesisVoice(language: "zh-CN")
+        utterance.rate = AVSpeechUtteranceDefaultSpeechRate
+        speaker.speak(utterance)
     }
 }

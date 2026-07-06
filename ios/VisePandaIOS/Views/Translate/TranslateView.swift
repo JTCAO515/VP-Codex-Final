@@ -181,7 +181,7 @@ struct TranslateView: View {
                         HStack {
                             Label {
                                 VStack(alignment: .leading, spacing: 3) {
-                                    Text("Travel Talk Card")
+                                    Text("Quick Phrases")
                                     Text("Show Chinese phrases for directions, food, pay, and help")
                                         .font(VPFont.body(12, weight: .semibold))
                                         .foregroundStyle(VPColor.inkSoft)

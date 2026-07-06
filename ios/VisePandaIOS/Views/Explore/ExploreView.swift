@@ -311,7 +311,9 @@ private struct ExploreChannelView: View {
                 ScrollView {
                     LazyVStack(spacing: 12) {
                         if let notice {
-                            NoticeBanner(text: notice)
+                            NoticeBanner(text: notice) {
+                                self.notice = nil
+                            }
                                 .padding(.horizontal, 20)
                         }
 
@@ -372,7 +374,10 @@ private struct ExploreChannelView: View {
             PoiDetailSheet(
                 poi: poi,
                 category: category,
-                onAddToTrip: { store.addPlaceToPlan(poi.name) },
+                onAddToTrip: {
+                    store.addPlaceToPlan(poi.name)
+                    notice = "Added \(poi.name) to your trip request."
+                },
                 onAskButler: {
                     store.prefillChat("Tell me about \(poi.name) in \(city.name). Is it a good fit for my trip, and where would you place it?")
                 }
@@ -888,15 +893,25 @@ private struct PoiDetailSheet: View {
 
 private struct NoticeBanner: View {
     let text: String
+    let onDismiss: () -> Void
 
     var body: some View {
-        Label(text, systemImage: "exclamationmark.triangle")
-            .font(VPFont.body(12, weight: .semibold))
-            .foregroundStyle(VPColor.cinnabar)
-            .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(VPColor.cinnabar.opacity(0.08))
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: text.hasPrefix("Added") ? "checkmark.circle" : "exclamationmark.triangle")
+            Text(text)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Button(action: onDismiss) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 10, weight: .bold))
+            }
+            .accessibilityLabel("Dismiss Explore notice")
+        }
+        .font(VPFont.body(12, weight: .semibold))
+        .foregroundStyle(text.hasPrefix("Added") ? VPColor.sage : VPColor.cinnabar)
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background((text.hasPrefix("Added") ? VPColor.sage : VPColor.cinnabar).opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
 

@@ -25,7 +25,7 @@ enum StarterTripData {
                 body: "I can help plan and adjust your China itinerary, find places that fit your pace, prepare transport and entry details, translate travel phrases, and keep useful tools available offline.",
                 highlights: [
                     "Build or adjust day plans around weather, pace, and interests",
-                    "Find food, attractions, hotels, transport notes, and Travel Talk Cards",
+                    "Find food, attractions, hotels, transport notes, and Quick Phrases",
                     "Help with translation, payment setup, eSIM, entry, emergency, and offline checklists"
                 ],
                 watchOut: nil,
@@ -39,7 +39,7 @@ enum StarterTripData {
     static let suggestions = [
         "Plan my first day in China",
         "Find vegetarian food",
-        "Make a Travel Talk Card",
+        "Open Quick Phrases",
         "Translate a travel phrase"
     ]
 
