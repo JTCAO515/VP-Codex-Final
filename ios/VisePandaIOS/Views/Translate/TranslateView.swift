@@ -13,6 +13,7 @@ struct TranslateView: View {
     @State private var errorMessage: String?
     @State private var selectedPhrase: Phrase?
     @State private var tts = AVSpeechSynthesizer()
+    @State private var audioPlayer: AVPlayer?
     @State private var allowAutoTranslate = true
     @State private var speaking = false
     @State private var processingMode: TranslateProcessingMode?
@@ -75,7 +76,7 @@ struct TranslateView: View {
         .navigationTitle("Translate")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(item: $selectedPhrase) { phrase in
-            PhraseBigCard(phrase: phrase, speak: { speak(phrase.chinese, language: "zh-CN") })
+            PhraseBigCard(phrase: phrase, speak: { speak(phrase.chinese, languageCode: "zh") })
         }
         .sheet(item: $imagePicker) { picker in
             ImagePicker(sourceType: picker.sourceType) { image in
@@ -84,6 +85,7 @@ struct TranslateView: View {
         }
         .onDisappear {
             stopRecording(send: false)
+            audioPlayer?.pause()
         }
     }
 
@@ -210,7 +212,7 @@ struct TranslateView: View {
                 ForEach(groupedPhrases, id: \.0) { category, categoryPhrases in
                     Section {
                         ForEach(categoryPhrases) { phrase in
-                            PhraseRow(phrase: phrase, speak: { speak(phrase.chinese, language: "zh-CN") })
+                            PhraseRow(phrase: phrase, speak: { speak(phrase.chinese, languageCode: "zh") })
                                 .onTapGesture { selectedPhrase = phrase }
                         }
                     } header: {
@@ -261,7 +263,7 @@ struct TranslateView: View {
                     Spacer()
 
                     Button {
-                        speak(result.translation, language: toLanguage.speechLocale)
+                        speak(result.translation, languageCode: toLanguageCode)
                     } label: {
                         Label(speaking ? "Speaking" : "Speak", systemImage: "speaker.wave.2.fill")
                     }
@@ -518,11 +520,34 @@ struct TranslateView: View {
         processingMode = nil
     }
 
-    private func speak(_ text: String, language: String) {
+    private func speak(_ text: String, languageCode: String) {
+        Task { await speakWithBackendFallback(text, languageCode: languageCode) }
+    }
+
+    @MainActor
+    private func speakWithBackendFallback(_ text: String, languageCode: String) async {
+        if tts.isSpeaking { tts.stopSpeaking(at: .immediate) }
+        audioPlayer?.pause()
+        speaking = true
+        do {
+            let language = SupportedLanguages.byCode(languageCode)
+            let audio = try await api.translateTts(text: text, language: language.ttsLanguageName)
+            guard let url = audio.httpsURL else { throw URLError(.badURL) }
+            let player = AVPlayer(url: url)
+            audioPlayer = player
+            player.play()
+            try? await Task.sleep(nanoseconds: 1_600_000_000)
+            speaking = false
+        } catch {
+            speakLocally(text, languageCode: languageCode)
+        }
+    }
+
+    private func speakLocally(_ text: String, languageCode: String) {
         if tts.isSpeaking { tts.stopSpeaking(at: .immediate) }
         speaking = true
         let utterance = AVSpeechUtterance(string: text)
-        utterance.voice = AVSpeechSynthesisVoice(language: language)
+        utterance.voice = AVSpeechSynthesisVoice(language: SupportedLanguages.byCode(languageCode).speechLocale)
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate
         tts.speak(utterance)
         Task {

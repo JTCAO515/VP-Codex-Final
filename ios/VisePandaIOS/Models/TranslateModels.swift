@@ -10,21 +10,57 @@ struct SupportedLanguage: Identifiable, Hashable {
     var code: String
     var displayName: String
     var speechLocale: String
+    var ttsLanguageName: String
 }
 
 enum SupportedLanguages {
     static let all = [
-        SupportedLanguage(code: "en", displayName: "English", speechLocale: "en-US"),
-        SupportedLanguage(code: "zh", displayName: "中文", speechLocale: "zh-CN"),
-        SupportedLanguage(code: "ar", displayName: "العربية", speechLocale: "ar-SA"),
-        SupportedLanguage(code: "es", displayName: "Español", speechLocale: "es-ES"),
-        SupportedLanguage(code: "fr", displayName: "Français", speechLocale: "fr-FR"),
-        SupportedLanguage(code: "ja", displayName: "日本語", speechLocale: "ja-JP"),
-        SupportedLanguage(code: "ko", displayName: "한국어", speechLocale: "ko-KR")
+        SupportedLanguage(code: "en", displayName: "English", speechLocale: "en-US", ttsLanguageName: "English"),
+        SupportedLanguage(code: "zh", displayName: "中文", speechLocale: "zh-CN", ttsLanguageName: "Chinese"),
+        SupportedLanguage(code: "ar", displayName: "العربية", speechLocale: "ar-SA", ttsLanguageName: "Arabic"),
+        SupportedLanguage(code: "es", displayName: "Español", speechLocale: "es-ES", ttsLanguageName: "Spanish"),
+        SupportedLanguage(code: "fr", displayName: "Français", speechLocale: "fr-FR", ttsLanguageName: "French"),
+        SupportedLanguage(code: "ja", displayName: "日本語", speechLocale: "ja-JP", ttsLanguageName: "Japanese"),
+        SupportedLanguage(code: "ko", displayName: "한국어", speechLocale: "ko-KR", ttsLanguageName: "Korean")
     ]
 
     static func byCode(_ code: String) -> SupportedLanguage {
         all.first { $0.code == code } ?? all[0]
+    }
+}
+
+struct TranslateTtsRequest: Codable {
+    var text: String
+    var language: String
+    var voice: String?
+}
+
+struct TranslateTtsResponse: Codable {
+    var ok: Bool
+    var provider: String?
+    var model: String?
+    var audioUrl: TranslateTtsURL?
+    var error: String?
+}
+
+struct TranslateTtsURL: Codable, Equatable {
+    var rawValue: String
+
+    var httpsURL: URL? {
+        URL(string: rawValue.replacingOccurrences(of: "http://", with: "https://", options: [.anchored]))
+    }
+
+    init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+
+    init(from decoder: Decoder) throws {
+        rawValue = try decoder.singleValueContainer().decode(String.self)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
     }
 }
 
