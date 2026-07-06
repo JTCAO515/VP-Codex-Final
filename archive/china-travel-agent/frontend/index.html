@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>China Travel Agent</title>
+    <style>
+      :root{
+        --bg0:#05070b;
+        --bg1:#0a0f17;
+        --line:rgba(255,255,255,.08);
+        --muted:rgba(255,255,255,.62);
+        --text:rgba(255,255,255,.92);
+        --accent:#7dd3fc;
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC","Hiragino Sans GB","Microsoft YaHei", Arial, sans-serif;
+      }
+      body{
+        margin:0;
+        min-height:100vh;
+        background: radial-gradient(1200px 800px at 30% 15%, #121826 0%, var(--bg1) 55%, var(--bg0) 100%);
+        color:var(--text);
+      }
+      .bg-shanshui{position:fixed; inset:0; background:url("/assets/bg/shanshui.svg") center/cover no-repeat; opacity:.12; filter: blur(6px); pointer-events:none;}
+      .bg-cloud{position:fixed; inset:0; background:url("/assets/patterns/cloud.svg") center/420px repeat; opacity:.06; mix-blend-mode: screen; pointer-events:none;}
+      header{
+        position:relative;
+        height:56px;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        padding:0 16px;
+      }
+      .brand{display:flex; gap:10px; align-items:center;}
+      .dot{width:10px;height:10px;border-radius:99px;background:var(--accent); box-shadow:0 0 18px rgba(125,211,252,.45);}
+      .name{font-weight:650; font-size:14px; letter-spacing:.2px;}
+      .badge{font-size:12px; padding:6px 10px; border:1px solid var(--line); border-radius:999px; background:rgba(255,255,255,.04)}
+      button.ghost{font-size:12px; padding:7px 10px; border:1px solid var(--line); border-radius:999px; background:rgba(255,255,255,.03); color:var(--text); cursor:pointer;}
+      button.ghost:hover{background:rgba(255,255,255,.06)}
+      main{
+        position:relative;
+        min-height:calc(100vh - 56px);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        padding:24px 16px 90px;
+      }
+      .hero{width:min(720px, 96%); text-align:center;}
+      h1{margin:0 0 10px; font-size:34px; letter-spacing:-.02em;}
+      .sub{margin:0 0 22px; color:var(--muted); line-height:1.5;}
+      form{display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap;}
+      input#prompt{
+        width:min(560px, 92vw);
+        height:48px;
+        border-radius:999px;
+        border:1px solid var(--line);
+        background:rgba(255,255,255,.03);
+        color:var(--text);
+        padding:0 16px;
+        outline:none;
+      }
+      input#prompt:focus{border-color:rgba(125,211,252,.35); box-shadow:0 0 0 4px rgba(125,211,252,.12)}
+      button#startBtn{
+        height:48px;
+        padding:0 16px;
+        border-radius:999px;
+        border:1px solid rgba(125,211,252,.35);
+        background:rgba(125,211,252,.14);
+        color:var(--text);
+        cursor:pointer;
+      }
+      button#startBtn:hover{background:rgba(125,211,252,.20)}
+      .links{margin-top:14px; font-size:12px; color:var(--muted);}
+      .links a{color:rgba(255,255,255,.78); text-decoration:none}
+      .links a:hover{text-decoration:underline}
+      .links .sep{opacity:.5; padding:0 8px}
+      footer{position:fixed; left:0; right:0; bottom:0; padding:10px 16px; border-top:1px solid var(--line); background:rgba(8,10,14,.45); backdrop-filter: blur(10px); font-size:12px; color:var(--muted);}
+    </style>
+  </head>
+  <body>
+    <div class="bg-shanshui"></div>
+    <div class="bg-cloud"></div>
+    <header>
+      <div class="brand">
+        <div class="dot"></div>
+        <div class="name">China Travel Agent</div>
+      </div>
+      <div id="authArea"></div>
+    </header>
+
+    <main>
+      <div class="hero">
+        <h1>Plan your China trip</h1>
+        <p class="sub">少问问题，多交流。先开聊，行程与订单会自动归档到你的历史里（登录后）。</p>
+        <form id="startForm">
+          <input id="prompt" placeholder="开始对话…（例如：北京 5 天游玩，美食+历史，节奏轻松）" />
+          <button id="startBtn" type="submit">Start</button>
+        </form>
+        <div class="links">
+          <a href="/chat">Open chat</a>
+          <span class="sep">·</span>
+          <a href="#" id="googleLink">Sign in with Google</a>
+          <span class="sep">·</span>
+          <span>Continue as guest</span>
+        </div>
+      </div>
+    </main>
+
+    <footer>提示：未登录也能试用（本地保留最近 3 个会话）。登录后将同步保存对话/行程/订单历史。</footer>
+
+    <script type="module">
+      import { newTripId, signInWithGoogle, setTopRightAuthUI } from "/app.js";
+      setTopRightAuthUI({ containerId: "authArea" });
+      document.getElementById("googleLink").onclick = (e) => { e.preventDefault(); signInWithGoogle(); };
+      document.getElementById("startForm").onsubmit = (e) => {
+        e.preventDefault();
+        const t = document.getElementById("prompt").value.trim();
+        const trip = newTripId();
+        const u = new URL(window.location.origin + "/chat");
+        u.searchParams.set("trip", trip);
+        if (t) u.searchParams.set("q", t);
+        window.location.href = u.toString();
+      };
+    </script>
+  </body>
+</html>
