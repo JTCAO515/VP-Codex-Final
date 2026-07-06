@@ -173,12 +173,14 @@ final class TripStore: ObservableObject {
             let existingAffectedDays = affectedDays?.filter { day in
                 updatedTrip.days.contains { $0.day == day }
             }
+            let changeDigest = ChangeDigest.compute(previous: trip, next: updatedTrip)
             let assistant = ChatMessage(
                 id: UUID().uuidString,
                 role: .assistant,
                 content: response.patch.assistantMessage,
                 response: response.patch.assistantResponse,
                 affectedDays: affectedDays,
+                changeDigest: changeDigest.isEmpty ? nil : changeDigest,
                 createdAt: ISO8601DateFormatter().string(from: Date())
             )
             trip = updatedTrip
