@@ -16,6 +16,7 @@ final class TripStore: ObservableObject {
     @Published var pendingDetailDays: Set<Int> = []
     @Published var failedDetailDays: Set<Int> = []
     @Published var hidesBottomBar = false
+    @Published private(set) var blockNotes: [String: String] = [:]
 
     private let api = VisePandaAPIClient()
     private var isCompletingSkeleton = false
@@ -26,6 +27,7 @@ final class TripStore: ObservableObject {
             trip = persisted.trip
             messages = persisted.messages
             suggestions = persisted.suggestions
+            blockNotes = persisted.blockNotes ?? [:]
         } else {
             trip = StarterTripData.initialTrip
             messages = StarterTripData.seedMessages
@@ -119,6 +121,21 @@ final class TripStore: ObservableObject {
         persist()
     }
 
+    func blockNote(dayNumber: Int, blockId: String) -> String? {
+        blockNotes[blockNoteKey(dayNumber: dayNumber, blockId: blockId)]
+    }
+
+    func updateBlockNote(dayNumber: Int, blockId: String, note: String) {
+        let key = blockNoteKey(dayNumber: dayNumber, blockId: blockId)
+        let trimmed = note.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            blockNotes.removeValue(forKey: key)
+        } else {
+            blockNotes[key] = trimmed
+        }
+        persist()
+    }
+
     func consumePendingChatDraft() -> String? {
         defer { pendingChatDraft = nil }
         return pendingChatDraft
@@ -130,6 +147,7 @@ final class TripStore: ObservableObject {
         suggestions = StarterTripData.suggestions
         pendingDetailDays.removeAll()
         failedDetailDays.removeAll()
+        blockNotes.removeAll()
         persist()
     }
 
@@ -164,6 +182,9 @@ final class TripStore: ObservableObject {
                 createdAt: ISO8601DateFormatter().string(from: Date())
             )
             trip = updatedTrip
+            if response.patch.intent == .createTrip {
+                blockNotes.removeAll()
+            }
             clearDetailStateForFilledDays(in: updatedTrip)
             recentlyUpdatedDays = Set(existingAffectedDays ?? [])
             messages.append(assistant)
@@ -220,6 +241,10 @@ final class TripStore: ObservableObject {
         failedDetailDays.subtract(filledDays)
     }
 
+    private func blockNoteKey(dayNumber: Int, blockId: String) -> String {
+        "\(dayNumber)-\(blockId)"
+    }
+
     private func serviceUnavailableMessage(_ error: Error) -> ChatMessage {
         ChatMessage(
             id: UUID().uuidString,
@@ -242,7 +267,7 @@ final class TripStore: ObservableObject {
     }
 
     private func persist() {
-        let state = PersistedTripState(trip: trip, messages: messages, suggestions: suggestions)
+        let state = PersistedTripState(trip: trip, messages: messages, suggestions: suggestions, blockNotes: blockNotes)
         guard let data = try? JSONEncoder.visePanda.encode(state) else { return }
         UserDefaults.standard.set(data, forKey: persistenceKey)
     }
@@ -257,4 +282,5 @@ private struct PersistedTripState: Codable {
     var trip: TripState
     var messages: [ChatMessage]
     var suggestions: [String]
+    var blockNotes: [String: String]?
 }
