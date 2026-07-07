@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>VisePanda | China Travel Workspace</title>
+    <meta name="description" content="Plan China travel with city intelligence, visa guidance, readiness tools, and an AI trip assistant.">
+    <meta name="theme-color" content="#0f2633">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+    <link rel="manifest" href="/web/manifest.json">
+    <link rel="stylesheet" href="/web/app.css?v=6.1.1beta">
+    <link rel="stylesheet" href="/web/visebits.css?v=6.1.1beta">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="VisePanda home">
+        <img src="/static/img/logo-panda.jpg" alt="">
+        <span>VisePanda</span>
+      </a>
+      <div class="topbar__actions">
+        <button class="topbar-link" id="overviewButton" type="button" data-view="dashboard">Overview</button>
+        <button class="icon-button" id="authButton" title="Account" aria-label="Account">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c1.7-4 4.4-6 8-6s6.3 2 8 6"></path></svg>
+        </button>
+      </div>
+    </header>
+    <nav class="nav" aria-label="Primary" role="tablist">
+      <button class="nav__item is-active" id="tab-chat" data-view="chat" role="tab" aria-selected="true" aria-controls="panel-chat">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"></path></svg>
+        <span>Ask</span>
+      </button>
+      <button class="nav__item" id="tab-cities" data-view="cities" role="tab" aria-selected="false" aria-controls="panel-cities">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 22V8l7-4 9 4v14"></path><path d="M4 14h16"></path><path d="M8 22v-4h8v4"></path></svg>
+        <span>Cities</span>
+      </button>
+      <button class="nav__item" id="tab-tools" data-view="tools" role="tab" aria-selected="false" aria-controls="panel-tools">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 7 9 2 4 7"></path><path d="M9 2v13"></path><path d="M20 17l-5 5-5-5"></path><path d="M15 22V9"></path></svg>
+        <span>Tools</span>
+      </button>
+      <button class="nav__item" id="tab-trips" data-view="trips" role="tab" aria-selected="false" aria-controls="panel-trips">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-3-6 3Z"></path><path d="M9 8h6"></path><path d="M9 12h4"></path></svg>
+        <span>Trips</span>
+      </button>
+    </nav>
+
+    <main>
+      <section class="vise-hero is-hidden" id="panel-dashboard" data-view-panel="dashboard" role="tabpanel" aria-labelledby="overviewButton" hidden>
+        <canvas id="vise-hero-canvas" class="vise-hero-canvas"></canvas>
+        <div class="vise-hero-content">
+          <div class="vise-badge">🐼 Your AI China Travel Companion</div>
+          <h1>VisePanda</h1>
+          <p class="lead">Plan China travel with city intelligence, visa guidance, AI trip planning, and everything you need — powered by Panda sense.</p>
+          <div class="vise-counter-grid">
+            <div class="vise-counter-item">
+              <div class="count" data-vise-countup="36" data-vise-duration="2000" data-vise-suffix="+"></div>
+              <div class="label">Cities Covered</div>
+            </div>
+            <div class="vise-counter-item">
+              <div class="count" data-vise-countup="100" data-vise-duration="2500" data-vise-suffix="+"></div>
+              <div class="label">Attractions</div>
+            </div>
+            <div class="vise-counter-item">
+              <div class="count" data-vise-countup="24" data-vise-duration="2000" data-vise-suffix="/7"></div>
+              <div class="label">AI Support</div>
+            </div>
+            <div class="vise-counter-item">
+              <div class="count" data-vise-countup="99" data-vise-duration="3000" data-vise-suffix="%"></div>
+              <div class="label">Visa Success</div>
+            </div>
+          </div>
+          <form class="planner" id="quickPlanner" style="max-width:500px;margin:2rem auto 0;">
+            <label>
+              Destination idea
+              <input name="destination" type="text" placeholder="Beijing, Chengdu, first-time China...">
+            </label>
+            <label>
+              Travel length
+              <select name="length">
+                <option value="3 days">3 days</option>
+                <option value="7 days" selected>7 days</option>
+                <option value="14 days">14 days</option>
+              </select>
+            </label>
+            <button class="primary" type="submit">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg>
+              Ask AI
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <section class="dashboard section is-hidden" data-view-panel="dashboard" hidden>
+        <div>
+          <div class="section__head">
+            <h2>Overview</h2>
+          </div>
+          <div class="city-strip" id="featuredCities"></div>
+        </div>
+        <aside class="readiness">
+          <h2>Readiness</h2>
+          <ul>
+            <li><span></span>Passport valid for six months</li>
+            <li><span></span>Visa or transit rule checked</li>
+            <li><span></span>Payment apps linked to card</li>
+            <li><span></span>Offline maps and translator ready</li>
+          </ul>
+        </aside>
+      </section>
+
+      <section class="workspace section chat-hero" id="panel-chat" data-view-panel="chat" role="tabpanel" aria-labelledby="tab-chat">
+        <div class="chat-shell">
+          <div class="chat-welcome" id="chatWelcome">
+            <div class="agent-mark">
+              <img src="/static/img/logo-panda.jpg" alt="">
+              <div>
+                <strong>VisePanda</strong>
+                <span>AI China Travel Agent</span>
+              </div>
+            </div>
+            <div class="welcome-copy">
+              <h1>Ask before you plan.</h1>
+              <p>Tell me your nationality, month, total days, budget band, and what matters most. I will turn that into a practical China route, checklist, or city decision.</p>
+            </div>
+            <div class="quick-chips" aria-label="Quick planning prompts">
+              <button type="button" data-mode="itinerary" data-depth="expert" data-prompt="Plan a first-time 7 day China route with simple rail transfers. Ask me only the missing questions first, then give a professional draft.">First trip</button>
+              <button type="button" data-mode="food" data-depth="standard" data-prompt="Compare Beijing, Shanghai, Chengdu, and Xi'an for a food-focused trip. Include dish fit, neighborhood base, pacing, and traveler tradeoffs.">Food route</button>
+              <button type="button" data-mode="entry" data-depth="expert" data-prompt="Create a visa, payment, app, and document readiness checklist for a US traveler visiting China.">Entry ready</button>
+              <button type="button" data-mode="budget" data-depth="expert" data-prompt="Build a realistic China travel budget model for a 7 day first-time trip, with low, mid, and comfortable bands.">Budget</button>
+              <button type="button" data-mode="transit" data-depth="standard" data-prompt="Compare high-speed rail versus domestic flights for a Beijing, Xi'an, Shanghai route. Include station transfers, booking friction, delays, and comfort.">Rail vs flight</button>
+              <button type="button" data-mode="city-fit" data-depth="standard" data-prompt="Compare Beijing, Shanghai, Chengdu, Xi'an, Guilin, and Zhangjiajie for a first-time traveler. Rank them by food, culture, logistics, and trip difficulty.">Compare cities</button>
+            </div>
+          </div>
+          <div class="chat-toolbar is-hidden" aria-label="Chat settings">
+            <label>
+              Mode
+              <select id="chatMode">
+                <option value="itinerary">Itinerary strategist</option>
+                <option value="entry">Entry and visa analyst</option>
+                <option value="budget">Budget analyst</option>
+                <option value="transit">Transit planner</option>
+                <option value="food">Food and culture guide</option>
+                <option value="safety">Safety and readiness checker</option>
+                <option value="city-fit">City fit comparator</option>
+                <option value="custom">General travel consultant</option>
+              </select>
+            </label>
+            <label>
+              Model route
+              <select id="chatProvider">
+                <option value="auto">Auto route</option>
+                <option value="local-guide">Local guide</option>
+              </select>
+            </label>
+            <label>
+              Depth
+              <select id="chatDepth">
+                <option value="standard">Standard</option>
+                <option value="quick">Quick</option>
+                <option value="expert">Expert</option>
+              </select>
+            </label>
+          </div>
+          <div class="chat-prompts is-hidden" aria-label="Professional question presets">
+            <section class="preset-group">
+              <h3>Route</h3>
+              <button type="button" data-mode="itinerary" data-depth="expert" data-prompt="Create a 10 day first-time China itinerary for a US traveler. Compare Beijing-Shanghai-Xi'an against Beijing-Chengdu-Shanghai, include rail logic, daily pacing, hotel areas, and what to skip.">10 day route audit</button>
+              <button type="button" data-mode="city-fit" data-depth="standard" data-prompt="Compare Beijing, Shanghai, Chengdu, Xi'an, and Guilin for a first-time traveler who likes food, history, and comfortable transport. Rank them and explain tradeoffs.">City fit ranking</button>
+            </section>
+            <section class="preset-group">
+              <h3>Entry</h3>
+              <button type="button" data-mode="entry" data-depth="expert" data-prompt="Build a China entry readiness checklist for a US passport holder visiting for tourism. Include visa assumptions, transit questions, documents, payment setup, apps, and what must be verified before booking.">Entry checklist</button>
+              <button type="button" data-mode="safety" data-depth="standard" data-prompt="Create a pre-departure risk and backup plan for mainland China covering emergency numbers, medicine, translation, maps, payment failure, and hotel registration.">Backup plan</button>
+            </section>
+            <section class="preset-group">
+              <h3>Spend</h3>
+              <button type="button" data-mode="budget" data-depth="expert" data-prompt="Estimate a realistic 7 day China budget for two travelers across Beijing and Shanghai. Break down lodging, meals, attractions, metro, taxis, rail, and payment friction.">Budget model</button>
+              <button type="button" data-mode="transit" data-depth="standard" data-prompt="Compare high-speed rail versus domestic flights for Beijing to Xi'an to Shanghai. Include booking friction for foreigners, station or airport transfers, delays, and comfort.">Rail vs flight</button>
+            </section>
+            <section class="preset-group">
+              <h3>Local</h3>
+              <button type="button" data-mode="food" data-depth="standard" data-prompt="Plan a Chengdu food-focused day with dish names, neighborhoods, spice warnings, ordering tips, and a calmer alternative for travelers who do not handle heat well.">Food day</button>
+              <button type="button" data-mode="custom" data-depth="expert" data-prompt="Act as a China travel consultant. Interview me with the minimum questions needed to design a professional route, then explain how each answer will change the plan.">Consult me</button>
+            </section>
+          </div>
+          <p class="view-status chat-status" id="chatStatus" role="status" aria-live="polite">Ready. Start with a question or a quick prompt.</p>
+          <div class="chat-log" id="chatLog" aria-live="polite"></div>
+          <form class="chat-form" id="chatForm">
+            <textarea id="chatInput" rows="3" placeholder="Ask for a route, budget, visa checklist, or city comparison"></textarea>
+            <button class="primary" type="submit">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 2 11 13"></path><path d="m22 2-7 20-4-9-9-4Z"></path></svg>
+              Send
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <section class="workspace section is-hidden" id="panel-cities" data-view-panel="cities" role="tabpanel" aria-labelledby="tab-cities">
+        <div class="section__head row">
+          <div>
+            <p class="eyebrow">Destinations</p>
+            <h2>City Explorer</h2>
+          </div>
+          <input class="search" id="citySearch" type="search" placeholder="Search city, region, highlight" aria-label="Search cities">
+        </div>
+        <p class="view-status" id="cityStatus" role="status" aria-live="polite"></p>
+        <div class="city-grid" id="cityGrid"></div>
+      </section>
+
+      <section class="workspace section is-hidden" id="panel-tools" data-view-panel="tools" role="tabpanel" aria-labelledby="tab-tools">
+        <div class="section__head">
+          <p class="eyebrow">Before you go</p>
+          <h2>Travel Tools</h2>
+        </div>
+        <p class="view-status" id="toolStatus" role="status" aria-live="polite"></p>
+        <div class="tool-grid" id="toolGrid"></div>
+        <div class="tool-detail" id="toolDetail"></div>
+      </section>
+
+      <section class="workspace section is-hidden" id="panel-trips" data-view-panel="trips" role="tabpanel" aria-labelledby="tab-trips">
+        <div class="section__head row">
+          <div>
+            <p class="eyebrow">Saved plans</p>
+            <h2>Trips</h2>
+          </div>
+          <button class="secondary" id="refreshTrips" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15.5 6.2"></path><path d="M3 12A9 9 0 0 1 18.5 5.8"></path><path d="M18 2v4h4"></path><path d="M6 22v-4H2"></path></svg>
+            Refresh
+          </button>
+        </div>
+        <p class="view-status" id="tripStatus" role="status" aria-live="polite"></p>
+        <form class="trip-form" id="tripForm">
+          <input name="title" placeholder="Trip title" aria-label="Trip title" required>
+          <input name="destination" placeholder="Destination" aria-label="Destination">
+          <input name="startDate" type="date" aria-label="Start date">
+          <input name="endDate" type="date" aria-label="End date">
+          <button class="primary" type="submit">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"></path><path d="M17 21v-8H7v8"></path><path d="M7 3v5h8"></path></svg>
+            Save trip
+          </button>
+        </form>
+        <div class="trip-list" id="tripList"></div>
+      </section>
+    </main>
+
+    <button class="mobile-ask-fab" id="mobileAskButton" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"></path></svg>
+      Ask AI
+    </button>
+
+    <dialog class="auth-dialog" id="authDialog">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <form method="dialog" class="dialog-close">
+        <button class="icon-button" title="Close" aria-label="Close">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+        </button>
+      </form>
+      <div class="auth-layout">
+        <div>
+          <p class="eyebrow">Account</p>
+          <h2 id="authTitle">Sign in</h2>
+          <p class="muted" id="authStatus">Save trips across devices and manage your profile.</p>
+        </div>
+        <form class="auth-form" id="authForm">
+          <input name="email" type="email" placeholder="Email" aria-label="Email" required>
+          <input name="password" type="password" placeholder="Password" aria-label="Password" minlength="8" required>
+          <button class="primary" type="submit">Continue</button>
+          <button class="link-button" type="button" id="toggleAuthMode">Create an account</button>
+          <a class="secondary google-login" id="googleLogin" href="/api/auth/google/start">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 12h7"></path><path d="M18 15.5A7 7 0 1 1 16.8 7"></path></svg>
+            Continue with Google
+          </a>
+        </form>
+        <form class="auth-form is-hidden" id="verifyForm">
+          <input name="email" type="email" placeholder="Email" aria-label="Email" required>
+          <input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit code" aria-label="Verification code" required>
+          <button class="primary" type="submit">Verify email</button>
+          <button class="secondary" type="button" id="resendVerification">Resend code</button>
+          <button class="link-button" type="button" id="backToSignIn">Back to sign in</button>
+        </form>
+        <form class="profile-form is-hidden" id="profileForm">
+          <input name="name" placeholder="Display name" aria-label="Display name">
+          <input name="currentPassword" type="password" placeholder="Current password" aria-label="Current password">
+          <input name="newPassword" type="password" placeholder="New password" aria-label="New password">
+          <button class="primary" type="submit">Update profile</button>
+          <button class="secondary" type="button" id="logoutButton">Sign out</button>
+        </form>
+      </div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <template id="messageTemplate">
+      <article class="message"><span class="message__author"></span><p class="message__body"></p></article>
+    </template>
+
+    <script src="/web/visebits.js?v=6.1.1beta" defer></script>
+    <script src="/web/app.js?v=6.1.1beta" defer></script>
+  </body>
+</html>
