@@ -1,0 +1,1 @@
+# VisePanda v7 — stdlib only. Optional third-party providers are called via urllib.

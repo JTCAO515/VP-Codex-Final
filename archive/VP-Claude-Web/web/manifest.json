@@ -1,0 +1,19 @@
+{
+  "name": "VisePanda",
+  "short_name": "VisePanda",
+  "description": "Your AI travel butler for China.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#e9e7e2",
+  "theme_color": "#e9e7e2",
+  "lang": "en",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
