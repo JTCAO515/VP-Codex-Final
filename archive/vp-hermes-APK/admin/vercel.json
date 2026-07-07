@@ -1,0 +1,12 @@
+{
+  "framework": "vite",
+  "buildCommand": "pnpm build",
+  "outputDirectory": "dist",
+  "installCommand": "pnpm install",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "http://122.51.121.116:8001/api/$1"
+    }
+  ]
+}
