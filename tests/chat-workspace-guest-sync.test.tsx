@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ButlerWorkspace } from "@/components/chat/ButlerWorkspace";
+import { mockSuccessfulChatFetch } from "./mockChatFetch";
 
 const sessionState: { configured: boolean; loading: boolean; session: { user: { id: string; email: string } } | null } = {
   configured: true,
@@ -27,6 +28,11 @@ describe("ButlerWorkspace guest draft sync", () => {
     window.localStorage.clear();
     sessionState.session = null;
     saveTripCanvas.mockClear();
+    mockSuccessfulChatFetch();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it("auto-saves the guest draft once the user signs in", async () => {

@@ -28,4 +28,16 @@ describe("classifyIntent", () => {
     expect(classifyIntent("")).toBe("unclear");
     expect(classifyIntent("hmm ok")).toBe("unclear");
   });
+
+  it("classifies acute-distress messages as concern (v0.3.17)", () => {
+    expect(classifyIntent("I was robbed near the station")).toBe("concern");
+    expect(classifyIntent("someone stolen my wallet")).toBe("concern");
+    expect(classifyIntent("I'm injured and need urgent help")).toBe("concern");
+  });
+
+  it("classifies add-a-poi requests, including 'in the itinerary' phrasing (v0.3.20)", () => {
+    expect(classifyIntent("add the Forbidden City to my trip")).toBe("add_poi");
+    expect(classifyIntent("add the Forbidden City to my itinerary")).toBe("add_poi");
+    expect(classifyIntent("can you put the Summer Palace in the itinerary?")).toBe("add_poi");
+  });
 });

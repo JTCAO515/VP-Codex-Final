@@ -1,8 +1,8 @@
 export const ALIYUN_PROVIDER = "aliyun-bailian";
 
 export const QWEN_MODELS = {
-  translate: "qwen-mt-flash",
-  ocr: "qwen3.5-ocr",
+  translate: "qwen3.7-plus",
+  ocr: "qwen3.7-plus",
   tts: "qwen3-tts-instruct-flash",
   stt: "qwen3-asr-flash",
 } as const;

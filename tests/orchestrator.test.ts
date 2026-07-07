@@ -1,7 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
-import { requestOrchestratedButlerPatch } from "@/lib/ai/orchestrator";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { requestOrchestratedButlerPatch, requestSkeletonCompletion, resetProviderHealthForTests } from "@/lib/ai/orchestrator";
 import { initialTripState } from "@/lib/mock-ai/mockButler";
 import type { ChatCompletionProvider, ProviderCapability } from "@/lib/ai/providers/types";
+import type { TripState } from "@/lib/types/trip";
+
+beforeEach(() => {
+  resetProviderHealthForTests();
+});
 
 function validPatchJson(message: string) {
   return JSON.stringify({
@@ -131,19 +136,13 @@ describe("requestOrchestratedButlerPatch", () => {
     expect(result.strategy).toBe("parallel");
   });
 
-  it("falls back to the mock butler when no provider is configured", async () => {
-    const result = await requestOrchestratedButlerPatch({
+  it("throws an error when no provider is configured", async () => {
+    await expect(requestOrchestratedButlerPatch({
       message: "first time in China for 5 days",
       currentTrip: initialTripState,
       env: {},
       fetchImpl: vi.fn(),
-    });
-
-    expect(result.mode).toBe("mock");
-    expect(result.strategy).toBe("mock");
-    expect(result.patch.days?.some((day) => day.city === "Beijing")).toBe(true);
-    expect(result.suggestions).toHaveLength(2);
-    expect(result.fallbackReason).toBeTruthy();
+    })).rejects.toThrow("No Chinese LLM provider is configured.");
   });
 
   it("answers factual travel-tool questions without calling an LLM provider", async () => {
@@ -163,16 +162,241 @@ describe("requestOrchestratedButlerPatch", () => {
     expect(provider.complete).not.toHaveBeenCalled();
   });
 
-  it("falls back to the mock butler when every provider throws", async () => {
-    const result = await requestOrchestratedButlerPatch({
+  it("throws an error when every provider throws", async () => {
+    await expect(requestOrchestratedButlerPatch({
       message: "Make the plan easier",
       currentTrip: initialTripState,
       env: { DEEPSEEK_API_KEY: "k" },
       fetchImpl: vi.fn(),
       providers: [makeProvider("deepseek", { behavior: "throw" })],
+    })).rejects.toThrow("deepseek failed");
+  });
+
+  it("normalizes days missing blocks so write-through never crashes (v0.3.18)", async () => {
+    const patchWithHoleyDays = JSON.stringify({
+      intent: "create_trip",
+      assistantMessage: "Planned!",
+      reason: "model omitted blocks on day 2",
+      suggestions: ["A?", "B?"],
+      days: [
+        { day: 1, city: "Beijing", blocks: [{ time: "Morning", title: "Forbidden City", description: "Go early" }] },
+        { day: 2, city: "Beijing" }, // no blocks at all — crashed production before
+      ],
+    });
+    const result = await requestOrchestratedButlerPatch({
+      message: "Plan me a 2 day trip in Beijing",
+      currentTrip: initialTripState,
+      env: { DEEPSEEK_API_KEY: "k" },
+      fetchImpl: vi.fn(),
+      providers: [makeProvider("deepseek", { content: patchWithHoleyDays })],
     });
 
-    expect(result.mode).toBe("mock");
-    expect(result.fallbackReason).toContain("deepseek failed");
+    expect(result.mode).toBe("deepseek");
+    expect(result.patch.days).toHaveLength(2);
+    expect(result.patch.days?.[1].blocks).toEqual([]);
+  });
+
+  it("recovers a patch from JSON truncated at max_tokens (v0.3.17)", async () => {
+    const truncated =
+      '{"intent":"adjust_trip","assistantMessage":"Made Day 1 lighter","reason":"pace","suggestions":["A?","B?"],"tripSummary":{"confidence":"Refined"},"days":[{"day":1,"city":"Beijing","note":"Cut mid stri';
+    const provider = makeProvider("deepseek", { content: truncated });
+    const result = await requestOrchestratedButlerPatch({
+      message: "Make the Beijing day calmer",
+      currentTrip: initialTripState,
+      env: { DEEPSEEK_API_KEY: "k" },
+      fetchImpl: vi.fn(),
+      providers: [provider],
+    });
+
+    expect(result.mode).toBe("deepseek");
+    expect(result.patch.assistantMessage).toBe("Made Day 1 lighter");
+  });
+
+  it("rejects a create_trip patch without a days array (quality gate, v0.3.17)", async () => {
+    const lazyPatch = JSON.stringify({
+      intent: "create_trip",
+      assistantMessage: "I planned your trip!",
+      reason: "claims to have planned but returned no days",
+      suggestions: ["A?", "B?"],
+    });
+    await expect(requestOrchestratedButlerPatch({
+      message: "Plan me a 5 day trip in China",
+      currentTrip: initialTripState,
+      env: { DEEPSEEK_API_KEY: "k" },
+      fetchImpl: vi.fn(),
+      providers: [makeProvider("deepseek", { content: lazyPatch })],
+    })).rejects.toThrow("create_trip patch is missing the complete days array.");
+  });
+
+  it("skips a provider tripped by the circuit breaker on the next request (v0.3.17)", async () => {
+    const failing = makeProvider("deepseek", { behavior: "throw" });
+    const healthy = makeProvider("qwen");
+    const env = { DEEPSEEK_API_KEY: "k", DASHSCOPE_API_KEY: "k" };
+
+    // Two consecutive failures trip the breaker for deepseek.
+    for (let i = 0; i < 2; i++) {
+      await requestOrchestratedButlerPatch({
+        message: "Make it less tiring",
+        currentTrip: initialTripState,
+        env,
+        fetchImpl: vi.fn(),
+        providers: [failing, healthy],
+      });
+    }
+
+    const result = await requestOrchestratedButlerPatch({
+      message: "Make it less tiring",
+      currentTrip: initialTripState,
+      env,
+      fetchImpl: vi.fn(),
+      providers: [failing, healthy],
+    });
+
+    expect(result.mode).toBe("qwen");
+    expect(result.providersTried).toEqual(["qwen"]);
+  });
+
+  it("aborts the losing candidate once a winner is found, without tripping its circuit breaker (v0.3.20)", async () => {
+    const fast = makeProvider("deepseek");
+    let capturedSignal: AbortSignal | undefined;
+    const slow: ChatCompletionProvider = {
+      id: "qwen",
+      label: "Provider qwen",
+      model: "qwen-model",
+      capabilities: ["reasoning"],
+      isConfigured: () => true,
+      complete: vi.fn(
+        (options) =>
+          new Promise((resolve, reject) => {
+            capturedSignal = options.signal;
+            options.signal?.addEventListener("abort", () => reject(new Error("qwen aborted")));
+            // Never resolves on its own within the test — only settles via abort.
+          }),
+      ),
+    };
+    const env = { DEEPSEEK_API_KEY: "k", DASHSCOPE_API_KEY: "k" };
+
+    for (let i = 0; i < 3; i++) {
+      const result = await requestOrchestratedButlerPatch({
+        message: "Plan me a 5 day trip in China",
+        currentTrip: initialTripState,
+        env,
+        fetchImpl: vi.fn(),
+        providers: [fast, slow],
+      });
+      expect(result.mode).toBe("deepseek");
+      // The slow candidate must still be raced every time — if its abort-
+      // induced rejection had spuriously tripped the breaker, later requests
+      // would stop trying it (providersTried would drop to just ["deepseek"]).
+      expect(result.providersTried).toEqual(["deepseek", "qwen"]);
+    }
+
+    expect(capturedSignal?.aborted).toBe(true);
+  });
+
+  it("ignores the breaker when every candidate is tripped (never mock-locked)", async () => {
+    const failing = makeProvider("deepseek", { behavior: "throw" });
+    const env = { DEEPSEEK_API_KEY: "k" };
+
+    for (let i = 0; i < 3; i++) {
+      await requestOrchestratedButlerPatch({
+        message: "Make it less tiring",
+        currentTrip: initialTripState,
+        env,
+        fetchImpl: vi.fn(),
+        providers: [failing],
+      }).catch(() => {});
+    }
+
+    // Even fully tripped, the sole provider is still attempted and throws.
+    await expect(requestOrchestratedButlerPatch({
+      message: "Make it less tiring",
+      currentTrip: initialTripState,
+      env,
+      fetchImpl: vi.fn(),
+      providers: [failing],
+    })).rejects.toThrow("deepseek failed");
+  });
+});
+
+describe("Trips staged generation (create_trip skeleton + requestSkeletonCompletion)", () => {
+  function skeletonPatchJson() {
+    return JSON.stringify({
+      intent: "create_trip",
+      assistantMessage: "Here is your Beijing + Suzhou trip.",
+      reason: "First pass skeleton.",
+      suggestions: ["A?", "B?"],
+      tripSummary: { title: "Beijing + Suzhou", durationDays: 2, destinations: ["Beijing", "Suzhou"], confidence: "Draft" },
+      days: [
+        { day: 1, city: "Beijing", pace: "Balanced", blocks: [{ time: "Morning", title: "Should be stripped server-side", description: "" }], food: [], stay: "", transport: "", note: "" },
+        { day: 2, city: "Suzhou", pace: "Light", blocks: [], food: [], stay: "", transport: "", note: "" },
+      ],
+    });
+  }
+
+  it("requestOrchestratedButlerPatch tags create_trip responses generationStage 'skeleton' with empty blocks", async () => {
+    const provider = makeProvider("deepseek", { content: skeletonPatchJson() });
+    const result = await requestOrchestratedButlerPatch({
+      message: "Plan me a 2 day trip to Beijing and Suzhou",
+      currentTrip: initialTripState,
+      env: { DEEPSEEK_API_KEY: "k" },
+      fetchImpl: vi.fn(),
+      providers: [provider],
+    });
+
+    expect(result.intent).toBe("create_trip");
+    expect(result.patch.generationStage).toBe("skeleton");
+    expect(result.patch.days?.every((day) => day.blocks.length === 0)).toBe(true);
+    expect(result.patch.days?.map((day) => day.city)).toEqual(["Beijing", "Suzhou"]);
+  });
+
+  it("requestSkeletonCompletion fills in blocks and preserves the skeleton's day/city/pace", async () => {
+    const skeletonTrip: TripState = {
+      ...initialTripState,
+      days: [
+        { day: 1, city: "Beijing", pace: "Balanced", blocks: [], food: [], stay: "", transport: "", note: "" },
+        { day: 2, city: "Suzhou", pace: "Light", blocks: [], food: [], stay: "", transport: "", note: "" },
+      ],
+    };
+    const provider = makeProvider("deepseek", {
+      content: JSON.stringify({
+        intent: "create_trip",
+        assistantMessage: "Details are ready.",
+        reason: "Round 2 completion.",
+        suggestions: ["A?", "B?"],
+        days: [
+          { day: 1, city: "Beijing", pace: "Balanced", blocks: [{ time: "Morning", title: "Tiananmen Square", description: "" }], food: [], stay: "", transport: "", note: "" },
+          { day: 2, city: "Suzhou", pace: "Light", blocks: [{ time: "Morning", title: "Humble Administrator's Garden", description: "" }], food: [], stay: "", transport: "", note: "" },
+        ],
+      }),
+    });
+
+    const result = await requestSkeletonCompletion({
+      skeletonTrip,
+      env: { DEEPSEEK_API_KEY: "k" },
+      fetchImpl: vi.fn(),
+      providers: [provider],
+    });
+
+    expect(result.patch.generationStage).toBe("complete");
+    expect(result.patch.days?.[0].blocks).toEqual([{ time: "Morning", title: "Tiananmen Square", description: "" }]);
+    expect(result.patch.days?.map((day) => day.city)).toEqual(["Beijing", "Suzhou"]);
+  });
+
+  it("requestSkeletonCompletion throws (does not fall back to mock) when every provider fails", async () => {
+    const skeletonTrip: TripState = {
+      ...initialTripState,
+      days: [{ day: 1, city: "Beijing", pace: "Balanced", blocks: [], food: [], stay: "", transport: "", note: "" }],
+    };
+    const failing = makeProvider("deepseek", { behavior: "throw" });
+
+    await expect(
+      requestSkeletonCompletion({
+        skeletonTrip,
+        env: { DEEPSEEK_API_KEY: "k" },
+        fetchImpl: vi.fn(),
+        providers: [failing],
+      }),
+    ).rejects.toThrow("deepseek failed");
   });
 });

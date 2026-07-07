@@ -4,22 +4,122 @@
 
 VisePanda 是一个面向外国人来中国旅行的 AI 管家产品。当前主线是：右侧持续 Chat，左侧 Live Trip Canvas 实时刷新；Trip Canvas 会根据当前目的地自动切换水墨背景氛围；Trips 已从占位页升级为真实 Supabase persistence + 归档/分享流程，并有共享状态说明；Explore 已从占位页升级为静态 provider 驱动的城市/景点/美食/住宿骨架，预留真实第三方 provider 接入点，展示 provider readiness，并接入了 Add to Trip 流程（跳转 Chat 后走真实 AI pipeline 加入画布并重新平衡路线）；Account 已从独立页面改为头部图标 + 悬浮窗口，支持邮箱密码登录/注册和 Google 登录，登录后可改名/改密码/登出；Tools 已从占位页升级为静态 provider 驱动的签证入境/支付设置/翻译/汇率/地铁/eSIM-VPN/应急 7 个分类骨架，并支持 `/tools?category=<tool-category-id>` 分类深链、结构化分组、离线 pocket notes、API priority 和 provider readiness；Translate 已作为第五个主导航 Tab，支持文字翻译（DeepSeek）、OCR 扫描翻译（OCR.space）和常用短语/特殊词语词典（静态数据 + TTS）；`ButlerReminders` 已从 TripCanvas 移除（组件文件保留）。
 
-## AI 编程 Agent 分工
+## 协作基础设施
 
-本项目由三个 AI Coding Agent 协作开发，各司其职：
+> **不要追求三个 Agent 实时连通。让它们通过 GitHub 形成工程化协作。**
+> 
+> **GitHub Repo = 唯一代码源 | Issues = 任务调度中心 | Branches = 独立工作区 | PRs = 代码交接中心 | Actions = 自动质检**
 
-| Agent | 职责范围 | 分支策略 |
-|-------|---------|---------|
-| **Claude Code** | 负责 **Android APK** 端开发（Kotlin + Jetpack Compose） | 推送到 `claude/visepanda-phase-3-hym6z9` + force-push 到 `main` |
-| **OpenAI Codex** | 负责 **iOS App** 端开发（待定：SwiftUI / UIKit） | 推送到 `codex/ios-development` + merge 到 `main` |
-| **Antigravity (agy)** | **辅助工作**：文档生成、数据调研、规划融合、视觉资源提取、API 兼容性验证 | 推送到 `agy/auxiliary` + merge 到 `main` |
+### 怎么工作
 
-### 协作规则
-1. 各 Agent **不修改对方负责的代码**（Claude Code 不动 iOS 代码，Codex 不动 Android 代码）
-2. Web 端（Next.js 前端 + API 路由）为共享基础层，三者均可修改，但需在 `HANDOFF.md` 标注
-3. 版本号统一递增（`0.3.x` 序列），每次迭代后同步更新
-4. `PLAN.md` / `PRD.md` / `DESIGN.md` / `AGENTS.md` / `HANDOFF.md` / `CHANGELOG.md` / `VERSIONING.md` 为共享文档，每次迭代必须同步
-5. 分工变更须在 `AGENTS.md` 红字标注变更记录
+```
+Claude Code 创建 Issue（定义任务 + Scope + 验收标准）
+  → Codex / Antigravity 认领 Issue，创建独立分支
+    → 在分支上完成开发，不自测通过不提交
+      → 开 PR（附 PR 模板：改了啥 / 测了啥 / 风险）
+        → Claude Code Review PR（只审核架构合规性，不干预实现细节）
+          → 合规 → 合并入 dev 分支
+          → 不合规 → 驳回 + 说明原因
+```
+
+## 角色分工
+
+| Agent | 角色 | 做什么 | 不做什么 |
+|-------|------|--------|---------|
+| **Claude Code** | 项目架构师 + Reviewer | 创建 Issue 分配任务、维护架构文档（`ARCHITECTURE.md` / `API_SPEC.md` / `MOBILE_STANDARD.md`）、审核所有 PR 的架构合规性、仲裁冲突；也会直接执行跨端/架构层面的任务（技术方案文档、后端契约变更评估等），不代表把执行权让渡出去 | 不代表任何一个客户端平台做最终 UI/交互决策、不直接修改别人 PR 内容 |
+| **Codex** | 主力开发工程师 + **iOS 主线（2026-07-06起）** | 复杂逻辑实现、后端 API 开发、Bug Fix、重构、iOS 端开发；**新功能默认先在 iOS 设计和实现** | 不私自改动数据库 Schema 和系统 Prompt、不触及架构决策层 |
+| **Antigravity** | 前端体验 + 验证 + **Android 追平（2026-07-06起）** | Android 端开发、前端 UI 实现、浏览器交互验证、视觉一致性检查、E2E 测试；**新功能等 iOS 对应 PR 合并后再追平，不要自创交互/命名** | 不制定架构规范、不私自新增接口与字段 |
+
+**任务分派不预先锁定平台**：以上"角色"栏描述的是默认倾向，不是硬性锁定——具体某个任务派给哪个 Agent，由架构师按任务性质临场判断（例如跨端架构评估、后端契约设计这类工作可能直接由架构师本人执行，而不是转派给 Codex/Antigravity）。
+
+## 分支策略
+
+```
+main        ← 生产就绪，仅从 dev 合并
+dev         ← 开发主线，PR 合入目标
+agent/xxx   ← 每个 Agent 的独立任务分支
+```
+
+**分支命名规范：** `agent/<agent-name>-<简短描述>`，例如：
+- `agent/claude-chat-api-refactor`
+- `agent/codex-ios-login`
+- `agent/antigravity-android-translator`
+
+**分支铁律：**
+1. 禁止直接 push `main` 或 `dev`
+2. 所有开发在 `agent/*` 分支进行
+3. 每个 Issue 对应一个分支，做完即删
+4. 分支保持小改动（不超过 300 行变更），大了分拆
+
+## 开工前流程
+
+**任何 Agent 启动工作前：**
+
+> 1. `git pull origin dev` — 拉取最新 dev
+> 2. 读取 `PROJECT_CONTEXT.md` — 了解项目背景
+> 3. 读取 `ARCHITECTURE.md` — 了解系统结构
+> 4. 读取 `AGENTS.md` — 了解协作规则
+> 5. 读取 `API_SPEC.md` — 了解接口定义
+> 6. 读取 `MOBILE_STANDARD.md` — 了解移动端规范
+> 7. `git checkout -b agent/<agent-name>-<task>` — 创建分支
+> 8. 开工
+
+## Issue 模板（Claude Code 创建任务时使用）
+
+```markdown
+## Task
+[一句话描述任务]
+
+## Scope
+只修改以下文件/目录：
+- path/to/file1.ts
+- path/to/dir2/*
+
+## Do not touch
+- 数据库 Schema
+- 支付模块
+- 系统 Prompt
+
+## Acceptance
+- [ ] npm run build 通过
+- [ ] 现有相关测试通过
+- [ ] [具体验收条件]
+```
+
+## PR 模板（Codex / Antigravity 提交 PR 时使用）
+
+```markdown
+## What changed
+[改了啥，一两句话]
+
+## Files changed
+- src/file1.ts — 修复了 XXX
+- src/file2.ts — 新增了 XXX
+
+## How tested
+- [ ] npm run build
+- [ ] npm test
+- [ ] 手动测试场景描述
+
+## Risks
+- 低风险：纯 UI 变更
+- 中风险：涉及 API 入参变更
+- 高风险：数据库变更 / 影响现有用户数据
+```
+
+## 协作纪律
+
+1. **各改各的，不抢文件** — 同时期三个 Agent 不得修改同一组文件。Issue 的 `Scope` 和 `Do not touch` 定义清楚
+2. **不自测不开 PR** — PR 必须附带通过的自测结果
+3. **不合规不改架构** — 所有架构变更（API、Schema、Prompt）必须由 Claude Code 发起 Issue 和 Review
+4. **卡住就提 Issue** — 不要硬写兼容代码。发现 API 缺失 / 字段异常 / 逻辑矛盾 → 在 Issue 中标记 blocked + @Claude Code
+5. **小 PR，高频合并** — 单 PR 不超过 300 行变更。大了拆成多个 Issue
+6. **版本号统一递增** — `0.3.x` 序列，每次迭代更新 `package.json`
+7. **文档同步** — `PLAN.md` / `PRD.md` / `DESIGN.md` / `AGENTS.md` / `HANDOFF.md` / `CHANGELOG.md` / `VERSIONING.md` 每次迭代同步
+
+## 一键激活指令
+
+> 你正在 VisePanda 多 Agent 项目中开发。你的角色由 `AGENTS.md` 定义。开工前先读 `PROJECT_CONTEXT.md` + `ARCHITECTURE.md` + `AGENTS.md` + `API_SPEC.md` + `MOBILE_STANDARD.md`。所有任务通过 GitHub Issue 分配，在 `agent/*` 分支开发，通过 PR 提交合并。不自测、小变更、高频合并。不私自改架构。不硬写兼容代码，卡住提 Issue + @Claude Code。
 
 ## 核心技术栈
 
@@ -577,3 +677,68 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 - **Two web-side subsystems were deliberately NOT ported this round — this was a scoping decision, not an oversight:** `preferenceProfile` (`lib/ai/preferenceProfile.ts`, a whole regex-based extraction subsystem for dietary/budget/pace/interest signals) and the `intent`/`strategy`/`providersTried`/`toolContext` response fields (used only for the web's own debugging status text, with no Android UI surface to show them in — Gson already drops them harmlessly). If a future round wants preference-aware chat, that's new subsystem work, not a quick field addition.
 - **`android/app/build.gradle.kts`'s `versionCode`/`versionName` had been stuck at `1`/`"0.3.6"` since that round** — every subsequent round (v0.3.7 through v0.3.11) bumped `package.json` but never touched the Android module's own version fields. Now corrected to `12`/`"0.3.12"`. **Bump these two fields every round going forward alongside `package.json`** — don't let this drift again.
 - **When diagnosing "why does the app always show fallback/offline behavior," measure real end-to-end latency first, before re-reading request/response code.** This round's two research passes correctly mapped both sides of the contract and found it was ~95% correct — the actual bug was invisible in the code itself (a bare `OkHttpClient.Builder().build()` looks completely unremarkable) and only surfaced by timing a real request. Static code review alone would not have found this.
+
+## 多 Agent GitHub 协作规则（架构师轮起生效，本节为权威）
+
+自 dev 分支建立起，项目进入多 Agent 并行开发模式。本节是协作的权威规则；与本节冲突的早期单 Agent 惯例（如"每轮迭代每个人都更新 7 份共享文档"），在多 Agent 并行期间一律按本节执行。
+
+### 角色分工
+
+- **架构师 / Reviewer（Claude Code 架构师会话）**：拆需求建 Issue（含版本号预分配）、审核所有 PR 的架构合规性、唯一合并权、独占维护共享文档、仲裁冲突、掌控 dev→main 发布节奏。**不写端侧业务代码，不直接修改 PR 内容。** 可以写：CI workflow、模板、跨端契约类型定义。收到操作者"审核"指令时：扫描全部 open PR → 逐个执行 CI 检查 + Scope 核对 + 五条硬规则审核 → 合并或驳回 → 更新共享文档 → 把下一步话术交给操作者。
+- **Antigravity（Android 工程师）**：独占 `android/`。职责：按 Issue 实现功能；自测三件套——`./gradlew :app:testDebugUnitTest :app:assembleDebug`、Android 34 模拟器手动验收、断网验收；在 PR 内按 Issue 预分配号修改 `versionCode`/`versionName`；逐项填 PR 模板并附验收证据（构建输出 + 截图）；被驳回后在同一分支修复重推，不开新分支。遵守 `MOBILE_STANDARD.md` 全部条款。
+- **Codex（iOS 工程师）**：独占 `ios/`。职责：按 Issue 实现功能；自测三件套——Xcode build（`VisePandaIOS` scheme）、模拟器手动验收、断网验收；iOS 无 CI，PR 必须附构建成功截图 + 验收截图（硬要求）；逐项填 PR 模板；被驳回后在同一分支修复重推。遵守 `MOBILE_STANDARD.md` 全部条款。
+- 端侧 Agent 都不得修改：`app/`、`lib/`、`components/`、`supabase/`（Web 前后端已冻结在 v0.2.17，只允许架构师批准的例外）、共享 md 文档、对方端的目录。
+- **操作者（人类）**：三个 AI 之间的信使与最终决策人。操作手册见 `WORKFLOW.md`（三句固定话术：派活 / 审核 / 转驳回）。
+
+### 六道推进防线
+
+1. **Issue 边界**：每个 Issue 必含 Scope（只许改的文件清单）+ Do-not-touch（禁改清单）+ Acceptance（验收条件）+ 架构师预分配的版本号。PR 越界即驳回。
+2. **分支隔离**：分支命名 `agent/{ios|android}-issue{N}`。每个 Agent 必须使用**独立 clone 或 git worktree**——严禁多个 Agent 共享同一工作目录做 git 操作（本项目已实际发生 index.lock 争用与推送失败事故）。任何人不得直推 dev/main。**另注意：本仓库主副本位于 iCloud 同步的 Documents 目录下，git 对象文件可能被 iCloud 驱逐导致 mmap 超时/SIGBUS（症状：`pack-objects died of signal 10`、`mmap 失败: Operation timed out`）；遇到时优先从 GitHub 重新 clone 到非 iCloud 路径（如家目录根下），而不是反复重试。**
+3. **PR 自查模板**：`.github/PULL_REQUEST_TEMPLATE.md` 的自查清单必须逐项填写，缺项驳回。
+4. **CI 机器防线**：Web（`npm run build` + `vitest`）与 Android（`:app:testDebugUnitTest :app:assembleDebug`）由 GitHub Actions 自动执行，红灯不合并。iOS 暂无 CI（macOS runner 成本），以 PR 附带的构建截图/录屏验收代偿。
+5. **人工审核五条硬规则**：① CanvasPatch 管道不被绕开（本地写入白名单见 `ARCHITECTURE.md` §4.2）；② 所有密钥只在服务端；③ mock/static fallback 不删除；④ Scope 不越界；⑤ 字段命名与 `API_SPEC.md` 一致。违反任意一条驳回，评论注明违反哪条。
+   - **Chat/Butler 对话内容的例外（2026-07 操作者定案）**：规则③"mock/static fallback 不删除"**不适用于 Chat 的 AI 对话回复本身**——连不上真实 LLM 时，Chat 必须诚实显示"连接失败"，不得返回编造的假行程/假回复冒充真实 AI 回答。规则③继续适用于其它场景：Explore/Tools 的静态兜底数据、Translate 的占位、离线时展示上次缓存内容等——这些是"数据源降级"，不是"伪造 AI 决策"，两者性质不同。判断标准：如果失败时展示的内容会被用户误认为是真实 AI/真实数据源给出的答案，就是禁止的假冒；如果明确是本地静态参考资料或诚实的"暂不可用"提示，就仍然允许。
+6. **合并后文档同步**：`PLAN.md`/`PRD.md`/`DESIGN.md`/`AGENTS.md`/`HANDOFF.md`/`CHANGELOG.md`/`VERSIONING.md` + `PROJECT_CONTEXT.md`/`ARCHITECTURE.md`/`API_SPEC.md`/`MOBILE_STANDARD.md` **只由架构师落笔**。端侧 PR 只改自己端的代码 + 自己端的 README（`android/README.md` / `ios/README.md`）。
+
+### 版本号所有权
+
+- `android/app/build.gradle.kts` 的 `versionCode`/`versionName`：号由 Issue 预分配，Android owner 在 PR 内修改。
+- iOS 版本（Info.plist 的 `CFBundleShortVersionString`）：同理，号由 Issue 预分配。
+- `package.json`/`VERSIONING.md`/`CHANGELOG.md`：**只有架构师修改**。端侧 PR 碰这三个文件即驳回。
+
+### 工作循环
+
+```
+操作者把 Issue 链接交给对应 Agent（GitHub @提及对 AI Agent 不产生真实通知）
+→ Agent 独立 clone，开 agent/* 分支
+→ 开发 + 逐项填 PR 模板 → PR 到 dev
+→ CI 绿 + 架构师人工审核
+→ 合规合并 / 不合规驳回（评论注明违反第几道防线）
+→ 架构师更新共享文档、关闭 Issue
+```
+
+### 冲突仲裁
+
+- 同文件冲突：先合并者赢，后到者 rebase。
+- 契约分歧（字段/接口语义两端理解不一致）：架构师裁决，并记录 `DESIGN.md` ADR。
+- 同端多个 Issue：串行开发，禁止同端并行开两个分支改同一模块。
+
+### 发布线
+
+- `dev` = 集成分支，合并后必须随时可构建。
+- `main` = 稳定分支，架构师按里程碑合并 dev→main 并打版本 tag。
+
+## 2026-07-06 Agent Update — 平台优先级对调：iOS 主线，Android 追平
+
+操作者拍板：新功能从本日起先在 iOS 设计和实现，Android 随后追平（原来是 Android 主线、iOS 追平，反过来了）。
+
+**依据**：经三轮四模型（DeepSeek v4 Pro / Kimi k2.6 / Qwen3.7-plus）对抗性评审，最初"欧美/日韩游客 iPhone 占比高"这条理由被认为缺乏数据支撑（项目还没有真实用户分布数据）。架构师提出的替代依据：这几周 Codex 交付的 iOS PR 质量稳定可信（多个 PR 均用真实 `xcodebuild` 编译 + 测试验证过，分支基底干净，自查清单如实），这是基于真实工程产出的判断。
+
+**执行规则**：
+1. 只对**新功能**生效，Android 已有的、比 iOS 更成熟的功能不做倒退式迁移。
+2. 新 Issue 拆分方式：iOS 侧先出详细设计（交互稿/数据模型/验收标准）并实现，Codex 的 PR 合并到 `dev` 后，才给 Antigravity 开对应的 Android 追平 Issue，Android 不允许自创字段/命名/交互，除非先和架构师确认。
+3. 如果某个任务"只有方向没有详细方案"，设计这部分工作本身就是 iOS 执行方（通常是 Codex）Issue 的一部分产出，不需要架构师先出完整规格再派发。
+4. 这不解决"两端体验分叉"的根本问题（三模型一致提醒：只是把"二等公民"从 iOS 换成 Android），跨端一致的字段/命名契约（沿用 `API_SPEC.md` 的做法）仍然是强制要求，不能因为"Android 只是追平"就放松审查。
+5. KMM（Kotlin Multiplatform）被外部模型提出可以从根本上解决双端分叉，操作者未决定投入，是已知但未采纳的长期选项，不纳入近期任务。
+
+详见 `docs/planning/final-product-positioning-moat-and-risk-assessment.md`。

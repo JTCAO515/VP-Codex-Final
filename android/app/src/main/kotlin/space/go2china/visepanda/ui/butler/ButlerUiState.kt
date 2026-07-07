@@ -10,6 +10,9 @@ data class ButlerUiState(
     val sending: Boolean = false,
     val offlineFallback: Boolean = false,
     val errorMessage: String? = null,
+    /** Voice input state (real-device feedback, 2026-07-05). */
+    val isRecording: Boolean = false,
+    val isTranscribing: Boolean = false,
 ) {
     companion object {
         val DEFAULT_SUGGESTIONS = listOf(

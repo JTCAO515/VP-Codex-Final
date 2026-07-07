@@ -97,6 +97,28 @@ export interface CanvasPatch {
   days?: TripDay[];
   butlerAlerts?: ButlerAlert[];
   reason: string;
+  /**
+   * Day numbers this patch actually added, removed, or changed the content
+   * of, computed server-side by diffing against the trip state the request
+   * was made with (see computeAffectedDays in lib/canvas/applyCanvasPatch.ts).
+   * Empty/absent means this patch didn't touch the day-by-day itinerary
+   * (e.g. an add_alerts-only reply) — clients use this to decide whether to
+   * offer a "view updated day" link back to Trips, so a plain-text answer
+   * never claims to have changed the itinerary.
+   */
+  affectedDays?: number[];
+  /**
+   * Only ever present for create_trip (docs/planning/trips-staged-generation-migration-plan.md).
+   * "skeleton" means days[].blocks is intentionally empty — city/pace/food/
+   * stay/transport/note are real, but day-by-day details haven't been
+   * generated yet; the client should render a lightweight placeholder and
+   * expect a follow-up request (POST /api/chat with completeSkeletonFor set
+   * to the applied skeleton trip) to return a "complete" patch for the same
+   * days. Absent/"complete" means blocks are fully generated, same as
+   * before this field existed — old clients that don't read this field see
+   * ordinary create_trip/adjust_trip behavior unchanged.
+   */
+  generationStage?: "skeleton" | "complete";
 }
 
 export interface AssistantResponse {
@@ -106,6 +128,27 @@ export interface AssistantResponse {
   watchOut?: string;
   nextStep: string;
   toolCards?: InlineToolCard[];
+  /**
+   * Real Explore POIs the Butler's answer text refers to (Issue #50,
+   * Chat↔Explore bridge). Populated server-side by matching names in
+   * headline/body/highlights against the request's real toolContext POIs —
+   * never model-generated, so a ref always points at something that exists.
+   * Empty/absent when no real POI was mentioned; clients must not render a
+   * placeholder card in that case.
+   */
+  exploreRefs?: ExploreRef[];
+}
+
+/** One real Explore POI referenced by an AssistantResponse. See exploreRefs. */
+export interface ExploreRef {
+  /** Raw Amap POI id (matches ButlerToolPoi.id / mobile AmapPoiJson.id before the "amap-" prefix). */
+  amapPoiId: string;
+  name: string;
+  cityId: string;
+  category: "attractions" | "food" | "stays";
+  subcategory?: string;
+  rating?: number;
+  pricePerPerson?: number;
 }
 
 export interface InlineToolCard {
@@ -136,4 +179,5 @@ export interface ChatMessage {
   changeDigest?: ChangeDigestEntry[];
   /** ISO timestamp set at creation time. Optional so older saved/loaded messages without it still render. */
   createdAt?: string;
+  isError?: boolean;
 }

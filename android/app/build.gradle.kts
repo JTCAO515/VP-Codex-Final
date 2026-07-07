@@ -14,11 +14,13 @@ android {
         applicationId = "space.go2china.visepanda"
         minSdk = 26
         targetSdk = 34
-        versionCode = 12
-        versionName = "0.3.12"
+        versionCode = 22
+        versionName = "0.3.22"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "VISEPANDA_API_BASE_URL", "\"https://www.go2china.space/\"")
+        buildConfigField("String", "SUPABASE_URL", "\"https://eqbbnworuyksalfpimzw.supabase.co\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxYmJud29ydXlrc2FsZnBpbXp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MzM3MzIsImV4cCI6MjA5ODMwOTczMn0.Ucr4lIxsz6w7EbIqbOQVYx1pauxJhOxS54UTL07WarM\"")
     }
 
     buildTypes {
@@ -57,6 +59,13 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    // android.util.Log isn't mocked under plain JVM unit tests (no Robolectric
+    // in this project) — without this, any Log.* call in code under test
+    // throws instead of no-op'ing, silently aborting the calling function.
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
@@ -67,6 +76,7 @@ dependencies {
     // Core / lifecycle
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
     implementation("androidx.activity:activity-compose:1.9.1")
 
@@ -100,6 +110,17 @@ dependencies {
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+
+    // Image loading (Explore POI photos, UGC feed thumbnails)
+    implementation("io.coil-kt:coil-compose:2.6.0")
+
+    // Location (Explore Dianping-style nearby filter — Issue #47)
+    implementation("com.google.android.gms:play-services-location:21.3.0")
+
+    // Custom Tabs — hosts the Supabase Google OAuth authorize URL for sign-in
+    // (Issue #85 item 5); no separate Google Sign-In SDK/client id needed
+    // since Supabase already owns the OAuth client on its end.
+    implementation("androidx.browser:browser:1.8.0")
 
     // Testing
     testImplementation("junit:junit:4.13.2")

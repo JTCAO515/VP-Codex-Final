@@ -3,8 +3,8 @@ import "./globals.css";
 import { I18nProvider } from "@/lib/i18n/I18nContext";
 
 export const metadata: Metadata = {
-  title: "VisePanda - AI China Travel Butler",
-  description: "Plan a China trip with an AI butler and a live itinerary canvas.",
+  title: "VisePanda - China Travel AI Copilot",
+  description: "Plan a China trip with an AI copilot and a live itinerary canvas.",
 };
 
 // Width-only viewport — no height constraint, so mobile browsers size the

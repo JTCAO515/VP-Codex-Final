@@ -1,5 +1,67 @@
 # VisePanda Changelog
 
+## v0.3.20 - 2026-07-05
+
+**Chat 全链路多角度审计 + 加固轮。** 操作者指令"深度研究chatbot的对话性...穷尽你的想法去优化chat，多角度查chat的bug，并修复"，架构师自派任务:先跑一次覆盖 8 个维度(持久化/流式/提示词/并发/前端边界/意图分类/工具卡拦截)的只读审计,再据此修复(ADR-122)。
+
+### 真实 bug 修复
+- **serverless 超时上限缺失**:`app/api/chat/route.ts` 加 `export const maxDuration = 120`——Kimi 的 provider 级下限是 90s(v0.3.19),没有这个声明,Vercel serverless 函数可能在 Kimi 真实完成前就被平台自身超时杀掉。诚实记录:Hobby 套餐硬上限 60s,与套餐无关,需要 Pro 及以上才能完全生效。
+- **竞速失败方浪费真实配额**:`orchestrator.ts` 里 `Promise.any` 竞速胜出后,其余 provider 之前会继续跑到各自超时。新增共享 `AbortController`,胜出后立即取消。同时修复了一个潜在的自伤 bug:失败记录判断改为"仅当竞速信号在捕获失败那一刻仍未 abort 才记入熔断器"——避免健康但较慢的 provider 被"因为别家赢了而取消"误判为真实故障进而被熔断。
+
+### UX 加固
+- **长等待渐进反馈**:`ChatPanel.tsx` 的"思考中"提示 15 秒后升级文案("Still working..."),避免 Kimi 单独成为最后候选时的 60-90s 真实等待显得像卡死。
+
+### 小修
+- **`add_poi` 意图正则**:补上"in the itinerary"("Summer Palace in the itinerary")等此前落空到 unclear 的自然表达;补充了此前完全没有的 add_poi 专项测试。
+
+### 审计过程中自我纠错
+- 审计初稿曾误判"前端完全没有 loading 指示""add_poi 不认 itinerary 变体"——核实代码后发现这两条结论都不准确(思考指示器早已存在;itinerary 变体走的是另一条已支持的正则分支),避免了"修复一个不存在的问题"。
+
+### 验证
+- 183 个单元测试通过(新增 4 个);`npm run build` 通过。真实浏览器验证:本地 dev server 发送真实消息,DeepSeek 26 秒内真实返回并正确更新画布,busy 状态提示正确显示/清除。
+
+## v0.3.19 - 2026-07-05
+
+**Chat mock 兜底彻底移除（诚实报错）+ 四家真实 LLM 连通性深化轮。** 操作者直接指令"CHAT只调用真实LLM来对话，移除所有Mock对话，连接失败就真实显示连接失败"（ADR-120），随后提供 DeepSeek/Kimi/Qwen/GLM 四把真实 key，由架构师自派任务深化连通性（ADR-121）。
+
+### Chat mock 兜底移除（PR #30/#31，之前已合并，本轮补版本号）
+- `lib/ai/orchestrator.ts` 三处 mock 兜底调用点（无 provider 配置/全部 provider 失败/空消息）全部改为抛出，不再返回"看起来像真实 AI"的假 CanvasPatch。`app/api/chat/route.ts` 捕获失败后返回非 2xx（503）+ `{ok:false,error,message}`。`components/chat/ButlerWorkspace.tsx` 移除前端自己的两处 mock 兜底，改为展示诚实的"连接失败"状态。Android 端因此自动受益（原本就有诚实失败检测，但从未被真正触发过）。
+- 范围明确：Explore/Tools 静态数据兜底、Translate 占位、离线缓存展示不受影响，仍适用 AGENTS.md 五条硬规则第③条。
+
+### 四家 LLM 连通性深化（本轮新增）
+- **DeepSeek 混合推理禁用**：`deepseek-v4-flash` 与 Qwen/GLM 同属混合推理模型，默认思考会烧光小 max_tokens 预算返回空 content。`extraBody:{thinking:{type:"disabled"}}` 修复，验证无质量损失。
+- **Kimi 双重浮动下限**：实测 3 种参数组合均无法关闭 kimi-k2.6 的推理；发现 reasoning_content 与 content 共享同一 max_tokens 上限。新增 `minMaxTokens` 机制（与既有 `minTimeoutMs` 同款），Kimi 设为 `minTimeoutMs:90000` + `minMaxTokens:8192`——真实系统提示词下完整耗时在 61.5s-82s 之间波动，接受这个已知代价（Kimi 平时排在其他三家之后，此延迟不可见）。
+- **JSON 静默损坏修复（本轮最高价值发现）**：`lib/ai/jsonRepair.ts` 新增 `findObjectEnd()`——真实 Kimi 响应证实，完整合法 JSON 对象后跟着模型自我验证的人类语言时，若这段废话含逗号，旧的回退算法会在真正 JSON 体内的逗号之前找到它，可能悄悄切掉内部字段（复现：`"title":"Yu Garden"` 被静默清空，外层 `days.length` 看起来完全正常）。现在先精确扫描匹配括号切一刀，只有真正截断的内容才走回退修复。
+
+### 验证
+- 179 个单元测试通过（新增 5 个：`findObjectEnd` 4 个 + 复现回归测试 1 个）；`npm run build` 通过。
+- 真实网络路径验证（临时探针，用后即删）：四家 provider 通过真实 `requestOrchestratedButlerPatch` 一起竞速，DeepSeek 26.4s 首先胜出并返回合法 3 天行程；单独只配置 Kimi 时在新下限下真实完整跑通（82.2s）。
+
+## v0.3.18 - 2026-07-04
+
+**LLM 修复轮 + 生产环境首次真实 AI 行程生成。** 操作者提供三家真实 key(Qwen 专属网关/智谱/Kimi),实测根治:Qwen 与 GLM-5.x 默认思考模式烧光延迟预算(禁用后 1.9s/6.6s 直出 JSON);kimi-k2.x 只接受 temperature=1(400 根因);Qwen 专属网关正确路径为 `/compatible-mode/v1`。四家真跑后又暴露解析边界缺口:LLM 返回的 day 缺 `blocks` 字段导致 write-through 崩溃丢弃获胜 patch —— `normalizeDays` 在解析边界归一化修复(与 Android TripJson.normalizeNulls 同一思想)。合并 main 上并行会话的模型名升级(glm-5.1/kimi-k2.6/qwen3.7-plus),文档冲突仲裁为架构师版本。**生产实测:`mode:"zhipu"`,完整 2 天行程,零降级 —— 项目生产历史上第一次真实 AI 生成行程。** 173 测试通过。
+
+## v0.3.17 - 2026-07-04
+
+**Chatbot 可靠性 + 质量轮（架构师执行的 Web 冻结例外，操作者直接指令）。** 根治 2026-07-04 生产连通性审计发现的三家 LLM provider 全病问题，同时升级提示词与对话体验。详见 DESIGN.md ADR-119。
+
+### 可靠性根治（对应审计发现的三个真实故障）
+- **JSON 截断容错**（新建 `lib/ai/jsonRepair.ts`）：DeepSeek 生产报 "Unterminated string in JSON at position 5212" 的根因是行程类回复被 max_tokens 截断后 `JSON.parse` 裸炸。现在解析先剥 markdown 围栏/前导废话，再闭合截断处的字符串和括号栈，仍失败则逐步回退到上一个结构边界重试——挽救最长合法前缀而不是丢弃整个回答。
+- **按意图预算**：行程类意图（create/adjust/add_location/add_poi）4096 tokens / 25s，轻量意图 1400 / 15s——替换原来一刀切的 2200/18s（3 天行程必然截断的元凶）。
+- **Provider 熔断器**：连续 2 次失败进入 120s 冷却，期间不再参赛（原来病号每轮都白白拖满超时）；若熔断会清空候选池则自动忽略——永远不会把自己锁死在 mock 模式。诚实记录 serverless 局限：状态按 warm 实例存续，冷启动重置。
+
+### 生成质量
+- **系统提示词宪法化分层**：人设（懂行的本地朋友，不油腻）+ 六条硬规则（不编造中国事实、预订仅信息、每轮最多一个澄清问题、回复语言跟随用户、危难优先、接受纠正不狡辩）+ 输出契约 + 长度自适应。
+- **create_trip 质量闸门**：嘴上说"帮你规划好了"但没返回 days 数组的 patch 直接判无效，让真正干活的 provider 赢得竞速。
+- **建议问题缺口驱动**：fallback 建议优先反映行程真实缺口（没排天数/没选酒店/高优先级提醒未完成），模板句垫底。
+- **Prompt 瘦身**：行程 payload 剥离 photoUrl（纯展示字段，长 CDN URL 白耗 token）；jsonMode 温度降到 0.3 稳定结构。
+
+### 安全体验
+- **急难词快速通道**：robbed/stolen/injured/lost passport 等词汇现在正确分类为 concern 并触发应急工具卡（110/120/使馆信息），不再可能落进普通推荐路径。
+
+### 验证
+- 167 个单元测试全部通过（新增 18 个：jsonRepair 13 个、orchestrator 熔断/闸门/截断恢复 5 个、intentClassifier 急难词 1 组）；`npm run build` 通过。
+
 ## v0.3.12 - 2026-07-03
 
 **Chat 真实 API 根因修复:一直显示离线兜底不是因为没接好,而是超时设置太短。** 操作者要求:"将web端已经配好的chat 的api接入，将网页端chat的功能和配置全部导入apk"。

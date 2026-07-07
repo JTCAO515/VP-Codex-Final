@@ -295,6 +295,13 @@ export const mockHotSpots: CityHotSpot[] = [
     tip: "Skip the main drag — the hutong side streets (Banchang, Mao'er) are where the real old Beijing is.",
     emoji: "🏘️",
   },
+  {
+    id: "h_bj_p1", cityId: "beijing", cityName: "Beijing",
+    name: "Beijing Metro ticketing", chinese: "北京地铁购票", category: "practical",
+    rating: 4.7, reviewCount: 654,
+    tip: "Download the 'Yitongxing' (易通行) app for metro QR codes, or use Alipay's transport code directly. Ticket machine queues can take 20+ mins.",
+    emoji: "🚇",
+  },
   // Shanghai
   {
     id: "h4", cityId: "shanghai", cityName: "Shanghai",
@@ -317,6 +324,13 @@ export const mockHotSpots: CityHotSpot[] = [
     tip: "Walk south from Longhua metro. Great museums, free river views, and zero tourist crowds.",
     emoji: "🏛️",
   },
+  {
+    id: "h_sh_p1", cityId: "shanghai", cityName: "Shanghai",
+    name: "Alipay payment setup", chinese: "支付宝支付设置", category: "practical",
+    rating: 4.9, reviewCount: 1420,
+    tip: "Link your international card (Visa/Mastercard) to Alipay before arrival. Payments over ¥200 trigger a 3% bank fee, so request merchants to split large bills.",
+    emoji: "💳",
+  },
   // Chengdu
   {
     id: "h7", cityId: "chengdu", cityName: "Chengdu",
@@ -331,6 +345,13 @@ export const mockHotSpots: CityHotSpot[] = [
     rating: 4.8, reviewCount: 1234,
     tip: "The original restaurant near Qingyang District. Order the signature mapo tofu and beef in bean sauce. Lunch only.",
     emoji: "🌶️",
+  },
+  {
+    id: "h_cd_p1", cityId: "chengdu", cityName: "Chengdu",
+    name: "Tea house scam alert", chinese: "防骗提醒", category: "practical",
+    rating: 4.8, reviewCount: 92,
+    tip: "Beware of friendly 'students' near Kuanzhai Alley inviting you for tea or art exhibitions. It's a classic tea house scam resulting in huge bills.",
+    emoji: "⚠️",
   },
   // Xi'an
   {
@@ -347,6 +368,13 @@ export const mockHotSpots: CityHotSpot[] = [
     tip: "Rent a bike at the South Gate (南门) and do the full 14km loop. Takes about 90 minutes at a relaxed pace.",
     emoji: "🚲",
   },
+  {
+    id: "h_xa_p1", cityId: "xian", cityName: "Xi'an",
+    name: "High-speed train check-in", chinese: "西安高铁进站", category: "practical",
+    rating: 4.6, reviewCount: 302,
+    tip: "Bring your physical passport to enter the train station. Scans for passport holders are typically at the rightmost lane with staff.",
+    emoji: "🚄",
+  },
   // Hangzhou
   {
     id: "h11", cityId: "hangzhou", cityName: "Hangzhou",
@@ -361,6 +389,13 @@ export const mockHotSpots: CityHotSpot[] = [
     rating: 4.4, reviewCount: 892,
     tip: "Try the walnut cakes (核桃酥), vinegar-braised pork knuckle, and West Lake lotus root starch soup.",
     emoji: "🥮",
+  },
+  {
+    id: "h_hz_p1", cityId: "hangzhou", cityName: "Hangzhou",
+    name: "West Lake transit code", chinese: "西湖乘车码", category: "practical",
+    rating: 4.7, reviewCount: 412,
+    tip: "Enable the Hangzhou Public Transport Code in Alipay. It allows instant scans for both Hangzhou metro and public lakeside buses.",
+    emoji: "🚌",
   },
 ];
 

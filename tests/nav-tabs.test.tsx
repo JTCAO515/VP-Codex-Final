@@ -8,10 +8,7 @@ describe("NavTabs", () => {
 
     expect(screen.getByRole("link", { name: /chat/i })).toHaveAttribute("href", "/chat");
     expect(screen.getByRole("link", { name: /trips/i })).toHaveAttribute("href", "/trips");
-    expect(screen.getByRole("link", { name: /explore/i })).toHaveAttribute("href", "/explore");
-    expect(screen.getByRole("link", { name: /tools/i })).toHaveAttribute("href", "/tools");
-    expect(screen.getByRole("link", { name: /translate/i })).toHaveAttribute("href", "/translate");
     expect(screen.getByRole("link", { name: /community/i })).toHaveAttribute("href", "/community");
-    expect(container.querySelectorAll(".nav-tabs__link svg")).toHaveLength(6);
+    expect(container.querySelectorAll(".nav-tabs__link svg")).toHaveLength(3);
   });
 });

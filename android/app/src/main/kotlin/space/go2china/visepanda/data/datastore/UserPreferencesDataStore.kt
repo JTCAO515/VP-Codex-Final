@@ -20,20 +20,29 @@ private val Context.userPreferencesDataStore: androidx.datastore.core.DataStore<
  * Never store trip content here; that belongs in [space.go2china.visepanda.data.local.TripCacheEntity]
  * (Room) or the future Supabase-backed remote source.
  *
- * v0.3.3 only has [lastActiveTripId] wired, matching the narrow v0.3.3 scope.
- * v0.3.5 is expected to add language preference and guest-profile keys here
- * once there is a real login flow to attach them to.
+ * v0.3.14 adds [languageCode] (Me screen's language switch, /goal Phase 3) —
+ * the guest-profile keys mentioned in the original v0.3.3 note still wait for
+ * a real login flow.
  */
 @Singleton
 class UserPreferencesDataStore @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
     private val lastActiveTripIdKey = stringPreferencesKey("last_active_trip_id")
+    private val languageCodeKey = stringPreferencesKey("language_code")
 
     val lastActiveTripId: Flow<String?> =
         context.userPreferencesDataStore.data.map { prefs -> prefs[lastActiveTripIdKey] }
 
     suspend fun setLastActiveTripId(tripId: String) {
         context.userPreferencesDataStore.edit { prefs -> prefs[lastActiveTripIdKey] = tripId }
+    }
+
+    /** BCP-47 language tag, e.g. "en" or "zh-CN". Defaults to "en" when unset. */
+    val languageCode: Flow<String> =
+        context.userPreferencesDataStore.data.map { prefs -> prefs[languageCodeKey] ?: "en" }
+
+    suspend fun setLanguageCode(code: String) {
+        context.userPreferencesDataStore.edit { prefs -> prefs[languageCodeKey] = code }
     }
 }

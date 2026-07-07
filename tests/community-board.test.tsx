@@ -17,47 +17,36 @@ describe("CommunityBoard", () => {
     expect(screen.getByText("VisePanda Concierge")).toBeInTheDocument();
   });
 
-  it("publishes a local community post and supports reactions", () => {
+  it("filters hot spots by city and category, including practical category", () => {
     render(<CommunityBoard />);
 
-    fireEvent.click(screen.getByRole("button", { name: /\+ share my trip/i }));
-    fireEvent.change(screen.getByPlaceholderText(/relaxed shanghai food route/i), {
-      target: { value: "My calm Beijing tea walk" },
-    });
-    fireEvent.change(screen.getByPlaceholderText(/what should other travelers know/i), {
-      target: { value: "Start near Jingshan, then take a quiet hutong tea break before dinner." },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /publish locally/i }));
+    // Default active city is Beijing
+    expect(screen.getByText("Jingshan Park sunrise")).toBeInTheDocument();
+    expect(screen.getByText("Beijing Metro ticketing")).toBeInTheDocument();
 
-    const post = screen.getByLabelText("My calm Beijing tea walk");
-    expect(post).toBeInTheDocument();
+    // Click Shanghai filter
+    fireEvent.click(screen.getByRole("button", { name: "Shanghai" }));
+    expect(screen.getByText("Alipay payment setup")).toBeInTheDocument();
+    expect(screen.queryByText("Jingshan Park sunrise")).not.toBeInTheDocument();
 
-    fireEvent.click(within(post).getByRole("button", { name: /like this post/i }));
-    expect(within(post).getByRole("button", { name: /like this post/i })).toHaveTextContent("Heart 1");
-
-    fireEvent.click(within(post).getByRole("button", { name: /save post/i }));
-    expect(within(post).getByRole("button", { name: /save post/i })).toHaveTextContent("Save 1");
-
-    fireEvent.change(within(post).getByLabelText(/comment on my calm beijing tea walk/i), {
-      target: { value: "Great pacing." },
-    });
-    fireEvent.click(within(post).getByRole("button", { name: /^comment$/i }));
-    expect(within(post).getByText(/great pacing/i)).toBeInTheDocument();
+    // Click Category "Practical Tips"
+    fireEvent.click(screen.getByRole("button", { name: "Practical Tips" }));
+    expect(screen.getByText("Alipay payment setup")).toBeInTheDocument();
+    expect(screen.queryByText("Tianzifang art lanes")).not.toBeInTheDocument();
   });
 
-  it("adds a local photo card from the Photos tab", () => {
+  it("supports Add to Trip click by redirecting to chat with draft message", () => {
+    const originalLocation = window.location;
+    delete (window as any).location;
+    window.location = { ...originalLocation, href: "" } as any;
+
     render(<CommunityBoard />);
 
-    fireEvent.click(screen.getByRole("tab", { name: /photos/i }));
-    fireEvent.click(screen.getByRole("button", { name: /\+ add photo card/i }));
-    fireEvent.change(screen.getByPlaceholderText(/morning mist over west lake/i), {
-      target: { value: "Lanterns by the old city wall" },
-    });
-    fireEvent.change(screen.getByPlaceholderText(/the bund/i), {
-      target: { value: "Xi'an City Wall" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /publish photo card/i }));
+    const addButton = screen.getAllByRole("button", { name: /\+ add to trip/i })[0];
+    fireEvent.click(addButton);
 
-    expect(screen.getByLabelText("Lanterns by the old city wall")).toBeInTheDocument();
+    expect(window.location.href).toContain("/chat?add=");
+
+    window.location = originalLocation;
   });
 });

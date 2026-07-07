@@ -22,12 +22,16 @@ export interface ChatCompletionOptions {
   temperature?: number;
   jsonMode?: boolean;
   signal?: AbortSignal;
+  /** Per-call hard ceiling; defaults to the provider's own DEFAULT_TIMEOUT_MS. */
+  timeoutMs?: number;
 }
 
 export interface ChatCompletionResult {
   content: string;
   providerId: string;
   model: string;
+  /** Upstream finish_reason when reported — "length" signals a truncated completion. */
+  finishReason?: string;
 }
 
 export type FetchLike = typeof fetch;

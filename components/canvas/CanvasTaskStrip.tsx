@@ -59,7 +59,7 @@ function getTaskAlert(taskType: string, alerts: ButlerAlert[]) {
 
 export function CanvasTaskStrip({ alerts = [] }: { alerts?: ButlerAlert[] }) {
   return (
-    <div className="canvas-task-strip" aria-label="Butler planning tasks">
+    <div className="canvas-task-strip" aria-label="Copilot planning tasks">
       {baseTasks.map((task) => {
         const alert = getTaskAlert(task.type, alerts);
         const body = alert ? alert.title : task.body;

@@ -22,7 +22,31 @@ data class AssistantResponse(
     // `href` deep-linking to a Tools category is intentionally not wired up
     // yet because ui/tools/ToolsScreen.kt is still an honest placeholder.
     val toolCards: List<InlineToolCard>? = null,
+    // Chat↔Explore bridge (Issue #50/#59): mirrors API_SPEC.md's
+    // AssistantResponse.exploreRefs. Server only populates this with POIs the
+    // orchestrator actually had real toolContext data for — never rendered as
+    // a placeholder when empty/absent.
+    val exploreRefs: List<ExploreRef>? = null,
 )
+
+data class ExploreRef(
+    val amapPoiId: String,
+    val name: String,
+    val cityId: String,
+    val category: ExploreRefCategory,
+    val subcategory: String? = null,
+    val rating: Double? = null,
+    val pricePerPerson: Double? = null,
+)
+
+enum class ExploreRefCategory {
+    @SerializedName("attractions")
+    Attractions,
+    @SerializedName("food")
+    Food,
+    @SerializedName("stays")
+    Stays,
+}
 
 enum class InlineToolCardTone {
     @SerializedName("info")

@@ -1,5 +1,11 @@
 package space.go2china.visepanda.ui.butler
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.media.MediaRecorder
+import android.util.Base64
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -8,8 +14,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -24,29 +33,123 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import java.io.File
 import space.go2china.visepanda.data.model.ButlerChatMessage
 import space.go2china.visepanda.data.model.ButlerMessageRole
+import space.go2china.visepanda.data.model.ExploreRef
 import space.go2china.visepanda.data.model.InlineToolCard
 import space.go2china.visepanda.data.model.InlineToolCardTone
 import space.go2china.visepanda.ui.theme.Dimens
 
 @Composable
 fun ButlerScreen(
+    onOpenToolCategory: (String) -> Unit,
+    onExploreRef: (ExploreRef) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ButlerViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
+    // Voice input (real-device feedback, 2026-07-05): same MediaRecorder ->
+    // base64 -> STT flow as Translate (ui/translate/TranslateScreen.kt), but
+    // the transcribed text fills the composer instead of auto-sending, so the
+    // traveler can review/edit before it goes out.
+    val audioFile = remember { File(context.cacheDir, "butler_voice_record.mp4") }
+    var mediaRecorder by remember { mutableStateOf<MediaRecorder?>(null) }
+
+    fun startRecording() {
+        try {
+            if (audioFile.exists()) audioFile.delete()
+            val recorder = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                MediaRecorder(context)
+            } else {
+                @Suppress("DEPRECATION")
+                MediaRecorder()
+            }
+            recorder.apply {
+                setAudioSource(MediaRecorder.AudioSource.MIC)
+                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                setAudioSamplingRate(16000)
+                setAudioEncodingBitRate(32000)
+                setOutputFile(audioFile.absolutePath)
+                prepare()
+                start()
+            }
+            mediaRecorder = recorder
+            viewModel.setRecordingState(true)
+        } catch (e: Exception) {
+            viewModel.setRecordingState(false)
+        }
+    }
+
+    fun stopRecordingAndTranscribe() {
+        val recorder = mediaRecorder ?: return
+        try {
+            recorder.stop()
+            recorder.release()
+        } catch (e: Exception) {
+            // Recording too short or release error — nothing to transcribe.
+        } finally {
+            mediaRecorder = null
+        }
+
+        if (audioFile.exists() && audioFile.length() > 0) {
+            val base64Audio = Base64.encodeToString(audioFile.readBytes(), Base64.NO_WRAP)
+            viewModel.performStt(base64Audio)
+        } else {
+            viewModel.setRecordingState(false)
+        }
+    }
+
+    val micPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted -> if (isGranted) startRecording() }
+
+    fun onMicClick() {
+        if (state.isRecording) {
+            stopRecordingAndTranscribe()
+        } else if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            startRecording()
+        } else {
+            micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
+
+    // Auto-stop at 30s, matching Translate's cap.
+    LaunchedEffect(state.isRecording) {
+        if (state.isRecording) {
+            var seconds = 0
+            while (seconds < 30 && state.isRecording) {
+                kotlinx.coroutines.delay(1000)
+                seconds++
+            }
+            if (state.isRecording) stopRecordingAndTranscribe()
+        }
+    }
 
     Scaffold(modifier = modifier) { innerPadding ->
         ButlerContent(
@@ -54,6 +157,9 @@ fun ButlerScreen(
             onInputChange = viewModel::updateInput,
             onSend = viewModel::sendCurrentInput,
             onSuggestion = viewModel::sendSuggestion,
+            onOpenToolCategory = onOpenToolCategory,
+            onExploreRef = onExploreRef,
+            onMicClick = ::onMicClick,
             contentPadding = innerPadding,
         )
     }
@@ -65,6 +171,9 @@ private fun ButlerContent(
     onInputChange: (String) -> Unit,
     onSend: () -> Unit,
     onSuggestion: (String) -> Unit,
+    onOpenToolCategory: (String) -> Unit,
+    onExploreRef: (ExploreRef) -> Unit,
+    onMicClick: () -> Unit,
     contentPadding: PaddingValues,
 ) {
     Column(
@@ -90,7 +199,7 @@ private fun ButlerContent(
                 }
             } else {
                 items(state.messages, key = { it.id }) { message ->
-                    MessageBubble(message)
+                    MessageBubble(message, onOpenToolCategory = onOpenToolCategory, onExploreRef = onExploreRef)
                 }
             }
         }
@@ -100,6 +209,7 @@ private fun ButlerContent(
             onInputChange = onInputChange,
             onSend = onSend,
             onSuggestion = onSuggestion,
+            onMicClick = onMicClick,
         )
     }
 }
@@ -118,9 +228,9 @@ private fun ButlerHeader(state: ButlerUiState) {
             )
             Text(
                 text = if (state.offlineFallback) {
-                    "Offline fallback · ${state.modelLabel}"
+                    "Offline"
                 } else {
-                    state.modelLabel
+                    "Ready"
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -163,7 +273,11 @@ private fun EmptyButlerPrompt(onSuggestion: (String) -> Unit) {
 }
 
 @Composable
-private fun MessageBubble(message: ButlerChatMessage) {
+private fun MessageBubble(
+    message: ButlerChatMessage,
+    onOpenToolCategory: (String) -> Unit,
+    onExploreRef: (ExploreRef) -> Unit,
+) {
     val isUser = message.role == ButlerMessageRole.User
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -220,7 +334,15 @@ private fun MessageBubble(message: ButlerChatMessage) {
                     )
                     response.toolCards.orEmpty().forEach { toolCard ->
                         Spacer(modifier = Modifier.height(Dimens.SpaceSM))
-                        InlineToolCardView(toolCard)
+                        InlineToolCardView(toolCard, onOpenToolCategory = onOpenToolCategory)
+                    }
+                    if (!response.exploreRefs.isNullOrEmpty()) {
+                        Spacer(modifier = Modifier.height(Dimens.SpaceSM))
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(Dimens.SpaceSM)) {
+                            items(response.exploreRefs, key = { it.amapPoiId }) { ref ->
+                                ExploreRefCardView(ref, onClick = { onExploreRef(ref) })
+                            }
+                        }
                     }
                 }
             }
@@ -229,7 +351,44 @@ private fun MessageBubble(message: ButlerChatMessage) {
 }
 
 @Composable
-private fun InlineToolCardView(toolCard: InlineToolCard) {
+private fun ExploreRefCardView(ref: ExploreRef, onClick: () -> Unit) {
+    Card(
+        shape = RoundedCornerShape(Dimens.RadiusMD),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        modifier = Modifier.width(180.dp),
+        onClick = onClick,
+    ) {
+        Column(modifier = Modifier.padding(Dimens.SpaceMD)) {
+            Text(
+                text = ref.name,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 2,
+            )
+            Spacer(modifier = Modifier.height(Dimens.SpaceXS))
+            Row {
+                ref.rating?.let {
+                    Text(
+                        text = "★ ${String.format("%.1f", it)}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.tertiary,
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                }
+                ref.pricePerPerson?.let {
+                    Text(
+                        text = "¥${it.toInt()}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun InlineToolCardView(toolCard: InlineToolCard, onOpenToolCategory: (String) -> Unit) {
     Card(
         shape = RoundedCornerShape(Dimens.RadiusMD),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -257,29 +416,32 @@ private fun InlineToolCardView(toolCard: InlineToolCard) {
                 }
             }
             Spacer(modifier = Modifier.height(Dimens.SpaceXS))
-            // The web version's `href` deep-links straight into a Tools
-            // category; native Tools is still an honest placeholder (lands
-            // with the native Translator round), so this reads as plain
-            // labelled text rather than a fake, non-functional button.
-            Text(
-                text = toolCard.nextAction,
-                style = MaterialTheme.typography.labelMedium,
-                color = when (toolCard.tone) {
-                    InlineToolCardTone.Warning -> MaterialTheme.colorScheme.error
-                    InlineToolCardTone.Success -> MaterialTheme.colorScheme.tertiary
-                    else -> MaterialTheme.colorScheme.primary
-                },
-            )
+            // v0.3.13: Tools now has real content (DESIGN.md ADR-117), so
+            // this deep-links to the matching category detail screen instead
+            // of rendering as a dead label the way it did in v0.3.12.
+            TextButton(onClick = { onOpenToolCategory(toolCard.categoryId) }) {
+                Text(
+                    text = toolCard.nextAction,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = when (toolCard.tone) {
+                        InlineToolCardTone.Warning -> MaterialTheme.colorScheme.error
+                        InlineToolCardTone.Success -> MaterialTheme.colorScheme.tertiary
+                        else -> MaterialTheme.colorScheme.primary
+                    },
+                )
+            }
         }
     }
 }
 
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun ButlerComposer(
     state: ButlerUiState,
     onInputChange: (String) -> Unit,
     onSend: () -> Unit,
     onSuggestion: (String) -> Unit,
+    onMicClick: () -> Unit,
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surface,
@@ -289,12 +451,22 @@ private fun ButlerComposer(
         // Bottom padding clears the v0.3.10 floating overlay nav bar
         // (DESIGN.md ADR-114) — Chat is a top-level destination, so the
         // send/camera/mic controls must never render underneath it.
+        //
+        // Bug fix (real-device report, 2026-07-05): this clearance was a
+        // constant 96dp regardless of keyboard state. The floating nav bar
+        // is hidden behind the keyboard once it's up, so keeping the same
+        // 96dp reservation left a matching gap of empty space between the
+        // composer and the keyboard instead of the composer sitting flush
+        // above it. Only reserve the nav-bar clearance when the keyboard is
+        // not shown; once it is, `.imePadding()` on the parent Column already
+        // does the right positioning and no extra bottom space is needed.
+        val imeVisible = WindowInsets.isImeVisible
         Column(
             modifier = Modifier.padding(
                 start = Dimens.SpaceLG,
                 end = Dimens.SpaceLG,
                 top = Dimens.SpaceLG,
-                bottom = Dimens.BottomNavContentClearance,
+                bottom = if (imeVisible) Dimens.SpaceLG else Dimens.BottomNavContentClearance,
             ),
         ) {
             if (state.errorMessage != null) {
@@ -324,32 +496,39 @@ private fun ButlerComposer(
                 verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.spacedBy(Dimens.SpaceSM),
             ) {
-                // Camera/Mic move inside the text field as leading/trailing
-                // icons (still visual-only placeholders — see the point-of-use
-                // permission note below) instead of separate Row siblings, so
-                // the input box itself gets the row's remaining width instead
-                // of splitting it three ways with two icon buttons.
+                // Camera/Mic move inside the text field as leading/trailing icons.
                 OutlinedTextField(
                     value = state.input,
                     onValueChange = onInputChange,
                     enabled = !state.sending,
-                    placeholder = { Text("Ask VisePanda...") },
+                    placeholder = {
+                        Text(
+                            if (state.isTranscribing) "Transcribing..."
+                            else if (state.isRecording) "Recording... tap mic to stop"
+                            else "Ask VisePanda...",
+                        )
+                    },
                     minLines = 2,
                     maxLines = 6,
                     shape = RoundedCornerShape(Dimens.RadiusXL),
                     leadingIcon = {
-                        // Visual-only per the Figma reference's composer layout —
-                        // disabled, not wired to the camera, because camera/
-                        // microphone permissions are staged to be requested at
-                        // point-of-use starting with the native Translator round,
-                        // not granted speculatively here.
+                        // Camera stays a visual-only placeholder: sending an
+                        // image to Chat needs a vision-capable backend
+                        // contract (multimodal message format, provider
+                        // capability routing) that doesn't exist yet — see
+                        // Issue #71's follow-up. Voice input below needed no
+                        // backend contract change, so it's wired for real.
                         IconButton(onClick = {}, enabled = false) {
-                            Icon(Icons.Filled.PhotoCamera, contentDescription = "Camera (coming with Translator)")
+                            Icon(Icons.Filled.PhotoCamera, contentDescription = "Camera (needs backend vision support)")
                         }
                     },
                     trailingIcon = {
-                        IconButton(onClick = {}, enabled = false) {
-                            Icon(Icons.Filled.Mic, contentDescription = "Voice input (coming with Translator)")
+                        IconButton(onClick = onMicClick, enabled = !state.sending && !state.isTranscribing) {
+                            Icon(
+                                Icons.Filled.Mic,
+                                contentDescription = if (state.isRecording) "Stop recording" else "Voice input",
+                                tint = if (state.isRecording) MaterialTheme.colorScheme.error else LocalContentColor.current,
+                            )
                         }
                     },
                     modifier = Modifier.weight(1f),

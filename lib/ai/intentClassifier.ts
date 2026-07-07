@@ -33,7 +33,12 @@ const RULES: IntentRule[] = [
   },
   {
     intent: "concern",
-    patterns: [/\b(is it safe|safety|dangerous|risk|scam|emergency|worried|afraid|hospital)\b/],
+    patterns: [
+      /\b(is it safe|safety|dangerous|risk|scam(med)?|emergency|worried|afraid|hospital)\b/,
+      // v0.3.17: acute-distress vocabulary — these must never fall through to
+      // "unclear" or a generic recommendation path.
+      /\b(robbed|stolen|theft|pickpocket|lost my (passport|wallet|phone)|injured|hurt|urgent help|call (the )?police|ambulance)\b/,
+    ],
   },
   {
     intent: "logistics",
@@ -59,7 +64,12 @@ const RULES: IntentRule[] = [
   },
   {
     intent: "add_poi",
-    patterns: [/\b(add|include|put in|insert)\b.*\b(to (my|the) (trip|day|itinerary|canvas))\b/, /\badd\b.+\bto my trip\b/],
+    // v0.3.20: "put the Summer Palace in the itinerary" previously fell
+    // through to "unclear" — the trigger word required the literal bigram
+    // "put in", and the tail required "to my/the ...", never matching "in".
+    // Made "put" a standalone trigger (still allows "put in X to my trip")
+    // and let the tail accept "in" as well as "to".
+    patterns: [/\b(add|include|put(?: in)?|insert)\b.*\b(to|in) (my|the) (trip|day|itinerary|canvas)\b/, /\badd\b.+\bto my trip\b/],
   },
   {
     intent: "add_location",

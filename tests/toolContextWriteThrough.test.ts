@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { applyToolContextToPatch } from "@/lib/ai/toolContextWriteThrough";
+import { applyToolContextToPatch, buildExploreRefs } from "@/lib/ai/toolContextWriteThrough";
 import type { ButlerToolContext } from "@/lib/ai/toolContext";
-import type { CanvasPatch } from "@/lib/types/trip";
+import type { AssistantResponse, CanvasPatch } from "@/lib/types/trip";
 
 describe("applyToolContextToPatch", () => {
   it("copies matching live POI execution fields into TripBlocks without replacing existing text", () => {
@@ -66,5 +66,91 @@ describe("applyToolContextToPatch", () => {
     expect(block?.openingHours).toBe("Open public promenade");
     expect(block?.coordinates).toEqual({ lat: 31.23969, lng: 121.49976 });
     expect(block?.bookingCandidates?.[0]).toMatchObject({ status: "info-only", kind: "ticket" });
+  });
+});
+
+describe("buildExploreRefs", () => {
+  const toolContext: ButlerToolContext = {
+    source: "amap",
+    cityId: "beijing",
+    category: "food",
+    pois: [
+      {
+        id: "B0L015FUKT",
+        name: "老盛兴汤包馆",
+        type: "Restaurant",
+        rating: "4.6",
+        pricePerPerson: "45",
+        sourceLabel: "Amap",
+      },
+      {
+        id: "OTHERPOI",
+        name: "Never Mentioned Restaurant",
+        type: "Restaurant",
+        sourceLabel: "Amap",
+      },
+    ],
+  };
+
+  it("only includes real toolContext POIs actually named in the answer text", () => {
+    const assistantResponse: AssistantResponse = {
+      headline: "Try 老盛兴汤包馆 tonight",
+      body: "It's a short walk from your hotel and known for soup dumplings.",
+      highlights: ["Great value at ¥45/person"],
+      nextStep: "Add it to your day 2 dinner slot.",
+    };
+
+    const refs = buildExploreRefs(assistantResponse, toolContext);
+
+    expect(refs).toHaveLength(1);
+    expect(refs[0]).toMatchObject({
+      amapPoiId: "B0L015FUKT",
+      name: "老盛兴汤包馆",
+      cityId: "beijing",
+      category: "food",
+      rating: 4.6,
+      pricePerPerson: 45,
+    });
+  });
+
+  it("returns nothing when no real POI is named — never invents a placeholder ref", () => {
+    const assistantResponse: AssistantResponse = {
+      headline: "Here are some dinner ideas",
+      body: "There are many good options near the Bund.",
+      highlights: [],
+      nextStep: "Tell me your budget.",
+    };
+
+    expect(buildExploreRefs(assistantResponse, toolContext)).toEqual([]);
+  });
+
+  it("returns nothing when toolContext is absent, even if the text happens to name a place", () => {
+    const assistantResponse: AssistantResponse = {
+      headline: "Try 老盛兴汤包馆 tonight",
+      body: "",
+      highlights: [],
+      nextStep: "",
+    };
+
+    expect(buildExploreRefs(assistantResponse, undefined)).toEqual([]);
+  });
+
+  it("plumbs exploreRefs through applyToolContextToPatch onto assistantResponse", () => {
+    const patch: CanvasPatch = {
+      intent: "adjust_trip",
+      assistantMessage: "ok",
+      reason: "test",
+      assistantResponse: {
+        headline: "Try 老盛兴汤包馆 tonight",
+        body: "",
+        highlights: [],
+        nextStep: "",
+      },
+    };
+
+    const enriched = applyToolContextToPatch(patch, toolContext);
+
+    expect(enriched.assistantResponse?.exploreRefs).toHaveLength(1);
+    expect(enriched.assistantResponse?.exploreRefs?.[0].amapPoiId).toBe("B0L015FUKT");
   });
 });

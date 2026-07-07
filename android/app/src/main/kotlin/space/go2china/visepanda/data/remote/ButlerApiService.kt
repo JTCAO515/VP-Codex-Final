@@ -24,7 +24,6 @@ data class ButlerChatResponse(
     val modelLabel: String? = null,
     val patch: CanvasPatch,
     val suggestions: List<String> = emptyList(),
-    val fallbackReason: String? = null,
 )
 
 interface ButlerApiService {

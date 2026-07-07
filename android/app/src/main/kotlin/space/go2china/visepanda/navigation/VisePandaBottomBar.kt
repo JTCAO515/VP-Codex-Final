@@ -53,8 +53,12 @@ fun VisePandaBottomBar(navController: NavHostController, modifier: Modifier = Mo
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
 
+    // Registered routes with optional query args (e.g. "explore?focusCityId=
+    // {focusCityId}&...") carry that full pattern as NavDestination.route, not
+    // the short TopLevelDestination.route — comparing the path segment only
+    // (before "?") keeps tab highlighting correct regardless of query args.
     fun isSelected(destination: TopLevelDestination) =
-        currentDestination?.hierarchy?.any { it.route == destination.route } == true
+        currentDestination?.hierarchy?.any { it.route?.substringBefore("?") == destination.route } == true
 
     fun navigate(destination: TopLevelDestination) {
         navController.navigate(destination.route) {

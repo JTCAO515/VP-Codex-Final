@@ -61,7 +61,10 @@ const CATEGORY_RULES: CategoryRule[] = [
   },
   {
     categoryId: "emergency",
-    patterns: [/\b(emergency|hospital|police|ambulance|embassy|consulate|lost passport|help)\b/i],
+    patterns: [
+      /\b(emergency|hospital|police|ambulance|embassy|consulate|lost (my )?passport|help)\b/i,
+      /\b(robbed|stolen|theft|pickpocket|scammed|injured|hurt|urgent)\b/i,
+    ],
     headline: "Keep emergency details offline",
     nextStep: "Open the emergency card",
     watchOut: "For urgent danger or medical emergencies, contact local emergency services immediately rather than waiting for AI guidance.",

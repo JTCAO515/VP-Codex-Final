@@ -48,8 +48,8 @@ and manually exercised the resulting APK on an `android-34`
     all render.
   - Plan → Day Detail opens, shows Morning/Afternoon/Evening blocks, and
     the back arrow returns to Plan.
-  - Taxi Driver Card opens from both Today and Day Detail, shows the large
-    Chinese address, and "Copy Chinese address" actually copies (confirmed
+  - Travel Talk Card opens from both Today and Day Detail, shows the large
+    Chinese phrase/address, and "Copy Chinese address" actually copies (confirmed
     via the system clipboard toast showing the correct address text).
   - With `adb shell svc wifi disable` + `svc data disable` (real network
     off, not just airplane-mode UI), the app kept running on the mock data
@@ -79,7 +79,7 @@ and manually exercised the resulting APK on an `android-34`
 4. Install on a device/emulator and walk the v0.3.3/v0.3.4 acceptance
    criteria in `docs/planning/v0.3.2-android-planning-synthesis.md` by
    hand — already done once per the record above; repeat after any
-   navigation/theming/Taxi Driver Card change.
+   navigation/theming/Travel Talk Card change.
 
 ## What's actually implemented this round
 
@@ -102,7 +102,7 @@ and manually exercised the resulting APK on an `android-34`
   v0.3.3 scope ("interfaces defined but only minimally wired"), not yet
   consumed by the repository. This is intentional, not an oversight — see
   each file's doc comment.
-- Taxi Driver Card (`ui/components/TaxiDriverCard.kt`) — a single shared
+- Travel Talk Card (`ui/components/TravelTalkCard.kt`) — a single shared
   implementation used from Today and Day Detail, with a visible button
   (never a hidden gesture/shake trigger — that was explicitly removed in
   the v0.3.2 synthesis) and a copy-to-clipboard action for the Chinese

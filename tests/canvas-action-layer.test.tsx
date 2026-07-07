@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ButlerWorkspace } from "@/components/chat/ButlerWorkspace";
+import { mockSuccessfulChatFetch } from "./mockChatFetch";
 
 /** "Lighten" moved into the Day card's "…" overflow menu in v0.2.8; open it first. */
 function clickLightenOnDay1() {
@@ -13,6 +14,7 @@ describe("Canvas Action Layer (v0.2.7-v0.2.8)", () => {
   beforeEach(() => {
     window.localStorage.clear();
     window.history.replaceState(null, "", "/chat");
+    mockSuccessfulChatFetch();
   });
 
   it("sends a day-specific message from a quick action and renders a Change Digest card", async () => {
@@ -83,5 +85,6 @@ describe("Canvas Action Layer (v0.2.7-v0.2.8)", () => {
 });
 
 afterEach(() => {
+  vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
