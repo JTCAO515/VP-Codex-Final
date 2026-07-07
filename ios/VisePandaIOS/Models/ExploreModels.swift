@@ -310,7 +310,16 @@ struct ExploreAmapPoi: Decodable, Identifiable, Equatable {
     }
 
     var travelerFit: TravelerFit? {
-        TravelerFitDeriver.derive(from: self)
+        TravelerFitDeriver.derive(from: self, category: nil)
+    }
+
+    /// Category-aware variant: some fields don't generalize across every POI
+    /// type (see `nightFit`, which is meaningless for `.hotels` — front desks
+    /// are ~always "24 hours", so it fires on nearly every hotel and adds no
+    /// signal). UI call sites that know the POI's category should prefer
+    /// this over the bare `travelerFit` computed property.
+    func travelerFit(category: ExploreCategory) -> TravelerFit? {
+        TravelerFitDeriver.derive(from: self, category: category)
     }
 }
 
@@ -355,7 +364,7 @@ private extension KeyedDecodingContainer {
 }
 
 private enum TravelerFitDeriver {
-    static func derive(from poi: ExploreAmapPoi) -> TravelerFit? {
+    static func derive(from poi: ExploreAmapPoi, category: ExploreCategory?) -> TravelerFit? {
         let text = searchText(for: poi)
         guard !text.isEmpty else { return nil }
 
@@ -364,7 +373,10 @@ private enum TravelerFitDeriver {
         fit.paymentFriendliness = paymentFriendliness(text: text)
         fit.languageDifficulty = languageDifficulty(text: text)
         fit.rainyDayFit = rainyDayFit(text: text)
-        fit.nightFit = nightFit(openingText: poi.opentimeWeek)
+        // Hotel front desks are ~always "24 hours" — that's the accommodation
+        // industry norm, not a signal, so nightFit is meaningless for .hotels
+        // and would otherwise fire on nearly every hotel POI (Issue #123/#156).
+        fit.nightFit = category == .hotels ? nil : nightFit(openingText: poi.opentimeWeek)
         fit.crowdRisk = crowdRisk(text: text, rating: poi.ratingValue)
         fit.luggageFit = luggageFit(text: text)
         fit.routeFit = routeFit(text: text)
