@@ -156,6 +156,7 @@ struct ChatMessage: Codable, Identifiable, Equatable {
     var affectedDays: [Int]? = nil
     /** Present only on assistant messages that actually changed the trip — see ChangeDigest.swift. */
     var changeDigest: [ChangeDigestEntry]? = nil
+    var usedPreferenceSummaries: [String]? = nil
     var createdAt: String?
 }
 
