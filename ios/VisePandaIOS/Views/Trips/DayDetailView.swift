@@ -34,6 +34,19 @@ struct DayDetailView: View {
                     }
                 }
 
+                Button {
+                    store.prefillChat(dayQuestionDraft)
+                } label: {
+                    Label("Ask Copilot about this day", systemImage: "sparkles")
+                        .font(VPFont.body(14, weight: .bold))
+                        .foregroundStyle(VPColor.paperSoft)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(VPColor.cinnabar)
+                        .clipShape(Capsule())
+                }
+                .buttonStyle(.plain)
+
                 VPCard {
                     VStack(alignment: .leading, spacing: 10) {
                         Label(currentDay.transport, systemImage: "tram")
@@ -285,6 +298,16 @@ struct DayDetailView: View {
                 .buttonStyle(.plain)
             }
         }
+    }
+
+    private var dayQuestionDraft: String {
+        let note = currentDay.note.trimmingCharacters(in: .whitespacesAndNewlines)
+        return """
+        Day \(currentDay.day) in \(currentDay.city)
+        Current note: \(note.isEmpty ? "No current note." : note)
+
+        How does Day \(currentDay.day) in \(currentDay.city) look? Anything I should adjust?
+        """
     }
 
     private func bookingCandidateRow(_ candidate: BookingCandidate) -> some View {
