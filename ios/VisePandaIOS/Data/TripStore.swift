@@ -162,11 +162,12 @@ final class TripStore: ObservableObject {
 
     private func resolve(_ text: String) async {
         do {
+            let preferenceProfile = StarterTripData.preferenceProfile
             let response = try await api.sendChat(
                 message: text,
                 trip: trip,
                 messages: messages,
-                preferenceProfile: StarterTripData.preferenceProfile
+                preferenceProfile: preferenceProfile
             )
             let updatedTrip = CanvasPatchApplier.apply(current: trip, patch: response.patch)
             let affectedDays = response.patch.affectedDays
@@ -181,6 +182,7 @@ final class TripStore: ObservableObject {
                 response: response.patch.assistantResponse,
                 affectedDays: affectedDays,
                 changeDigest: changeDigest.isEmpty ? nil : changeDigest,
+                usedPreferenceSummaries: preferenceSummaries(from: preferenceProfile),
                 createdAt: ISO8601DateFormatter().string(from: Date())
             )
             trip = updatedTrip
@@ -245,6 +247,24 @@ final class TripStore: ObservableObject {
 
     private func blockNoteKey(dayNumber: Int, blockId: String) -> String {
         "\(dayNumber)-\(blockId)"
+    }
+
+    private func preferenceSummaries(from profile: UserPreferenceProfile?) -> [String]? {
+        guard let profile else { return nil }
+        let summaries = [
+            profile.dietaryRestrictions.first.map { "Dietary: \(shortPreferenceValue($0))" },
+            profile.interests.first.map { "Interest: \(shortPreferenceValue($0))" },
+            profile.pace.map { "Pace: \(shortPreferenceValue($0))" },
+            profile.budget.map { "Budget: \(shortPreferenceValue($0))" },
+            profile.party.map { "Party: \(shortPreferenceValue($0))" },
+            profile.cuisinePreferences.first.map { "Cuisine: \(shortPreferenceValue($0))" }
+        ].compactMap { $0 }
+        return summaries.isEmpty ? nil : Array(summaries.prefix(3))
+    }
+
+    private func shortPreferenceValue(_ value: String) -> String {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.count > 36 ? "\(trimmed.prefix(36))…" : trimmed
     }
 
     private func serviceUnavailableMessage(_ error: Error) -> ChatMessage {
