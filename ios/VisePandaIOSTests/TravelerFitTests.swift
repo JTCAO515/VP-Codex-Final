@@ -240,6 +240,43 @@ final class TravelerFitTests: XCTestCase {
         XCTAssertEqual(poi.travelerFit?.crowdRisk, "High")
     }
 
+    // Issue #157: crowdRisk and luggageFit used to read different synonym
+    // lists for "crowded" — a POI matching "popular" (not the literal word
+    // "crowded") would get crowdRisk=High but leave luggageFit nil, so the
+    // card would say "May be crowded" without also warning against luggage.
+
+    func testPopularKeywordDerivesBothCrowdRiskAndLuggageUnfriendly() throws {
+        let poi = try decodePoi("""
+        {
+          "id": "popular-1",
+          "name": "大董烤鸭(团结湖店)",
+          "type": "美食;中餐厅;烤鸭店",
+          "editorial": {
+            "summary": "Beijing roast-duck institution, popular with international visitors."
+          }
+        }
+        """)
+
+        XCTAssertEqual(poi.travelerFit?.crowdRisk, "High")
+        XCTAssertEqual(poi.travelerFit?.luggageFit, false)
+    }
+
+    func testChineseRenDuoKeywordDerivesBothCrowdRiskAndLuggageUnfriendly() throws {
+        let poi = try decodePoi("""
+        {
+          "id": "popular-2",
+          "name": "网红打卡地",
+          "type": "餐饮服务;中餐厅;中餐厅",
+          "editorial": {
+            "summary": "本地人也常来的网红打卡地，周末人多。"
+          }
+        }
+        """)
+
+        XCTAssertEqual(poi.travelerFit?.crowdRisk, "High")
+        XCTAssertEqual(poi.travelerFit?.luggageFit, false)
+    }
+
     func testChineseCashOnlyAndEnglishMenuEditorialDeriveExplicitSignals() throws {
         let poi = try decodePoi("""
         {
