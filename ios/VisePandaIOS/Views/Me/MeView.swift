@@ -198,7 +198,13 @@ struct MeView: View {
                 }
                 .buttonStyle(.bordered)
 
-                Text("Trip Pass is planned as a one-time purchase for a fixed travel window. Human Task is planned as a per-request purchase with a clear scope. Payment will be charged to your Apple ID after confirmation once StoreKit products are connected. Terms and Privacy Policy links will be connected before release.")
+                Link(destination: URL(string: "https://apps.apple.com/account/subscriptions")!) {
+                    Label("Manage Purchases", systemImage: "person.crop.circle.badge.gearshape")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+
+                Text("Trip Pass is planned as a one-time purchase for a fixed travel window. Human Task is planned as a per-request purchase with a clear scope. Payment will be charged to your Apple ID after confirmation once StoreKit products are connected. Manage Purchases opens Apple's subscription management page; no live products are connected in this placeholder build. Terms and Privacy Policy links will be connected before release.")
                     .font(VPFont.body(11, weight: .semibold))
                     .foregroundStyle(VPColor.inkSoft)
                     .fixedSize(horizontal: false, vertical: true)
