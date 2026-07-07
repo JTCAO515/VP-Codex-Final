@@ -763,7 +763,7 @@ private struct MerchantCard: View {
     }
 
     private var fitTags: [String] {
-        guard let fit = poi.travelerFit else { return [] }
+        guard let fit = poi.travelerFit(category: category) else { return [] }
         var tags: [String] = []
 
         if fit.firstTimerFit == true {
@@ -888,7 +888,7 @@ private struct PoiDetailSheet: View {
     }
 
     private var whyThisFitsLines: [String] {
-        guard let fit = poi.travelerFit else { return [] }
+        guard let fit = poi.travelerFit(category: category) else { return [] }
         var lines: [String] = []
 
         if fit.firstTimerFit == true {

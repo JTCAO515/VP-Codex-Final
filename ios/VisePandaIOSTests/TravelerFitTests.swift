@@ -15,6 +15,50 @@ final class TravelerFitTests: XCTestCase {
         XCTAssertEqual(poi.travelerFit?.nightFit, true)
     }
 
+    // Issue #156: hotel front desks are ~always "24 hours" — that's the
+    // accommodation industry norm, not a travel-fit signal, so nightFit
+    // (and its "Stays open late..." UI copy) should never surface for
+    // .hotels even though the raw opening-hours text still says 24h.
+
+    func testNightFitIsSuppressedForHotelsEvenWithTwentyFourHourText() throws {
+        let poi = try decodePoi("""
+        {
+          "id": "hotel-night-1",
+          "name": "City-village budget inn",
+          "type": "酒店;经济型",
+          "opentime_week": "24小时"
+        }
+        """)
+
+        XCTAssertNil(poi.travelerFit(category: .hotels)?.nightFit)
+    }
+
+    func testNightFitStillDerivesForNonHotelCategoriesWithTwentyFourHourText() throws {
+        let poi = try decodePoi("""
+        {
+          "id": "attraction-night-1",
+          "name": "24-hour convenience store",
+          "type": "餐饮服务;便利店",
+          "opentime_week": "24小时"
+        }
+        """)
+
+        XCTAssertEqual(poi.travelerFit(category: .food)?.nightFit, true)
+    }
+
+    func testBareTravelerFitWithoutCategoryStillDerivesNightFitForBackwardCompatibility() throws {
+        let poi = try decodePoi("""
+        {
+          "id": "hotel-night-2",
+          "name": "Legacy call site without category",
+          "type": "酒店;经济型",
+          "opentime_week": "24小时"
+        }
+        """)
+
+        XCTAssertEqual(poi.travelerFit?.nightFit, true)
+    }
+
     func testIndoorMallDerivesRainAndLuggageFit() throws {
         let poi = try decodePoi("""
         {
