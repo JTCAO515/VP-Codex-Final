@@ -367,6 +367,7 @@ private enum TravelerFitDeriver {
         fit.nightFit = nightFit(openingText: poi.opentimeWeek)
         fit.crowdRisk = crowdRisk(text: text, rating: poi.ratingValue)
         fit.luggageFit = luggageFit(text: text)
+        fit.routeFit = routeFit(text: text)
         fit.watchOut = watchOut(for: fit)
 
         return fit.isEmpty ? nil : fit
@@ -471,6 +472,13 @@ private enum TravelerFitDeriver {
         }
         if containsAny(text, ["park", "garden", "mountain", "temple", "crowded", "公园", "花园", "山", "寺庙", "寺", "拥挤"]) {
             return false
+        }
+        return nil
+    }
+
+    private static func routeFit(text: String) -> String? {
+        if containsAny(text, ["metro", "subway", "地铁", "地铁站", "地铁直达"]) {
+            return "Near metro"
         }
         return nil
     }

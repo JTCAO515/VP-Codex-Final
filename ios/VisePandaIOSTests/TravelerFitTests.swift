@@ -45,6 +45,50 @@ final class TravelerFitTests: XCTestCase {
         XCTAssertNil(poi.travelerFit?.routeFit)
     }
 
+    // Issue #155: routeFit used to never be assigned in derive(), which made
+    // the "Easy by metro" UI branches in ExploreView.swift dead code. These
+    // lock in that a metro signal in the raw Amap fields now actually
+    // produces a routeFit value containing "metro" (what the UI matches on).
+
+    func testMetroKeywordInAddressDerivesRouteFit() throws {
+        let poi = try decodePoi("""
+        {
+          "id": "metro-1",
+          "name": "City Museum",
+          "type": "Attraction;Museum",
+          "address": "12 Metro Station Road"
+        }
+        """)
+
+        XCTAssertEqual(poi.travelerFit?.routeFit, "Near metro")
+    }
+
+    func testChineseMetroKeywordDerivesRouteFit() throws {
+        let poi = try decodePoi("""
+        {
+          "id": "metro-2",
+          "name": "老字号小店",
+          "type": "美食;面馆",
+          "business_area": "地铁站附近"
+        }
+        """)
+
+        XCTAssertEqual(poi.travelerFit?.routeFit, "Near metro")
+    }
+
+    func testNoMetroKeywordLeavesRouteFitNil() throws {
+        let poi = try decodePoi("""
+        {
+          "id": "metro-3",
+          "name": "Remote Village",
+          "type": "Attraction;Village",
+          "address": "Deep in the mountains, no public transit"
+        }
+        """)
+
+        XCTAssertNil(poi.travelerFit?.routeFit)
+    }
+
     func testPaymentAndLanguageOnlyDeriveFromExplicitSignals() throws {
         let poi = try decodePoi("""
         {
