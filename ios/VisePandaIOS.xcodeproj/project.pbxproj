@@ -38,6 +38,7 @@
 		AA6200000000000000000002 /* TranslateTtsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA6100000000000000000002 /* TranslateTtsTests.swift */; };
 		AA6200000000000000000004 /* TravelerFitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA6100000000000000000004 /* TravelerFitTests.swift */; };
 		AA6200000000000000000003 /* ChangeDigestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA6100000000000000000003 /* ChangeDigestTests.swift */; };
+		AA6200000000000000000005 /* CanvasPatchApplierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA6100000000000000000005 /* CanvasPatchApplierTests.swift */; };
 		AA4000000000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA3000000000000000000001 /* Assets.xcassets */; };
 		AA4000000000000000000002 /* DMSans.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA3000000000000000000002 /* DMSans.ttf */; };
 		AA4000000000000000000003 /* PlayfairDisplay.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA3000000000000000000003 /* PlayfairDisplay.ttf */; };
@@ -91,6 +92,7 @@
 		AA6100000000000000000002 /* TranslateTtsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslateTtsTests.swift; sourceTree = "<group>"; };
 		AA6100000000000000000004 /* TravelerFitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TravelerFitTests.swift; sourceTree = "<group>"; };
 		AA6100000000000000000003 /* ChangeDigestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangeDigestTests.swift; sourceTree = "<group>"; };
+		AA6100000000000000000005 /* CanvasPatchApplierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasPatchApplierTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -278,6 +280,7 @@
 				AA6100000000000000000002 /* TranslateTtsTests.swift */,
 				AA6100000000000000000004 /* TravelerFitTests.swift */,
 				AA6100000000000000000003 /* ChangeDigestTests.swift */,
+				AA6100000000000000000005 /* CanvasPatchApplierTests.swift */,
 			);
 			path = VisePandaIOSTests;
 			sourceTree = "<group>";
@@ -421,6 +424,7 @@
 				AA6200000000000000000002 /* TranslateTtsTests.swift in Sources */,
 				AA6200000000000000000004 /* TravelerFitTests.swift in Sources */,
 				AA6200000000000000000003 /* ChangeDigestTests.swift in Sources */,
+				AA6200000000000000000005 /* CanvasPatchApplierTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

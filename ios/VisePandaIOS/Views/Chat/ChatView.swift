@@ -315,6 +315,10 @@ private struct MessageBubble: View {
                             Text(response.nextStep)
                                 .font(VPFont.body(14, weight: .bold))
                                 .foregroundStyle(VPColor.ink)
+
+                            if let summaries = message.usedPreferenceSummaries, !summaries.isEmpty {
+                                UsedPreferencesNotice(summaries: summaries)
+                            }
                         } else {
                             Text(message.content)
                                 .font(VPFont.body(15))
@@ -324,6 +328,27 @@ private struct MessageBubble: View {
                 }
             }
         }
+    }
+}
+
+private struct UsedPreferencesNotice: View {
+    let summaries: [String]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Label("Used your preferences", systemImage: "person.crop.circle.badge.checkmark")
+                .font(VPFont.body(12, weight: .bold))
+                .foregroundStyle(VPColor.sage)
+            ForEach(Array(summaries.prefix(3)), id: \.self) { summary in
+                Text(summary)
+                    .font(VPFont.body(12, weight: .semibold))
+                    .foregroundStyle(VPColor.inkSoft)
+                    .lineLimit(1)
+            }
+        }
+        .padding(12)
+        .background(VPColor.sage.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
 

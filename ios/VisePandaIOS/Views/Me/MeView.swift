@@ -243,6 +243,13 @@ struct MeView: View {
                 }
             }
 
+            Text("Copilot uses these preferences to tailor trip plans. You can delete any item.")
+                .font(VPFont.body(12, weight: .semibold))
+                .foregroundStyle(VPColor.inkSoft)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.leading, 4)
+                .accessibilityIdentifier("memoryProfileExplainer")
+
             VPCard(padding: 0) {
                 VStack(spacing: 0) {
                     if let errorMessage {

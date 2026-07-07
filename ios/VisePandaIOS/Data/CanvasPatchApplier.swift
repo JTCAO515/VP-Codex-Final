@@ -17,9 +17,11 @@ enum CanvasPatchApplier {
             alertMap[alert.id] = alert
         }
 
+        let days = (patch.days?.isEmpty == false ? patch.days : nil) ?? current.days
+
         return TripState(
             summary: summary,
-            days: patch.days ?? current.days,
+            days: days,
             alerts: Array(alertMap.values).sorted { $0.title < $1.title },
             lastUpdatedReason: patch.reason
         )

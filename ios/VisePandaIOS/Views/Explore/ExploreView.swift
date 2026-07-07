@@ -722,6 +722,21 @@ private struct MerchantCard: View {
                 .font(VPFont.body(12, weight: .semibold))
                 .foregroundStyle(VPColor.inkMuted)
 
+                if !fitTags.isEmpty {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 108), spacing: 6, alignment: .leading)], alignment: .leading, spacing: 6) {
+                        ForEach(fitTags, id: \.self) { tag in
+                            Text(tag)
+                                .font(VPFont.body(11, weight: .bold))
+                                .foregroundStyle(VPColor.sage)
+                                .fixedSize(horizontal: true, vertical: false)
+                                .padding(.horizontal, 9)
+                                .padding(.vertical, 5)
+                                .background(VPColor.sage.opacity(0.12))
+                                .clipShape(Capsule())
+                        }
+                    }
+                }
+
                 if poi.editorial != nil {
                     VPStatusPill(title: "✦ VP Pick", tone: .ready)
                 }
@@ -746,6 +761,38 @@ private struct MerchantCard: View {
         }
         return String(format: "%.1fkm", meters / 1_000)
     }
+
+    private var fitTags: [String] {
+        guard let fit = poi.travelerFit else { return [] }
+        var tags: [String] = []
+
+        if fit.firstTimerFit == true {
+            tags.append("Good for first-timers")
+        }
+        if fit.routeFit?.localizedCaseInsensitiveContains("metro") == true {
+            tags.append("Easy by metro")
+        }
+        if fit.crowdRisk == "High" {
+            tags.append("May be crowded")
+        }
+        if fit.nightFit == false {
+            tags.append("Better in daytime")
+        }
+        if fit.rainyDayFit == true {
+            tags.append("Rainy day friendly")
+        }
+        if fit.luggageFit == true {
+            tags.append("Luggage friendly")
+        }
+        if fit.languageDifficulty == "Lower" {
+            tags.append("Easier communication")
+        }
+        if let payment = fit.paymentFriendliness {
+            tags.append(payment)
+        }
+
+        return Array(tags.prefix(3))
+    }
 }
 
 private struct PoiDetailSheet: View {
@@ -767,6 +814,21 @@ private struct PoiDetailSheet: View {
                             Text(summary)
                                 .font(VPFont.body(14))
                                 .foregroundStyle(VPColor.inkMuted)
+                        }
+                    }
+                }
+
+                if !whyThisFitsLines.isEmpty {
+                    VPCard {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Why this fits")
+                                .font(VPFont.body(13, weight: .bold))
+                                .foregroundStyle(VPColor.inkSoft)
+                            ForEach(whyThisFitsLines, id: \.self) { line in
+                                Text(line)
+                                    .font(VPFont.body(14))
+                                    .foregroundStyle(VPColor.inkMuted)
+                            }
                         }
                     }
                 }
@@ -823,6 +885,63 @@ private struct PoiDetailSheet: View {
                 }
             }
         }
+    }
+
+    private var whyThisFitsLines: [String] {
+        guard let fit = poi.travelerFit else { return [] }
+        var lines: [String] = []
+
+        if fit.firstTimerFit == true {
+            lines.append("A solid pick if this is your first time in China — well-trodden and easy to plan around.")
+        } else if fit.firstTimerFit == false {
+            lines.append("More of a local spot — worth it if you've already covered the classics.")
+        }
+
+        if let payment = fit.paymentFriendliness {
+            if payment == "Card accepted" {
+                lines.append("Foreign cards are accepted, so you won't need to rely on cash or a local payment app.")
+            } else if payment == "Cash only" {
+                lines.append("Cash only here — bring RMB since cards and mobile pay may not work.")
+            }
+        }
+
+        if fit.languageDifficulty == "Lower" {
+            lines.append("English menus or service are available, so language shouldn't be a big barrier.")
+        } else if fit.languageDifficulty == "Higher" {
+            lines.append("Little English on-site — a translation app will help.")
+        }
+
+        if let routeFit = fit.routeFit, routeFit.localizedCaseInsensitiveContains("metro") {
+            lines.append("Easy to reach by metro, so it slots in well with the rest of a walking or transit-based day.")
+        }
+
+        if fit.rainyDayFit == true {
+            lines.append("Mostly indoors, so it's a good rainy-day option.")
+        } else if fit.rainyDayFit == false {
+            lines.append("Best enjoyed outdoors — check the weather before you go.")
+        }
+
+        if fit.nightFit == true {
+            lines.append("Stays open late, so it also works as an evening plan.")
+        } else if fit.nightFit == false {
+            lines.append("Better in daytime — it winds down early in the evening.")
+        }
+
+        if fit.crowdRisk == "High" {
+            lines.append("Popular spot, so expect crowds — arriving early can help.")
+        }
+
+        if fit.luggageFit == true {
+            lines.append("Fine to visit with luggage in tow, such as on an arrival or departure day.")
+        } else if fit.luggageFit == false {
+            lines.append("Better without luggage — narrow paths or crowds make it awkward to visit with bags.")
+        }
+
+        if let watchOut = fit.watchOut, !lines.contains(where: { $0 == watchOut }) {
+            lines.append(watchOut)
+        }
+
+        return Array(lines.prefix(4))
     }
 }
 
