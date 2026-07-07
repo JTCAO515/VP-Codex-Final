@@ -763,7 +763,7 @@ private struct MerchantCard: View {
     }
 
     private var fitTags: [String] {
-        guard let fit = poi.travelerFit else { return [] }
+        guard let fit = poi.travelerFit(category: category) else { return [] }
         var tags: [String] = []
 
         if fit.firstTimerFit == true {
@@ -888,61 +888,82 @@ private struct PoiDetailSheet: View {
     }
 
     private var whyThisFitsLines: [String] {
-        guard let fit = poi.travelerFit else { return [] }
+        guard let fit = poi.travelerFit(category: category) else { return [] }
         var lines: [String] = []
+        var coveredTopics: Set<WhyThisFitsTopic> = []
+
+        func add(_ topic: WhyThisFitsTopic, _ line: String) {
+            lines.append(line)
+            coveredTopics.insert(topic)
+        }
 
         if fit.firstTimerFit == true {
-            lines.append("A solid pick if this is your first time in China — well-trodden and easy to plan around.")
+            add(.firstTimer, "A solid pick if this is your first time in China — well-trodden and easy to plan around.")
         } else if fit.firstTimerFit == false {
-            lines.append("More of a local spot — worth it if you've already covered the classics.")
+            add(.firstTimer, "More of a local spot — worth it if you've already covered the classics.")
         }
 
         if let payment = fit.paymentFriendliness {
             if payment == "Card accepted" {
-                lines.append("Foreign cards are accepted, so you won't need to rely on cash or a local payment app.")
+                add(.payment, "Foreign cards are accepted, so you won't need to rely on cash or a local payment app.")
             } else if payment == "Cash only" {
-                lines.append("Cash only here — bring RMB since cards and mobile pay may not work.")
+                add(.payment, "Cash only here — bring RMB since cards and mobile pay may not work.")
             }
         }
 
         if fit.languageDifficulty == "Lower" {
-            lines.append("English menus or service are available, so language shouldn't be a big barrier.")
+            add(.language, "English menus or service are available, so language shouldn't be a big barrier.")
         } else if fit.languageDifficulty == "Higher" {
-            lines.append("Little English on-site — a translation app will help.")
+            add(.language, "Little English on-site — a translation app will help.")
         }
 
         if let routeFit = fit.routeFit, routeFit.localizedCaseInsensitiveContains("metro") {
-            lines.append("Easy to reach by metro, so it slots in well with the rest of a walking or transit-based day.")
+            add(.route, "Easy to reach by metro, so it slots in well with the rest of a walking or transit-based day.")
         }
 
         if fit.rainyDayFit == true {
-            lines.append("Mostly indoors, so it's a good rainy-day option.")
+            add(.rain, "Mostly indoors, so it's a good rainy-day option.")
         } else if fit.rainyDayFit == false {
-            lines.append("Best enjoyed outdoors — check the weather before you go.")
+            add(.rain, "Best enjoyed outdoors — check the weather before you go.")
         }
 
         if fit.nightFit == true {
-            lines.append("Stays open late, so it also works as an evening plan.")
+            add(.night, "Stays open late, so it also works as an evening plan.")
         } else if fit.nightFit == false {
-            lines.append("Better in daytime — it winds down early in the evening.")
+            add(.night, "Better in daytime — it winds down early in the evening.")
         }
 
         if fit.crowdRisk == "High" {
-            lines.append("Popular spot, so expect crowds — arriving early can help.")
+            add(.crowd, "Popular spot, so expect crowds — arriving early can help.")
         }
 
         if fit.luggageFit == true {
-            lines.append("Fine to visit with luggage in tow, such as on an arrival or departure day.")
+            add(.luggage, "Fine to visit with luggage in tow, such as on an arrival or departure day.")
         } else if fit.luggageFit == false {
-            lines.append("Better without luggage — narrow paths or crowds make it awkward to visit with bags.")
+            add(.luggage, "Better without luggage — narrow paths or crowds make it awkward to visit with bags.")
         }
 
-        if let watchOut = fit.watchOut, !lines.contains(where: { $0 == watchOut }) {
-            lines.append(watchOut)
+        // watchOut (ExploreModels.swift: TravelerFitDeriver.watchOut) is derived
+        // from crowdRisk == "High", else rainyDayFit == false — mirrored here so
+        // we can skip it when that same topic already produced a line above.
+        // Comparing the final wording (as before) doesn't work: watchOut's copy
+        // ("Expect crowds at peak times.") never matches the crowd-topic line's
+        // wording ("Popular spot, so expect crowds...") as an exact string, so
+        // both used to get appended — two lines about the one same signal,
+        // wasting slots in the 4-line cap (Issue #123/#158).
+        if let watchOut = fit.watchOut {
+            let watchOutTopic: WhyThisFitsTopic? = fit.crowdRisk == "High" ? .crowd : (fit.rainyDayFit == false ? .rain : nil)
+            if watchOutTopic.map({ !coveredTopics.contains($0) }) ?? true {
+                lines.append(watchOut)
+            }
         }
 
         return Array(lines.prefix(4))
     }
+}
+
+private enum WhyThisFitsTopic {
+    case firstTimer, payment, language, route, rain, night, crowd, luggage
 }
 
 private struct NoticeBanner: View {

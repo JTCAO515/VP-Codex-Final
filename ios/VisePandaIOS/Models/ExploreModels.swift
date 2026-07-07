@@ -310,7 +310,16 @@ struct ExploreAmapPoi: Decodable, Identifiable, Equatable {
     }
 
     var travelerFit: TravelerFit? {
-        TravelerFitDeriver.derive(from: self)
+        TravelerFitDeriver.derive(from: self, category: nil)
+    }
+
+    /// Category-aware variant: some fields don't generalize across every POI
+    /// type (see `nightFit`, which is meaningless for `.hotels` — front desks
+    /// are ~always "24 hours", so it fires on nearly every hotel and adds no
+    /// signal). UI call sites that know the POI's category should prefer
+    /// this over the bare `travelerFit` computed property.
+    func travelerFit(category: ExploreCategory) -> TravelerFit? {
+        TravelerFitDeriver.derive(from: self, category: category)
     }
 }
 
@@ -355,7 +364,7 @@ private extension KeyedDecodingContainer {
 }
 
 private enum TravelerFitDeriver {
-    static func derive(from poi: ExploreAmapPoi) -> TravelerFit? {
+    static func derive(from poi: ExploreAmapPoi, category: ExploreCategory?) -> TravelerFit? {
         let text = searchText(for: poi)
         guard !text.isEmpty else { return nil }
 
@@ -364,9 +373,13 @@ private enum TravelerFitDeriver {
         fit.paymentFriendliness = paymentFriendliness(text: text)
         fit.languageDifficulty = languageDifficulty(text: text)
         fit.rainyDayFit = rainyDayFit(text: text)
-        fit.nightFit = nightFit(openingText: poi.opentimeWeek)
+        // Hotel front desks are ~always "24 hours" — that's the accommodation
+        // industry norm, not a signal, so nightFit is meaningless for .hotels
+        // and would otherwise fire on nearly every hotel POI (Issue #123/#156).
+        fit.nightFit = category == .hotels ? nil : nightFit(openingText: poi.opentimeWeek)
         fit.crowdRisk = crowdRisk(text: text, rating: poi.ratingValue)
         fit.luggageFit = luggageFit(text: text)
+        fit.routeFit = routeFit(text: text)
         fit.watchOut = watchOut(for: fit)
 
         return fit.isEmpty ? nil : fit
@@ -396,43 +409,49 @@ private enum TravelerFitDeriver {
     }
 
     private static func firstTimerFit(text: String, rating: Double?) -> Bool? {
-        if containsAny(text, ["first-timer", "first timer", "beginner", "classic", "landmark", "vp pick"]) {
+        if containsAny(text, [
+            "first-timer", "first timer", "beginner", "classic", "landmark", "vp pick",
+            "地标", "必去", "经典", "网红打卡"
+        ]) {
             return true
         }
-        if containsAny(text, ["local-only", "locals only", "hard to find"]) {
+        if containsAny(text, ["local-only", "locals only", "hard to find", "小众", "本地人才知道"]) {
             return false
         }
-        if let rating, rating >= 4.6, containsAny(text, ["museum", "scenic", "sight", "attraction"]) {
+        if let rating, rating >= 4.6, containsAny(text, ["museum", "scenic", "sight", "attraction", "博物馆", "风景名胜", "纪念馆"]) {
             return true
         }
         return nil
     }
 
     private static func paymentFriendliness(text: String) -> String? {
-        if containsAny(text, ["card accepted", "visa accepted", "mastercard accepted", "foreign card"]) {
+        if containsAny(text, ["card accepted", "visa accepted", "mastercard accepted", "foreign card", "支持境外卡", "可刷外卡"]) {
             return "Card accepted"
         }
-        if containsAny(text, ["cash only", "cash-only"]) {
+        if containsAny(text, ["cash only", "cash-only", "仅收现金", "只收现金", "不支持刷卡"]) {
             return "Cash only"
         }
         return nil
     }
 
     private static func languageDifficulty(text: String) -> String? {
-        if containsAny(text, ["english menu", "english service", "foreigner-friendly", "foreign visitor"]) {
+        if containsAny(text, ["english menu", "english service", "foreigner-friendly", "foreign visitor", "英文菜单", "英语服务", "会说英语"]) {
             return "Lower"
         }
-        if containsAny(text, ["chinese only", "no english", "local-only"]) {
+        if containsAny(text, ["chinese only", "no english", "local-only", "仅中文", "不提供英文服务"]) {
             return "Higher"
         }
         return nil
     }
 
     private static func rainyDayFit(text: String) -> Bool? {
-        if containsAny(text, ["museum", "mall", "shopping", "hotel", "spa", "massage", "ktv", "cinema", "teahouse"]) {
+        if containsAny(text, [
+            "museum", "mall", "shopping", "hotel", "spa", "massage", "ktv", "cinema", "teahouse",
+            "博物馆", "商场", "购物中心", "酒店", "宾馆", "按摩", "温泉", "电影院", "茶馆", "美术馆", "展览馆"
+        ]) {
             return true
         }
-        if containsAny(text, ["park", "garden", "mountain", "beach", "outdoor"]) {
+        if containsAny(text, ["park", "garden", "mountain", "beach", "outdoor", "公园", "花园", "山", "海滩", "广场", "步行街"]) {
             return false
         }
         return nil
@@ -452,19 +471,35 @@ private enum TravelerFitDeriver {
         return latestHour >= 21
     }
 
+    // Shared by crowdRisk and luggageFit: a POI that reads as "crowded"
+    // should consistently show up as both a crowd-risk signal and a
+    // luggage-unfriendly signal, instead of the two rules disagreeing on
+    // which synonyms count (Issue #123/#157).
+    private static let crowdedKeywords = [
+        "crowded", "busy", "popular", "hot spot", "landmark",
+        "拥挤", "人多", "网红", "地标"
+    ]
+
     private static func crowdRisk(text: String, rating: Double?) -> String? {
-        if containsAny(text, ["crowded", "busy", "popular", "hot spot", "landmark"]) || (rating ?? 0) >= 4.7 {
+        if containsAny(text, crowdedKeywords) || (rating ?? 0) >= 4.7 {
             return "High"
         }
         return nil
     }
 
     private static func luggageFit(text: String) -> Bool? {
-        if containsAny(text, ["hotel", "mall", "airport", "railway station", "train station"]) {
+        if containsAny(text, ["hotel", "mall", "airport", "railway station", "train station", "酒店", "宾馆", "商场", "机场", "火车站", "高铁站"]) {
             return true
         }
-        if containsAny(text, ["park", "garden", "mountain", "temple", "crowded"]) {
+        if containsAny(text, ["park", "garden", "mountain", "temple", "公园", "花园", "山", "寺庙", "寺"] + crowdedKeywords) {
             return false
+        }
+        return nil
+    }
+
+    private static func routeFit(text: String) -> String? {
+        if containsAny(text, ["metro", "subway", "地铁", "地铁站", "地铁直达"]) {
+            return "Near metro"
         }
         return nil
     }
