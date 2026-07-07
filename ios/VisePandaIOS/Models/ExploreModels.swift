@@ -471,8 +471,17 @@ private enum TravelerFitDeriver {
         return latestHour >= 21
     }
 
+    // Shared by crowdRisk and luggageFit: a POI that reads as "crowded"
+    // should consistently show up as both a crowd-risk signal and a
+    // luggage-unfriendly signal, instead of the two rules disagreeing on
+    // which synonyms count (Issue #123/#157).
+    private static let crowdedKeywords = [
+        "crowded", "busy", "popular", "hot spot", "landmark",
+        "拥挤", "人多", "网红", "地标"
+    ]
+
     private static func crowdRisk(text: String, rating: Double?) -> String? {
-        if containsAny(text, ["crowded", "busy", "popular", "hot spot", "landmark", "拥挤", "人多", "网红", "地标"]) || (rating ?? 0) >= 4.7 {
+        if containsAny(text, crowdedKeywords) || (rating ?? 0) >= 4.7 {
             return "High"
         }
         return nil
@@ -482,7 +491,7 @@ private enum TravelerFitDeriver {
         if containsAny(text, ["hotel", "mall", "airport", "railway station", "train station", "酒店", "宾馆", "商场", "机场", "火车站", "高铁站"]) {
             return true
         }
-        if containsAny(text, ["park", "garden", "mountain", "temple", "crowded", "公园", "花园", "山", "寺庙", "寺", "拥挤"]) {
+        if containsAny(text, ["park", "garden", "mountain", "temple", "公园", "花园", "山", "寺庙", "寺"] + crowdedKeywords) {
             return false
         }
         return nil
