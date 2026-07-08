@@ -1,5 +1,7 @@
 # VisePanda 商业化路线规划（Monetization Roadmap）
 
+状态：ACTIVE（V1 现有代码线语境）。商业模型与硬决策已整体吸收进 V2 定稿基线 `visepanda-v2-final-architecture.md`；若「新旧仓库取舍」决策落定为 V2 绿地重启，本文档随 V1 线一并归档。
+
 日期：2026-07-07
 性质：规划定稿，只规划不执行。执行前必须先定第 3 节的 4 个硬决策。
 来源：操作者提出「跳转佣金 + 商家入驻」两条商业线 → Codex 初版方案（含 DeepSeek/Kimi/Qwen/GLM 四模型视角对抗评审）→ 架构师补全定稿。

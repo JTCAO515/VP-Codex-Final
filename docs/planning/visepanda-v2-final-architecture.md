@@ -1,7 +1,9 @@
 # VisePanda V2 最终版：绿地重构总体方案（定稿）
 
-日期：2026-07-07
-性质：**定稿**。合并两份独立绿地方案——Codex 版（Clean-Room 重构：contract-first + GPT-5.5 智能层）与 Fable 5 版（`visepanda-v2-greenfield-architecture.md`：TS 单语言 monorepo + 知识库飞轮）——逐条裁决分歧后的最终架构。后续 V2 相关的一切规划以本文档为准，前两份保留作推导过程存档。
+状态：**ACTIVE / FROZEN BASELINE**（基线已冻结，2026-07-07）
+日期：2026-07-07（第三轮蒸馏收敛后合入 Codex 6 条修正，见附录 A）
+性质：**定稿基线**。合并两份独立绿地方案——Codex 版（Clean-Room 重构：contract-first + GPT-5.5 智能层）与 Fable 5 版（`visepanda-v2-greenfield-architecture.md`：TS 单语言 monorepo + 知识库飞轮）——逐条裁决分歧后的最终架构。后续 V2 相关的一切规划以本文档为准，前两份已标注 superseded。
+**基线修改规则**：只有两种输入有资格改动本基线——① 真实用户数据推翻假设；② 硬决策落定（见「V2 硬决策清单」issue）。改动一律走「修正案」（diff + 理由），禁止全文重写。新的 AI 观点不构成修改理由（三轮蒸馏已收敛，diff 趋零）。
 前提不变：不复用、不迁移、不兼容旧代码/旧数据/旧接口/旧进度；唯一继承的是产品想法与「信任漏斗」商业方向。
 
 ---
@@ -241,9 +243,13 @@ events (id, user_id?, anon_id, surface, action, entity_type, entity_id,
 
 单用户单日 token 预算按权益分层（free 硬顶 / pass 放宽）——成本控制是权益系统的一部分。不绑任何 Agent 编排框架，编排是自有的薄管道。
 
-### 5.3 提示词档案（9 个 profile，非 9 个 Agent）
+### 5.3 提示词档案（起步 4 个能力模块，非多 Agent）
 
-`intent_router / trip_planner / local_expert / logistics / commerce / translation / safety / memory / human_handoff`——同一管道按路由结果加载不同 profile+工具集。评估按 profile 分套（§7），未来任何 profile 需要独立化再拆。
+**Phase 0 只上 4 个能力模块**（Codex 第三轮修正，采纳）：
+
+`router / trip_writer / knowledge_qa / commerce_human_handoff`
+
+——同一管道按路由结果加载不同 profile+工具集，不是独立 Agent。翻译、安全红线、记忆读写作为工具/中间件挂在管道上，不单立模块。评估按模块分套（§7）。当真实复杂度出现（某模块的 eval 失败模式明显分化）再拆细到 9 个 profile（trip_planner / local_expert / logistics / translation / safety / memory 等），拆分本身不改管道结构。
 
 ### 5.4 记忆与隐私
 
@@ -258,7 +264,7 @@ events (id, user_id?, anon_id, surface, action, entity_type, entity_id,
 | 收入线 | 对象 | 定价 | 账本链 | 角色 |
 |---|---|---|---|---|
 | Affiliate 外跳 | outbound_clicks/commissions | 佣金（归因按五折预估） | click→(order import)→commission | 意图温度计 |
-| Trip Pass | entitlements/orders | $9.99/7d、$19.99/14d、$34.99/30d | order→payment | 覆盖 LLM 成本+解锁离线包/优先响应 |
+| Trip Pass | entitlements/orders | $9.99/7d、$19.99/14d、$34.99/30d | order→payment | 覆盖 LLM 成本+解锁离线包/优先响应。**时序：Human Task 验证愿付费之后才上定价实验（Phase 2），不作为第一条被验证的收入线**（Codex 第三轮修正，采纳） |
 | Human Task | human_tasks/orders | $14.99 起（quoted 定价） | order→payment→(settlement) | 信任建立器+数据采集器 |
 | 定制询价 | quotes/leads | lead fee $50–200 或成交 5–10% | lead→settlement（B2B 月结） | 利润区，仅重复访客可见 |
 
@@ -313,8 +319,10 @@ events (id, user_id?, anon_id, surface, action, entity_type, entity_id,
 ### Phase 0 — Clean Foundation + Web MVP（唯一按日历的阶段：8 周内公开）
 
 基建（Codex 清单）：monorepo + packages/domain v1 + auth + Postgres schema v1 + copilot 管道骨架 + trace 落库 + CI（typecheck/单测/契约测试/evals 门槛）+ Issue/PR 模板。
-产品（Fable 5 刀刃集）：Copilot 对话+画布（信封+Patch 管道完整，两轮生成）；北京+上海知识库（人工核实 fact）；支付/eSIM/网络三篇深度指南（=SEO 页）；**Human Task 表单+Stripe 链接（创始人手动处理）**；outbound 网关+统一遥测+漏斗看板；programmatic SEO 首批 ~200 页。
-明确不做：App、商家后台、佣金对账、多语言 UI。
+产品（Fable 5 刀刃集）：Copilot 对话+画布（信封+Patch 管道完整，两轮生成）；北京+上海知识库（人工核实 fact）；支付/eSIM/网络三篇深度指南（=SEO 页）；**Human Task 表单+Stripe 链接（创始人手动处理）**；outbound 网关+统一遥测；**programmatic SEO 首批 ~200 页（Phase 0 最高优先级交付之一——低 CAC 的根，越早上线越早积累索引）**。
+**Ops 最小台随 Phase 0 一起上**（Codex 第三轮修正，采纳：知识库和人工兜底靠运营台活着，Ops 早于 App）：三个列表页——人工任务列表（手动改状态）、POI fact 编辑、knowledge gaps 列表。不多做一个像素。
+商业看板：**第一版 = events 表 + 物化视图 + SQL 查询，不做 BI/dashboard UI**（Codex 第三轮修正，采纳）。
+明确不做：App、商家后台、佣金对账自动化、多语言 UI、dashboard UI。
 
 ### Phase 1 — 触发：周活 ≥ 200 真实外国用户 或 Human Task ≥ 20 单
 
@@ -383,3 +391,20 @@ take rate + 平台内分账；商家自助程度提升（仍白名单）。
 **技术**：Next.js+Expo+Node 单体，domain 包唯一真理源，AI 只出经校验的信封+Patch，双供应商模型路由。
 **商业**：四条收入线全部账本化；信任漏斗逐层物化；Stripe 为主 IAP 为辅；创始人 concierge 冷启动。
 **节奏**：8 周 Web MVP（含第一笔 Human Task 收入的通路），此后一切按触发条件解锁，不按日历烧钱。
+
+---
+
+## 附录 A：第三轮蒸馏收敛记录（2026-07-07，基线冻结依据）
+
+Codex 读完本定稿后的回应为「基本认同主干」+ 6 条修正，全部采纳并已合入正文：
+
+| # | Codex 修正 | 处理 |
+|---|---|---|
+| 1 | Agent 不要一开始拆 9 个，先 4 个能力模块 | §5.3 改为 router/trip_writer/knowledge_qa/commerce_human_handoff 起步，复杂度出现再拆 |
+| 2 | Trip Pass 不要过早作为核心收入，先验证 Human Task | §6.1 Trip Pass 行加时序说明：定价实验在 Human Task 验证后（Phase 2） |
+| 3 | Ops 台要比 App 更早做 | §8 Phase 0 显式加入 Ops 最小台（任务列表/fact 编辑/gaps 列表三个列表页） |
+| 4 | 商业 dashboard 第一版只做 event 表+物化视图 | §8 Phase 0 明确「不做 BI/dashboard UI」，加入不做清单 |
+| 5 | Programmatic SEO 要更早 | §8 Phase 0 标注 SEO 为最高优先级交付之一 |
+| 6 | Mobile 触发条件驱动 | 定稿原有（Phase 1 触发条件），无需改动 |
+
+**收敛判定**：第一轮=两份独立全文方案；第二轮=15 项分歧裁决；第三轮=6 条小修正且全部相容、零结构性分歧。diff 趋零，蒸馏关闭。自本记录起基线冻结，后续修改只接受「真实用户数据」或「硬决策落定」两种输入，走修正案格式。
