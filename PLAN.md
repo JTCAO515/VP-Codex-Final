@@ -905,3 +905,17 @@ Next three planned iterations:
 - 不做候选删除/收藏/排序。
 - 不做 checkout、库存、支付、退款、订单管理。
 - 不新增 Supabase schema、外部 API key 或生产 FlyAI 调用。
+
+## v0.3.23 附录 —— Codex Harness 集成评估(纯研究,已完成)
+
+- [x] 核查操作者提供的外部(GPT)Codex Harness 方案:确认其引用的基线 commit `f1f9de31…` 在本仓库不存在,其 monorepo 结构与全部关键类型(`CopilotEnvelope`/`TripPatch`/`ExecutionFactSupport`/`CompletionJob`/Content AI)0 命中,ADR/Issue 编号体系对不上 → 该报告描述的不是本仓库,具体落点不可执行。
+- [x] 逐条核实 Codex 开源边界:Apache-2.0、三种集成方式、app-server WebSocket 官方逐字标注实验性/不支持生产、`codex-action` 只接受 API key(订阅不可用)。诚实记录未能核实项(官方文档域名被本会话出站策略拦截,`codex exec` 参数名待本地 `--help` 核对)。
+- [x] 新增 `docs/planning/v0.3.23-codex-harness-assessment.md`,含事实核查表、已核实/未核实清单、与外部报告的逐项对比表。
+- [x] 确立 ADR-123:harness 定位为开发侧受约束只读检查;**iOS 构建验证必须用确定性 `xcodebuild` CI 而非 AI**;harness 首选用途为跨语言契约漂移检查。
+
+发现的待办(未在本轮实施):
+
+- [ ] **【P0】`ios-ci.yml`**:macOS runner + `xcodebuild` 构建/测试,`paths: ["ios/**"]` 严格限定以控制计费。不需要任何 AI 或新 key。
+- [ ] **【P1】跨语言契约漂移检查**:先本地手动跑,验证在已知历史漂移上的准确率,再考虑以 PR 建议评论(不阻断合并)形式进 CI。进 CI 需要 OpenAI API key。
+- [ ] 【暂不做】操作者三句话术 relay 自动化;【优先级下调】PR preflight(Claude Code 已是 Reviewer,增量有限)。
+

@@ -1,5 +1,29 @@
 # VisePanda Changelog
 
+## v0.3.23 - 2026-08-21
+
+**Codex Harness 集成评估(修订版)。** 操作者提供了一份外部(GPT)撰写的《VisePanda Codex Harness 集成研究与实施方案》并要求核查、对比、汇总重写。纯研究轮,不改任何运行时代码、CI、依赖或 key。
+
+新增 `docs/planning/v0.3.23-codex-harness-assessment.md`。
+
+### 事实核查结果(本轮最重要的产出)
+- 外部报告引用的基线 commit `f1f9de31eb16ca17266177d484ac617bc924aaf7` **在本仓库不存在**(`git cat-file` 无此对象)。
+- 它描述的 monorepo 结构(`packages/domain`、`apps/server`、`apps/ops`)在本仓库**不存在**;`CopilotEnvelope`、`TripPatch`、`expectedVersion`、`ExecutionFactSupport`、`CompletionJob`、QStash、Content AI 模块**全部 0 命中**;它引用的 ADR 是四位数编号(ADR-0022/0023/0024),本仓库是三位数(ADR-070…ADR-122);它引用的 Issue 是 #496/#499-#508,本仓库当前在 #150-#166 区间。
+- 结论:那份报告**要么针对另一个仓库,要么是在未读到真实代码的情况下推断出来的**。它关于 Codex 本身的技术判断基本准确(已逐条核实),但**所有具体落点(文件路径、模块结构、CH-00…CH-13 任务编号)在本仓库不可执行**。
+
+### 已核实的 Codex 事实
+- `openai/codex` 为 Apache-2.0;三种集成方式 `codex exec` / SDK / app-server。
+- app-server 的 WebSocket 传输官方**逐字**标注:"Websocket transport is currently experimental and unsupported. Do not rely on it for production workloads."
+- `openai/codex-action` **只接受 provider API key,ChatGPT 订阅不可用于 GitHub Action**;它自带 `permission-profile` 与 `safety-strategy`(默认 `drop-sudo`)。
+- **未能核实**:`codex exec` 的确切参数名与 `sandbox_mode`/`approval_policy` 枚举值——`developers.openai.com` 与 `learn.chatgpt.com` 均被本会话出站网络策略拦截(403,已用代理状态端点确认为策略拒绝,未绕过)。落地前必须本地 `codex exec --help` 核对。
+
+### 本仓库真实现状带来的结论修正
+- **Codex 早已是本项目的 iOS 工程师**(`WORKFLOW.md` 三 Agent 工作流),外部报告"把 Codex 当待评估新工具"的框架已过时。
+- **发现 P0 漏洞:iOS 泳道没有任何 CI**(只有 `android-ci.yml` 与 `web-ci.yml`),`WORKFLOW.md` 原话"iOS 无 CI,截图是硬要求"。当前 iOS 质量链条**全程没有独立于实现者的验证环节**。
+- **关键方法论分歧**:该 P0 漏洞的正确解法是 macOS runner 上的确定性 `xcodebuild`,**不是**再叠一层 AI preflight——在有确定性手段可用的地方引入 AI 判断,是把可证伪的事实降级成概率意见。
+- **确立 harness 首选用途:跨语言契约漂移检查**。同一份行程契约现在有 TS/Kotlin/Swift 三份实现(`lib/types/trip.ts` / `TripModels.kt` / `TripModels.swift`),由三个不同 AI 分别维护,ADR-094 要求 Web↔Android 行为一致但**无任何自动检查**,iOS 更是没有等价 ADR 覆盖。这是确定性 linter 做不了、而受约束只读 AI 恰好擅长的语义比对。
+- 游客产品仍**绝不**接入 harness——此判断与外部报告一致。
+
 ## v0.3.20 - 2026-07-05
 
 **Chat 全链路多角度审计 + 加固轮。** 操作者指令"深度研究chatbot的对话性...穷尽你的想法去优化chat，多角度查chat的bug，并修复"，架构师自派任务:先跑一次覆盖 8 个维度(持久化/流式/提示词/并发/前端边界/意图分类/工具卡拦截)的只读审计,再据此修复(ADR-122)。

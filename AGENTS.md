@@ -742,3 +742,14 @@ v0.1.52 is a documentation-only strategic interaction iteration. Deep-dive: `doc
 5. KMM（Kotlin Multiplatform）被外部模型提出可以从根本上解决双端分叉，操作者未决定投入，是已知但未采纳的长期选项，不纳入近期任务。
 
 详见 `docs/planning/final-product-positioning-moat-and-risk-assessment.md`。
+
+## v0.3.23 Agent 更新 —— Codex Harness 边界 + 外部报告核查纪律
+
+- **Codex 已经是本项目的 iOS 工程师**(`WORKFLOW.md`)。任何讨论"要不要引入 Codex"的方案都基于过时前提;真正的问题是"harness 开源能否给已有三个 Agent 加确定性护栏"。
+- **iOS 泳道当前没有 CI**(只有 `android-ci.yml`/`web-ci.yml`)。在补上 macOS runner 的 `xcodebuild` 确定性 CI 之前,iOS PR 的"已验证"声明**全部来自实现者自述**,审核时必须把这一点当成已知风险,不能把截图等同于 CI 绿灯。
+- **不要用 AI 去补确定性手段能补的洞**(ADR-123)。有 `xcodebuild`/`gradlew`/`vitest` 可用的地方,先用它们;AI 检查只应用在语义比对这类确定性工具做不了的地方。
+- **Codex Harness 若要落地,首选用途是跨语言契约漂移检查**——`lib/types/trip.ts` / `TripModels.kt` / `TripModels.swift` 三份实现由三个不同 AI 维护,ADR-094 要求行为一致但无自动检查,iOS 无等价 ADR 覆盖。只读、结构化输出、先作建议不阻断合并。
+- **绝不**把 harness 接进游客产品;**绝不**给模型 job 合并/部署/migration 权限;**绝不**把 `~/.codex/auth.json` 放进仓库、Vercel、GitHub Secret 或聊天。
+- **`openai/codex-action` 只接受 provider API key,ChatGPT/Codex 订阅不可用于 GitHub Action**(已核实)。任何"用现有订阅跑 CI"的方案都不成立。
+- **外部报告核查纪律(本轮教训)**:收到任何外部 AI 出具的、声称针对本仓库的方案时,先核查它引用的 commit SHA 是否存在(`git cat-file -t <sha>`)、它引用的文件路径/类型名/ADR 编号/Issue 编号是否真的在仓库里。本轮那份报告在这四项上全部对不上——技术判断可以借鉴,但具体落点必须重写。
+

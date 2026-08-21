@@ -1018,3 +1018,14 @@ UI 参考:操作者提供 Lovable 预览与 Figma Make `Design According to MD D
 排除:未实现 Web 端的 `preferenceProfile` 提取系统(独立子系统,非本轮范围);未建模仅用于 Web 端自身调试的 `intent`/`strategy`/`providersTried`/`toolContext` 响应字段;未接 `toolCards.href` 深链(Tools 仍是占位页)。
 
 意外发现:一个此前从未被诊断出来的真实 bug——OkHttp 默认超时导致 Chat 从 v0.3.6 起就从未真正成功调用过真实 AI(每次都无声兜底到离线 mock),而不是"这轮才接上"。这是本轮最主要的价值,而非新增功能。Tools/Explore 占位文案顺延为 v0.3.13/v0.3.14(因本轮用掉了 v0.3.12)。详见 HANDOFF.md/DESIGN.md ADR-116 的完整记录。
+
+
+## v0.3.23 需求更新 —— Codex Harness 集成评估(纯研究,已完成)
+
+需求来源:操作者提供外部(GPT)撰写的《VisePanda Codex Harness 集成研究与实施方案》,要求研究 Codex harness 开源后能否加入 VisePanda 开发、如何用它优化产品,并与该报告对比后汇总重写。
+
+交付:`docs/planning/v0.3.23-codex-harness-assessment.md`。核心结论——(1) Codex 早已是本项目 iOS 工程师,问题前提需修正;(2) 发现 iOS 泳道无 CI 这一 P0 漏洞,且其正确解法是确定性 `xcodebuild` 而非 AI;(3) harness 的首选用途是跨语言契约漂移检查(TS/Kotlin/Swift 三份实现由三个 AI 维护、无自动检查);(4) 游客产品绝不接入 harness,仅借鉴"界面持有业务记录 + Agent 提议 + 有后果动作等待确认"的模式,该模式与现有 `CanvasPatch` 管道设计意图已经一致,不需要新依赖。
+
+验收标准:外部报告的每条事实性断言都经过仓库内核查或一手来源核实,核查不通过的逐条列出;本会话无法核实的部分(官方文档域名被出站策略拦截)明确标注并给出本地核对方法,不以推测冒充结论。
+
+排除:不写任何脚本/workflow/运行时代码,不新增依赖、key 或 CI,不修改 `WORKFLOW.md` 三 Agent 流程,不为外部报告的 CH-xx 任务建 Issue(编号体系与本仓库不符)。
